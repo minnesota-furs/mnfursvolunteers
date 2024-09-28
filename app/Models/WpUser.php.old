@@ -1,0 +1,13 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+use Corcel\Model\User as Corcel;
+
+class WpUser extends Corcel
+{
+    protected $connection = 'corcel';
+}
