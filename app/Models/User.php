@@ -21,7 +21,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'active',
         'wordpress_user_id',
+        'primary_dept_id',
+        'primary_sector_id',
         'is_linked_to_wp',
     ];
 
@@ -47,6 +50,16 @@ class User extends Authenticatable
 
     public function volunteerHours()
     {
-        return $this->hasMany(VolunteerHour::class);
+        return $this->hasMany(VolunteerHours::class);
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class, 'primary_dept_id');
+    }
+
+    public function sector()
+    {
+        return $this->belongsTo(Sector::class, 'primary_sector_id');
     }
 }
