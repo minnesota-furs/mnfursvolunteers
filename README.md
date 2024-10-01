@@ -4,6 +4,13 @@
 
 This Project is set to accomplish volunteer & staff tracking with some connections to the Wordpress site for user-associations.
 
+## Project Requirements
+
+- PHP >= 8.2 (with [Composer](https://getcomposer.org/))
+- Required [PHP extensions](https://laravel.com/docs/11.x/deployment#server-requirements)
+- Node.js 21
+- MySQL (Tested with version 8.0.36)
+
 ## Quickstart
 
 ### Developer Environment (Option 1: Laravel Herd)
