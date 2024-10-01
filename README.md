@@ -1,11 +1,41 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# MNFursVolunteers
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## About mnfursvolunteers
+
+This Project is set to accomplish volunteer & staff tracking with some connections to the Wordpress site for user-associations.
+
+## Quickstart
+
+### Developer Environment (Option 1: Laravel Herd)
+
+The fastest way to get going in a environment is leveriaging the Laravel development environment, [Laravel Herd](https://herd.laravel.com).
+
+> Herd is a blazing fast, native Laravel and PHP development environment for Windows. It provides everything that you need to get started with Laravel development. It ships with PHP, nginx, and Node.js.
+>
+> You can integrate Herd with Laravel Forge and use a single tool from setting up your site locally to deploying it on a remote server.
+
+### Developer Environment (Option 2: Laravel Sail)
+
+> [Laravel Sail](https://laravel.com/docs/11.x/sail#introduction) is a light-weight command-line interface for interacting with Laravel's default Docker development environment. Sail provides a great starting point for building a Laravel application using PHP, MySQL, and Redis without requiring prior Docker experience.
+>
+> At its heart, Sail is the `docker-compose.yml` file and the `sail` script that is stored at the root of your project. The `sail` script provides a CLI with convenient methods for interacting with the Docker containers defined by the `docker-compose.yml` file.
+
+You may run across the "[Laravel Sail Paradox](https://stackoverflow.com/questions/71234071/laravel-sail-paradox-there-are-any-way-to-install-without-php-and-composer-ins)" though because it requires composer, which requires php. If so, you can run this:
+
+```bash
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v $(pwd):/var/www/html \
+    -w /var/www/html \
+    laravelsail/php83-composer:latest \
+    composer install --ignore-platform-reqs
+```
+
+### Developer Environment (Option 3: Docker)
+
+The final fallback is just using Docker. The project has a docker-compose.yml, you just need to create `.env` to get started. You can copy `.env.example` to `.env`.
+
+Once you're good to go, in the project root, run `docker compose up`.
 
 ## About Laravel
 
