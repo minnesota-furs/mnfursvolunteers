@@ -26,6 +26,7 @@ class User extends Authenticatable
         'primary_dept_id',
         'primary_sector_id',
         'is_linked_to_wp',
+        'notes',
     ];
 
     /**

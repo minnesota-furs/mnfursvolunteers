@@ -12,9 +12,18 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::all();
+        $search = $request->input('search');
+
+        // Check if a search term exists and filter users, otherwise return all users
+        $users = User::when($search, function($query, $search) {
+            return $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+        })->paginate(10);
+
+        // Append the search term to pagination links
+        $users->appends(['search' => $search]);
 
         return view('users.index', [
             'users'     => $users
@@ -67,7 +76,24 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Validate the incoming request data
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $id,  // Ensure unique email except for this user
+            'active' => 'required|boolean',                     // Ensures 'active' is either 0 or 1 (boolean)
+            'notes' => 'nullable|string',                       // 'notes' can be a string, maximum 255 characters, or null
+            'primary_sector_id' => 'integer|exists:sectors,id',   // Ensure 'sector' is a valid integer and exists in the sectors table
+        ]);
+
+        // Find the user by ID
+        $user = User::findOrFail($id);
+
+        // Update the user profile with the validated data
+        $user->update($validated);
+
+        // Optionally, flash a success message to the session
+        return redirect()->route('users.show', $user->id)
+                        ->with('success', 'Profile updated successfully!');
     }
 
     /**
