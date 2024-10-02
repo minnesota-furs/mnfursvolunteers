@@ -18,4 +18,9 @@ class Department extends Model
     {
         return $this->belongsTo(Sector::class);
     }
+
+    public function volunteerHours()
+    {
+        return $this->hasMany(VolunteerHours::class);
+    }
 }

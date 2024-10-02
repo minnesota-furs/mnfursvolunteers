@@ -52,10 +52,10 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        $user = User::find($id);
-        return view('users.show', [
-            'user'     => $user
-        ]);
+        $user = User::findOrFail($id);
+        $volunteerHours = $user->volunteerHours()->orderby('id','desc')->paginate(15);
+
+        return view('users.show', compact('user', 'volunteerHours'));
     }
 
     /**
@@ -93,7 +93,11 @@ class UserController extends Controller
 
         // Optionally, flash a success message to the session
         return redirect()->route('users.show', $user->id)
-                        ->with('success', 'Profile updated successfully!');
+            ->with('success', [
+                'message' => "Volunteer <span class=\"text-brand-green\">{$user->name}</span> updated successfully",
+                'action_text' => 'View User',
+                'action_url' => route('users.show', $user->id),
+            ]);
     }
 
     /**

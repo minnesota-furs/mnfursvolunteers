@@ -14,7 +14,7 @@
         </a>
         <button type="button"
             class="block rounded-md bg-red-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-md hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-            Delete
+            <x-heroicon-s-trash class="w-4 inline"/> Delete
         </button>
     </x-slot>
 
@@ -51,7 +51,15 @@
                                 </div>
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                     <dt class="text-sm font-medium leading-6 text-gray-900">Notes</dt>
-                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">{{ $user->notes }}</dd>
+                                    @if($user->hasNotes())
+                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                    {{ $user->notes }}
+                                        @else
+                                    <dd class="mt-1 text-sm leading-6 text-gray-300 sm:col-span-2 sm:mt-0">
+                                        No Notes recorded...
+                                    @endif
+
+                                    </dd>
                                 </div>
                             </dl>
                         </div>
@@ -68,12 +76,18 @@
                             <dl class="divide-y divide-gray-100">
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                     <dt class="text-sm font-medium leading-6 text-gray-900">Primary Sector</dt>
-                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">{{$user->sector->name}}</dd>
+                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">{{$user->sector->name ?? '-'}}</dd>
                                 </div>
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                     <dt class="text-sm font-medium leading-6 text-gray-900">Primary Dept</dt>
                                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                         -
+                                    </dd>
+                                </div>
+                                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                    <dt class="text-sm font-medium leading-6 text-gray-900">Total Hours</dt>
+                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                        {{$user->totalVolunteerHours()}} hours
                                     </dd>
                                 </div>
                             </dl>
@@ -90,7 +104,9 @@
                     <p class="mt-2 text-sm text-gray-700">Transactional log of recently logged hours for this volunteer/user.</p>
                   </div>
                   <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                    <button type="button" class="block rounded-md bg-brand-green px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">New Hour Log</button>
+                    <a href="{{ route('hours.create', ['user' => $user->id]) }}" class="block rounded-md bg-brand-green px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                        <x-heroicon-m-clock class="w-4 inline"/> New Hour Log
+                    </a>
                   </div>
                 </div>
                 <div class="mt-8 flow-root">
@@ -99,27 +115,41 @@
                       <table class="min-w-full divide-y divide-gray-300">
                         <thead>
                           <tr>
-                            <th scope="col" class="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 ">Transaction ID</th>
+                            <th scope="col" class="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 w-32 sm:pl-0 ">Transaction ID</th>
                             <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">Sector, Department</th>
+                            <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">Short Description</th>
                             <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 w-32">Amount</th>
                             <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 w-32">Notes</th>
-                            <th scope="col" class="relative whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
+                            <th scope="col" class="relative w-16 whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
                               <span class="sr-only">Edit</span>
                             </th>
                           </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white">
+                        @forelse ($volunteerHours as $volunteerHour)
                           <tr>
-                            <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 sm:pl-0">5021</td>
-                            <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-500">Furry Migration, Dealers Den</td>
-                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">23.5 hrs</td>
-                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">Yes</td>
+                            <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 sm:pl-0">{{$volunteerHour->id}}</td>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-400">Unknown</td>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-400">{{$volunteerHour->description}}</td>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">{{$volunteerHour->hours}} hrs</td>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
+                                @if($volunteerHour->hasNotes())
+                                    <x-heroicon-o-check class="w-4"/>
+                                @endif
+                            </td>
                             <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                <a href="#" class="text-blue-600 hover:text-blue-800">Edit<span class="sr-only">, AAPS0L</span></a>
+                                <a href="#" class="text-blue-600 hover:text-blue-800 px-4">Edit<span class="sr-only"></span></a>
                             </td>
                           </tr>
+                        @empty
+                        <tr>
+                            <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center" colspan="6">No hours logged for this user...</td>
+                        </tr>
+                        @endforelse
                         </tbody>
                       </table>
+                      {{ $volunteerHours->links('components.compact-pagination') }}
+                      {{-- {{ $volunteerHours->links() }} --}}
                     </div>
                   </div>
                 </div>

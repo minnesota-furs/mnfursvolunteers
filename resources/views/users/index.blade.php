@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Users') }}
+        {{ __('All Users') }}
     </x-slot>
 
     <div class="">
@@ -8,8 +8,12 @@
             <div class="px-4 sm:px-6 lg:px-8">
                 <div class="sm:flex sm:items-center">
                   <div class="sm:flex-auto">
-                    <h1 class="text-base font-semibold leading-6 text-gray-900">Users</h1>
-                    <p class="mt-2 text-sm text-gray-700">A list of all the users in your account including their name, title, email and role.</p>
+                    <h1 class="text-base font-semibold leading-6 text-gray-900">Users/Volunteers</h1>
+                    <p class="mt-2 text-sm text-gray-700">Listing of all users/volunteers within the organzation including their email, sector/dept, status, and hours.</p>
+                    @if(null !==request('search'))
+                        <p class="mt-2 text-sm text-orange-700"><x-heroicon-s-magnifying-glass class="w-4 inline"/> Currently showing {{count($users)}} result(s) for search term: <span class="underline">{{request('search')}}</span>.
+                            <a class="text-blue-600" href="{{route('users.index')}}">Clear Search</a>
+                    @endif
                   </div>
                   <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                     <a href="{{route('users.create')}}" type="button" class="block rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add user</a>
@@ -23,11 +27,11 @@
                             <thead>
                             <tr>
                                 <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">Name</th>
-                                {{-- <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Title</th> --}}
                                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Sector/Dept</th>
                                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Hours</th>
                                 {{-- <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Role</th> --}}
-                                <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0">
+                                <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0 w-16">
                                 <span class="sr-only">Edit</span>
                                 </th>
                             </tr>
@@ -55,9 +59,10 @@
                                 <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
                                 <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Active</span>
                                 </td>
-                                {{-- <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">Member</td> --}}
+                                <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{{$user->totalVolunteerHours()}}</td>
                                 <td class="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                    <a href="{{route('users.edit', $user->id)}}" class="text-blue-600 hover:text-blue-800">Edit<span class="sr-only">, {{$user->name}}</span></a>
+                                    <a href="{{route('users.show', $user->id)}}" class="text-blue-600 hover:text-blue-800 px-2">View<span class="sr-only">, {{$user->name}}</span></a>
+                                    <a href="{{route('users.edit', $user->id)}}" class="text-blue-600 hover:text-blue-800 px-2">Edit<span class="sr-only">, {{$user->name}}</span></a>
                                     {{-- <x-tailwind-dropdown id="{{$user->id}}">
                                         <div class="py-1" role="none">
                                             <x-tailwind-dropdown-item title="Duplicate" href="#"/>

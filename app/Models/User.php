@@ -63,4 +63,23 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Sector::class, 'primary_sector_id');
     }
+
+    public function totalVolunteerHours()
+    {
+        if (!$this->relationLoaded('volunteerHours')) {
+            $this->load('volunteerHours');
+        }
+
+        return $this->volunteerHours->sum('hours');
+    }
+
+    /**
+     * Check if the volunteer entry has notes set.
+     *
+     * @return bool
+     */
+    public function hasNotes(): bool
+    {
+        return !empty($this->notes);
+    }
 }

@@ -2,6 +2,10 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VolunteerHoursController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\SectorController;
+
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,5 +34,10 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::resource('users', UserController::class);
+Route::resource('sector', SectorController::class);
+Route::resource('department', DepartmentController::class);
+
+Route::get('/hours/create/{user?}', [VolunteerHoursController::class, 'create'])->name('hours.create');
+Route::resource('hours', VolunteerHoursController::class)->except(['create']);
 
 require __DIR__.'/auth.php';
