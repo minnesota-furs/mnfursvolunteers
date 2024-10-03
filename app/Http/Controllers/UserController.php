@@ -53,7 +53,9 @@ class UserController extends Controller
     public function show(string $id)
     {
         $user = User::findOrFail($id);
-        $volunteerHours = $user->volunteerHours()->orderby('id','desc')->paginate(15);
+        $volunteerHours = $user->volunteerHours()
+            ->orderByRaw('COALESCE(volunteer_date, created_at) DESC')
+            ->paginate(15);
 
         return view('users.show', compact('user', 'volunteerHours'));
     }

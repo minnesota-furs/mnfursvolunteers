@@ -73,6 +73,45 @@ class User extends Authenticatable
         return $this->volunteerHours->sum('hours');
     }
 
+    public function totalVolunteerHoursForFiscalPeriod($fiscalLedgerId)
+    {
+        if (!$this->relationLoaded('volunteerHours')) {
+            $this->load('volunteerHours');
+        }
+        return $this->volunteerHours()
+            ->where('fiscal_ledger_id', $fiscalLedgerId)
+            ->sum('hours');
+    }
+
+    /**
+     * Get the total volunteer hours for the current fiscal ledger period.
+     *
+     * @return float
+     */
+    public function totalHoursForCurrentFiscalLedger()
+    {
+        if (!$this->relationLoaded('volunteerHours')) {
+            $this->load('volunteerHours');
+        }
+        // Get the current date
+        $currentDate = now();
+
+        // Find the current fiscal ledger based on the current date
+        $currentFiscalLedger = FiscalLedger::where('start_date', '<=', $currentDate)
+                                            ->where('end_date', '>=', $currentDate)
+                                            ->first();
+
+        if ($currentFiscalLedger) {
+            // Sum the volunteer hours for the current fiscal ledger
+            return $this->volunteerHours()
+                        ->where('fiscal_ledger_id', $currentFiscalLedger->id)
+                        ->sum('hours');
+        }
+
+        // Return 0 if no fiscal ledger is active for the current date
+        return 0;
+    }
+
     /**
      * Check if the volunteer entry has notes set.
      *

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\VolunteerHours;
+use App\Models\FiscalLedger;
 
 class VolunteerHoursController extends Controller
 {
@@ -21,7 +22,6 @@ class VolunteerHoursController extends Controller
      */
     public function create($user = null)
     {
-        \Log::debug('Hey!');
         // If a user is passed, retrieve the user from the database
         $selectedUser = $user ? User::find($user) : null;
         $users = User::all();
@@ -37,21 +37,40 @@ class VolunteerHoursController extends Controller
     {
         // Validate the incoming request
         $validated = $request->validate([
-            'user_id'   => 'required|exists:users,id',
-            'hours'     => 'required|numeric|min:0',
-            'description' => 'nullable|string',
-            'notes'     => 'nullable|string',
+            'user_id'       => 'required|exists:users,id',
+            'hours'         => 'required|numeric|min:0',
+            'description'   => 'nullable|string',
+            'notes'         => 'nullable|string',
+            'volunteer_date' => 'nullable|date'
         ]);
 
-        $username = User::select('name')->find($validated['user_id'])->name;
+        // Get the current date
+        $currentDate = now();
+
+        // Find the fiscal ledger that covers the volunteer date
+        $fiscalLedger = FiscalLedger::where('start_date', '<=', $currentDate)
+                                    ->where('end_date', '>=', $currentDate)
+                                    ->first();
+
+        if (!$fiscalLedger) {
+            // If no fiscal ledger is found, return with an error
+            return back()->withErrors([
+                'volunteer_date' => 'No fiscal ledger is active for the given date.'
+            ])->withInput();
+        }
 
         // Create the hour log entry
+        // Create the volunteer hour and assign the fiscal ledger ID
         VolunteerHours::create([
             'user_id'   => $validated['user_id'],
             'hours'     => $validated['hours'],
-            'description' => $validated['description'],
             'notes'     => $validated['notes'],
+            'volunteer_date' => $validated['volunteer_date'],
+            'description' => $validated['description'] ?? null,
+            'fiscal_ledger_id' => $fiscalLedger->id,  // Assign the fiscal ledger
         ]);
+
+        $username = User::select('name')->find($validated['user_id'])->name;
 
         // Redirect back with a success message
         return redirect()->route('users.index')

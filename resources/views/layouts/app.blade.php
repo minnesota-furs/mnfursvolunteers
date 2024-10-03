@@ -73,7 +73,7 @@
         @else
             <main class="-mt-32">
                 <div class="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-                    <div class="rounded-lg bg-white dark:bg-slate-900 dark:text-white px-5 py-6 shadow sm:px-6">
+                    <div class="rounded-lg bg-white dark:bg-slate-900 bg-opacity-90 dark:bg-opacity-75 backdrop-blur-md dark:backdrop-blur-md dark:text-white px-5 py-6 shadow sm:px-6">
                         {{ $slot }}
                     </div>
                 </div>

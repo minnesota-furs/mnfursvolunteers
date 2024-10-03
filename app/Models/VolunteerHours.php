@@ -9,7 +9,7 @@ class VolunteerHours extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'volunteer_date', 'primary_dept_id', 'hours', 'description', 'notes', 'date'];
+    protected $fillable = ['user_id', 'volunteer_date', 'primary_dept_id', 'hours', 'description', 'notes', 'date', 'fiscal_ledger_id'];
 
     protected $casts = [
         'volunteer_date' => 'date',
@@ -23,6 +23,11 @@ class VolunteerHours extends Model
     public function department()
     {
         return $this->belongsTo(Department::class, 'primary_dept_id');
+    }
+
+    public function fiscalLedger()
+    {
+        return $this->belongsTo(FiscalLedger::class);
     }
 
     /**

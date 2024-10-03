@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VolunteerHoursController;
+use App\Http\Controllers\FiscalLedgerController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\SectorController;
 
@@ -36,6 +37,7 @@ Route::middleware('auth')->group(function () {
 Route::resource('users', UserController::class);
 Route::resource('sector', SectorController::class);
 Route::resource('department', DepartmentController::class);
+Route::resource('ledger', FiscalLedgerController::class);
 
 Route::get('/hours/create/{user?}', [VolunteerHoursController::class, 'create'])->name('hours.create');
 Route::resource('hours', VolunteerHoursController::class)->except(['create']);

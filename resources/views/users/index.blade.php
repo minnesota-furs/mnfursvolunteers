@@ -53,13 +53,17 @@
                                 </div>
                                 </td>
                                 <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                                <div class="text-gray-900">{{$user->sector->name ?? '-'}}</div>
-                                <div class="mt-1 text-gray-500">{{$user->department->name ?? '-'}}</div>
+                                    <div class="text-gray-900">{{$user->sector->name ?? '-'}}</div>
+                                    <div class="mt-1 text-gray-500">{{$user->department->name ?? '-'}}</div>
                                 </td>
                                 <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
                                 <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Active</span>
                                 </td>
-                                <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{{$user->totalVolunteerHours()}}</td>
+                                <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+                                    <div class="text-gray-900">{{$user->totalHoursForCurrentFiscalLedger()}}</div>
+                                    <div class="mt-1 text-gray-400 text-xs">{{$user->totalVolunteerHours()}}</div>
+                                </td>
+                                {{-- <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500"> | </td> --}}
                                 <td class="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                     <a href="{{route('users.show', $user->id)}}" class="text-blue-600 hover:text-blue-800 px-2">View<span class="sr-only">, {{$user->name}}</span></a>
                                     <a href="{{route('users.edit', $user->id)}}" class="text-blue-600 hover:text-blue-800 px-2">Edit<span class="sr-only">, {{$user->name}}</span></a>

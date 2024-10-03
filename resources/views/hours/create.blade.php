@@ -22,6 +22,7 @@
                                     <div>
                                         <input type="hidden" name="user_id" value="{{ $selectedUser->id }}">
                                         <x-text-input class="block w-64 bg-gray-200 text-sm" type="text" name="" id="" value="{{ $selectedUser->name }}" disabled />
+                                        <x-form-validation for="user_id" />
                                         <p class="text-xs text-gray-400">Wrong volunteer selected? <a class="text-blue-400" href="{{route('hours.create')}}">Start over</a>.</p>
                                     </div>
                                 @else
@@ -31,6 +32,7 @@
                                             <option value="{{ $user->id }}">{{ $user->name }}</option>
                                         @endforeach
                                     </x-select-input>
+                                    <x-form-validation for="user_id" />
 
                                     <!-- Otherwise, show a dropdown to select the user -->
                                     {{-- <div>
@@ -48,13 +50,22 @@
                         <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                             <dt class="text-sm font-medium leading-6 text-gray-900">Short Description</dt>
                             <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                                <x-text-input class="block w-64 text-sm placeholder-gray-300" type="text" name="description" id="description" placeholder="Picnic Volunteer" />
+                                <x-text-input class="block w-64 text-sm placeholder-gray-300" type="text" name="description" id="description" placeholder="Picnic Volunteer" :value="old('description')"/>
+                                <x-form-validation for="description" />
+                            </dd>
+                        </div>
+                        <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                            <dt class="text-sm font-medium leading-6 text-gray-900">Volunteer Date</dt>
+                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                <x-text-input class="block w-64 text-sm" type="date" name="volunteer_date" id="volunteer_date" :value="old('volunteer_date')" />
+                                <x-form-validation for="volunteer_date" />
                             </dd>
                         </div>
                         <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                             <dt class="text-sm font-medium leading-6 text-gray-900">Hours</dt>
                             <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                                <x-text-input class="block w-64 text-sm" type="number" name="hours" id="hours" step="0.1" required />
+                                <x-text-input class="block w-64 text-sm" type="number" name="hours" id="hours" step="0.1" :value="old('hours')" required />
+                                <x-form-validation for="hours" />
                                 <p class="text-xs text-gray-400">Quick Set:
                                     <button type="button" class="text-blue-400 px-1" onclick="setInputValue(0.5)">0.5hr</button>
                                     <button type="button" class="text-blue-400 px-1" onclick="setInputValue(1)">1hr</button>
@@ -75,6 +86,7 @@
                             <dt class="text-sm font-medium leading-6 text-gray-900">Notes</dt>
                             <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                 <x-textarea-input id="notes" rows="8" name="notes" class="block w-full text-sm">{{ old('notes') }}</x-textarea-input>
+                                <x-form-validation for="notes" />
                             </dd>
                         </div>
                     </dl>

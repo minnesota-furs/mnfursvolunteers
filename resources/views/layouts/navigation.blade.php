@@ -18,13 +18,13 @@
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                         {{ __('Users/Volunteers') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('logging.*')">
-                        {{ __('Logging') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('ledgers.*')">
+                    <x-nav-link :href="route('ledger.index')" :active="request()->routeIs('ledger.*')">
                         {{ __('Ledgers') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('ledgers.*')">
+                    <x-nav-link :href="route('ledger.index')" :active="request()->routeIs('reports.*')">
+                        {{ __('Reports') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('settings.*')">
                         {{ __('Settings') }}
                     </x-nav-link>
                 </div>

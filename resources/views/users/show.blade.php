@@ -25,37 +25,37 @@
                     {{-- Start Left Column --}}
                     <div>
                         <div class="px-4 sm:px-0">
-                            <h3 class="text-base font-semibold leading-7 text-gray-900">Volunteer / User Information</h3>
+                            <h3 class="text-base font-semibold leading-7 text-gray-900 dark:text-white">Volunteer / User Information</h3>
                         </div>
                         <div class="mt-6 border-t border-gray-100">
                             <dl class="divide-y divide-gray-100">
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm font-medium leading-6 text-gray-900">Full name</dt>
-                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Full name</dt>
+                                    <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
                                         {{ $user->name }}</dd>
                                 </div>
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm font-medium leading-6 text-gray-900">Email address</dt>
-                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Email address</dt>
+                                    <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
                                         {{ $user->email }}</dd>
                                 </div>
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm font-medium leading-6 text-gray-900">Status</dt>
-                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Status</dt>
+                                    <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
                                         @if ($user->active == true)
-                                            <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Active</span>
+                                            <span class="inline-flex items-center rounded-md bg-green-50 dark:bg-green-800 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-100 ring-1 ring-inset ring-green-600/20">Active</span>
                                         @else
-                                            <span class="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20">Inactive</span>
+                                            <span class="inline-flex items-center rounded-md bg-yellow-50 dark:bg-yellow-800 px-2 py-1 text-xs font-medium text-yellow-700 dark:text-yellow-100 ring-1 ring-inset ring-yellow-600/20">Inactive</span>
                                         @endif
                                     </dd>
                                 </div>
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm font-medium leading-6 text-gray-900">Notes</dt>
+                                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Notes</dt>
                                     @if($user->hasNotes())
                                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                     {{ $user->notes }}
                                         @else
-                                    <dd class="mt-1 text-sm leading-6 text-gray-300 sm:col-span-2 sm:mt-0">
+                                    <dd class="mt-1 text-sm leading-6 text-gray-300 dark:text-gray-700 sm:col-span-2 sm:mt-0">
                                         No Notes recorded...
                                     @endif
 
@@ -69,25 +69,33 @@
                     {{-- Start Right Column --}}
                     <div>
                         <div class="px-4 sm:px-0">
-                            <h3 class="text-base font-semibold leading-7 text-gray-900">Role Information</h3>
+                            <h3 class="text-base font-semibold leading-7 text-gray-900 dark:text-white">Role Information</h3>
                             {{-- <p class="mt-1 max-w-2xl text-sm leading-6 text-gray-500">Information involving their staff involvement with the group</p> --}}
                         </div>
                         <div class="mt-6 border-t border-gray-100">
                             <dl class="divide-y divide-gray-100">
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm font-medium leading-6 text-gray-900">Primary Sector</dt>
-                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">{{$user->sector->name ?? '-'}}</dd>
+                                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Primary Sector</dt>
+                                    <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">{{$user->sector->name ?? '-'}}</dd>
                                 </div>
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm font-medium leading-6 text-gray-900">Primary Dept</dt>
-                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Primary Dept</dt>
+                                    <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
                                         -
                                     </dd>
                                 </div>
+
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm font-medium leading-6 text-gray-900">Total Hours</dt>
-                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                                        {{$user->totalVolunteerHours()}} hours
+                                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">This Fiscal</dt>
+                                    <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
+                                        {{format_hours($user->totalHoursForCurrentFiscalLedger())}} hours
+                                    </dd>
+                                </div>
+
+                                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Lifetime Hours</dt>
+                                    <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
+                                        {{format_hours($user->totalVolunteerHours())}} hours
                                     </dd>
                                 </div>
                             </dl>
@@ -100,8 +108,8 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 border-t pt-6">
                 <div class="sm:flex sm:items-center">
                   <div class="sm:flex-auto">
-                    <h1 class="text-base font-semibold leading-6 text-gray-900">Hour Log</h1>
-                    <p class="mt-2 text-sm text-gray-700">Transactional log of recently logged hours for this volunteer/user.</p>
+                    <h1 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">Hour Log</h1>
+                    <p class="mt-2 text-sm text-gray-700 dark:text-white">Transactional log of recently logged hours for this volunteer/user.</p>
                   </div>
                   <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                     <a href="{{ route('hours.create', ['user' => $user->id]) }}" class="block rounded-md bg-brand-green px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
@@ -115,31 +123,39 @@
                       <table class="min-w-full divide-y divide-gray-300">
                         <thead>
                           <tr>
-                            <th scope="col" class="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 w-32 sm:pl-0 ">Transaction ID</th>
-                            <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">Sector, Department</th>
-                            <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">Short Description</th>
-                            <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 w-32">Amount</th>
-                            <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 w-32">Notes</th>
-                            <th scope="col" class="relative w-16 whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
+                            <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">Short Description</th>
+                            <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">Sector, Department</th>
+                            <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">Amount</th>
+                            <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">Task Date</th>
+                            <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">Notes</th>
+                            {{-- <th scope="col" class="relative w-16 whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
                               <span class="sr-only">Edit</span>
-                            </th>
+                            </th> --}}
                           </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
+                        <tbody class="divide-y divide-gray-200">
                         @forelse ($volunteerHours as $volunteerHour)
                           <tr>
-                            <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 sm:pl-0">{{$volunteerHour->id}}</td>
-                            <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-400">Unknown</td>
-                            <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-400">{{$volunteerHour->description}}</td>
-                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">{{$volunteerHour->hours}} hrs</td>
-                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
-                                @if($volunteerHour->hasNotes())
-                                    <x-heroicon-o-check class="w-4"/>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">{{$volunteerHour->description}}</td>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-400 dark:text-gray-300">-</td>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300">{{format_hours($volunteerHour->hours)}} hrs</td>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300">
+                                @if(isset($volunteerHour->volunteer_date))
+                                    {{$volunteerHour->volunteer_date->diffForHumans() ?? '-'}}
+                                @else
+                                    <span class="text-xs text-gray-300">Date not logged</span>
                                 @endif
                             </td>
-                            <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                <a href="#" class="text-blue-600 hover:text-blue-800 px-4">Edit<span class="sr-only"></span></a>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300">
+                                @if($volunteerHour->hasNotes())
+                                    <x-heroicon-o-check class="w-4"/>
+                                @else
+                                    <span class="text-xs text-gray-300">-</span>
+                                @endif
                             </td>
+                            {{-- <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                                <a href="#" class="text-blue-600 hover:text-blue-800 px-4">Edit<span class="sr-only"></span></a>
+                            </td> --}}
                           </tr>
                         @empty
                         <tr>
