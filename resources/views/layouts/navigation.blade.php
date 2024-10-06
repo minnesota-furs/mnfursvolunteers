@@ -18,15 +18,45 @@
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                         {{ __('Users/Volunteers') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('ledger.index')" :active="request()->routeIs('ledger.*')">
+                    {{-- <x-nav-link :href="route('ledger.index')" :active="request()->routeIs('ledger.*')">
                         {{ __('Ledgers') }}
-                    </x-nav-link>
+                    </x-nav-link> --}}
                     <x-nav-link :href="route('ledger.index')" :active="request()->routeIs('reports.*')">
                         {{ __('Reports') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('settings.*')">
+                    {{-- <x-nav-link :href="route('dashboard')" :active="request()->routeIs('settings.*')">
                         {{ __('Settings') }}
-                    </x-nav-link>
+                    </x-nav-link> --}}
+
+                    {{-- START --}}
+
+                    <x-dropdown align="right" width="48">
+                        <x-slot name="trigger">
+                            <button class="inline-flex mt-5 pb-5 items-center px-1 pt-1 border-b-2 border-transparent hover:underline text-sm font-medium leading-5 text-gray-100 dark:text-gray-400 hover:text-gray-200 dark:hover:text-gray-300 hover:border-white/25 dark:hover:border-gray-700 focus:outline-none focus:text-gray-100 dark:focus:text-gray-300 focus:border-gray-100 dark:focus:border-gray-700 transition duration-150 ease-in-out">
+                                <div>Settings</div>
+                            </button>
+                        </x-slot>
+
+                        <x-slot name="content" class="-mt-32">
+                            <x-dropdown-link :href="route('ledger.index')">
+                                {{ __('Ledgers') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('sector.index')">
+                                {{ __('Sectors') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('department.index')">
+                                {{ __('Departments') }}
+                            </x-dropdown-link>
+                        </x-slot>
+                    </x-dropdown>
+
+
+
+
+
+
+
+                    {{-- END --}}
                 </div>
             </div>
 

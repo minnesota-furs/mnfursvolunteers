@@ -39,6 +39,8 @@ Route::resource('sector', SectorController::class);
 Route::resource('department', DepartmentController::class);
 Route::resource('ledger', FiscalLedgerController::class);
 
+Route::get('/departments-by-sector', [DepartmentController::class, 'getDepartmentsBySector'])->name('get-departments-by-sector');
+
 Route::get('/hours/create/{user?}', [VolunteerHoursController::class, 'create'])->name('hours.create');
 Route::resource('hours', VolunteerHoursController::class)->except(['create']);
 

@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Models\Sector;
+use App\Models\Department;
+
 class SectorController extends Controller
 {
     /**
@@ -11,7 +14,11 @@ class SectorController extends Controller
      */
     public function index()
     {
-        //
+        $sectors = Sector::all();
+
+        return view('sectors.index', [
+            'sectors'     => $sectors
+        ]);
     }
 
     /**
@@ -19,7 +26,7 @@ class SectorController extends Controller
      */
     public function create()
     {
-        //
+        return view('sectors.create');
     }
 
     /**
@@ -27,7 +34,21 @@ class SectorController extends Controller
      */
     public function store(Request $request)
     {
-        //
+       // Validate the incoming request data
+       $validated = $request->validate([
+            'name' => 'required|string|max:255',               // Validate name (required, string, max 255 characters)
+        ]);
+
+        // Create a new Fiscal Ledger with the validated data
+        Sector::create([
+            'name' => $validated['name']
+        ]);
+
+        // Redirect to a desired route (for example, back to a list of fiscal ledgers)
+        return redirect()->route('sector.index')
+            ->with('success', [
+                'message' => "Sector Created Successfully"
+            ]);
     }
 
     /**
@@ -35,7 +56,10 @@ class SectorController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $sector = Sector::findOrFail($id);
+        return view('ledger.show', [
+            'sector' => $sector
+        ]);
     }
 
     /**
@@ -43,7 +67,10 @@ class SectorController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $sector = Sector::findOrFail($id);
+        return view('sectors.edit', [
+            'sector' => $sector
+        ]);
     }
 
     /**

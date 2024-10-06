@@ -48,7 +48,7 @@
                         <div class="grid grid-cols-1 gap-4 lg:col-span-2">
                             <section aria-labelledby="section-1-title">
                                 <h2 class="sr-only" id="section-1-title">Section title</h2>
-                                <div class="overflow-hidden rounded-lg bg-white shadow">
+                                <div class="overflow-hidden rounded-lg bg-white dark:bg-slate-900 bg-opacity-90 dark:bg-opacity-75 backdrop-blur-md dark:backdrop-blur-md shadow">
                                     <div class="p-6">
                                         {{ $slot }}
                                     </div>
@@ -60,7 +60,7 @@
                         <div class="grid grid-cols-1 gap-4">
                             <section aria-labelledby="section-2-title">
                                 <h2 class="sr-only" id="section-2-title">Section title</h2>
-                                <div class="overflow-hidden rounded-lg bg-white shadow">
+                                <div class="overflow-hidden rounded-lg bg-white dark:bg-slate-900 bg-opacity-90 dark:bg-opacity-75 backdrop-blur-md dark:backdrop-blur-md shadow">
                                     <div class="p-6">
                                         {{ $right }}
                                     </div>

@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Models\Sector;
+use App\Models\Department;
+
 class DepartmentController extends Controller
 {
     /**
@@ -11,7 +14,11 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        //
+        $departments = Department::all();
+
+        return view('departments.index', [
+            'departments'     => $departments
+        ]);
     }
 
     /**
@@ -19,7 +26,7 @@ class DepartmentController extends Controller
      */
     public function create()
     {
-        //
+        return view('departments.create');
     }
 
     /**
@@ -35,7 +42,10 @@ class DepartmentController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $department = Department::findOrFail($id);
+        return view('departments.show', [
+            'department' => $department
+        ]);
     }
 
     /**
@@ -43,7 +53,10 @@ class DepartmentController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $department = Department::findOrFail($id);
+        return view('departments.edit', [
+            'department' => $department
+        ]);
     }
 
     /**
@@ -60,5 +73,17 @@ class DepartmentController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function getDepartmentsBySector(Request $request)
+    {
+        // Validate the sector_id parameter
+        $sectorId = $request->get('sector_id');
+
+        // Fetch the departments that belong to the selected sector
+        $departments = Department::where('sector_id', $sectorId)->get();
+
+        // Return the departments as JSON
+        return response()->json($departments);
     }
 }

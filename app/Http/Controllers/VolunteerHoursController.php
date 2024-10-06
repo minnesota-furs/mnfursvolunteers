@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Department;
 use App\Models\VolunteerHours;
 use App\Models\FiscalLedger;
+Use App\Models\Sector;
 
 class VolunteerHoursController extends Controller
 {
@@ -24,10 +26,28 @@ class VolunteerHoursController extends Controller
     {
         // If a user is passed, retrieve the user from the database
         $selectedUser = $user ? User::find($user) : null;
-        $users = User::all();
+
+        $sectors = Sector::with('departments')->get();
+        $recentDepartments = [];
+
+        if ($selectedUser){
+            // Fetch the last 5 departments the user has used, based on volunteer hours
+            $recentDepartments = Department::whereIn('id',
+            $selectedUser->volunteerHours()
+                ->select('primary_dept_id', 'created_at')
+                ->distinct()
+                ->latest('created_at')
+                ->limit(5)
+                ->pluck('primary_dept_id')
+            )->get();
+            $users = null;
+
+        } else {
+            $users = User::all();
+        }
 
         // Pass the user (if any) to the view
-        return view('hours.create', compact('selectedUser', 'users'));
+        return view('hours.create', compact('selectedUser', 'users', 'sectors', 'recentDepartments'));
     }
 
     /**
@@ -41,7 +61,8 @@ class VolunteerHoursController extends Controller
             'hours'         => 'required|numeric|min:0',
             'description'   => 'nullable|string',
             'notes'         => 'nullable|string',
-            'volunteer_date' => 'nullable|date'
+            'volunteer_date' => 'nullable|date',
+            'primary_dept_id' => 'integer|exists:departments,id',
         ]);
 
         // Get the current date
@@ -67,7 +88,9 @@ class VolunteerHoursController extends Controller
             'notes'     => $validated['notes'],
             'volunteer_date' => $validated['volunteer_date'],
             'description' => $validated['description'] ?? null,
+            'primary_dept_id' => $validated['primary_dept_id'] ?? null,
             'fiscal_ledger_id' => $fiscalLedger->id,  // Assign the fiscal ledger
+
         ]);
 
         $username = User::select('name')->find($validated['user_id'])->name;

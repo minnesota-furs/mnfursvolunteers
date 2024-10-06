@@ -78,7 +78,7 @@ class fiscalLedgerController extends Controller
     public function show(string $id)
     {
         $ledger = FiscalLedger::findOrFail($id);
-        return view('ledgers.show', [
+        return view('ledger.show', [
             'ledger' => $ledger
         ]);
     }
@@ -99,7 +99,26 @@ class fiscalLedgerController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Validate the incoming request data
+        $validated = $request->validate([
+            'name'       => 'required|string|max:255',
+            'start_date' => 'required|date|before:end_date',    // Validate start_date (required, must be a valid date, before the end date)
+            'end_date'   => 'required|date|after:start_date',     // Validate end_date (required, must be a valid date, after the start date)
+        ]);
+
+        // Find the user by ID
+        $ledger = FiscalLedger::findOrFail($id);
+
+        // Update the user profile with the validated data
+        $ledger->update($validated);
+
+        // Optionally, flash a success message to the session
+        return redirect()->route('ledger.index')
+            ->with('success', [
+                'message' => "Ledger <span class=\"text-brand-green\">{$ledger->name}</span> updated successfully",
+                'action_text' => 'Edit Ledger',
+                'action_url' => route('ledger.edit', $ledger->id),
+            ]);
     }
 
     /**

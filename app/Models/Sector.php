@@ -9,6 +9,12 @@ class Sector extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'name',
+        'url',
+        'description'
+    ];
+
     public function users()
     {
         return $this->hasMany(User::class, 'primary_sector_id');

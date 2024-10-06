@@ -9,7 +9,16 @@ class VolunteerHours extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'volunteer_date', 'primary_dept_id', 'hours', 'description', 'notes', 'date', 'fiscal_ledger_id'];
+    protected $fillable = [
+        'user_id',
+        'volunteer_date',
+        'primary_dept_id',
+        'hours',
+        'description',
+        'notes',
+        'date',
+        'fiscal_ledger_id'
+    ];
 
     protected $casts = [
         'volunteer_date' => 'date',
@@ -38,5 +47,10 @@ class VolunteerHours extends Model
     public function hasNotes(): bool
     {
         return !empty($this->notes);
+    }
+
+    public function hasDepartment()
+    {
+        return !is_null($this->primary_dept_id);
     }
 }

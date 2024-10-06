@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Sector;
 use App\Models\User;
-use App\Models\User as Snails;
+use App\Models\Department;
+
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -67,9 +68,14 @@ class UserController extends Controller
     {
         $user = User::find($id);
         $sectors = Sector::all();
+        $departments = Department::where('sector_id', $user->sector->id)->get();
+
+        \Log::debug($departments);
+
         return view('users.edit', [
             'user'      => $user,
-            'sectors'   => $sectors
+            'sectors'   => $sectors,
+            'departments' => $departments
         ]);
     }
 
@@ -85,6 +91,7 @@ class UserController extends Controller
             'active' => 'required|boolean',                     // Ensures 'active' is either 0 or 1 (boolean)
             'notes' => 'nullable|string',                       // 'notes' can be a string, maximum 255 characters, or null
             'primary_sector_id' => 'integer|exists:sectors,id',   // Ensure 'sector' is a valid integer and exists in the sectors table
+            'primary_dept_id' => 'integer|exists:departments,id',   // Ensure 'sector' is a valid integer and exists in the sectors table
         ]);
 
         // Find the user by ID
