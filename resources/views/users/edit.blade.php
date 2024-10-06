@@ -92,7 +92,7 @@
                                                     <x-select-input name="primary_dept_id" id="primary_dept_id" class="block w-64 text-sm" required>
                                                         <option value="">Select Department</option>
                                                         @foreach($departments as $department)
-                                                            <option value="{{ $department->id }}" {{ $user->department->id == $department->id ? 'selected' : '' }}>
+                                                            <option value="{{ $department->id }}" {{ $user->department->id ?? '' == $department->id ? 'selected' : '' }}>
                                                                 {{ $department->name }}
                                                             </option>
                                                         @endforeach

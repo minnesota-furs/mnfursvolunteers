@@ -69,7 +69,11 @@ class UserController extends Controller
     {
         $user = User::find($id);
         $sectors = Sector::all();
-        $departments = Department::where('sector_id', $user->sector->id)->get();
+        $departments = [];
+
+        if ($user->sector) {
+            $departments = Department::where('sector_id', $user->sector->id)->get();
+        }
 
         return view('users.edit', [
             'user'      => $user,
