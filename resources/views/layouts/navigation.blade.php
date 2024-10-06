@@ -24,11 +24,6 @@
                     <x-nav-link :href="route('ledger.index')" :active="request()->routeIs('reports.*')">
                         {{ __('Reports') }}
                     </x-nav-link>
-                    {{-- <x-nav-link :href="route('dashboard')" :active="request()->routeIs('settings.*')">
-                        {{ __('Settings') }}
-                    </x-nav-link> --}}
-
-                    {{-- START --}}
 
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
@@ -49,14 +44,6 @@
                             </x-dropdown-link>
                         </x-slot>
                     </x-dropdown>
-
-
-
-
-
-
-
-                    {{-- END --}}
                 </div>
             </div>
 
@@ -75,6 +62,7 @@
               </div>
 
             <!-- Settings Dropdown -->
+            @auth
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
@@ -107,6 +95,7 @@
                     </x-slot>
                 </x-dropdown>
             </div>
+            @endauth
 
             <!-- Hamburger -->
             <div class="-me-2 flex items-center sm:hidden">
@@ -141,6 +130,7 @@
         </div>
 
         <!-- Responsive Settings Options -->
+        @auth
         <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
             <div class="px-4">
                 <div class="font-bold text-base text-white dark:text-gray-200">{{ Auth::user()->name }}</div>
@@ -164,5 +154,6 @@
                 </form>
             </div>
         </div>
+        @endauth
     </div>
 </nav>

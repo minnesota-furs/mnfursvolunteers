@@ -53,6 +53,7 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
+
         $user = User::findOrFail($id);
         $volunteerHours = $user->volunteerHours()
             ->orderByRaw('COALESCE(volunteer_date, created_at) DESC')
@@ -69,8 +70,6 @@ class UserController extends Controller
         $user = User::find($id);
         $sectors = Sector::all();
         $departments = Department::where('sector_id', $user->sector->id)->get();
-
-        \Log::debug($departments);
 
         return view('users.edit', [
             'user'      => $user,
