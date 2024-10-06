@@ -34,6 +34,8 @@
                         <h1 class="text-3xl font-bold tracking-tight text-white">{{ $header }}</h1>
                     </div>
                 </header>
+            @else
+                <header class="py-4"></header>
             @endif
         </div>
 
