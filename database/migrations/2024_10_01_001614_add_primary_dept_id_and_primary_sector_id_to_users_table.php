@@ -17,7 +17,6 @@ return new class extends Migration
             $table->boolean('active')->default(true)->after('password');
             $table->unsignedBigInteger('primary_dept_id')->after('active')->nullable();
             $table->unsignedBigInteger('primary_sector_id')->after('active')->nullable();
-            $table->text('notes')->nullable()->after('email');
 
             // Defining the foreign key constraints
             $table->foreign('primary_dept_id')->references('id')->on('departments')->onDelete('set null');
