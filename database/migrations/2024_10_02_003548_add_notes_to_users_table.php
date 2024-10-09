@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->text('notes')->nullable()->after('is_linked_to_wpc');
+            $table->text('notes')->nullable()->after('email');
         });
     }
 
