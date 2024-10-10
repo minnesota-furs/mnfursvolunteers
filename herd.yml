@@ -1,7 +1,0 @@
-name: mnfursvolunteers
-php: '8.3'
-secured: false
-aliases: {  }
-services: {  }
-integrations:
-    forge: {  }
