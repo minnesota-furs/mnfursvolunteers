@@ -63,11 +63,11 @@
                                 </div>
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                     <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">User Type</dt>
-                                    @if($user->isadmin())
-                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                    @if($user->isAdmin())
+                                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                         Admin
                                     @else
-                                    <dd class="mt-1 text-sm leading-6 text-gray-300 dark:text-gray-700 sm:col-span-2 sm:mt-0">
+                                        <dd class="mt-1 text-sm leading-6 text-gray-300 dark:text-gray-700 sm:col-span-2 sm:mt-0">
                                         User
                                     @endif
 

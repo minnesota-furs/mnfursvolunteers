@@ -27,6 +27,7 @@ class User extends Authenticatable
         'primary_sector_id',
         'is_linked_to_wp',
         'notes',
+        'admin',
     ];
 
     /**
@@ -37,7 +38,6 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
-        'isadmin',
     ];
 
     /**
@@ -48,7 +48,6 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'isadmin' => 'boolean',
     ];
 
     public function volunteerHours()
@@ -129,8 +128,8 @@ class User extends Authenticatable
      *
      * @return bool
      */
-    public function isadmin(): bool
+    public function isAdmin(): bool
     {
-        return $this->isadmin;
+        return $this->admin;
     }
 }

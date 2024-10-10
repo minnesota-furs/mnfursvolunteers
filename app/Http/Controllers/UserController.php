@@ -9,6 +9,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
 class UserController extends Controller
@@ -40,7 +42,7 @@ class UserController extends Controller
      */
     public function create(Request $request): View
     {
-        if(!($request->user()->isadmin()))
+        if(!($request->user()->isAdmin()))
         {
             return view('users.create', [
                 'user'      => $request->user(),
@@ -58,20 +60,17 @@ class UserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     { 
-        
         // Validate the incoming request data
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,',  // Ensure unique email except for this user
-            'active' => 'required|boolean',                     // Ensures 'active' is either 0 or 1 (boolean)
-            'notes' => 'nullable|string',                       // 'notes' can be a string, maximum 255 characters, or null
-            'primary_sector_id' => 'integer|exists:sectors,id',   // Ensure 'sector' is a valid integer and exists in the sectors table
-            'primary_dept_id' => 'integer|exists:departments,id',   // Ensure 'sector' is a valid integer and exists in the sectors table
-            'isadmin' => 'required|boolean',
-            'password' => 'required|string|max:255'
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'password' => ['required', Rules\Password::defaults()],
+            'active' => ['required', 'boolean'], // Ensures 'active' is either 0 or 1 (boolean)
+            'notes' => ['nullable', 'string', 'max:255'], // 'notes' can be a string, maximum 255 characters, or null
+            'primary_sector_id' => ['integer', 'exists:sectors,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
+            'primary_dept_id' => ['integer', 'exists:departments,id'], // Ensure 'sector' is a valid integer and exists in the sectors table
+            'admin' => ['required', 'boolean'] // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
         ]);
-
-        //dd($validated);
 
         $user = User::create($validated);
 

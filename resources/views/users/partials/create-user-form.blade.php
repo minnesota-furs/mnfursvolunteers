@@ -26,9 +26,9 @@
         </div>
 
         <div>
-            <x-input-label for="isadmin" :value="__('Grant Admin Privileges')" />
-            <x-checkbox id="isadmin" name="isadmin" unchecked />
-            <x-input-error class="mt-2" :messages="$errors->get('isadmin')" />
+            <x-input-label for="admin" :value="__('Grant Admin Privileges')" />
+            <x-checkbox id="admin" name="admin" unchecked />
+            <x-input-error class="mt-2" :messages="$errors->get('admin')" />
         </div>
 
         <!-- Hidden fields -->
