@@ -37,6 +37,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'isadmin',
     ];
 
     /**
@@ -47,6 +48,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'isadmin' => 'boolean',
     ];
 
     public function volunteerHours()
@@ -120,5 +122,15 @@ class User extends Authenticatable
     public function hasNotes(): bool
     {
         return !empty($this->notes);
+    }
+
+    /**
+     * Check if the user is an admin.
+     *
+     * @return bool
+     */
+    public function isadmin(): bool
+    {
+        return $this->isadmin;
     }
 }

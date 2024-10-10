@@ -34,6 +34,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::middleware('auth')->group(function () {
+    Route::get('/users', [UserController::class, 'create'])->name('users.create');
+    Route::put('/users', [UserController::class, 'store'])->name('users.store');
+    Route::patch('/users', [UserController::class, 'update'])->name('users.update');
+});
+
 Route::resource('users', UserController::class);
 Route::resource('sector', SectorController::class);
 Route::resource('department', DepartmentController::class);

@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Sector;
 use App\Models\User;
 use App\Models\Department;
-
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\View\View;
 
 class UserController extends Controller
 {
@@ -33,19 +36,52 @@ class UserController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     * ADMINS ONLY; if the user is not an admin, redirect them to the users index
      */
-    public function create()
+    public function create(Request $request): View
     {
-        //
-        return view('users.create', []);
+        if(!($request->user()->isadmin()))
+        {
+            return view('users.create', [
+                'user'      => $request->user(),
+            ]);
+        }
+        else
+        {
+            return $this->index($request);
+        }
+        
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        //
+    public function store(Request $request): RedirectResponse
+    { 
+        
+        // Validate the incoming request data
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,',  // Ensure unique email except for this user
+            'active' => 'required|boolean',                     // Ensures 'active' is either 0 or 1 (boolean)
+            'notes' => 'nullable|string',                       // 'notes' can be a string, maximum 255 characters, or null
+            'primary_sector_id' => 'integer|exists:sectors,id',   // Ensure 'sector' is a valid integer and exists in the sectors table
+            'primary_dept_id' => 'integer|exists:departments,id',   // Ensure 'sector' is a valid integer and exists in the sectors table
+            'isadmin' => 'required|boolean',
+            'password' => 'required|string|max:255'
+        ]);
+
+        //dd($validated);
+
+        $user = User::create($validated);
+
+        // Optionally, flash a success message to the session
+        return redirect()->route('users.index')
+            ->with('success', [
+                'message' => "Volunteer <span class=\"text-brand-green\">{$user->name}</span> created successfully",
+                'action_text' => 'View User',
+                'action_url' => route('users.show', $user->id),
+            ]);
     }
 
     /**
