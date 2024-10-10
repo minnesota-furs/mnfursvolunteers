@@ -21,9 +21,38 @@ jobs:
     #    run: |
     #      docker build .  -f ./docker/Dockerfile  -o build
 
-      - name: Remove unused files
-        run: |
-          rm -fr .idea docker
+ #     - name: Remove unused files
+ #       run: |
+ #         rm -fr .idea docker
+
+
+#      - name: Checkout code
+#        uses: actions/checkout@v2
+#
+#      - name: Cache dependencies
+#        uses: actions/cache@v1
+#        with:
+#            path: ~/.composer/cache/files
+#            key: dependencies-composer-${{ hashFiles('composer.json') }}
+#
+#      - name: Setup PHP
+#        uses: shivammathur/setup-php@v2
+#        with:
+#            php-version: 8.3
+#            extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
+#            coverage: none
+#
+#      - name: Install Composer dependencies
+#        run: composer install --prefer-dist --no-interaction --no-suggest
+#
+#      - name: Install NPM dependencies
+#        run: npm install
+#
+#      - name: Compile assets
+#        run: npm run production
+#
+#      - name: Execute tests
+#        run: vendor/bin/phpunit --verbose
 
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
@@ -31,16 +60,23 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           known_hosts: ${{ secrets.KNOWN_HOSTS }} # will be appended to existing .ssh/known_hosts
           config: StrictHostKeyChecking=no
-      - name: Rsync files
+ #     - name: Rsync files
+ #       env:
+ #         USER: ${{ secrets.USER }}
+ #         REPO_NAME: ${{ github.event.repository.name }}
+ #       run: |
+ #         # now ssh
+ #         echo $REPO_NAME
+ #         rsync -avz --delete --cvs-exclude . $USER@reyote.mnfurs.org:public_html/
+      - name: git push the files
         env:
           USER: ${{ secrets.USER }}
-          REPO_NAME: ${{ github.event.repository.name }}
         run: |
-          # now ssh
-          echo $REPO_NAME
-          rsync -avz --delete --cvs-exclude . $USER@reyote.mnfurs.org:public_html/
-      - name: Clear cache
-        env:
-          USER: ${{ secrets.USER }}
-        run: |
-          ssh $USER@reyote.mnfurs.org "echo 'sweet'"
+          ssh $USER@reyote.mnfurs.org "cd public_html; git pull && \
+          composer install --prefer-dist --no-interaction --no-suggest && \
+          npm install && \
+          npm run production && \
+          php artisan route:cache && \
+          php artisan config:cache &&
+          php artisan migrate --force"
+
