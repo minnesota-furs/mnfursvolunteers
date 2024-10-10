@@ -53,7 +53,7 @@
                                             <a class="text-blue-700" href="{{route('ledger.edit', $ledger->id)}}">{{$ledger->name}}</a>
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0 text-center">
-                                            {{$ledger->totalVolunteerHours()}}
+                                            {{format_hours($ledger->totalVolunteerHours())}}
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                             {{$ledger->start_date->format('F j, Y')}}
