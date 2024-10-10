@@ -9,14 +9,20 @@
 
         <!-- Name -->
         <div>
-            <x-input-label for="name" :value="__('Name')" />
+            <div style="display: flex; direction: column">
+                <x-input-label for="name" :value="__('Name')" />
+                <x-required-asterisk/>
+            </div>
             <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" placeholder="Blue Folf" required autofocus autocomplete="name" />
             <x-input-error class="mt-2" :messages="$errors->get('name')" />
         </div>
 
         <!-- Email -->
         <div>
-            <x-input-label for="email" :value="__('Email')" />
+            <div style="display: flex; direction: column">
+                <x-input-label for="email" :value="__('Email')" />
+                <x-required-asterisk/>
+            </div>
             <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" placeholder="user@domain.extension" required autocomplete="username" />
             <x-input-error class="mt-2" :messages="$errors->get('email')" />
         </div>
@@ -44,14 +50,20 @@
 
         <!-- Password -->
         <div>
-            <x-input-label for="password" :value="__('Password')" />
+            <div style="display: flex; direction: column">
+                <x-input-label for="password" :value="__('Password')" />
+                <x-required-asterisk/>
+            </div>
             <x-text-input id="password" name="password" type="password" placeholder="XXXXXXXX" class="mt-1 block w-full" required />
             <x-input-error class="mt-2" :messages="$errors->get('password')" />
         </div>
 
         <!-- Confirm Password -->
         <div>
+            <div style="display: flex; direction: column">
             <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+                <x-required-asterisk/>
+            </div>
             <x-text-input id="password_confirmation" type="password" placeholder="XXXXXXXX" name="password_confirmation" class="mt-1 block w-full" required />
             <x-input-error class="mt-2" :messages="$errors->get('password_confirmation')" />
         </div>

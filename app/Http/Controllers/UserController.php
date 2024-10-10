@@ -69,7 +69,7 @@ class UserController extends Controller
             'notes' => ['nullable', 'string', 'max:255'], // 'notes' can be a string, maximum 255 characters, or null
             'primary_sector_id' => ['nullable', 'integer', 'exists:sectors,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
             'primary_dept_id' => ['nullable', 'integer', 'exists:departments,id'], // Ensure 'sector' is a valid integer and exists in the sectors table
-            'admin' => ['required', 'boolean'] // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
+            'admin' => ['boolean'] // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
         ]);
 
         $user = User::create($validated);
