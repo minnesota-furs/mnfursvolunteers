@@ -32,7 +32,8 @@ class UserController extends Controller
         $users->appends(['search' => $search]);
 
         return view('users.index', [
-            'users'     => $users
+            'users'     => $users,
+            'viewer'    => $request->user()
         ]);
     }
 
@@ -42,7 +43,7 @@ class UserController extends Controller
      */
     public function create(Request $request): View
     {
-        if(!($request->user()->isAdmin()))
+        if($request->user()->isAdmin())
         {
             return view('users.create', [
                 'user'      => $request->user(),

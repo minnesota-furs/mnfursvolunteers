@@ -7,17 +7,19 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="px-4 sm:px-6 lg:px-8">
                 <div class="sm:flex sm:items-center">
-                  <div class="sm:flex-auto">
-                    <h1 class="text-base font-semibold leading-6 text-gray-900">Users/Volunteers</h1>
-                    <p class="mt-2 text-sm text-gray-700">Listing of all users/volunteers within the organzation including their email, sector/dept, status, and hours.</p>
-                    @if(null !==request('search'))
-                        <p class="mt-2 text-sm text-orange-700"><x-heroicon-s-magnifying-glass class="w-4 inline"/> Currently showing {{count($users)}} result(s) for search term: <span class="underline">{{request('search')}}</span>.
-                            <a class="text-blue-600" href="{{route('users.index')}}">Clear Search</a>
+                    <div class="sm:flex-auto">
+                        <h1 class="text-base font-semibold leading-6 text-gray-900">Users/Volunteers</h1>
+                        <p class="mt-2 text-sm text-gray-700">Listing of all users/volunteers within the organzation including their email, sector/dept, status, and hours.</p>
+                        @if(null !==request('search'))
+                            <p class="mt-2 text-sm text-orange-700"><x-heroicon-s-magnifying-glass class="w-4 inline"/> Currently showing {{count($users)}} result(s) for search term: <span class="underline">{{request('search')}}</span>.
+                                <a class="text-blue-600" href="{{route('users.index')}}">Clear Search</a>
+                        @endif
+                    </div>
+                    @if( $viewer->isAdmin() )
+                        <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                            <a href="{{route('users.create')}}" type="button" class="block rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add user</a>
+                        </div>
                     @endif
-                  </div>
-                  <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                    <a href="{{route('users.create')}}" type="button" class="block rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add user</a>
-                  </div>
                 </div>
                 <div class="mt-8 flow-root">
                   <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
