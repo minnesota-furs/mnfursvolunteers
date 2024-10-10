@@ -121,4 +121,14 @@ class User extends Authenticatable
     {
         return !empty($this->notes);
     }
+
+    /**
+     * Check if the volunteer entry has department set.
+     *
+     * @return bool
+     */
+    public function hasDept(): bool
+    {
+        return !is_null($this->primary_dept_id);
+    }
 }

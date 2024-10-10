@@ -81,7 +81,7 @@
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                     <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Primary Dept</dt>
                                     <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
-                                        {{$user->department->name ?? '?'}}
+                                        {{$user->department->name ?? '-'}}
                                     </dd>
                                 </div>
 
@@ -127,24 +127,34 @@
                             <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">Sector, Department</th>
                             <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">Amount</th>
                             <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">Task Date</th>
-                            <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">Notes</th>
-                            {{-- <th scope="col" class="relative w-16 whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
+                            <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-16">Notes</th>
+                            <th scope="col" class="relative w-16 whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
                               <span class="sr-only">Edit</span>
-                            </th> --}}
+                            </th>
                           </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                         @forelse ($volunteerHours as $volunteerHour)
-                          <tr>
-                            <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">{{$volunteerHour->description}}</td>
+                          <tr class="even:bg-gray-50">
+                            <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">
+                                <a href="#" class="text-slate-500">
+                                @if ($volunteerHour->description)
+                                    {{$volunteerHour->description}}
+                                @else
+                                    <span class="text-xs text-gray-300">Description Not Provided</span>
+                                @endif
+                                </a>
+                            </td>
                             <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-400 dark:text-gray-300">
                                 @if ($volunteerHour->hasDepartment())
                                     {{$volunteerHour->department->sector->name ?? '-'}} / {{$volunteerHour->department->name ?? ''}}
                                 @else
-                                    -
+                                    <span class="text-xs text-gray-300">Department Not Provided</span>
                                 @endif
                             </td>
-                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300">{{format_hours($volunteerHour->hours)}} hrs</td>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300" title="{{$volunteerHour->fiscalLedger->name ?? '???'}}">
+                                {{format_hours($volunteerHour->hours)}} hrs
+                            </td>
                             <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300">
                                 @if(isset($volunteerHour->volunteer_date))
                                     {{$volunteerHour->volunteer_date->diffForHumans() ?? '-'}}
@@ -154,14 +164,15 @@
                             </td>
                             <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300">
                                 @if($volunteerHour->hasNotes())
-                                    <x-heroicon-o-check class="w-4"/>
+                                    <x-heroicon-o-check title="{{$volunteerHour->notes ?? ''}}" class="w-4"/>
                                 @else
                                     <span class="text-xs text-gray-300">-</span>
                                 @endif
                             </td>
-                            {{-- <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                <a href="#" class="text-blue-600 hover:text-blue-800 px-4">Edit<span class="sr-only"></span></a>
-                            </td> --}}
+                            <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                                <a href="{{route('hours.show', $volunteerHour->id)}}" class="text-blue-400 hover:text-blue-500 px-1">View<span class="sr-only"></span></a>
+                                <a href="{{route('hours.edit', $volunteerHour->id)}}" class="text-blue-400 hover:text-blue-500 px-1">E<span class="sr-only"></span></a>
+                            </td>
                           </tr>
                         @empty
                         <tr>

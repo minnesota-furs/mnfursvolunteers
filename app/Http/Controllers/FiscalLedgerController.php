@@ -14,7 +14,7 @@ class fiscalLedgerController extends Controller
      */
     public function index()
     {
-        $ledgers = FiscalLedger::all();
+        $ledgers = FiscalLedger::orderBy('end_date', 'desc')->get();
 
         return view('ledgers.index', [
             'ledgers'     => $ledgers

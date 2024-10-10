@@ -39,9 +39,16 @@
             @endif
         </div>
 
+        <!-- Page Heading -->
+        @if (isset($postHeader))
+            <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8 -mt-40 mb-32 pb-6">
+                {{ $postHeader }}
+            </div>
+        @endif
+
         <!-- Page Content -->
+        <main class="-mt-32 pb-8">
         @if (isset($right))
-            <main class="-mt-32 pb-8">
                 <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
                     <h1 class="sr-only">{{ $header ?? 'Lorem' }}</h1>
                     <!-- Main 3 column grid -->

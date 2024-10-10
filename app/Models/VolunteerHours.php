@@ -53,4 +53,5 @@ class VolunteerHours extends Model
     {
         return !is_null($this->primary_dept_id);
     }
+
 }
