@@ -64,11 +64,11 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', Rules\Password::defaults()],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'active' => ['required', 'boolean'], // Ensures 'active' is either 0 or 1 (boolean)
             'notes' => ['nullable', 'string', 'max:255'], // 'notes' can be a string, maximum 255 characters, or null
-            'primary_sector_id' => ['integer', 'exists:sectors,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
-            'primary_dept_id' => ['integer', 'exists:departments,id'], // Ensure 'sector' is a valid integer and exists in the sectors table
+            'primary_sector_id' => ['nullable', 'integer', 'exists:sectors,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
+            'primary_dept_id' => ['nullable', 'integer', 'exists:departments,id'], // Ensure 'sector' is a valid integer and exists in the sectors table
             'admin' => ['required', 'boolean'] // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
         ]);
 
