@@ -5,7 +5,7 @@
 
     <form method="post" action="{{ route('users.store') }}" class="mt-6 space-y-6">
         @csrf
-        @method('put')
+        @method('post')
 
         <!-- Name -->
         <div>
@@ -29,15 +29,23 @@
 
         <!-- User is Active -->
         <div>
-            <x-input-label for="active" :value="__('User is Active')" />
-            <x-checkbox-input id="active" name="active" checked />
+            <x-input-label for="active" :value="__('Active Status')" />
+            <x-select-input id="active" name="active" class="block text-sm" required>
+                <option value="1" {{ old('active', $user->active) == 1 ? 'selected' : '' }}>Active</option>
+                <option value="0" {{ old('active', $user->active) == 0 ? 'selected' : '' }}>Inactive</option>
+            </x-select-input>
+            <x-form-validation for="active" />
             <x-input-error class="mt-2" :messages="$errors->get('active')" />
         </div>
 
         <!-- Grant Admin Privileges -->
         <div>
-            <x-input-label for="admin" :value="__('Grant Admin Privileges')" />
-            <x-checkbox-input id="admin" name="admin" unchecked />
+            <x-input-label for="admin" :value="__('User Type')" />
+            <x-select-input id="admin" name="admin" class="block text-sm" required>
+                <option value="0">User</option>
+                <option value="1">Admin</option>
+            </x-select-input>
+            <x-form-validation for="admin" />
             <x-input-error class="mt-2" :messages="$errors->get('admin')" />
         </div>
 

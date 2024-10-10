@@ -36,8 +36,9 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/users', [UserController::class, 'create'])->name('users.create');
-    Route::put('/users', [UserController::class, 'store'])->name('users.store');
-    Route::patch('/users', [UserController::class, 'update'])->name('users.update');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::get('/users', [UserController::class, 'edit'])->name('users.edit');
+    Route::post('/users/{id}', [UserController::class, 'update'])->name('users.update');
 });
 
 Route::resource('users', UserController::class);

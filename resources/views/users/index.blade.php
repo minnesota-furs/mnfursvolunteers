@@ -12,7 +12,7 @@
                         <p class="mt-2 text-sm text-gray-700">Listing of all users/volunteers within the organzation including their email, sector/dept, status, and hours.</p>
                         @if(null !==request('search'))
                             <p class="mt-2 text-sm text-orange-700"><x-heroicon-s-magnifying-glass class="w-4 inline"/> Currently showing {{count($users)}} result(s) for search term: <span class="underline">{{request('search')}}</span>.
-                                <a class="text-blue-600" href="{{route('users.index')}}">Clear Search</a>
+                            <a class="text-blue-600" href="{{route('users.index')}}">Clear Search</a>
                         @endif
                     </div>
                     @if( $viewer->isAdmin() )

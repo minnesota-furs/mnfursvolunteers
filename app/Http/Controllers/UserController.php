@@ -53,7 +53,6 @@ class UserController extends Controller
         {
             return $this->index($request);
         }
-        
     }
 
     /**
@@ -101,36 +100,42 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, string $id = '') : View
     {
-        $user = User::find($id);
-        $sectors = Sector::all();
-        $departments = [];
 
-        if ($user->sector) {
-            $departments = Department::where('sector_id', $user->sector->id)->get();
+        if($request->user()->isAdmin())
+        {
+            $user = User::find($id);
+            $sectors = Sector::all();
+            $departments = [];
+            return view('users.edit', [
+                'user'      => $user,
+                'sectors'   => $sectors,
+                'departments' => $departments
+            ]);
         }
-
-        return view('users.edit', [
-            'user'      => $user,
-            'sectors'   => $sectors,
-            'departments' => $departments
-        ]);
+        else
+        {
+            return $this->index($request);
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $id) : RedirectResponse
     {
+        //dd($request);
+
         // Validate the incoming request data
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,  // Ensure unique email except for this user
-            'active' => 'required|boolean',                     // Ensures 'active' is either 0 or 1 (boolean)
-            'notes' => 'nullable|string',                       // 'notes' can be a string, maximum 255 characters, or null
-            'primary_sector_id' => 'integer|exists:sectors,id',   // Ensure 'sector' is a valid integer and exists in the sectors table
-            'primary_dept_id' => 'integer|exists:departments,id',   // Ensure 'sector' is a valid integer and exists in the sectors table
+            'name' => ['required','string','max:255'],
+            'email' => ['required','email','unique:users,email,' . $id],  // Ensure unique email except for this user
+            'active' => ['required','boolean'],                     // Ensures 'active' is either 0 or 1 (boolean)
+            'notes' => ['nullable','string'],                       // 'notes' can be a string, maximum 255 characters, or null
+            'primary_sector_id' => ['nullable','integer','exists:sectors,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
+            'primary_dept_id' => ['nullable','integer','exists:departments,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
+            'admin' => ['boolean'] // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
         ]);
 
         // Find the user by ID
