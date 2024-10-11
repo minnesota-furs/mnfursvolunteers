@@ -96,7 +96,10 @@ class UserController extends Controller
             ->orderByRaw('COALESCE(volunteer_date, created_at) DESC')
             ->paginate(15);
 
-        return view('users.show', compact('user', 'volunteerHours'));
+        return view('users.show', [
+            'user' => $user,
+            'volunteerHours' => $volunteerHours,
+        ]);
     }
 
     /**
@@ -127,7 +130,6 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id) : RedirectResponse
     {
-        //dd($request);
 
         // Validate the incoming request data
         $validated = $request->validate([
@@ -155,11 +157,38 @@ class UserController extends Controller
             ]);
     }
 
+    public function delete(Request $request, string $id): View
+    {
+        if($request->user()->isAdmin())
+        {
+            $user = User::find($id);
+            return view('users.delete', [
+                'user'   => $user,
+            ]);
+        }
+        else
+        {
+            return $this->index($request);
+        }
+    }
+
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id) : RedirectResponse
     {
-        //
+        if($request->user()->isAdmin())
+        {
+            $user = User::findOrFail($id);
+            $user->delete();
+            return redirect()->route('users.index')
+            ->with('success', [
+                'message' => "Volunteer <span class=\"text-brand-red\">{$user->name}</span> deleted successfully",
+            ]);
+        }
+        else
+        {
+            return $this->index($request);
+        }
     }
 }
