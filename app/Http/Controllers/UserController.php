@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class UserController extends Controller
@@ -65,7 +66,7 @@ class UserController extends Controller
         // Validate the incoming request data
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->withoutTrashed()],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'active' => ['required', 'boolean'], // Ensures 'active' is either 0 or 1 (boolean)
             'notes' => ['nullable', 'string', 'max:255'], // 'notes' can be a string, maximum 255 characters, or null
@@ -74,7 +75,18 @@ class UserController extends Controller
             'admin' => ['boolean'] // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
         ]);
 
-        $user = User::create($validated);
+        // Check if a user with the same email exists and is soft-deleted
+        $existingUser = User::where('email', $validated['email'])->withTrashed()->first();
+
+        if ($existingUser && $existingUser->trashed()) {
+            // User found but not soft-deleted, update instead of create
+            $user = $existingUser;
+            $user->restore();
+            $user->update($validated);
+        } else {
+            // Create new user
+            $user = User::create($validated);
+        }
 
         // Optionally, flash a success message to the session
         return redirect()->route('users.index')
