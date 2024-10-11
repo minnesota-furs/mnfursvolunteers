@@ -2,7 +2,7 @@
     <x-slot name="header">
         Create a new User
         <h2>
-            You are currently signed in as <b>Administrator {{$user->name}}</b>
+            You are currently signed in as <i>Administrator <b>{{Auth::user()->name}}</b></i>
         </h2>
     </x-slot>
 

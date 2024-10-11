@@ -32,8 +32,7 @@ class UserController extends Controller
         $users->appends(['search' => $search]);
 
         return view('users.index', [
-            'users'     => $users,
-            'viewer'    => $request->user()
+            'users'     => $users
         ]);
     }
 
@@ -45,8 +44,11 @@ class UserController extends Controller
     {
         if($request->user()->isAdmin())
         {
+            $sectors = Sector::all();
+            $departments = [];
             return view('users.create', [
-                'user'      => $request->user(),
+                'sectors'   => $sectors,
+                'departments' => $departments
             ]);
         }
         else
