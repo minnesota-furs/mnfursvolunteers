@@ -39,7 +39,7 @@
                             <x-dropdown-link :href="route('sector.index')">
                                 {{ __('Sectors') }}
                             </x-dropdown-link>
-                            <x-dropdown-link :href="route('department.index')">
+                            <x-dropdown-link :href="route('departments.index')">
                                 {{ __('Departments') }}
                             </x-dropdown-link>
                         </x-slot>

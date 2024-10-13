@@ -82,6 +82,6 @@
         <p class="py-4 text-justify">An Organizational Sector represents a distinct division or area within an
             organization, designed to group related activities, functions, or responsibilities under a common goal or
             focus. Sectors are often aligned with key strategic objectives and help streamline the management and
-            oversight of the organization's various departments or initiatives. Within a sector is multiple <a class="text-blue-500" href="{{route('department.index')}}">departments</a>.</p>
+            oversight of the organization's various departments or initiatives. Within a sector is multiple <a class="text-blue-500" href="{{route('departments.index')}}">departments</a>.</p>
     </x-slot>
 </x-app-layout>

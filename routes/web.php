@@ -36,7 +36,7 @@ Route::middleware('auth')->group(function () {
 
 Route::resource('users', UserController::class);
 Route::resource('sector', SectorController::class);
-Route::resource('department', DepartmentController::class);
+Route::resource('departments', DepartmentController::class);
 Route::resource('ledger', FiscalLedgerController::class);
 
 Route::get('/departments-by-sector', [DepartmentController::class, 'getDepartmentsBySector'])->name('get-departments-by-sector');

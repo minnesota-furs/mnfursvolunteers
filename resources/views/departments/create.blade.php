@@ -5,7 +5,7 @@
 
     <div class="py-6d">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <form class="pb-5" action="{{ route('department.create') }}" method="POST">
+            <form class="pb-5" action="{{ route('departments.create') }}" method="POST">
                 @csrf
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
