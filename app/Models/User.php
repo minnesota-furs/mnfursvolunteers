@@ -27,6 +27,7 @@ class User extends Authenticatable
         'primary_sector_id',
         'is_linked_to_wp',
         'notes',
+        'admin',
     ];
 
     /**
@@ -122,7 +123,7 @@ class User extends Authenticatable
         return !empty($this->notes);
     }
 
-    /**
+    /**   
      * Check if the volunteer entry has department set.
      *
      * @return bool
@@ -130,5 +131,14 @@ class User extends Authenticatable
     public function hasDept(): bool
     {
         return !is_null($this->primary_dept_id);
+    }
+    /**
+     * Check if the user is an admin.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->admin;
     }
 }
