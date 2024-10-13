@@ -142,7 +142,6 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id) : RedirectResponse
     {
-
         // Validate the incoming request data
         $validated = $request->validate([
             'name' => ['required','string','max:255'],
