@@ -19,10 +19,6 @@
                     <p>You are currently about to delete user <b>{{$user->name}}</b></p>
                     <p>Are you <b><i><u>really</u></i></b> sure you want to do this?</p>
 
-                    <form id="send-verification" method="post" action="{{ route('verification.send') }}">
-                        @csrf
-                    </form>
-
                     <form method="post" action="{{ route('users.destroy', $user->id) }}" class="mt-6 space-y-6">
                         @csrf
                         @method('post')
