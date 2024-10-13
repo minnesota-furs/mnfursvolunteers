@@ -9,11 +9,7 @@ The workaround to this is to include a hidden input of the same name with value 
 This works because when an HTML form has multiple inputs with the same name, only the last one is submitted to the server.
 -->
 <input type="hidden" name="{{ $name }}" value="0">
-@if ($checked)
-    <input type="checkbox" name="{{ $name }}" value="1" checked class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-@else
-    <input type="checkbox" name="{{ $name }}" value="1" unchecked class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-@endif
+<input type="checkbox" name="{{ $name }}" value="1" {{ $checked ? 'checked' : '' }} class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
 <!-- 
 OLD IMPLIMENTATION:
 <input {{ $disabled ? 'disabled' : '' }} {!! $attributes->merge(['class' => 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600', 'type' => 'checkbox',  'value' => 'true']) !!}>
