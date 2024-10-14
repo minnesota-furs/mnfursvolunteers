@@ -1,7 +1,4 @@
 <section>
-    <form id="send-verification" method="post" action="{{ route('verification.send') }}">
-        @csrf
-    </form>
 
     <form action="{{ route( 'users.update', $user->id ) }}" id="form" method="POST">
         @csrf
