@@ -4,8 +4,18 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Models\User;
 use App\Models\Sector;
 use App\Models\Department;
+
+
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class DepartmentController extends Controller
 {
@@ -15,9 +25,11 @@ class DepartmentController extends Controller
     public function index()
     {
         $departments = Department::all();
+        $sectors = Sector::all();
 
         return view('departments.index', [
-            'departments'     => $departments
+            'departments'     => $departments,
+            'sectors'         => $sectors
         ]);
     }
 
@@ -28,7 +40,10 @@ class DepartmentController extends Controller
     {
         if($request->user()->isAdmin())
         {
-            return view('departments.create');
+            $sectors = Sector::all();
+            return view('departments.create', [
+                'sectors'   => $sectors,
+            ]);
         }
         else
         {
@@ -42,7 +57,28 @@ class DepartmentController extends Controller
     public function store(Request $request) : RedirectResponse
     {
         // Validate the incoming request data
-        $validated = $reqe
+        $validated = $request->validate([
+            'name' => ['required','string','max:255'], // required string, max len 255
+            'description' => ['nullable','string','max:255'],  // optional string, max len 255
+            'sector_id' => ['required','integer','exists:sectors,id']     // Ensure 'sector' is a valid integer and exists in the sectors table
+        ]);
+
+        // Programmatically determine the department ID of this new department
+        $lastDepartmentId = Department::latest()->first()->id ?? -1; //if no other department exists, start at -1+1 (0)
+        $newDepartmentId = $lastDepartmentId + 1;
+        $validated['id'] = $newDepartmentId; 
+
+        // Create the department
+        $department = Department::create($validated);
+
+        // Redirect user to departments list
+        // Optionally, flash a success message to the session
+        return redirect()->route('departments.index')
+            ->with('success', [
+                'message' => "Department <span class=\"text-brand-green\">{$department->name}</span> created successfully",
+                'action_text' => 'View Department',
+                'action_url' => route('departments.show', $department->id),
+            ]);
     }
 
     /**
@@ -59,20 +95,48 @@ class DepartmentController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, string $id)
     {
-        $department = Department::findOrFail($id);
-        return view('departments.edit', [
-            'department' => $department
-        ]);
+        if($request->user()->isAdmin())
+        {
+            $department = Department::findOrFail($id);
+            $sectors = Sector::all();
+            return view('departments.edit', [
+                'department' => $department,
+                'sectors' => $sectors
+            ]);
+        }
+        else
+        {
+            return view('dashboard');
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $id) : RedirectResponse
     {
-        //
+        // Validate the incoming request data
+        $validated = $request->validate([
+            'name' => ['required','string','max:255'], // required string, max len 255
+            'description' => ['nullable','string','max:255'],  // optional string, max len 255
+            'sector_id' => ['required','integer','exists:sectors,id']     // Ensure 'sector' is a valid integer and exists in the sectors table
+        ]);
+
+        // Find the department by ID
+        $department = Department::findOrFail($id);
+
+        // Update the department profile with the validated data
+        $department->update($validated);
+
+        // Optionally, flash a success message to the session
+        return redirect()->route('departments.index')
+            ->with('success', [
+                'message' => "Department <span class=\"text-brand-green\">{$department->name}</span> updated successfully",
+                'action_text' => 'View Department',
+                'action_url' => route('departments.show', $department->id),
+            ]);
     }
 
     /**

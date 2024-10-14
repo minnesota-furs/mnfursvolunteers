@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Create New User') }}
+        {{ __('Sector: ') }}{{ $sector->name }}
     </x-slot>
 
     <div class="py-12">

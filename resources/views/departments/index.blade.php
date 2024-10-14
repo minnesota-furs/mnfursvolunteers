@@ -55,7 +55,10 @@
                                         <tr>
                                             <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                 <a class="text-blue-700"
-                                                    href="{{ route('sector.edit', $department->id) }}">{{ $department->name }}</a>
+                                                    href="{{ route('departments.edit', $department->id) }}">{{ $department->name }}</a>
+                                            </td>
+                                            <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                <p>{{ $sectors->where('id', $department->sector_id)->first()->name }}</p>
                                             </td>
                                             <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                 -
@@ -85,7 +88,7 @@
     <x-slot name="right">
         <h1 class="text-base font-semibold leading-6 text-gray-900">What is a Department?</h1>
         <p class="py-4 text-justify">A Department is a specialized team or functional unit within an organization that
-            operates under a specific <a class="text-blue-500" href="{{ route('sector.index') }}">Sector</a>. Each department is responsible for managing key activities or tasks
+            operates under a specific <a class="text-blue-500" href="{{ route('sectors.index') }}">Sector</a>. Each department is responsible for managing key activities or tasks
             related to its area of expertise. Departments typically focus on more granular aspects of the sector’s
             overall mission, providing targeted support and handling day-to-day operations that contribute to the
             sector’s objectives.</p>

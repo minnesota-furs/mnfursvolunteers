@@ -36,7 +36,7 @@
                             <x-dropdown-link :href="route('ledger.index')">
                                 {{ __('Ledgers') }}
                             </x-dropdown-link>
-                            <x-dropdown-link :href="route('sector.index')">
+                            <x-dropdown-link :href="route('sectors.index')">
                                 {{ __('Sectors') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('departments.index')">

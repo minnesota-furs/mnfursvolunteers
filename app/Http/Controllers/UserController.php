@@ -160,7 +160,7 @@ class UserController extends Controller
         $user->update($validated);
 
         // Optionally, flash a success message to the session
-        return redirect()->route('users.show', $user->id)
+        return redirect()->route('users.index')
             ->with('success', [
                 'message' => "Volunteer <span class=\"text-brand-green\">{$user->name}</span> updated successfully",
                 'action_text' => 'View User',

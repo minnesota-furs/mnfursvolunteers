@@ -11,7 +11,7 @@
                         <h1 class="text-base font-semibold leading-6 text-gray-900">Sectors</h1>
                     </div>
                     <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                        <a href="{{ route('sector.create') }}" type="button"
+                        <a href="{{ route('sectors.create') }}" type="button"
                             class="block rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add
                             sector</a>
                     </div>
@@ -49,7 +49,7 @@
                                         <tr>
                                             <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                 <a class="text-blue-700"
-                                                    href="{{ route('sector.edit', $sector->id) }}">{{ $sector->name }}</a>
+                                                    href="{{ route('sectors.edit', $sector->id) }}">{{ $sector->name }}</a>
                                             </td>
                                             <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                 -

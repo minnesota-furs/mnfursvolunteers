@@ -37,17 +37,19 @@ class SectorController extends Controller
        // Validate the incoming request data
        $validated = $request->validate([
             'name' => 'required|string|max:255',               // Validate name (required, string, max 255 characters)
+            'url' => 'nullable|string|max:2555',
+            'description' => 'nullable|string|max:255'
         ]);
 
         // Create a new Fiscal Ledger with the validated data
-        Sector::create([
-            'name' => $validated['name']
-        ]);
+        $sector = Sector::create($validated);
 
         // Redirect to a desired route (for example, back to a list of fiscal ledgers)
-        return redirect()->route('sector.index')
+        return redirect()->route('sectors.index')
             ->with('success', [
-                'message' => "Sector Created Successfully"
+                'message' => "Sector <span class=\"text-brand-green\">{$sector->name}</span> created successfully",
+                'action_text' => 'View Sector',
+                'action_url' => route('sectors.show', $sector->id),
             ]);
     }
 
@@ -57,7 +59,7 @@ class SectorController extends Controller
     public function show(string $id)
     {
         $sector = Sector::findOrFail($id);
-        return view('ledger.show', [
+        return view('sectors.show', [
             'sector' => $sector
         ]);
     }
