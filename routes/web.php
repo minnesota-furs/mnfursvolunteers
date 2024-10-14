@@ -48,8 +48,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
     Route::get('/departments', [DepartmentController::class, 'edit'])->name('departments.edit');
     Route::post('/departments/{department}', [DepartmentController::class, 'update'])->name('departments.update');
-    Route::get('/departments/{id}/delete', [DepartmentController::class, 'delete'])->name('departments.delete');
-    Route::post('/departments/{id}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
+    Route::get('/departments/{department}/delete', [DepartmentController::class, 'delete'])->name('departments.delete');
+    Route::post('/departments/{department}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
 });
 
 Route::middleware('auth')->group(function () {

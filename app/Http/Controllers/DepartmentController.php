@@ -142,9 +142,39 @@ class DepartmentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function delete(Request $request, string $id): View
     {
-        //
+        if($request->user()->isAdmin())
+        {
+            $department = Department::find($id);
+            return view('departments.delete', [
+                'department'   => $department,
+            ]);
+        }
+        else
+        {
+            return $this->index($request);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Request $request, string $id) : RedirectResponse
+    {
+        if($request->user()->isAdmin())
+        {
+            $department = Department::findOrFail($id);
+            $department->delete();
+            return redirect()->route('departments.index')
+            ->with('success', [
+                'message' => "Department <span class=\"text-brand-red\">{$department->name}</span> deleted successfully",
+            ]);
+        }
+        else
+        {
+            return $this->index($request);
+        }
     }
 
     public function getDepartmentsBySector(Request $request)

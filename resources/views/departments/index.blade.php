@@ -55,7 +55,7 @@
                                         <tr>
                                             <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                 <a class="text-blue-700"
-                                                    href="{{ route('departments.edit', $department->id) }}">{{ $department->name }}</a>
+                                                    href="{{ route('departments.show', $department->id) }}">{{ $department->name }}</a>
                                             </td>
                                             <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                 <p>{{ $sectors->where('id', $department->sector_id)->first()->name }}</p>
