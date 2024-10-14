@@ -43,6 +43,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
 });
 
+Route::middleware('auth')->group(function () {
+    Route::get('/departments/create', [DepartmentController::class, 'create'])->name('departments.create');
+    Route::post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
+    Route::get('/departments', [DepartmentController::class, 'edit'])->name('departments.edit');
+    Route::post('/departments/{id}', [DepartmentController::class, 'update'])->name('departments.update');
+    Route::get('/departments/{id}/delete', [DepartmentController::class, 'delete'])->name('departments.delete');
+    Route::post('/departments/{id}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
+});
+
 Route::resource('users', UserController::class);
 Route::resource('sector', SectorController::class);
 Route::resource('departments', DepartmentController::class);
