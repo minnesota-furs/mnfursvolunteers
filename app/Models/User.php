@@ -4,13 +4,14 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -27,6 +28,7 @@ class User extends Authenticatable
         'primary_sector_id',
         'is_linked_to_wp',
         'notes',
+        'admin',
     ];
 
     /**
@@ -122,7 +124,7 @@ class User extends Authenticatable
         return !empty($this->notes);
     }
 
-    /**
+    /**   
      * Check if the volunteer entry has department set.
      *
      * @return bool
@@ -130,5 +132,14 @@ class User extends Authenticatable
     public function hasDept(): bool
     {
         return !is_null($this->primary_dept_id);
+    }
+    /**
+     * Check if the user is an admin.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->admin;
     }
 }
