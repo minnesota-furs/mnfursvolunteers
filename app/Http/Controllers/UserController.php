@@ -172,7 +172,7 @@ class UserController extends Controller
     {
         if($request->user()->isAdmin())
         {
-            $user = User::find($id);
+            $user = User::findOrFail($id);
             return view('users.delete_confirm', [
                 'user'   => $user,
             ]);
