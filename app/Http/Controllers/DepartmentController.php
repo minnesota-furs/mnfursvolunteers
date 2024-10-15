@@ -118,8 +118,6 @@ class DepartmentController extends Controller
      */
     public function update(Request $request, string $id) : RedirectResponse
     {
-        dd("reached department.update function");
-
         // Validate the incoming request data
         $validated = $request->validate([
             'name' => ['required','string','max:255'], // required string, max len 255
@@ -134,7 +132,7 @@ class DepartmentController extends Controller
         $department->update($validated);
 
         // Optionally, flash a success message to the session
-        return redirect()->route('dashboard')
+        return redirect()->route('departments.index')
             ->with('success', [
                 'message' => "Department <span class=\"text-brand-green\">{$department->name}</span> updated successfully",
                 'action_text' => 'View Department',

@@ -23,7 +23,7 @@
                         @csrf
                         @method('delete')
 
-                        <a href="{{route('users.show', $department->id)}}"
+                        <a href="{{route('departments.show', $department->id)}}"
                             class="block rounded-md bg-gray-100 px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                             Cancel
                         </a>
