@@ -10,6 +10,7 @@
         "erusev/parsedown": "^1.7",
         "guzzlehttp/guzzle": "^7.2",
         "intervention/image": "^3.11",
+        "jd-dotlogics/laravel-grapesjs": "^3.4",
         "jgrossi/corcel": "^7.0",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",

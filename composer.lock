@@ -1668,6 +1668,53 @@
             "time": "2025-11-29T11:18:34+00:00"
         },
         {
+            "name": "jd-dotlogics/laravel-grapesjs",
+            "version": "3.4.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dl-u/laravel-grapesjs.git",
+                "reference": "2c4136621454b368c30464636701ef85a04d990f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dl-u/laravel-grapesjs/zipball/2c4136621454b368c30464636701ef85a04d990f",
+                "reference": "2c4136621454b368c30464636701ef85a04d990f",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": ">=5.6.0",
+                "php": "^7.4|^8.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Dotlogics\\Grapesjs\\GrapesjsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Dotlogics\\Grapesjs\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dotlogics",
+                    "email": "hello@dotlogics.com"
+                }
+            ],
+            "description": "A package to easily integrate GrapesJS into your laravel proejct.",
+            "support": {
+                "source": "https://github.com/dl-u/laravel-grapesjs/tree/3.4.1"
+            },
+            "time": "2023-05-26T06:27:19+00:00"
+        },
+        {
             "name": "jgrossi/corcel",
             "version": "v7.0.0",
             "source": {

@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Page;
+
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -7,6 +9,7 @@ use App\Http\Controllers\VolunteerHoursController;
 use App\Http\Controllers\FiscalLedgerController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\SectorController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\JobListingController;
 use App\Http\Controllers\WordPressAuthController;
 use App\Http\Controllers\VolunteerEventController;
@@ -34,7 +37,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::view('/', 'welcome');
+Route::get('/', function () {
+    $page = Page::where('slug', 'home')->firstOrFail();
+    return view('welcome', compact('page'));
+    // return view('welcome');
+});
 
 // Setup wizard (only accessible if no users exist)
 Route::get('/setup', [SetupWizardController::class, 'index'])->name('setup.index');
@@ -288,5 +295,7 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+
+Route::get('/pages/{page}/editor', [PageController::class, 'editor'])->name('page.editor');
 
 require __DIR__.'/auth.php';
