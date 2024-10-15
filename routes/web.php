@@ -35,12 +35,8 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-    Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::get('/users', [UserController::class, 'edit'])->name('users.edit');
-    Route::post('/users/{id}', [UserController::class, 'update'])->name('users.update');
-    Route::get('/users/{id}/delete', [UserController::class, 'delete'])->name('users.delete');
-    Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::get('/users/{id}/delete', [UserController::class, 'delete'])->name('users.delete.confirm');
+    Route::resource('users', UserController::class);
 });
 
 Route::middleware('auth')->group(function () {
@@ -61,9 +57,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/sectors/{id}', [SectorController::class, 'destroy'])->name('sectors.destroy');
 });
 
-Route::resource('users', UserController::class);
-Route::resource('sectors', SectorController::class);
-Route::resource('departments', DepartmentController::class);
+Route::resource('sector', SectorController::class);
+Route::resource('department', DepartmentController::class);
 Route::resource('ledger', FiscalLedgerController::class);
 
 Route::get('/departments-by-sector', [DepartmentController::class, 'getDepartmentsBySector'])->name('get-departments-by-sector');
