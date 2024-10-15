@@ -35,7 +35,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/users/{id}/delete', [UserController::class, 'delete'])->name('users.delete.confirm');
+    Route::get('/users/{id}/delete', [UserController::class, 'delete'])->name('users.delete_confirm');
     Route::resource('users', UserController::class);
 });
 
