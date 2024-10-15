@@ -8,7 +8,7 @@
 
             <form action="{{ route( 'departments.update', $department->id ) }}" id="department" method="POST">
                 @csrf
-                @method('POST')
+                @method('PATCH')
 
                 <!-- Name -->
                 <div>

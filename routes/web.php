@@ -40,25 +40,16 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/departments/create', [DepartmentController::class, 'create'])->name('departments.create');
-    Route::post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
-    Route::get('/departments', [DepartmentController::class, 'edit'])->name('departments.edit');
-    Route::post('/departments/edit/{department}', [DepartmentController::class, 'update'])->name('departments.update');
-    Route::get('/departments/{department}/delete', [DepartmentController::class, 'delete'])->name('departments.delete');
-    Route::delete('/departments/{department}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
+    Route::get('/departments/{id}/delete', [DepartmentController::class, 'delete'])->name('departments.delete_confirm');
+    Route::resource('departments', DepartmentController::class);
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/sectors/create', [SectorController::class, 'create'])->name('sectors.create');
-    Route::post('/sectors', [SectorController::class, 'store'])->name('sectors.store');
-    Route::get('/sectors', [SectorController::class, 'edit'])->name('sectors.edit');
-    Route::post('/sectors/{id}', [SectorController::class, 'update'])->name('sectors.update');
-    Route::get('/sectors/{id}/delete', [SectorController::class, 'delete'])->name('sectors.delete');
-    Route::post('/sectors/{id}', [SectorController::class, 'destroy'])->name('sectors.destroy');
+    Route::get('/sectors/{id}/delete', [SectorController::class, 'delete'])->name('sectors.delete_confirm');
+    Route::resource('sectors', SectorController::class);
 });
 
-Route::resource('sector', SectorController::class);
-Route::resource('department', DepartmentController::class);
+
 Route::resource('ledger', FiscalLedgerController::class);
 
 Route::get('/departments-by-sector', [DepartmentController::class, 'getDepartmentsBySector'])->name('get-departments-by-sector');

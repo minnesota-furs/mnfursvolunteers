@@ -7,6 +7,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <form class="pb-5" action="{{ route('sectors.store') }}" method="POST">
                 @csrf
+                @method('post')
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <dt class="text-sm font-medium leading-6 text-gray-900">Name</dt>

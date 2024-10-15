@@ -150,7 +150,7 @@ class DepartmentController extends Controller
         if($request->user()->isAdmin())
         {
             $department = Department::find($id);
-            return view('departments.delete', [
+            return view('departments.delete_confirm', [
                 'department'   => $department,
             ]);
         }
