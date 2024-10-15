@@ -49,7 +49,7 @@
                                         <tr>
                                             <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                 <a class="text-blue-700"
-                                                    href="{{ route('sectors.edit', $sector->id) }}">{{ $sector->name }}</a>
+                                                    href="{{ route('sectors.show', $sector->id) }}">{{ $sector->name }}</a>
                                             </td>
                                             <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                 -

@@ -24,9 +24,16 @@ class SectorController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        return view('sectors.create');
+        if($request->user()->isAdmin())
+        {
+            return view('sectors.create');
+        }
+        else
+        {
+            return view('dashboard');
+        }
     }
 
     /**
@@ -34,8 +41,8 @@ class SectorController extends Controller
      */
     public function store(Request $request)
     {
-       // Validate the incoming request data
-       $validated = $request->validate([
+        // Validate the incoming request data
+        $validated = $request->validate([
             'name' => 'required|string|max:255',               // Validate name (required, string, max 255 characters)
             'url' => 'nullable|string|max:2555',
             'description' => 'nullable|string|max:255'
@@ -67,12 +74,19 @@ class SectorController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, string $id)
     {
-        $sector = Sector::findOrFail($id);
-        return view('sectors.edit', [
-            'sector' => $sector
-        ]);
+        if($request->user()->isAdmin())
+        {
+            $sector = Sector::findOrFail($id);
+            return view('sectors.edit', [
+                'sector' => $sector
+            ]);
+        }
+        else
+        {
+            return view('dashboard');
+        }
     }
 
     /**
@@ -80,14 +94,60 @@ class SectorController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Validate the incoming request data
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',               // Validate name (required, string, max 255 characters)
+            'url' => 'nullable|string|max:2555',
+            'description' => 'nullable|string|max:255'
+        ]);
+
+        // Find the department by ID
+        $sector = Sector::findOrFail($id);
+
+        // Update the department profile with the validated data
+        $sector->update($validated);
+
+        // Optionally, flash a success message to the session
+        return redirect()->route('sectors.index')
+            ->with('success', [
+                'message' => "Sector <span class=\"text-brand-green\">{$sector->name}</span> updated successfully",
+                'action_text' => 'View Sector',
+                'action_url' => route('sectors.show', $sector->id),
+            ]);
+    }
+
+    public function delete(Request $request, string $id)
+    {
+        if($request->user()->isAdmin())
+        {
+            $sector = Sector::findOrFail($id);
+            return view('sectors.delete_confirm', [
+                'sector' => $sector
+            ]);
+        }
+        else
+        {
+            return view('dashboard');
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        //
+        if($request->user()->isAdmin())
+        {
+            $sector = Sector::findOrFail($id);
+            $sector->delete();
+            return redirect()->route('sectors.index')
+            ->with('success', [
+                'message' => "Sector <span class=\"text-brand-red\">{$sector->name}</span> deleted successfully",
+            ]);
+        }
+        else
+        {
+            return $this->index($request);
+        }
     }
 }
