@@ -8,6 +8,7 @@
         "php": "^8.1",
         "blade-ui-kit/blade-heroicons": "^2.4",
         "guzzlehttp/guzzle": "^7.2",
+        "jd-dotlogics/laravel-grapesjs": "^3.4",
         "jgrossi/corcel": "^7.0",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",

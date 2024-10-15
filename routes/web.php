@@ -1,11 +1,14 @@
 <?php
 
+use App\Models\Page;
+
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VolunteerHoursController;
 use App\Http\Controllers\FiscalLedgerController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\SectorController;
+use App\Http\Controllers\PageController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -21,7 +24,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    $page = Page::where('slug', 'home')->firstOrFail();
+    return view('welcome', compact('page'));
+    // return view('welcome');
 });
 
 Route::get('/dashboard', function () {
@@ -43,5 +48,7 @@ Route::get('/departments-by-sector', [DepartmentController::class, 'getDepartmen
 
 Route::get('/hours/create/{user?}', [VolunteerHoursController::class, 'create'])->name('hours.create');
 Route::resource('hours', VolunteerHoursController::class)->except(['create']);
+
+Route::get('/pages/{page}/editor', [PageController::class, 'editor'])->name('page.editor');
 
 require __DIR__.'/auth.php';
