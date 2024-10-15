@@ -87,6 +87,7 @@ class DepartmentController extends Controller
     public function show(string $id)
     {
         $department = Department::findOrFail($id);
+        $department['parent_sector_name'] = Sector::where('id', $department->sector_id)->first()->name ?? "Name Error";
         return view('departments.show', [
             'department' => $department
         ]);
@@ -117,6 +118,8 @@ class DepartmentController extends Controller
      */
     public function update(Request $request, string $id) : RedirectResponse
     {
+        dd("reached department.update function");
+
         // Validate the incoming request data
         $validated = $request->validate([
             'name' => ['required','string','max:255'], // required string, max len 255
@@ -131,7 +134,7 @@ class DepartmentController extends Controller
         $department->update($validated);
 
         // Optionally, flash a success message to the session
-        return redirect()->route('departments.index')
+        return redirect()->route('dashboard')
             ->with('success', [
                 'message' => "Department <span class=\"text-brand-green\">{$department->name}</span> updated successfully",
                 'action_text' => 'View Department',

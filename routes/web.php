@@ -40,16 +40,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/users', [UserController::class, 'edit'])->name('users.edit');
     Route::post('/users/{id}', [UserController::class, 'update'])->name('users.update');
     Route::get('/users/{id}/delete', [UserController::class, 'delete'])->name('users.delete');
-    Route::post('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
 });
 
 Route::middleware('auth')->group(function () {
     Route::get('/departments/create', [DepartmentController::class, 'create'])->name('departments.create');
     Route::post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
     Route::get('/departments', [DepartmentController::class, 'edit'])->name('departments.edit');
-    Route::post('/departments/{department}', [DepartmentController::class, 'update'])->name('departments.update');
+    Route::post('/departments/edit/{department}', [DepartmentController::class, 'update'])->name('departments.update');
     Route::get('/departments/{department}/delete', [DepartmentController::class, 'delete'])->name('departments.delete');
-    Route::post('/departments/{department}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
+    Route::delete('/departments/{department}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
 });
 
 Route::middleware('auth')->group(function () {
