@@ -88,7 +88,7 @@
         
         <!-- Primary Sector ID -->
         <div>
-            <x-input-label for="password" :value="__('Primary Sector')" />
+            <x-input-label for="primary_sector_id" :value="__('Primary Sector')" />
             <x-select-input name="primary_sector_id" id="primary_sector_id" class="block w-64 text-sm">
                 <option class="text-gray-400" value="">-None-</option>
                 @foreach($sectors as $sector)

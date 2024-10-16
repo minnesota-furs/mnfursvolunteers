@@ -91,7 +91,7 @@
                                                 <dt class="text-sm font-medium leading-6 text-gray-900">Primary Dept</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-select-input name="primary_dept_id" id="primary_dept_id" class="block w-64 text-sm"> <!-- required> -->
-                                                        <option value="">Select Department</option>
+                                                        <option class="text-gray-400" value="" {{ old('primary_department_id', $user->primary_department_id) == null ? 'selected' : '' }}>-None-</option>
                                                         @foreach($departments as $department)
                                                             <option value="{{ $department->id }}" {{ $user->department->id ?? '' == $department->id ? 'selected' : '' }}>
                                                                 {{ $department->name }}

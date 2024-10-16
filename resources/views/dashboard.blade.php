@@ -28,7 +28,7 @@
               <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
                 <dt class="truncate text-sm font-medium text-gray-500">Your Primary Department</dt>
                 @if (Auth::user()->hasDept())
-                <dd class="mt-1 text-2xl font-semibold tracking-tight text-gray-900">{{Auth::user()->department->name}} for {{Auth::user()->sector->name}}</dd>
+                <dd class="mt-1 text-2xl font-semibold tracking-tight text-gray-900">{{Auth::user()->department->name ?? 'NO_DEPARTMENT'}} for {{Auth::user()->sector->name ?? 'NO_SECTOR'}}</dd>
                 @else
                 <dd class="mt-1 text-xl font-semibold tracking-tight text-gray-300">No Department Assigned</dd>
                 @endif
