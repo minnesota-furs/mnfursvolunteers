@@ -29,24 +29,20 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
 
-Route::middleware('auth')->group(function () {
     Route::get('/users/{id}/delete', [UserController::class, 'delete'])->name('users.delete_confirm');
     Route::resource('users', UserController::class);
-});
 
-Route::middleware('auth')->group(function () {
     Route::get('/departments/{id}/delete', [DepartmentController::class, 'delete'])->name('departments.delete_confirm');
     Route::resource('departments', DepartmentController::class);
-});
 
-Route::middleware('auth')->group(function () {
     Route::get('/sectors/{id}/delete', [SectorController::class, 'delete'])->name('sectors.delete_confirm');
     Route::resource('sectors', SectorController::class);
+    
 });
 
 
