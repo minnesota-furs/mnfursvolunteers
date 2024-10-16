@@ -43,7 +43,7 @@ class UserController extends Controller
      */
     public function create(Request $request): View
     {
-        if($request->user()->isAdmin())
+        if(Auth::check() && Auth::user()->isAdmin())
         {
             $sectors = Sector::all();
             $departments = [];
@@ -54,7 +54,7 @@ class UserController extends Controller
         }
         else
         {
-            return $this->index($request);
+            abort(401);
         }
     }
 
@@ -63,38 +63,45 @@ class UserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     { 
-        // Validate the incoming request data
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->withoutTrashed()],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'active' => ['required', 'boolean'], // Ensures 'active' is either 0 or 1 (boolean)
-            'notes' => ['nullable', 'string', 'max:255'], // 'notes' can be a string, maximum 255 characters, or null
-            'primary_sector_id' => ['nullable', 'integer', 'exists:sectors,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
-            'primary_dept_id' => ['nullable', 'integer', 'exists:departments,id'], // Ensure 'sector' is a valid integer and exists in the sectors table
-            'admin' => ['boolean'] // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
-        ]);
-
-        // Check if a user with the same email exists and is soft-deleted
-        $existingUser = User::where('email', $validated['email'])->withTrashed()->first();
-
-        if ($existingUser && $existingUser->trashed()) {
-            // User found but not soft-deleted, update instead of create
-            $user = $existingUser;
-            $user->restore();
-            $user->update($validated);
-        } else {
-            // Create new user
-            $user = User::create($validated);
-        }
-
-        // Optionally, flash a success message to the session
-        return redirect()->route('users.index')
-            ->with('success', [
-                'message' => "Volunteer <span class=\"text-brand-green\">{$user->name}</span> created successfully",
-                'action_text' => 'View User',
-                'action_url' => route('users.show', $user->id),
+        if(Auth::check() && Auth::user()->isAdmin())
+        {
+            // Validate the incoming request data
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->withoutTrashed()],
+                'password' => ['required', 'confirmed', Rules\Password::defaults()],
+                'active' => ['required', 'boolean'], // Ensures 'active' is either 0 or 1 (boolean)
+                'notes' => ['nullable', 'string', 'max:255'], // 'notes' can be a string, maximum 255 characters, or null
+                'primary_sector_id' => ['nullable', 'integer', 'exists:sectors,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
+                'primary_dept_id' => ['nullable', 'integer', 'exists:departments,id'], // Ensure 'sector' is a valid integer and exists in the sectors table
+                'admin' => ['boolean'] // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
             ]);
+
+            // Check if a user with the same email exists and is soft-deleted
+            $existingUser = User::where('email', $validated['email'])->withTrashed()->first();
+
+            if ($existingUser && $existingUser->trashed()) {
+                // User found but not soft-deleted, update instead of create
+                $user = $existingUser;
+                $user->restore();
+                $user->update($validated);
+            } else {
+                // Create new user
+                $user = User::create($validated);
+            }
+
+            // Optionally, flash a success message to the session
+            return redirect()->route('users.index')
+                ->with('success', [
+                    'message' => "Volunteer <span class=\"text-brand-green\">{$user->name}</span> created successfully",
+                    'action_text' => 'View User',
+                    'action_url' => route('users.show', $user->id),
+                ]);
+        }
+        else
+        {
+            abort(401);
+        }
     }
 
     /**
@@ -119,8 +126,7 @@ class UserController extends Controller
      */
     public function edit(Request $request, string $id = '') : View
     {
-
-        if($request->user()->isAdmin())
+        if(Auth::check() && Auth::user()->isAdmin())
         {
             $user = User::find($id);
             $sectors = Sector::all();
@@ -133,7 +139,7 @@ class UserController extends Controller
         }
         else
         {
-            return $this->index($request);
+            abort(401);
         }
     }
 
@@ -142,30 +148,37 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id) : RedirectResponse
     {
-        // Validate the incoming request data
-        $validated = $request->validate([
-            'name' => ['required','string','max:255'],
-            'email' => ['required','email','unique:users,email,' . $id],  // Ensure unique email except for this user
-            'active' => ['required','boolean'],                     // Ensures 'active' is either 0 or 1 (boolean)
-            'notes' => ['nullable','string'],                       // 'notes' can be a string, maximum 255 characters, or null
-            'primary_sector_id' => ['nullable','integer','exists:sectors,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
-            'primary_dept_id' => ['nullable','integer','exists:departments,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
-            'admin' => ['boolean'] // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
-        ]);
-
-        // Find the user by ID
-        $user = User::findOrFail($id);
-
-        // Update the user profile with the validated data
-        $user->update($validated);
-
-        // Optionally, flash a success message to the session
-        return redirect()->route('users.index')
-            ->with('success', [
-                'message' => "Volunteer <span class=\"text-brand-green\">{$user->name}</span> updated successfully",
-                'action_text' => 'View User',
-                'action_url' => route('users.show', $user->id),
+        if(Auth::check() && Auth::user()->isAdmin())
+        {
+            // Validate the incoming request data
+            $validated = $request->validate([
+                'name' => ['required','string','max:255'],
+                'email' => ['required','email','unique:users,email,' . $id],  // Ensure unique email except for this user
+                'active' => ['required','boolean'],                     // Ensures 'active' is either 0 or 1 (boolean)
+                'notes' => ['nullable','string'],                       // 'notes' can be a string, maximum 255 characters, or null
+                'primary_sector_id' => ['nullable','integer','exists:sectors,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
+                'primary_dept_id' => ['nullable','integer','exists:departments,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
+                'admin' => ['boolean'] // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
             ]);
+
+            // Find the user by ID
+            $user = User::findOrFail($id);
+
+            // Update the user profile with the validated data
+            $user->update($validated);
+
+            // Optionally, flash a success message to the session
+            return redirect()->route('users.index')
+                ->with('success', [
+                    'message' => "Volunteer <span class=\"text-brand-green\">{$user->name}</span> updated successfully",
+                    'action_text' => 'View User',
+                    'action_url' => route('users.show', $user->id),
+                ]);
+        }
+        else
+        {
+            abort(401);
+        }
     }
 
     public function delete(Request $request, string $id): View
@@ -179,7 +192,7 @@ class UserController extends Controller
         }
         else
         {
-            return $this->index($request);
+            abort(401);
         }
     }
 
@@ -188,7 +201,7 @@ class UserController extends Controller
      */
     public function destroy(Request $request, string $id) : RedirectResponse
     {
-        if($request->user()->isAdmin())
+        if(Auth::check() && Auth::user()->isAdmin())
         {
             $user = User::findOrFail($id);
             $user->delete();
@@ -199,7 +212,7 @@ class UserController extends Controller
         }
         else
         {
-            return $this->index($request);
+            abort(401);
         }
     }
 }

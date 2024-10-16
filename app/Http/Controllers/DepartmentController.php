@@ -38,7 +38,7 @@ class DepartmentController extends Controller
      */
     public function create(Request $request) : View
     {
-        if($request->user()->isAdmin())
+        if(Auth::check() && Auth::user()->isAdmin())
         {
             $sectors = Sector::all();
             return view('departments.create', [
@@ -56,29 +56,31 @@ class DepartmentController extends Controller
      */
     public function store(Request $request) : RedirectResponse
     {
-        // Validate the incoming request data
-        $validated = $request->validate([
-            'name' => ['required','string','max:255'], // required string, max len 255
-            'description' => ['nullable','string','max:255'],  // optional string, max len 255
-            'sector_id' => ['required','integer','exists:sectors,id']     // Ensure 'sector' is a valid integer and exists in the sectors table
-        ]);
-
-        // Programmatically determine the department ID of this new department
-        $lastDepartmentId = Department::latest()->first()->id ?? -1; //if no other department exists, start at -1+1 (0)
-        $newDepartmentId = $lastDepartmentId + 1;
-        $validated['id'] = $newDepartmentId; 
-
-        // Create the department
-        $department = Department::create($validated);
-
-        // Redirect user to departments list
-        // Optionally, flash a success message to the session
-        return redirect()->route('departments.index')
-            ->with('success', [
-                'message' => "Department <span class=\"text-brand-green\">{$department->name}</span> created successfully",
-                'action_text' => 'View Department',
-                'action_url' => route('departments.show', $department->id),
+        if(Auth::check() && Auth::user()->isAdmin())
+        {
+            // Validate the incoming request data
+            $validated = $request->validate([
+                'name' => ['required','string','max:255'], // required string, max len 255
+                'description' => ['nullable','string','max:255'],  // optional string, max len 255
+                'sector_id' => ['required','integer','exists:sectors,id']     // Ensure 'sector' is a valid integer and exists in the sectors table
             ]);
+
+            // Create the department
+            $department = Department::create($validated);
+
+            // Redirect user to departments list
+            // Optionally, flash a success message to the session
+            return redirect()->route('departments.index')
+                ->with('success', [
+                    'message' => "Department <span class=\"text-brand-green\">{$department->name}</span> created successfully",
+                    'action_text' => 'View Department',
+                    'action_url' => route('departments.show', $department->id),
+                ]);
+        }
+        else
+        {
+            abort(401);
+        }
     }
 
     /**
@@ -98,7 +100,7 @@ class DepartmentController extends Controller
      */
     public function edit(Request $request, string $id)
     {
-        if($request->user()->isAdmin())
+        if(Auth::check() && Auth::user()->isAdmin())
         {
             $department = Department::findOrFail($id);
             $sectors = Sector::all();
@@ -118,26 +120,33 @@ class DepartmentController extends Controller
      */
     public function update(Request $request, string $id) : RedirectResponse
     {
-        // Validate the incoming request data
-        $validated = $request->validate([
-            'name' => ['required','string','max:255'], // required string, max len 255
-            'description' => ['nullable','string','max:255'],  // optional string, max len 255
-            'sector_id' => ['required','integer','exists:sectors,id']     // Ensure 'sector' is a valid integer and exists in the sectors table
-        ]);
-
-        // Find the department by ID
-        $department = Department::findOrFail($id);
-
-        // Update the department profile with the validated data
-        $department->update($validated);
-
-        // Optionally, flash a success message to the session
-        return redirect()->route('departments.index')
-            ->with('success', [
-                'message' => "Department <span class=\"text-brand-green\">{$department->name}</span> updated successfully",
-                'action_text' => 'View Department',
-                'action_url' => route('departments.show', $department->id),
+        if(Auth::check() && Auth::user()->isAdmin())
+        {
+            // Validate the incoming request data
+            $validated = $request->validate([
+                'name' => ['required','string','max:255'], // required string, max len 255
+                'description' => ['nullable','string','max:255'],  // optional string, max len 255
+                'sector_id' => ['required','integer','exists:sectors,id']     // Ensure 'sector' is a valid integer and exists in the sectors table
             ]);
+
+            // Find the department by ID
+            $department = Department::findOrFail($id);
+
+            // Update the department profile with the validated data
+            $department->update($validated);
+
+            // Optionally, flash a success message to the session
+            return redirect()->route('departments.index')
+                ->with('success', [
+                    'message' => "Department <span class=\"text-brand-green\">{$department->name}</span> updated successfully",
+                    'action_text' => 'View Department',
+                    'action_url' => route('departments.show', $department->id),
+                ]);
+        }
+        else
+        {
+            abort(401);
+        }
     }
 
     /**
@@ -145,7 +154,7 @@ class DepartmentController extends Controller
      */
     public function delete(Request $request, string $id): View
     {
-        if($request->user()->isAdmin())
+        if(Auth::check() && Auth::user()->isAdmin())
         {
             $department = Department::findOrFail($id);
             return view('departments.delete_confirm', [
@@ -154,7 +163,7 @@ class DepartmentController extends Controller
         }
         else
         {
-            return $this->index($request);
+            abort(401);
         }
     }
 
@@ -163,7 +172,7 @@ class DepartmentController extends Controller
      */
     public function destroy(Request $request, string $id) : RedirectResponse
     {
-        if($request->user()->isAdmin())
+        if(Auth::check() && Auth::user()->isAdmin())
         {
             $department = Department::findOrFail($id);
             $department->delete();
@@ -174,7 +183,7 @@ class DepartmentController extends Controller
         }
         else
         {
-            return $this->index($request);
+            abort(401);
         }
     }
 
