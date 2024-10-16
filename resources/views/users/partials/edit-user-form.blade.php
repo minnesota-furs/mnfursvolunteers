@@ -1,8 +1,8 @@
 <section>
 
-    <form action="{{ route( 'users.update', $user->id ) }}" id="form" method="POST">
+    <form action="{{ route( 'users.update', $user->id ) }}" id="form" method="post">
         @csrf
-        @method('post')
+        @method('patch')
         <div class="py-4">
             <div class="max-w-7xl mx-auto">
                 <div class="">
