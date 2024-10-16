@@ -102,5 +102,5 @@
 
             </div>
         </div>
-    @enduath
+    @endauth
 </x-app-layout>

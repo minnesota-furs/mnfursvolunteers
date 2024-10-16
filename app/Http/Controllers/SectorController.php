@@ -32,7 +32,7 @@ class SectorController extends Controller
         }
         else
         {
-            return view('dashboard');
+            abort(401);
         }
     }
 
@@ -85,7 +85,7 @@ class SectorController extends Controller
         }
         else
         {
-            return view('dashboard');
+            abort(401);
         }
     }
 
@@ -127,7 +127,7 @@ class SectorController extends Controller
         }
         else
         {
-            return view('dashboard');
+            abort(401);
         }
     }
 
