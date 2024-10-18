@@ -43,14 +43,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/sectors/{id}/delete', [SectorController::class, 'delete'])->name('sectors.delete_confirm');
     Route::resource('sectors', SectorController::class);
     
+    Route::resource('ledger', FiscalLedgerController::class);
+
+    Route::get('/departments-by-sector', [DepartmentController::class, 'getDepartmentsBySector'])->name('get-departments-by-sector');
+    
+    Route::get('/hours/create/{user?}', [VolunteerHoursController::class, 'create'])->name('hours.create');
+    Route::resource('hours', VolunteerHoursController::class)->except(['create']);
 });
-
-
-Route::resource('ledger', FiscalLedgerController::class);
-
-Route::get('/departments-by-sector', [DepartmentController::class, 'getDepartmentsBySector'])->name('get-departments-by-sector');
-
-Route::get('/hours/create/{user?}', [VolunteerHoursController::class, 'create'])->name('hours.create');
-Route::resource('hours', VolunteerHoursController::class)->except(['create']);
 
 require __DIR__.'/auth.php';
