@@ -15,11 +15,13 @@ This Project is set to accomplish volunteer & staff tracking with some connectio
 
 ### Developer Environment (Option 1: Laravel Herd)
 
-The fastest way to get going in a environment is leveriaging the Laravel development environment, [Laravel Herd](https://herd.laravel.com).
+The fastest way to get going in a environment is leveriaging the Laravel development environment, [Laravel Herd](https://herd.laravel.com). This is only usable on Windows and OSX developer environments.
 
 > Herd is a blazing fast, native Laravel and PHP development environment for Windows. It provides everything that you need to get started with Laravel development. It ships with PHP, nginx, and Node.js.
 >
 > You can integrate Herd with Laravel Forge and use a single tool from setting up your site locally to deploying it on a remote server.
+
+Download available @ https://herd.laravel.com/. Setup docs @ https://herd.laravel.com/docs/windows/1/getting-started/installation.
 
 ### Developer Environment (Option 2: Laravel Sail)
 
@@ -38,11 +40,11 @@ docker run --rm \
     composer install --ignore-platform-reqs
 ```
 
-### Developer Environment (Option 3: Docker)
+Citation: https://laravel.com/docs/10.x/sail#installing-composer-dependencies-for-existing-projects
 
-The final fallback is just using Docker. The project has a docker-compose.yml, you just need to create `.env` to get started. You can copy `.env.example` to `.env`.
+Just copy ".env.example" to ".env", change "DB_HOST" (`DB_HOST=mysql`). Once that is done you can now run `./vendor/bin/sail up`. Configuring a [shell alias for sail](https://laravel.com/docs/10.x/sail#configuring-a-shell-alias) would be recommended. Doing so allows you to just run `sail up`.
 
-Once you're good to go, in the project root, run `docker compose up`.
+If you run into permission issues with appending laravel.log; run `sudo chmod -R ugo+rw storage`.
 
 ## About Laravel
 
