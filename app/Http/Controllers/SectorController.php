@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\Sector;
 use App\Models\Department;
+
 
 class SectorController extends Controller
 {
