@@ -24,9 +24,16 @@ class SectorController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        return view('sectors.create');
+        if(Auth::check() && Auth::user()->isAdmin())
+        {
+            return view('sectors.create');
+        }
+        else
+        {
+            abort(401);
+        }
     }
 
     /**
@@ -34,21 +41,30 @@ class SectorController extends Controller
      */
     public function store(Request $request)
     {
-       // Validate the incoming request data
-       $validated = $request->validate([
-            'name' => 'required|string|max:255',               // Validate name (required, string, max 255 characters)
-        ]);
-
-        // Create a new Fiscal Ledger with the validated data
-        Sector::create([
-            'name' => $validated['name']
-        ]);
-
-        // Redirect to a desired route (for example, back to a list of fiscal ledgers)
-        return redirect()->route('sector.index')
-            ->with('success', [
-                'message' => "Sector Created Successfully"
+        if(Auth::check() && Auth::user()->isAdmin())
+        {
+            // Validate the incoming request data
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',               // Validate name (required, string, max 255 characters)
+                'url' => 'nullable|string|max:2555',
+                'description' => 'nullable|string|max:255'
             ]);
+
+            // Create a new Fiscal Ledger with the validated data
+            $sector = Sector::create($validated);
+
+            // Redirect to a desired route (for example, back to a list of fiscal ledgers)
+            return redirect()->route('sectors.index')
+                ->with('success', [
+                    'message' => "Sector <span class=\"text-brand-green\">{$sector->name}</span> created successfully",
+                    'action_text' => 'View Sector',
+                    'action_url' => route('sectors.show', $sector->id),
+                ]);
+        }
+        else
+        {
+            abort(401);
+        }
     }
 
     /**
@@ -57,7 +73,7 @@ class SectorController extends Controller
     public function show(string $id)
     {
         $sector = Sector::findOrFail($id);
-        return view('ledger.show', [
+        return view('sectors.show', [
             'sector' => $sector
         ]);
     }
@@ -65,12 +81,19 @@ class SectorController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, string $id)
     {
-        $sector = Sector::findOrFail($id);
-        return view('sectors.edit', [
-            'sector' => $sector
-        ]);
+        if(Auth::check() && Auth::user()->isAdmin())
+        {
+            $sector = Sector::findOrFail($id);
+            return view('sectors.edit', [
+                'sector' => $sector
+            ]);
+        }
+        else
+        {
+            abort(401);
+        }
     }
 
     /**
@@ -78,14 +101,67 @@ class SectorController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        if(Auth::check() && Auth::user()->isAdmin())
+        {
+            // Validate the incoming request data
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',               // Validate name (required, string, max 255 characters)
+                'url' => 'nullable|string|max:2555',
+                'description' => 'nullable|string|max:255'
+            ]);
+
+            // Find the department by ID
+            $sector = Sector::findOrFail($id);
+
+            // Update the department profile with the validated data
+            $sector->update($validated);
+
+            // Optionally, flash a success message to the session
+            return redirect()->route('sectors.index')
+                ->with('success', [
+                    'message' => "Sector <span class=\"text-brand-green\">{$sector->name}</span> updated successfully",
+                    'action_text' => 'View Sector',
+                    'action_url' => route('sectors.show', $sector->id),
+                ]);
+        }
+        else
+        {
+            abort(401);
+        }
+    }
+
+    public function delete(Request $request, string $id)
+    {
+        if(Auth::check() && Auth::user()->isAdmin())
+        {
+            $sector = Sector::findOrFail($id);
+            return view('sectors.delete_confirm', [
+                'sector' => $sector
+            ]);
+        }
+        else
+        {
+            abort(401);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        //
+        if(Auth::check() && Auth::user()->isAdmin())
+        {
+            $sector = Sector::findOrFail($id);
+            $sector->delete();
+            return redirect()->route('sectors.index')
+            ->with('success', [
+                'message' => "Sector <span class=\"text-brand-red\">{$sector->name}</span> deleted successfully",
+            ]);
+        }
+        else
+        {
+            abort(401);
+        }
     }
 }
