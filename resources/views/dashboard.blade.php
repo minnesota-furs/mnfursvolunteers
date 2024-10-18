@@ -4,11 +4,11 @@
     </x-slot>
 
     <x-slot name="actions">
-        <a href="{{route('users.index')}}"
+        <a href="{{route('users.show', Auth::user()->id)}}"
             class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-            <x-heroicon-o-user class="w-4 inline"/> View Volunteer Profile
+            <x-heroicon-o-user class="w-4 inline"/> View Your Profile
         </a>
-        <a href="{{route('users.index')}}"
+        <a href="{{route('hours.create', Auth::user()->id)}}"
             class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-o-clock class="w-4 inline"/> Log New Hours
         </a>
