@@ -61,7 +61,7 @@
                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                 <dt class="text-sm font-medium leading-6 text-gray-900">Short Description</dt>
                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                                    <x-text-input class="block w-64 text-sm placeholder-gray-300" type="text" name="description" id="description" placeholder="Picnic Volunteer" :value="old('description')"/>
+                                    <x-text-input class="block w-64 text-sm" type="text" name="description" id="description" placeholder="Picnic Volunteer" :value="old('description')"/>
                                     <x-form-validation for="description" />
                                 </dd>
                             </div>

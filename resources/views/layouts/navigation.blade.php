@@ -21,9 +21,9 @@
                     {{-- <x-nav-link :href="route('ledger.index')" :active="request()->routeIs('ledger.*')">
                         {{ __('Ledgers') }}
                     </x-nav-link> --}}
-                    <x-nav-link :href="route('ledger.index')" :active="request()->routeIs('reports.*')">
+                    {{-- <x-nav-link :href="route('ledger.index')" :active="request()->routeIs('reports.*')">
                         {{ __('Reports') }}
-                    </x-nav-link>
+                    </x-nav-link> --}}
 
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
