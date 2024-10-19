@@ -57,7 +57,7 @@
                 <x-input-label for="password" :value="__('Password')" />
                 <x-required-asterisk/>
             </div>
-            <x-text-input id="password" name="password" type="password" placeholder="XXXXXXXX" class="mt-1 block w-full" required />
+            <x-text-input id="password" name="password" type="text" placeholder="XXXXXXXX" class="mt-1 block w-full" required />
             <x-form-validation for="password" />
         </div>
 
@@ -67,7 +67,7 @@
             <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
                 <x-required-asterisk/>
             </div>
-            <x-text-input id="password_confirmation" type="password" placeholder="XXXXXXXX" name="password_confirmation" class="mt-1 block w-full" required />
+            <x-text-input id="password_confirmation" type="text" placeholder="XXXXXXXX" name="password_confirmation" class="mt-1 block w-full" required />
             <x-form-validation for="password_confirmation" />
         </div>
 
@@ -114,4 +114,22 @@
             @endif
         </div>
     </form>
+    <script>
+        function generateHexPassword()
+        {
+            const byteArray = new Uint8Array(8); // 8 bytes = 64 bits = 16 hexadecimal characters
+            window.crypto.getRandomValues(byteArray);
+
+            // Convert bytes to hexadecimal string
+            let hexString = '';
+            for (let i = 0; i < byteArray.length; i++) {
+                hexString += byteArray[i].toString(16).padStart(2, '0');
+            }
+
+            return hexString;
+        }
+        const generatedPass = generateHexPassword();
+        document.getElementById("password").value = generatedPass;
+        document.getElementById("password_confirmation").value = generatedPass;
+    </script>
 </section>
