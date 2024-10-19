@@ -104,7 +104,9 @@
         </div>
 
         <div>
-            <p>Use <a href="https://password.link/" style="color:blue">https://password.link/</a> to securely send passwords to users.</p>
+            <p>Tip: Use <a href="https://password.link/" style="color:blue">https://password.link/</a> to securely send passwords to users.</p>
+            <br>
+            <b>Make sure to encourage new users to change their account password immediately after signing in!</b>
         </div>
 
         <hr>
