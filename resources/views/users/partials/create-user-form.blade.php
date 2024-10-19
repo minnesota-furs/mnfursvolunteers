@@ -71,6 +71,10 @@
             <x-form-validation for="password_confirmation" />
         </div>
 
+        <div>
+            <p>Use <a href="https://password.link/" style="color:blue">https://password.link/</a> to securely send passwords to users.</p>
+        </div>
+
         <!-- Primary Department ID -->
         <div>
             <x-input-label for="password" :value="__('Primary Department')" />
