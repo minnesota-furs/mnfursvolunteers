@@ -121,6 +121,12 @@
     <script>
         function generateHexPassword()
         {
+            // Check if crypto.getRandomValues is not supported by the user's browser. If not, leave passwords blank (will need to be filled manually)
+            if (!window.crypto || !window.crypto.getRandomValues) {
+                return "";
+            }
+
+            // Generate 8 cryptographically random bytes
             const byteArray = new Uint8Array(8); // 8 bytes = 64 bits = 16 hexadecimal characters
             window.crypto.getRandomValues(byteArray);
 
