@@ -24,6 +24,13 @@
             <x-form-validation for="email" />
         </div>
 
+        <!-- User Notes -->
+        <div>
+            <x-input-label for="notes" :value="__('User Notes')" />
+            <x-text-input id="notes" name="notes" type="text" class="mt-1 block w-full"/>
+            <x-form-validation for="notes" />
+        </div>
+
         <!-- User is Active -->
         <div>
             <x-input-label for="active" :value="__('Active Status')" />
@@ -44,12 +51,37 @@
             <x-form-validation for="admin" />
         </div>
 
-        <!-- User Notes -->
+        <hr>
+
+        <!-- Primary Sector ID -->
         <div>
-            <x-input-label for="notes" :value="__('User Notes')" />
-            <x-text-input id="notes" name="notes" type="text" class="mt-1 block w-full"/>
-            <x-form-validation for="notes" />
+            <x-input-label for="primary_sector_id" :value="__('Primary Sector')" />
+            <x-select-input name="primary_sector_id" id="primary_sector_id" class="block w-64 text-sm">
+                <option class="text-gray-400" value="">-None-</option>
+                @foreach($sectors as $sector)
+                    <option value="{{ $sector->id }}">{{ $sector->name }}</option>
+                @endforeach
+            </x-select-input>
+            <x-form-validation for="primary_sector_id" />
         </div>
+
+        <!-- Primary Department ID -->
+        <div>
+            <x-input-label for="password" :value="__('Primary Department')" />
+            <x-select-input name="primary_dept_id" id="primary_dept_id" class="block w-64 text-sm"> <!-- required> -->
+                <option value="">-None-</option>
+                @foreach($departments as $department)
+                    <option value="{{ $department->id }}">
+                        {{ $department->name }}
+                    </option>
+                @endforeach
+                <!-- Options will be populated by JavaScript based on the selected sector -->
+            </x-select-input>
+            <x-form-validation for="primary_dept_id" />
+        </div>
+
+
+        <hr>
 
         <!-- Password -->
         <div>
@@ -75,32 +107,7 @@
             <p>Use <a href="https://password.link/" style="color:blue">https://password.link/</a> to securely send passwords to users.</p>
         </div>
 
-        <!-- Primary Department ID -->
-        <div>
-            <x-input-label for="password" :value="__('Primary Department')" />
-            <x-select-input name="primary_dept_id" id="primary_dept_id" class="block w-64 text-sm"> <!-- required> -->
-                <option value="">-None-</option>
-                @foreach($departments as $department)
-                    <option value="{{ $department->id }}">
-                        {{ $department->name }}
-                    </option>
-                @endforeach
-                <!-- Options will be populated by JavaScript based on the selected sector -->
-            </x-select-input>
-            <x-form-validation for="primary_dept_id" />
-        </div>
-        
-        <!-- Primary Sector ID -->
-        <div>
-            <x-input-label for="primary_sector_id" :value="__('Primary Sector')" />
-            <x-select-input name="primary_sector_id" id="primary_sector_id" class="block w-64 text-sm">
-                <option class="text-gray-400" value="">-None-</option>
-                @foreach($sectors as $sector)
-                    <option value="{{ $sector->id }}">{{ $sector->name }}</option>
-                @endforeach
-            </x-select-input>
-            <x-form-validation for="primary_sector_id" />
-        </div>
+        <hr>
 
         <!-- Submit Button -->
         <div class="flex items-center gap-4">
