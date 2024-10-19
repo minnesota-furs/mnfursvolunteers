@@ -68,7 +68,7 @@
                 <x-required-asterisk/>
             </div>
             <x-text-input id="password_confirmation" type="password" placeholder="XXXXXXXX" name="password_confirmation" class="mt-1 block w-full" required />
-            <x-form-validation for="password_confirmation />
+            <x-form-validation for="password_confirmation" />
         </div>
 
         <!-- Primary Department ID -->
