@@ -19,7 +19,7 @@ return new class extends Migration
             $table->unsignedBigInteger('primary_dept_id')->nullable()->after('id');
             $table->unsignedBigInteger('user_id')->after('id');
             $table->text('notes')->nullable()->after('description');
-            $table->date('volunteer_date')->default(DB::raw('CURRENT_TIMESTAMP'))->nullable()->after('notes');
+            $table->date('volunteer_date')->nullable()->after('notes');
 
             // Defining the foreign key constraints
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

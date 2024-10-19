@@ -4,6 +4,23 @@
             {{ __('All Users') }}
         </x-slot>
 
+        <x-slot name="actions">
+            {{-- <button type="button"
+                class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                Log Hours
+            </button> --}}
+            @if( Auth::user()->isAdmin() )
+                <a href="{{route('users.import')}}"
+                    class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                    <x-heroicon-s-cloud-arrow-up class="w-4 inline"/> Import
+                </a>
+                <a href="{{route('users.create')}}"
+                    class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                    <x-heroicon-s-user class="w-4 inline"/> Create New User
+                </a>
+            @endif
+        </x-slot>
+
         <div class="">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="px-4 sm:px-6 lg:px-8">
@@ -16,11 +33,11 @@
                                 <a class="text-blue-600" href="{{route('users.index')}}">Clear Search</a>
                             @endif
                         </div>
-                        @if( Auth::user()->isAdmin() )
+                        {{-- @if( Auth::user()->isAdmin() )
                             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                                 <a href="{{route('users.create')}}" type="button" class="block rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add user</a>
                             </div>
-                        @endif
+                        @endif --}}
                     </div>
                     <div class="mt-8 flow-root">
                     <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">

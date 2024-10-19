@@ -206,13 +206,104 @@ class UserController extends Controller
             $user = User::findOrFail($id);
             $user->delete();
             return redirect()->route('users.index')
-            ->with('success', [
-                'message' => "Volunteer <span class=\"text-brand-red\">{$user->name}</span> deleted successfully",
-            ]);
+                ->with('success', [
+                    'message' => "Volunteer <span class=\"text-brand-red\">{$user->name}</span> deleted successfully",
+                ]);
         }
         else
         {
             abort(401);
         }
     }
+
+    public function import_view(Request $request)
+    {
+        return view('users.import', []);
+    }
+
+    public function import(Request $request)
+    {
+        \Log::debug('CSV Import Started');
+        // Validate the uploaded file
+        $request->validate([
+            'csv_file' => 'required|mimes:csv,txt|max:2048',
+        ]);
+
+        $newUsersCount = 0;
+        $skippedUsersCount = 0;
+
+        // Read the CSV file
+        if (($handle = fopen($request->file('csv_file'), 'r')) !== false) {
+            // Get the first row (headers) if needed
+            $header = fgetcsv($handle, 1000, ',');
+
+            // Loop through each row of the CSV
+            while (($col = fgetcsv($handle, 1000, ',')) !== false) {
+                if (!filter_var($col[1], FILTER_VALIDATE_EMAIL) || empty($col[0])) {
+                    \Log::debug('Skipping Invalid Row');
+                    continue;
+                }
+
+                // Assuming the CSV has the colimns in the correct order
+                $name       = $col[0];
+                $email      = $col[1];
+                $password   = $col[2];
+                $fname      = $col[3];
+                $lname      = $col[4];
+                $sector     = $col[5];
+                $dept       = $col[6];
+
+                if ($sector == '') {
+                    $sector = null;
+                }
+
+                if ($dept == '') {
+                    $dept = null;
+                }
+
+                if ($password == '') {
+                    $password = $fname . $lname . '!';
+                    $password = strtolower($password);
+                }
+
+                \Log::info('Creating User', [
+                    'name' => $name,
+                    'email' => $email,
+                    'password' => $password,
+                    'fname' => $fname,
+                    'lname' => $lname,
+                    'sector' => $sector,
+                    'dept' => $dept
+                ]);
+
+                // Check if the user already exists by email
+                $existingUser = User::where('email', $email)->first();
+
+                // Create a new user or update if the user already exists
+                if (!$existingUser) {
+                    // Create new user if the email doesn't exist
+                    User::create([
+                        'name' => $name,
+                        'email' => $email,
+                        'first_name' => $fname,
+                        'last_name' => $lname,
+                        'primary_sector_id' => $sector,
+                        'primary_dept_id' => $dept,
+                        'password' => Hash::make($password) // Hash the password
+                    ]
+                );
+                $newUsersCount++; // Increment new users counter
+            } else {
+                $skippedUsersCount++; // Increment skipped users counter
+            }
+
+            fclose($handle);
+        }
+
+        return redirect()->route('users.index')
+            ->with('success', [
+                'message' => "Import complete: {$newUsersCount} users added, {$skippedUsersCount} users skipped.",
+        ]);
+    }
+}
 }

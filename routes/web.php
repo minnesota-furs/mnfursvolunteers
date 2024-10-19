@@ -35,6 +35,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/users/{id}/delete', [UserController::class, 'delete'])->name('users.delete_confirm');
+    Route::get('/users/import', [UserController::class, 'import_view'])->name('users.import');
+    Route::post('/users/import', [UserController::class, 'import'])->name('users.import_post');
     Route::resource('users', UserController::class);
 
     Route::get('/departments/{id}/delete', [DepartmentController::class, 'delete'])->name('departments.delete_confirm');
