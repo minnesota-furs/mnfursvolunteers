@@ -69,7 +69,11 @@
                                         <div class="ml-4">
                                         <div class="font-medium text-gray-900">{{$user->name}}</div>
                                         </a>
-                                        <div class="mt-1 text-xs text-gray-500">{{$user->email}}</div>
+                                        @if($user->is_admin)
+                                            <div class="mt-1 text-xs text-gray-500">{{$user->email}}</div>
+                                        @else
+                                            <div class="mt-1 text-xs text-gray-300">Email Not Visible</div>
+                                        @endif
                                         </div>
                                     </div>
                                     </td>
