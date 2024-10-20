@@ -24,9 +24,9 @@ class UserController extends Controller
         $search = $request->input('search');
 
         // Check if a search term exists and filter users, otherwise return all users
-        $users = User::when($search, function($query, $search) {
+        $users = User::when($search, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
+                ->orWhere('email', 'like', "%{$search}%");
         })->paginate(10);
 
         // Append the search term to pagination links
@@ -43,17 +43,14 @@ class UserController extends Controller
      */
     public function create(Request $request): View
     {
-        if(Auth::check() && Auth::user()->isAdmin())
-        {
+        if (Auth::check() && Auth::user()->isAdmin()) {
             $sectors = Sector::all();
             $departments = [];
             return view('users.create', [
                 'sectors'   => $sectors,
                 'departments' => $departments
             ]);
-        }
-        else
-        {
+        } else {
             abort(401);
         }
     }
@@ -62,9 +59,8 @@ class UserController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request): RedirectResponse
-    { 
-        if(Auth::check() && Auth::user()->isAdmin())
-        {
+    {
+        if (Auth::check() && Auth::user()->isAdmin()) {
             // Validate the incoming request data
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
@@ -97,9 +93,7 @@ class UserController extends Controller
                     'action_text' => 'View User',
                     'action_url' => route('users.show', $user->id),
                 ]);
-        }
-        else
-        {
+        } else {
             abort(401);
         }
     }
@@ -124,10 +118,9 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request, string $id = '') : View
+    public function edit(Request $request, string $id = ''): View
     {
-        if(Auth::check() && Auth::user()->isAdmin())
-        {
+        if (Auth::check() && Auth::user()->isAdmin()) {
             $user = User::find($id);
             $sectors = Sector::all();
             $departments = [];
@@ -136,9 +129,7 @@ class UserController extends Controller
                 'sectors'   => $sectors,
                 'departments' => $departments
             ]);
-        }
-        else
-        {
+        } else {
             abort(401);
         }
     }
@@ -146,18 +137,17 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id) : RedirectResponse
+    public function update(Request $request, string $id): RedirectResponse
     {
-        if(Auth::check() && Auth::user()->isAdmin())
-        {
+        if (Auth::check() && Auth::user()->isAdmin()) {
             // Validate the incoming request data
             $validated = $request->validate([
-                'name' => ['required','string','max:255'],
-                'email' => ['required','email','unique:users,email,' . $id],  // Ensure unique email except for this user
-                'active' => ['required','boolean'],                     // Ensures 'active' is either 0 or 1 (boolean)
-                'notes' => ['nullable','string'],                       // 'notes' can be a string, maximum 255 characters, or null
-                'primary_sector_id' => ['nullable','integer','exists:sectors,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
-                'primary_dept_id' => ['nullable','integer','exists:departments,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'email', 'unique:users,email,' . $id],  // Ensure unique email except for this user
+                'active' => ['required', 'boolean'],                     // Ensures 'active' is either 0 or 1 (boolean)
+                'notes' => ['nullable', 'string'],                       // 'notes' can be a string, maximum 255 characters, or null
+                'primary_sector_id' => ['nullable', 'integer', 'exists:sectors,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
+                'primary_dept_id' => ['nullable', 'integer', 'exists:departments,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
                 'admin' => ['boolean'] // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
             ]);
 
@@ -174,24 +164,19 @@ class UserController extends Controller
                     'action_text' => 'View User',
                     'action_url' => route('users.show', $user->id),
                 ]);
-        }
-        else
-        {
+        } else {
             abort(401);
         }
     }
 
     public function delete(Request $request, string $id): View
     {
-        if($request->user()->isAdmin())
-        {
+        if ($request->user()->isAdmin()) {
             $user = User::findOrFail($id);
             return view('users.delete_confirm', [
                 'user'   => $user,
             ]);
-        }
-        else
-        {
+        } else {
             abort(401);
         }
     }
@@ -199,19 +184,16 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $id) : RedirectResponse
+    public function destroy(Request $request, string $id): RedirectResponse
     {
-        if(Auth::check() && Auth::user()->isAdmin())
-        {
+        if (Auth::check() && Auth::user()->isAdmin()) {
             $user = User::findOrFail($id);
             $user->delete();
             return redirect()->route('users.index')
                 ->with('success', [
                     'message' => "Volunteer <span class=\"text-brand-red\">{$user->name}</span> deleted successfully",
                 ]);
-        }
-        else
-        {
+        } else {
             abort(401);
         }
     }
@@ -282,28 +264,29 @@ class UserController extends Controller
                 // Create a new user or update if the user already exists
                 if (!$existingUser) {
                     // Create new user if the email doesn't exist
-                    User::create([
-                        'name' => $name,
-                        'email' => $email,
-                        'first_name' => $fname,
-                        'last_name' => $lname,
-                        'primary_sector_id' => $sector,
-                        'primary_dept_id' => $dept,
-                        'password' => Hash::make($password) // Hash the password
-                    ]
-                );
-                $newUsersCount++; // Increment new users counter
-            } else {
-                $skippedUsersCount++; // Increment skipped users counter
+                    User::create(
+                        [
+                            'name' => $name,
+                            'email' => $email,
+                            'first_name' => $fname,
+                            'last_name' => $lname,
+                            'primary_sector_id' => $sector,
+                            'primary_dept_id' => $dept,
+                            'password' => Hash::make($password) // Hash the password
+                        ]
+                    );
+                    $newUsersCount++; // Increment new users counter
+                } else {
+                    $skippedUsersCount++; // Increment skipped users counter
+                }
             }
 
             fclose($handle);
-        }
 
-        return redirect()->route('users.index')
-            ->with('success', [
-                'message' => "Import complete: {$newUsersCount} users added, {$skippedUsersCount} users skipped.",
-        ]);
+            return redirect()->route('users.index')
+                ->with('success', [
+                    'message' => "Import complete: {$newUsersCount} users added, {$skippedUsersCount} users skipped.",
+                ]);
+        }
     }
-}
 }
