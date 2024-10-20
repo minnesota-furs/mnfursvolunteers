@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
 use App\Models\User;
 use App\Models\Department;
 use App\Models\VolunteerHours;
@@ -24,6 +26,12 @@ class VolunteerHoursController extends Controller
      */
     public function create($user = null)
     {
+        if (!Auth::user()->isAdmin()) {
+            if ($user == null || $user != Auth::id()) {
+                abort(401);
+            }
+        }
+
         // If a user is passed, retrieve the user from the database
         $selectedUser = $user ? User::find($user) : null;
 

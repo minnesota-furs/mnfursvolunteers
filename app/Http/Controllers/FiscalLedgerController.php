@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Sector;
 use App\Models\User;
+
+use Illuminate\Support\Facades\Auth;
 use App\Models\FiscalLedger;
 use Illuminate\Http\Request;
 
@@ -26,6 +28,10 @@ class fiscalLedgerController extends Controller
      */
     public function create()
     {
+        if (Auth::check() && !Auth::user()->isAdmin()) {
+            abort(401);
+        }
+
         return view('ledgers.create');
     }
 
@@ -34,6 +40,10 @@ class fiscalLedgerController extends Controller
      */
     public function store(Request $request)
     {
+        if (Auth::check() && !Auth::user()->isAdmin()) {
+            abort(401);
+        }
+
         // Validate the incoming request data
         $validated = $request->validate([
             'name' => 'required|string|max:255',               // Validate name (required, string, max 255 characters)
@@ -47,7 +57,7 @@ class fiscalLedgerController extends Controller
                 ->orWhereBetween('end_date', [$request->start_date, $request->end_date])
                 ->orWhere(function ($query) use ($request) {
                     $query->where('start_date', '<=', $request->start_date)
-                            ->where('end_date', '>=', $request->end_date);
+                        ->where('end_date', '>=', $request->end_date);
                 });
         })->first();  // Instead of checking for existence, get the first overlapping ledger
 
@@ -77,6 +87,10 @@ class fiscalLedgerController extends Controller
      */
     public function show(string $id)
     {
+        if (Auth::check() && !Auth::user()->isAdmin()) {
+            abort(401);
+        }
+
         $ledger = FiscalLedger::findOrFail($id);
         return view('ledger.show', [
             'ledger' => $ledger
@@ -88,6 +102,9 @@ class fiscalLedgerController extends Controller
      */
     public function edit(string $id)
     {
+        if (Auth::check() && !Auth::user()->isAdmin()) {
+            abort(401);
+        }
         $ledger = FiscalLedger::findOrFail($id);
         return view('ledgers.edit', [
             'ledger' => $ledger
@@ -99,6 +116,10 @@ class fiscalLedgerController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        if (Auth::check() && !Auth::user()->isAdmin()) {
+            abort(401);
+        }
+        
         // Validate the incoming request data
         $validated = $request->validate([
             'name'       => 'required|string|max:255',

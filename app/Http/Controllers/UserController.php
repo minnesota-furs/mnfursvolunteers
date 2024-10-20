@@ -64,6 +64,8 @@ class UserController extends Controller
             // Validate the incoming request data
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
+                'first_name' => ['nullable', 'string', 'max:255'],
+                'last_name' => ['nullable', 'string', 'max:255'],
                 'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->withoutTrashed()],
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
                 'active' => ['required', 'boolean'], // Ensures 'active' is either 0 or 1 (boolean)
@@ -124,6 +126,11 @@ class UserController extends Controller
             $user = User::find($id);
             $sectors = Sector::all();
             $departments = [];
+
+            if ($user->sector) {
+                $departments = Department::where('sector_id', $user->sector->id)->get();
+            }
+
             return view('users.edit', [
                 'user'      => $user,
                 'sectors'   => $sectors,
@@ -143,6 +150,8 @@ class UserController extends Controller
             // Validate the incoming request data
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
+                'first_name' => ['nullable', 'string', 'max:255'],
+                'last_name' => ['nullable', 'string', 'max:255'],
                 'email' => ['required', 'email', 'unique:users,email,' . $id],  // Ensure unique email except for this user
                 'active' => ['required', 'boolean'],                     // Ensures 'active' is either 0 or 1 (boolean)
                 'notes' => ['nullable', 'string'],                       // 'notes' can be a string, maximum 255 characters, or null
@@ -158,11 +167,11 @@ class UserController extends Controller
             $user->update($validated);
 
             // Optionally, flash a success message to the session
-            return redirect()->route('users.index')
+            return redirect()->route('users.show', $user->id)
                 ->with('success', [
                     'message' => "Volunteer <span class=\"text-brand-green\">{$user->name}</span> updated successfully",
-                    'action_text' => 'View User',
-                    'action_url' => route('users.show', $user->id),
+                    // 'action_text' => 'View User',
+                    // 'action_url' => route('users.show', $user->id),
                 ]);
         } else {
             abort(401);

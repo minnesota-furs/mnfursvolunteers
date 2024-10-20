@@ -33,14 +33,31 @@
                             <div class="mt-6 border-t border-gray-100">
                                 <dl class="divide-y divide-gray-100">
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Full name</dt>
+                                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Name / Alias</dt>
                                         <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
                                             {{ $user->name }}</dd>
                                     </div>
+                                    @if (Auth::user()->isAdmin())
+                                    <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Legal First Name</dt>
+                                        <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
+                                            {{ $user->first_name ?? '-'  }}</dd>
+                                    </div>
+                                    <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Legal Last Name</dt>
+                                        <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
+                                            {{ $user->last_name ?? '-' }}</dd>
+                                    </div>
+                                    @endif
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Email address</dt>
                                         <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
-                                            {{ $user->email }}</dd>
+                                            @if (Auth::user()->isAdmin())
+                                                {{ $user->email }}
+                                            @else
+                                                ******
+                                            @endif
+                                        </dd>
                                     </div>
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Status</dt>
@@ -49,6 +66,9 @@
                                                 <span class="inline-flex items-center rounded-md bg-green-50 dark:bg-green-800 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-100 ring-1 ring-inset ring-green-600/20">Active</span>
                                             @else
                                                 <span class="inline-flex items-center rounded-md bg-yellow-50 dark:bg-yellow-800 px-2 py-1 text-xs font-medium text-yellow-700 dark:text-yellow-100 ring-1 ring-inset ring-yellow-600/20">Inactive</span>
+                                            @endif
+                                            @if ($user->isAdmin() == true)
+                                                <span class="inline-flex items-center rounded-md bg-red-50 dark:bg-red-800 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-100 ring-1 ring-inset ring-red-600/20">Admin</span>
                                             @endif
                                         </dd>
                                     </div>
@@ -60,18 +80,6 @@
                                         @else
                                         <dd class="mt-1 text-sm leading-6 text-gray-300 dark:text-gray-700 sm:col-span-2 sm:mt-0">
                                             No Notes recorded...
-                                        @endif
-
-                                        </dd>
-                                    </div>
-                                    <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">User Type</dt>
-                                        @if($user->isAdmin())
-                                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                                            Admin
-                                        @else
-                                            <dd class="mt-1 text-sm leading-6 text-gray-300 dark:text-gray-700 sm:col-span-2 sm:mt-0">
-                                            User
                                         @endif
 
                                         </dd>

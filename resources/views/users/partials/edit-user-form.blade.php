@@ -25,6 +25,20 @@
                                                 </dd>
                                             </div>
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                                <dt class="text-sm font-medium leading-6 text-gray-900">Legal First Name</dt>
+                                                <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                                    <x-text-input id="first_name" name="first_name" type="text" class="block w-64 text-sm" :value="old('first_name', $user->first_name)" autofocus autocomplete="first_name" />
+                                                    <x-form-validation for="first_name" />
+                                                </dd>
+                                            </div>
+                                            <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                                <dt class="text-sm font-medium leading-6 text-gray-900">Legal Last Name</dt>
+                                                <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                                    <x-text-input id="last_name" name="last_name" type="text" class="block w-64 text-sm" :value="old('name', $user->last_name)" autofocus autocomplete="last_name" />
+                                                    <x-form-validation for="last_name" />
+                                                </dd>
+                                            </div>
+                                            <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                 <dt class="text-sm font-medium leading-6 text-gray-900">Email address</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-text-input id="email" name="email" type="email" class="block w-64 text-sm" :value="old('email', $user->email)" required autocomplete="email" />
@@ -124,4 +138,48 @@
         </div>
         <input type="hidden" name="user_id" id="user_id" value="{{$user->id}}">
     </form>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+        <script>
+            $(document).ready(function() {
+                // When the sector dropdown changes
+                $('#primary_sector_id').on('change', function() {
+                    var sectorId = $(this).val();  // Get the selected sector ID
+                    populateDepartments(sectorId);  // Populate the departments based on the sector
+                });
+            });
+
+            function populateDepartments(sectorId) {
+                // Clear and disable the department dropdown while loading
+                $('#primary_dept_id').empty().append('<option value="">Loading...</option>').prop('disabled', true);
+
+                // If a sector is selected, fetch the departments
+                if (sectorId) {
+                    $.ajax({
+                        url: '{{ route("get-departments-by-sector") }}',  // The route to fetch departments
+                        type: 'GET',
+                        data: { sector_id: sectorId },  // Send the selected sector ID
+                        success: function(data) {
+                            // Clear and enable the department dropdown
+                            $('#primary_dept_id').empty().append('<option value="">Select Department</option>');
+
+                            // Populate the dropdown with the returned departments
+                            $.each(data, function(index, department) {
+                                var isSelected = department.id == '{{ $user->department_id }}' ? 'selected' : ''; // Preselect the department
+                                $('#primary_dept_id').append('<option value="' + department.id + '" ' + isSelected + '>' + department.name + '</option>');
+                            });
+
+                            $('#primary_dept_id').prop('disabled', false);  // Enable the dropdown
+                        },
+                        error: function() {
+                            alert('Error fetching departments.');
+                            $('#primary_dept_id').prop('disabled', false);  // Re-enable the dropdown on error
+                        }
+                    });
+                } else {
+                    // If no sector is selected, reset the department dropdown
+                    $('#primary_dept_id').empty().append('<option value="">Select Department</option>').prop('disabled', true);
+                }
+            }
+        </script>
 </section>
