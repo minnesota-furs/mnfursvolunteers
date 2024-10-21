@@ -17,9 +17,13 @@
                         @endif
                     </div>
                     <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                        <a href="{{ route('ledger.create') }}" type="button"
-                            class="block rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add
-                            ledger</a>
+                        @auth
+                            @if( Auth::user()->isAdmin() )
+                                <a href="{{ route('ledger.create') }}" type="button"
+                                    class="block rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add
+                                    ledger</a>
+                            @endif
+                        @endauth
                     </div>
                 </div>
                 <div class="mt-8 flow-root">
