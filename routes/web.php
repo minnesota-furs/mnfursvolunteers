@@ -39,7 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/users/import', [UserController::class, 'import'])->name('users.import_post');
     Route::resource('users', UserController::class);
 
-    Route::get('/org-chart', [UserController::class, 'orgChart'])->name('users.orgchart');
+    Route::get('/org-chart', [UserController::class, 'orgChart'])->name('orgchart');
 
     Route::get('/departments/{id}/delete', [DepartmentController::class, 'delete'])->name('departments.delete_confirm');
     Route::resource('departments', DepartmentController::class);

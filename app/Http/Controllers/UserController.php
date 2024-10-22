@@ -301,10 +301,25 @@ class UserController extends Controller
 
     public function orgChart()
     {
-        // Fetch sectors, each with their departments and users
-        $sectors = Sector::with(['departments.users'])->get();
+        $sectors = Sector::with('departments.users')->get();
 
-        return view('users.orgchart', compact('sectors'));
+        $nodes = [];
+        foreach ($sectors as $sector) {
+            // Add sector (no parent)
+            $nodes[] = ['key' => 'S'.$sector->id, 'name' => $sector->name, 'type' => 'sector', 'fillColor' => '#efe8e1', 'textColor' => '#007848'];
+    
+            foreach ($sector->departments as $department) {
+                // Add department with parent sector
+                $nodes[] = ['key' => 'D'.$department->id, 'name' => $department->name, 'parent' => 'S'.$sector->id, 'type' => 'department', 'fillColor' => '#44392b', 'textColor' => '#FFF'];
+    
+                foreach ($department->users as $user) {
+                    // Add user with parent department
+                    $nodes[] = ['key' => $user->id, 'name' => $user->name, 'parent' => 'D'.$department->id, 'type' => 'user', 'fillColor' => '#007848', 'textColor' => '#FFF'];
+                }
+            }
+        }
+
+        return view('users.orgchart', ['nodes' => $nodes]);
     }
 
 }

@@ -24,7 +24,11 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        $departments = Department::all();
+        $departments = Department::join('sectors', 'departments.sector_id', '=', 'sectors.id')
+                             ->select('departments.*')
+                             ->orderBy('sectors.name')
+                             ->orderBy('departments.name')
+                             ->get();
         $sectors = Sector::all();
 
         return view('departments.index', [

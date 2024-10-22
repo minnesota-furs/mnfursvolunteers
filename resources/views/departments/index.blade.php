@@ -64,7 +64,7 @@
                                                     <p>{{ $sectors->where('id', $department->sector_id)->first()->name }}</p>
                                                 </td>
                                                 <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                                    -
+                                                    {{$department->userCount() ?? '-'}}
                                                 </td>
                                                 {{-- <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                 </td> --}}

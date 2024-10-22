@@ -34,4 +34,9 @@ class Department extends Model
     {
         return $this->hasMany(VolunteerHours::class);
     }
+
+    public function userCount()
+    {
+        return $this->users()->count();
+    }
 }
