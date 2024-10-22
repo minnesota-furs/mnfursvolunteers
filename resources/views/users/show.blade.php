@@ -104,7 +104,11 @@
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Primary Dept</dt>
                                         <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
-                                            {{$user->department->name ?? '-'}}
+                                            @if($user->department)
+                                                <a href="{{ route('departments.show', $user->department->id) }}" class="text-blue-600">{{$user->department->name}}</a>
+                                            @else
+                                                -
+                                            @endif
                                         </dd>
                                     </div>
 
@@ -135,9 +139,11 @@
                         <p class="mt-2 text-sm text-gray-700 dark:text-white">Transactional log of recently logged hours for this volunteer/user.</p>
                     </div>
                     <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                        <a href="{{ route('hours.create', ['user' => $user->id]) }}" class="block rounded-md bg-brand-green px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                            <x-heroicon-m-clock class="w-4 inline"/> New Hour Log
-                        </a>
+                        @if(Auth::user()->isAdmin() || Auth::user()->id == $user->id)
+                            <a href="{{ route('hours.create', ['user' => $user->id]) }}" class="block rounded-md bg-brand-green px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                <x-heroicon-m-clock class="w-4 inline"/> New Hour Log
+                            </a>
+                        @endif
                     </div>
                     </div>
                     <div class="mt-8 flow-root">
@@ -160,7 +166,7 @@
                             @forelse ($volunteerHours as $volunteerHour)
                             <tr class="even:bg-gray-50">
                                 <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">
-                                    <a href="#" class="text-slate-500">
+                                    <a href="{{route('hours.show', $volunteerHour->id)}}" class="text-slate-500">
                                     @if ($volunteerHour->description)
                                         {{$volunteerHour->description}}
                                     @else
@@ -194,7 +200,9 @@
                                 </td>
                                 <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                     <a href="{{route('hours.show', $volunteerHour->id)}}" class="text-blue-400 hover:text-blue-500 px-1">View<span class="sr-only"></span></a>
-                                    <a href="{{route('hours.edit', $volunteerHour->id)}}" class="text-blue-400 hover:text-blue-500 px-1">E<span class="sr-only"></span></a>
+                                    @if(Auth::user()->isAdmin() || Auth::user()->id == $volunteerHour->user_id)
+                                        <a href="{{route('hours.edit', $volunteerHour->id)}}" class="text-blue-400 hover:text-blue-500 px-1">Edit<span class="sr-only"></span></a>
+                                    @endif
                                 </td>
                             </tr>
                             @empty

@@ -98,7 +98,6 @@ class VolunteerHoursController extends Controller
             'description' => $validated['description'] ?? null,
             'primary_dept_id' => $validated['primary_dept_id'] ?? null,
             'fiscal_ledger_id' => $fiscalLedger->id,  // Assign the fiscal ledger
-
         ]);
 
         $username = User::select('name')->find($validated['user_id'])->name;
@@ -117,7 +116,9 @@ class VolunteerHoursController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $hour = VolunteerHours::find($id);
+
+        return view('hours.show', compact('hour'));
     }
 
     /**
@@ -125,7 +126,30 @@ class VolunteerHoursController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        if (!Auth::user()->isAdmin() && Auth::id() != VolunteerHours::find($id)->user_id) {
+            abort(401);
+        }
+        
+        $hour = VolunteerHours::find($id);
+
+        $selectedUser = $hour->user;
+
+        $sectors = Sector::with('departments')->get();
+        $recentDepartments = [];
+
+        // Fetch the last 5 departments the user has used, based on volunteer hours
+        $recentDepartments = Department::whereIn('id',
+            $selectedUser->volunteerHours()
+                ->select('primary_dept_id', 'created_at')
+                ->distinct()
+                ->latest('created_at')
+                ->limit(5)
+                ->pluck('primary_dept_id')
+            )->get();
+        $users = null;
+
+        // Pass the user (if any) to the view
+        return view('hours.edit', compact('hour', 'selectedUser', 'users', 'sectors', 'recentDepartments'));
     }
 
     /**
@@ -133,7 +157,33 @@ class VolunteerHoursController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        if (!Auth::user()->isAdmin() && Auth::id() != VolunteerHours::find($id)->user_id) {
+            abort(401);
+        }
+        
+        // Validate the incoming request data
+        $validated = $request->validate([
+            'user_id'       => 'required|exists:users,id',
+            'hours'         => 'required|numeric|min:0',
+            'description'   => 'nullable|string',
+            'notes'         => 'nullable|string',
+            'volunteer_date' => 'nullable|date',
+            'primary_dept_id' => 'integer|exists:departments,id',
+        ]);
+
+        // Find the user by ID
+        $hour = VolunteerHours::findOrFail($id);
+
+        // Update the user profile with the validated data
+        $hour->update($validated);
+
+        // Optionally, flash a success message to the session
+        return redirect()->route('users.show', $hour->user->id)
+            ->with('success', [
+                'message' => "Hour Record <span class=\"text-brand-green\"># {$hour->id}</span> updated successfully for <span class=\"text-brand-green\">{$hour->user->name}</span>",
+                'action_text' => 'View Hour',
+                'action_url' => route('hours.show', $hour->id),
+            ]);
     }
 
     /**
