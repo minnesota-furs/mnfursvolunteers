@@ -298,4 +298,13 @@ class UserController extends Controller
                 ]);
         }
     }
+
+    public function orgChart()
+    {
+        // Fetch sectors, each with their departments and users
+        $sectors = Sector::with(['departments.users'])->get();
+
+        return view('users.orgchart', compact('sectors'));
+    }
+
 }
