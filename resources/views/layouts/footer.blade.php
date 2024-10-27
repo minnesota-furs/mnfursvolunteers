@@ -32,7 +32,7 @@
                         clip-rule="evenodd" />
                 </svg>
             </a>
-            <a href="#" class="text-gray-400 hover:text-gray-500">
+            <a href="https://www.youtube.com/@MNFurs" class="text-gray-400 hover:text-gray-500">
                 <span class="sr-only">YouTube</span>
                 <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path fill-rule="evenodd"
