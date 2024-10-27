@@ -8,7 +8,7 @@
             <div class="px-4 sm:px-6 lg:px-8">
                 <div class="sm:flex sm:items-center">
                     <div class="sm:flex-auto">
-                        <h1 class="text-base font-semibold leading-6 text-gray-900">Ledgers</h1>
+                        <h1 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">Ledgers</h1>
                         @if (null !== request('search'))
                             <p class="mt-2 text-sm text-orange-700"><x-heroicon-s-magnifying-glass class="w-4 inline" />
                                 Currently showing {{ count($users) }} result(s) for search term: <span
@@ -34,44 +34,44 @@
                                 <thead>
                                     <tr>
                                         <th scope="col"
-                                            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+                                            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-0">
                                             Name</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 w-32 ">
+                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-white w-32 ">
                                             Total Hours</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32">
+                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white w-32">
                                             Start Date</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32">End Date
+                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white w-32">End Date
                                         </th>
                                         <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0 w-16">
                                             <span class="sr-only">Edit</span>
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-200 bg-white">
+                                <tbody class="divide-y divide-gray-200">
                                     @forelse ($ledgers as $ledger)
                                     <tr>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                             <a class="text-blue-700" href="{{route('ledger.edit', $ledger->id)}}">{{$ledger->name}}</a>
                                         </td>
-                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0 text-center">
+                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0 text-center dark:text-white">
                                             {{format_hours($ledger->totalVolunteerHours())}}
                                         </td>
-                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0 dark:text-white">
                                             {{$ledger->start_date->format('F j, Y')}}
                                         </td>
-                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0 dark:text-white">
                                             {{$ledger->end_date->format('F j, Y')}}
                                         </td>
-                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0 dark:text-white">
 
                                         </td>
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center" colspan="4">
+                                        <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 dark:text-white text-center" colspan="4">
                                             <p class="">No ledgers found</p>
                                             <p class="text-xs">(You should create one)</p>
                                         </td>
@@ -89,12 +89,12 @@
     </div>
 
     <x-slot name="right">
-        <p class="py-4 text-justify">A Fiscal Ledger represents a specific reporting period, such as a fiscal year, within which an
+        <p class="py-4 text-justify dark:text-white">A Fiscal Ledger represents a specific reporting period, such as a fiscal year, within which an
             organization's activities are tracked and recorded. In the context of volunteer
             hours, a fiscal ledger defines a set timeframe (like "Fiscal Year 2023-24") during which volunteer
             contributions are logged. This allows organizations to group volunteer hours by specific periods for more
             structured reporting, analysis, and accountability.</p>
-        <p class="py-4 text-justify">Each time a volunteer logs hours, the volunteer's contribution is linked to a Fiscal Ledger.
+        <p class="py-4 text-justify dark:text-white">Each time a volunteer logs hours, the volunteer's contribution is linked to a Fiscal Ledger.
             This connection helps in organizing volunteer efforts within distinct reporting periods.</p>
     </x-slot>
 </x-app-layout>
