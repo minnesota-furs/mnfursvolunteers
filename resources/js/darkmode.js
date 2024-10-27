@@ -58,6 +58,24 @@ class ThemeController
                 document.documentElement.classList.add('dark');
             }
     }
+
+    // check what the current theme setting is, invert it, and apply
+    toggleTheme()
+    {
+        this.pullThemeFromStorage();
+        var newTheme = "";
+        if(this.currentTheme === 'light')
+        {
+            newTheme = 'dark';
+        }
+        if(this.currentTheme === 'dark')
+        {
+            newTheme = 'light';
+        }
+        this.pushThemeToStorage(newTheme);
+
+        this.applyTheme();
+    }
 }
 
 // default behavior, create a ThemeController object and apply whatever is set in localStorage
