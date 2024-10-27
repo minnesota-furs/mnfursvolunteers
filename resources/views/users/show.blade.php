@@ -75,10 +75,10 @@
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Notes</dt>
                                         @if($user->hasNotes())
-                                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
                                         {{ $user->notes }}
                                         @else
-                                        <dd class="mt-1 text-sm leading-6 text-gray-300 dark:text-gray-700 sm:col-span-2 sm:mt-0">
+                                        <dd class="mt-1 text-sm leading-6 text-gray-300 dark:text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
                                             No Notes recorded...
                                         @endif
 
@@ -207,7 +207,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center" colspan="6">No hours logged for this user...</td>
+                                <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center dark:text-white" colspan="6">No hours logged for this user...</td>
                             </tr>
                             @endforelse
                             </tbody>
