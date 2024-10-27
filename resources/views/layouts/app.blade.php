@@ -14,6 +14,15 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/darkmode.js'])
+    <script>
+        // yes i know this is redundant but we need it here to make sure it has priority.
+        // without it, there will be a brief moment where the light theme flashes on the screen before switching to dark mode. this is annoying.
+        // everything this does and more is included in `/resources/js/darkmode.js`
+        if (localStorage.getItem('theme') === 'dark')
+        {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
 </head>
 
 <body class="min-h-full">
