@@ -6,7 +6,7 @@
 
         <!-- Name -->
         <div>
-            <div style="display: flex; direction: column">
+            <div class="flex flex-row">
                 <x-input-label for="name" :value="__('Name')" />
                 <x-required-asterisk/>
             </div>
@@ -16,7 +16,7 @@
 
         <!-- Email -->
         <div>
-            <div style="display: flex; direction: column">
+            <div class="flex flex-row">
                 <x-input-label for="email" :value="__('Email')" />
                 <x-required-asterisk/>
             </div>
@@ -85,7 +85,7 @@
 
         <!-- Password -->
         <div>
-            <div style="display: flex; direction: column">
+            <div class="flex flex-row">
                 <x-input-label for="password" :value="__('Password')" />
                 <x-required-asterisk/>
             </div>
@@ -95,8 +95,8 @@
 
         <!-- Confirm Password -->
         <div>
-            <div style="display: flex; direction: column">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+            <div class="flex flex-row">
+                <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
                 <x-required-asterisk/>
             </div>
             <x-text-input id="password_confirmation" type="text" placeholder="XXXXXXXX" name="password_confirmation" class="mt-1 block w-full" required />
@@ -104,7 +104,7 @@
         </div>
 
         <div>
-            <p>Tip: Use <a href="https://password.link/" style="color:blue">https://password.link/</a> to securely send passwords to users.</p>
+            <p>Tip: Use <a href="https://password.link/" class="text-blue-500">https://password.link/</a> to securely send passwords to users.</p>
             <br>
             <b>Make sure to encourage new users to change their account password immediately after signing in!</b>
         </div>
