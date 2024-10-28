@@ -28,6 +28,9 @@
                         <div class="sm:flex-auto">
                             <h1 class="text-base font-semibold leading-6 text-gray-900">Users/Volunteers</h1>
                             <p class="mt-2 text-sm text-gray-700">Listing of all users/volunteers within the organzation including their email, sector/dept, status, and hours.</p>
+                            @if(null !==request('page'))
+                                <p class="mt-2 text-sm text-orange-700"><x-heroicon-s-magnifying-glass class="w-4 inline"/> Currently showing <span class="underline">Page #{{$users->currentPage()}}</span> of {{$users->lastPage()}}.
+                            @endif
                             @if(null !==request('search'))
                                 <p class="mt-2 text-sm text-orange-700"><x-heroicon-s-magnifying-glass class="w-4 inline"/> Currently showing {{count($users)}} result(s) for search term: <span class="underline">{{request('search')}}</span>.
                                 <a class="text-blue-600" href="{{route('users.index')}}">Clear Search</a>
