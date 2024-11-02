@@ -32,7 +32,7 @@
                         <div class="mt-6 border-t border-gray-100">
                             <dl class="divide-y divide-gray-100">
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">User</dt>
+                                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">User/Volunteer</dt>
                                     <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
                                         {{ $hour->user->name }}</dd>
                                 </div>
@@ -44,7 +44,12 @@
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                     <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Date</dt>
                                     <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
-                                        {{ $hour->volunteer_date->format('M d, Y') ?? '-' }} ({{ $hour->volunteer_date->diffForHumans() ?? '-' }})</dd>
+                                        @if(isset($hour->volunteer_date))
+                                            {{ $hour->volunteer_date->format('M d, Y') ?? '-' }} ({{ $hour->volunteer_date->diffForHumans() ?? '-' }})
+                                        @else
+                                            No Date Provided
+                                        @endif
+                                    </dd>
                                 </div>
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                     <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Department</dt>
@@ -68,12 +73,12 @@
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                     <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Originally Logged (Created)</dt>
                                     <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
-                                        {{ $hour->volunteer_date->format('M d, Y') ?? '-' }} ({{ $hour->created_at->diffForHumans() ?? '-' }})</dd>
+                                        {{ $hour->created_at->format('M d, Y') ?? '-' }} ({{ $hour->created_at->diffForHumans() ?? '-' }})</dd>
                                 </div>
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                     <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Last Modified</dt>
                                     <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
-                                        {{ $hour->volunteer_date->format('M d, Y') ?? '-' }} ({{ $hour->updated_at->diffForHumans() ?? '-' }})</dd>
+                                        {{ $hour->updated_at->format('M d, Y') ?? '-' }} ({{ $hour->updated_at->diffForHumans() ?? '-' }})</dd>
                                 </div>
                             </dl>
                         </div>
