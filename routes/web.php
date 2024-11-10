@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/{id}/delete', [UserController::class, 'delete'])->name('users.delete_confirm');
     Route::get('/users/import', [UserController::class, 'import_view'])->name('users.import');
     Route::post('/users/import', [UserController::class, 'import'])->name('users.import_post');
+    Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
     Route::resource('users', UserController::class);
 
     Route::get('/org-chart', [UserController::class, 'orgChart'])->name('orgchart');

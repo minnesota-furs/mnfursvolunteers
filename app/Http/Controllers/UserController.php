@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\Department;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Response as FacadeResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Hash;
@@ -210,6 +212,46 @@ class UserController extends Controller
     public function import_view(Request $request)
     {
         return view('users.import', []);
+    }
+
+    public function export() {
+        // Fetch all users
+        $users = User::all();
+
+        // Define the CSV headers
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="users.csv"',
+        ];
+
+        // Create the CSV content
+        $callback = function() use ($users) {
+            $file = fopen('php://output', 'w');
+            
+            // Insert CSV column headers
+            fputcsv($file, ['ID', 'Name', 'Active', 'Email', 'DeptId', 'DeptName', 'Sector', 'HoursThisPeriod', 'Created At', 'Updated At']);
+
+            // Insert user data rows
+            foreach ($users as $user) {
+                fputcsv($file, [
+                    $user->id,
+                    $user->name,
+                    $user->active,
+                    $user->email,
+                    $user->department->id ?? null,
+                    $user->department->name ?? null,
+                    $user->primary_sector_id ?? null,
+                    $user->totalHoursForCurrentFiscalLedger(),
+                    $user->created_at,
+                    $user->updated_at
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        // Return the CSV file as a stream
+        return FacadeResponse::stream($callback, 200, $headers);
     }
 
     public function import(Request $request)
