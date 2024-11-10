@@ -6,7 +6,7 @@
 
         <!-- Name -->
         <div>
-            <div style="display: flex; direction: column">
+            <div class="flex flex-row">
                 <x-input-label for="name" :value="__('Name')" />
                 <x-required-asterisk/>
             </div>
@@ -16,12 +16,19 @@
 
         <!-- Email -->
         <div>
-            <div style="display: flex; direction: column">
+            <div class="flex flex-row">
                 <x-input-label for="email" :value="__('Email')" />
                 <x-required-asterisk/>
             </div>
             <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" placeholder="user@domain.extension" required autocomplete="username" />
             <x-form-validation for="email" />
+        </div>
+
+        <!-- User Notes -->
+        <div>
+            <x-input-label for="notes" :value="__('User Notes')" />
+            <x-text-input id="notes" name="notes" type="text" class="mt-1 block w-full"/>
+            <x-form-validation for="notes" />
         </div>
 
         <!-- User is Active -->
@@ -44,31 +51,18 @@
             <x-form-validation for="admin" />
         </div>
 
-        <!-- User Notes -->
-        <div>
-            <x-input-label for="notes" :value="__('User Notes')" />
-            <x-text-input id="notes" name="notes" type="text" class="mt-1 block w-full"/>
-            <x-form-validation for="notes" />
-        </div>
+        <hr>
 
-        <!-- Password -->
+        <!-- Primary Sector ID -->
         <div>
-            <div style="display: flex; direction: column">
-                <x-input-label for="password" :value="__('Password')" />
-                <x-required-asterisk/>
-            </div>
-            <x-text-input id="password" name="password" type="password" placeholder="XXXXXXXX" class="mt-1 block w-full" required />
-            <x-form-validation for="password" />
-        </div>
-
-        <!-- Confirm Password -->
-        <div>
-            <div style="display: flex; direction: column">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-                <x-required-asterisk/>
-            </div>
-            <x-text-input id="password_confirmation" type="password" placeholder="XXXXXXXX" name="password_confirmation" class="mt-1 block w-full" required />
-            <x-form-validation for="password_confirmation />
+            <x-input-label for="primary_sector_id" :value="__('Primary Sector')" />
+            <x-select-input name="primary_sector_id" id="primary_sector_id" class="block w-64 text-sm">
+                <option class="text-gray-400" value="">-None-</option>
+                @foreach($sectors as $sector)
+                    <option value="{{ $sector->id }}">{{ $sector->name }}</option>
+                @endforeach
+            </x-select-input>
+            <x-form-validation for="primary_sector_id" />
         </div>
 
         <!-- Primary Department ID -->
@@ -85,18 +79,37 @@
             </x-select-input>
             <x-form-validation for="primary_dept_id" />
         </div>
-        
-        <!-- Primary Sector ID -->
+
+
+        <hr>
+
+        <!-- Password -->
         <div>
-            <x-input-label for="primary_sector_id" :value="__('Primary Sector')" />
-            <x-select-input name="primary_sector_id" id="primary_sector_id" class="block w-64 text-sm">
-                <option class="text-gray-400" value="">-None-</option>
-                @foreach($sectors as $sector)
-                    <option value="{{ $sector->id }}">{{ $sector->name }}</option>
-                @endforeach
-            </x-select-input>
-            <x-form-validation for="primary_sector_id" />
+            <div class="flex flex-row">
+                <x-input-label for="password" :value="__('Password')" />
+                <x-required-asterisk/>
+            </div>
+            <x-text-input id="password" name="password" type="text" placeholder="XXXXXXXX" class="mt-1 block w-full" required />
+            <x-form-validation for="password" />
         </div>
+
+        <!-- Confirm Password -->
+        <div>
+            <div class="flex flex-row">
+                <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+                <x-required-asterisk/>
+            </div>
+            <x-text-input id="password_confirmation" type="text" placeholder="XXXXXXXX" name="password_confirmation" class="mt-1 block w-full" required />
+            <x-form-validation for="password_confirmation" />
+        </div>
+
+        <div>
+            <p>Tip: Use <a href="https://password.link/" class="text-blue-500">https://password.link/</a> to securely send passwords to users.</p>
+            <br>
+            <b>Make sure to encourage new users to change their account password immediately after signing in!</b>
+        </div>
+
+        <hr>
 
         <!-- Submit Button -->
         <div class="flex items-center gap-4">
@@ -114,4 +127,28 @@
             @endif
         </div>
     </form>
+    <script>
+        function generateHexPassword()
+        {
+            // Check if crypto.getRandomValues is not supported by the user's browser. If not, leave passwords blank (will need to be filled manually)
+            if (!window.crypto || !window.crypto.getRandomValues) {
+                return "";
+            }
+
+            // Generate 8 cryptographically random bytes
+            const byteArray = new Uint8Array(8); // 8 bytes = 64 bits = 16 hexadecimal characters
+            window.crypto.getRandomValues(byteArray);
+
+            // Convert bytes to hexadecimal string
+            let hexString = '';
+            for (let i = 0; i < byteArray.length; i++) {
+                hexString += byteArray[i].toString(16).padStart(2, '0');
+            }
+
+            return hexString;
+        }
+        const generatedPass = generateHexPassword();
+        document.getElementById("password").value = generatedPass;
+        document.getElementById("password_confirmation").value = generatedPass;
+    </script>
 </section>
