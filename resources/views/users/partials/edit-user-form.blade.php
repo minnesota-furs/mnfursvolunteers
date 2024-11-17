@@ -101,7 +101,7 @@
                                                     <x-input-error class="mt-2" :messages="$errors->get('primary_sector_id')" />
                                                 </dd>
                                             </div>
-                                            <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                            {{-- <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                 <dt class="text-sm font-medium leading-6 text-gray-900">Primary Dept</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-select-input name="primary_dept_id" id="primary_dept_id" class="block w-64 text-sm"> <!-- required> -->
@@ -116,7 +116,7 @@
                                                 </dd>
                                                 <x-form-validation for="primary_dept_id" />
                                                 <x-input-error class="mt-2" :messages="$errors->get('primary_dept_id')" />
-                                            </div>
+                                            </div> --}}
 
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                 <dt class="text-sm font-medium leading-6 text-gray-900">Departments (BETA)</dt>
@@ -124,6 +124,7 @@
                                                     <select 
                                                         name="departments[]" 
                                                         id="departments" 
+                                                        size="16"
                                                         multiple 
                                                         class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 sm:text-sm">
                                                         @foreach ($sectors as $sector)

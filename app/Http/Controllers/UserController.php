@@ -126,10 +126,16 @@ class UserController extends Controller
     {
         if (Auth::check() && Auth::user()->isAdmin()) {
             $user = User::find($id);
-            $sectors = Sector::all();
+            // $sectors = Sector::all();
             $departments = [];
 
-            $departments = Department::orderBy('name')->get(); 
+            // $departments = Department::orderBy('name')->get(); 
+
+            // Retrieve sectors with their departments, ordered by name
+            $sectors = Sector::with(['departments' => function ($query) {
+                $query->orderBy('name'); // Sort departments alphabetically within each sector
+            }])->orderBy('name') // Sort sectors alphabetically
+            ->get();
 
             // if ($user->sector) {
             //     $departments = Department::where('sector_id', $user->sector->id)->get();
