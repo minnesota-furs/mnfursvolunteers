@@ -20,9 +20,14 @@ class Department extends Model
         'sector_id'
     ];
 
+    // public function users()
+    // {
+    //     return $this->hasMany(User::class, 'primary_dept_id');
+    // }
+
     public function users()
     {
-        return $this->hasMany(User::class, 'primary_dept_id');
+        return $this->belongsToMany(User::class, 'department_user');
     }
 
     public function sector()
