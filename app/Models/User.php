@@ -63,6 +63,11 @@ class User extends Authenticatable
         return $this->belongsTo(Department::class, 'primary_dept_id');
     }
 
+    public function departments()
+    {
+        return $this->belongsToMany(Department::class, 'department_user');
+    }
+
     public function sector()
     {
         return $this->belongsTo(Sector::class, 'primary_sector_id');

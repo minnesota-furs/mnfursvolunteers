@@ -129,9 +129,11 @@ class UserController extends Controller
             $sectors = Sector::all();
             $departments = [];
 
-            if ($user->sector) {
-                $departments = Department::where('sector_id', $user->sector->id)->get();
-            }
+            $departments = Department::orderBy('name')->get(); 
+
+            // if ($user->sector) {
+            //     $departments = Department::where('sector_id', $user->sector->id)->get();
+            // }
 
             return view('users.edit', [
                 'user'      => $user,
@@ -159,7 +161,9 @@ class UserController extends Controller
                 'notes' => ['nullable', 'string'],                       // 'notes' can be a string, maximum 255 characters, or null
                 'primary_sector_id' => ['nullable', 'integer', 'exists:sectors,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
                 'primary_dept_id' => ['nullable', 'integer', 'exists:departments,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
-                'admin' => ['boolean'] // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
+                'admin' => ['boolean'], // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
+                'departments' => 'nullable|array',
+                'departments.*' => 'exists:departments,id',
             ]);
 
             // Find the user by ID
@@ -167,6 +171,9 @@ class UserController extends Controller
 
             // Update the user profile with the validated data
             $user->update($validated);
+
+            // Sync departments
+            $user->departments()->sync($validated['departments'] ?? []);
 
             // Optionally, flash a success message to the session
             return redirect()->route('users.show', $user->id)

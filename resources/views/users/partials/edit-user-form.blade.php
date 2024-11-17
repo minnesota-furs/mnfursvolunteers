@@ -117,6 +117,37 @@
                                                 <x-form-validation for="primary_dept_id" />
                                                 <x-input-error class="mt-2" :messages="$errors->get('primary_dept_id')" />
                                             </div>
+
+                                            <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                                <dt class="text-sm font-medium leading-6 text-gray-900">Departments (BETA)</dt>
+                                                <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                                    <select 
+                                                        name="departments[]" 
+                                                        id="departments" 
+                                                        multiple 
+                                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 sm:text-sm">
+                                                        @foreach ($sectors as $sector)
+                                                            <optgroup label="{{ $sector->name }}" class="font-bold text-gray-700">
+                                                                @foreach ($sector->departments as $department)
+                                                                    <option value="{{ $department->id }}"
+                                                                        {{ isset($user) && $user->departments->contains($department->id) ? 'selected' : '' }}>
+                                                                        {{ $department->name }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </optgroup>
+                                                        @endforeach
+                                                    </select>
+                                                    <p class="mt-2 text-xs text-gray-500">
+                                                        Hold down the Ctrl (Windows) or Command (Mac) key to select multiple departments.
+                                                    </p>
+                                                </dd>
+                                                <x-form-validation for="primary_dept_id" />
+                                                <x-input-error class="mt-2" :messages="$errors->get('primary_dept_id')" />
+                                            </div>
+
+
+
+
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                 <dt class="text-sm font-medium leading-6 text-gray-900">Total Hours</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
