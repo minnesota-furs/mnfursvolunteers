@@ -53,10 +53,16 @@
                             <table class="min-w-full divide-y divide-gray-300">
                                 <thead>
                                 <tr>
-                                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">Name</th>
+                                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 w-64">
+                                        <x-sortable-column column="name" label="Name" :sort="$sort" :direction="$direction" />
+                                    </th>
                                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Sector/Dept</th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Hours</th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32">
+                                        <x-sortable-column column="active" label="Active" :sort="$sort" :direction="$direction" />
+                                    </th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-16">
+                                        <x-sortable-column column="hours" label="Hours" :sort="$sort" :direction="$direction" />
+                                    </th>
                                     {{-- <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Role</th> --}}
                                     <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0 w-16">
                                     <span class="sr-only">Edit</span>
@@ -77,6 +83,7 @@
                                         <div class="font-medium text-gray-900">{{$user->name}}</div>
                                         </a>
                                         @if(Auth::user()->isAdmin())
+                                            <div class="mt-1 text-xs text-gray-500">{{$user->first_name}} {{$user->last_name}}</div>
                                             <div class="mt-1 text-xs text-gray-500">{{$user->email}}</div>
                                         @else
                                             <div class="mt-1 text-xs text-gray-300">Email Not Visible</div>
@@ -85,15 +92,32 @@
                                     </div>
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                                        <div class="text-gray-900">{{$user->sector->name ?? '-'}}</div>
-                                        <div class="mt-1 text-gray-500">{{$user->department->name ?? '-'}}</div>
+                                        <div class="flex flex-wrap gap-2">
+                                        @foreach($user->departments as $department)
+                                        <span class="dept-badge inline-flex items-center ">{{$department->name}} ({{$department->sector->name}})</span>
+                                        @endforeach
+                                        </div>
+                                        {{-- <div class="text-gray-900">{{$user->sector->name ?? '-'}}</div>
+                                        <div class="mt-1 text-gray-500">{{$user->department->name ?? '-'}}</div> --}}
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                                    <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Active</span>
+                                        @if($user->active)
+                                        <span class="active-badge">Active</span>
+                                        @else
+                                        <span class="inactive-badge">Inactive</span>
+                                        @endif
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                                        <div class="text-gray-900">{{format_hours($user->totalHoursForCurrentFiscalLedger())}}</div>
-                                        <div class="mt-1 text-gray-400 text-xs">{{format_hours($user->totalVolunteerHours())}}</div>
+                                        @if( Auth::user()->isAdmin() || Auth::user()->id == $user->id)
+                                            <div class="text-gray-900">{{format_hours($user->totalHoursForCurrentFiscalLedger())}}</div>
+                                            <div class="mt-1 text-gray-400 text-xs">{{format_hours($user->totalVolunteerHours())}}</div>
+                                        @else
+                                            @if($user->totalHoursForCurrentFiscalLedger() == 0)
+                                                <div class="mt-1 text-gray-400 text-xs">No Hours Logged</div>
+                                            @else
+                                                <div class="text-gray-900">> 0 Hours</div>
+                                            @endif
+                                        @endif
                                     </td>
                                     {{-- <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500"> | </td> --}}
                                     <td class="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">

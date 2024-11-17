@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Sector;
 use App\Models\User;
 use App\Models\Department;
+use App\Models\FiscalLedger;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Response as FacadeResponse;
@@ -25,18 +27,41 @@ class UserController extends Controller
     {
         $search = $request->input('search');
 
-        // Check if a search term exists and filter users, otherwise return all users
-        $users = User::when($search, function ($query, $search) {
-            return $query->where('name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%");
-        })->paginate(10);
+        $sort = $request->input('sort', 'name'); // Default sort column
+        $direction = $request->input('direction', 'asc'); // Default sort direction
+
+        // Get the current fiscal ledger
+        $currentLedger = FiscalLedger::where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+
+        // Ensure we have a ledger to work with
+        if (!$currentLedger) {
+            abort(500, 'Current fiscal ledger not found.');
+        }
+
+        // Query users
+        $users = User::query()
+            ->when($search, function (Builder $query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%') // Search by name
+                    ->orWhere('first_name', 'like', '%' . $search . '%') // Search by first legal name
+                    ->orWhere('last_name', 'like', '%' . $search . '%') // Search by last legal name
+                    ->orWhere('email', 'like', '%' . $search . '%'); // Search by email
+            })
+            ->when($sort === 'hours', function (Builder $query) use ($currentLedger, $direction) {
+                $query->withSum(['volunteerHours' => function ($q) use ($currentLedger) {
+                    $q->where('fiscal_ledger_id', $currentLedger->id);
+                }], 'hours')
+                ->orderBy('volunteer_hours_sum_hours', $direction);
+            }, function (Builder $query) use ($sort, $direction) {
+                $query->orderBy($sort, $direction); // Default sorting
+            })
+            ->paginate(10);
 
         // Append the search term to pagination links
         $users->appends(['search' => $search]);
 
-        return view('users.index', [
-            'users'     => $users
-        ]);
+        return view('users.index', compact('users', 'sort', 'direction'));
     }
 
     /**
@@ -242,17 +267,20 @@ class UserController extends Controller
             $file = fopen('php://output', 'w');
             
             // Insert CSV column headers
-            fputcsv($file, ['ID', 'Name', 'Active', 'Email', 'DeptId', 'DeptName', 'Sector', 'HoursThisPeriod', 'Created At', 'Updated At']);
+            fputcsv($file, ['ID', 'Name', 'Active', 'Email', 'Departments', 'Sector', 'HoursThisPeriod', 'Created At', 'Updated At']);
 
             // Insert user data rows
             foreach ($users as $user) {
+                $departments = $user->departments->map(function ($department) {
+                    return "{$department->name} ({$department->sector->name})";
+                })->join(', ');
+
                 fputcsv($file, [
                     $user->id,
                     $user->name,
                     $user->active,
                     $user->email,
-                    $user->department->id ?? null,
-                    $user->department->name ?? null,
+                    $departments ?? null,
                     $user->primary_sector_id ?? null,
                     $user->totalHoursForCurrentFiscalLedger(),
                     $user->created_at,

@@ -138,7 +138,7 @@ class User extends Authenticatable
      */
     public function hasDept(): bool
     {
-        return !is_null($this->primary_dept_id);
+        return $this->departments()->exists();
     }
     /**
      * Check if the user is an admin.
