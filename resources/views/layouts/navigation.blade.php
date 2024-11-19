@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-brand-green dark:bg-gray-800 border-brand-green">
+<nav x-data="{ open: false }" class="bg-brand-green dark:bg-brand-green border-brand-green">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -95,6 +95,13 @@
                                 {{ __('Log Out') }}
                             </x-dropdown-link>
                         </form>
+
+                        <!-- light/dark mode selection -->
+                        <!-- I'm not sure why i need to use `href="#"` here instead of `:href="#"`, but the latter throws an error `syntax error, unexpected token ";"` -->
+                        <x-dropdown-link href="#" 
+                                onclick="window.themeController.toggleTheme();">
+                            {{ __('Light/Dark Mode') }}
+                        </x-dropdown-link>
                     </x-slot>
                 </x-dropdown>
             </div>

@@ -69,7 +69,7 @@
                                     </th>
                                 </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-200 bg-white">
+                                <tbody class="divide-y divide-gray-200">
                                 @forelse ($users as $user)
                                 <tr>
                                     <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
@@ -80,13 +80,13 @@
                                         <img class="h-11 w-11 rounded-full" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
                                         </div> --}}
                                         <div class="ml-4">
-                                        <div class="font-medium text-gray-900">{{$user->name}}</div>
+                                        <div class="font-medium text-gray-900 dark:text-white">{{$user->name}}</div>
                                         </a>
                                         @if(Auth::user()->isAdmin())
-                                            <div class="mt-1 text-xs text-gray-500">{{$user->first_name}} {{$user->last_name}}</div>
-                                            <div class="mt-1 text-xs text-gray-500">{{$user->email}}</div>
+                                            <div class="mt-1 text-xs text-gray-500 dark:text-white">{{$user->first_name}} {{$user->last_name}}</div>
+                                            <div class="mt-1 text-xs text-gray-500 dark:text-white">{{$user->email}}</div>
                                         @else
-                                            <div class="mt-1 text-xs text-gray-300">Email Not Visible</div>
+                                            <div class="mt-1 text-xs text-gray-300 dark:text-white">Email Not Visible</div>
                                         @endif
                                         </div>
                                     </div>
