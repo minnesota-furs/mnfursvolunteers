@@ -11,7 +11,7 @@
                 @method('post')
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="text-sm font-medium leading-6 text-gray-900">Name</dt>
+                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Name</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-text-input class="block w-64 text-sm" type="text" name="name" id="name" placeholder="Communications" :value="old('name')" required />
                         <x-form-validation for="name" />
@@ -19,7 +19,7 @@
                 </div>
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="text-sm font-medium leading-6 text-gray-900">Description</dt>
+                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Description</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-textarea-input id="notes" rows="4" name="description" class="block w-full text-sm">{{ old('description') }}</x-textarea-input>
                         <x-form-validation for="description" />
@@ -28,7 +28,7 @@
 
                 <!-- Associated Sector ID -->
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="text-sm font-medium leading-6 text-gray-900">Sector</dt>
+                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Sector</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-select-input name="sector_id" id="sector_id" class="block w-64 text-sm">
                             <option class="text-gray-400" value="">-None-</option>
