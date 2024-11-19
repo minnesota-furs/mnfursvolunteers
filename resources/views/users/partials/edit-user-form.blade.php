@@ -91,7 +91,7 @@
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                 <dt class="text-sm font-medium leading-6 text-black dark:text-white">Primary Sector</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                                                    <x-select-input name="primary_sector_id" id="primary_sector_id" class="block text-sm" :value="old('primary_sector_id', $user->primary_sector_id)">
+                                                    <x-select-input name="primary_sector_id" id="primary_sector_id" class="block text-sm " :value="old('primary_sector_id', $user->primary_sector_id)">
                                                         <option value="" {{ old('primary_sector_id', $user->primary_sector_id) == null ? 'selected' : '' }}>-None-</option>
                                                         @foreach($sectors as $sector)
                                                             <option value="{{ $sector->id }}" {{ old('primary_sector_id', $user->primary_sector_id) == $sector->id ? 'selected' : '' }}>{{ $sector->name }}</option>
@@ -125,7 +125,7 @@
                                                         id="departments" 
                                                         size="16"
                                                         multiple 
-                                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 sm:text-sm">
+                                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 sm:text-sm ">
                                                         @foreach ($sectors as $sector)
                                                             <optgroup label="{{ $sector->name }}" class="font-bold text-gray-700">
                                                                 @foreach ($sector->departments as $department)

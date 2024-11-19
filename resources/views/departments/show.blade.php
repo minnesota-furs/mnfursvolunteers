@@ -51,9 +51,10 @@
                                         @foreach($department->users as $user)
                                         <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6">
                                           <div class="flex w-0 flex-1 items-center">
-                                            <x-heroicon-o-user class="w-4 inline"/>
+                                            <x-heroicon-o-user class="w-4 inline dark:text-white"/>
                                             <div class="ml-4 flex min-w-0 flex-1 gap-2">
-                                              <span class="truncate font-medium">{{$user->name}}</span>
+                                              <span class="truncate font-medium dark:text-white">{{$user->name}}</span>
+                                              <span class="truncate font-medium dark:text-white">(Hours: {{format_hours($user->totalHoursForCurrentFiscalLedger())}})</span>
                                             </div>
                                           </div>
                                           <div class="ml-4 flex-shrink-0">

@@ -27,7 +27,7 @@
 
 <body class="min-h-full">
     <div class="min-h-screen bg-gray-100 dark:bg-gray-800"> <!-- Controls background color (under header, under content) -->
-        <div class="bg-brand-green dark:bg-brand-green pt-2 pb-32 shadow-lg">
+        <div class="bg-brand-green dark:bg-green-950 pt-2 pb-32 shadow-lg">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
@@ -40,7 +40,7 @@
                         </div>
                     @endif
 
-                        <h1 class="text-3xl font-bold tracking-tight text-white dark:text-black">{{ $header }}</h1>
+                        <h1 class="text-3xl font-bold tracking-tight text-white dark:text-white">{{ $header }}</h1>
                     </div>
                 </header>
             @else

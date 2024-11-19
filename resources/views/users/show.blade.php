@@ -116,19 +116,15 @@
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Departments ({{$user->departments->count()}})</dt>
                                         <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
-
-
-
-
                                             <ul role="list" class="divide-y divide-gray-200">
                                                 @forelse ($user->departments as $department)
-                                                    <li class="relative bg-white px-1 py-1 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 hover:bg-gray-50">
+                                                    <li class="relative bg-white dark:bg-slate-800 px-1 py-1 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 hover:bg-gray-50">
                                                     <div class="flex justify-between space-x-3">
                                                         <div class="min-w-0 flex-1">
                                                         <a href="{{ route('departments.show', $department->id) }}" class="block focus:outline-none">
                                                             <span class="absolute inset-0" aria-hidden="true"></span>
-                                                            <p class="truncate text-sm font-medium text-gray-900">{{ $department->name }}</p>
-                                                            <p class="truncate text-sm text-gray-500">{{ $department->sector->name }}</p>
+                                                            <p class="truncate text-sm font-medium text-gray-900 dark:text-white">{{ $department->name }}</p>
+                                                            <p class="truncate text-sm text-gray-500 dark:text-slate-500">{{ $department->sector->name }}</p>
                                                         </a>
                                                         </div>
                                                         {{-- <time datetime="2021-01-27T16:35" class="shrink-0 whitespace-nowrap text-sm text-gray-500">{{$department->created_at}}</time> --}}

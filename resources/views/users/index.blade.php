@@ -30,8 +30,8 @@
                 <div class="px-4 sm:px-6 lg:px-8">
                     <div class="sm:flex sm:items-center">
                         <div class="sm:flex-auto">
-                            <h1 class="text-base font-semibold leading-6 text-gray-900">Users/Volunteers</h1>
-                            <p class="mt-2 text-sm text-gray-700">Listing of all users/volunteers within the organzation including their email, sector/dept, status, and hours.</p>
+                            <h1 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">Users/Volunteers</h1>
+                            <p class="mt-2 text-sm text-gray-700 dark:text-white">Listing of all users/volunteers within the organzation including their email, sector/dept, status, and hours.</p>
                             @if(null !==request('page'))
                                 <p class="mt-2 text-sm text-orange-700"><x-heroicon-s-magnifying-glass class="w-4 inline"/> Currently showing <span class="underline">Page #{{$users->currentPage()}}</span> of {{$users->lastPage()}}.
                             @endif
@@ -53,14 +53,14 @@
                             <table class="min-w-full divide-y divide-gray-300">
                                 <thead>
                                 <tr>
-                                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 w-64">
+                                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-0 w-64">
                                         <x-sortable-column column="name" label="Name" :sort="$sort" :direction="$direction" />
                                     </th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden sm:table-cell">Sector/Dept</th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32 hidden md:table-cell">
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white hidden sm:table-cell">Sector/Dept</th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white w-32 hidden md:table-cell">
                                         <x-sortable-column column="active" label="Active" :sort="$sort" :direction="$direction" />
                                     </th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-16">
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white w-16">
                                         <x-sortable-column column="hours" label="Hours" :sort="$sort" :direction="$direction" />
                                     </th>
                                     {{-- <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Role</th> --}}
@@ -109,7 +109,7 @@
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
                                         @if( Auth::user()->isAdmin() || Auth::user()->id == $user->id)
-                                            <div class="text-gray-900">{{format_hours($user->totalHoursForCurrentFiscalLedger())}}</div>
+                                            <div class="text-gray-900 dark:text-white dark:font-bold">{{format_hours($user->totalHoursForCurrentFiscalLedger())}}</div>
                                             <div class="mt-1 text-gray-400 text-xs">{{format_hours($user->totalVolunteerHours())}}</div>
                                         @else
                                             @if($user->totalHoursForCurrentFiscalLedger() == 0)
@@ -121,9 +121,9 @@
                                     </td>
                                     {{-- <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500"> | </td> --}}
                                     <td class="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                        <a href="{{route('users.show', $user->id)}}" class="text-blue-600 hover:text-blue-800 px-2">View<span class="sr-only">, {{$user->name}}</span></a>
+                                        <a href="{{route('users.show', $user->id)}}" class="text-blue-600 dark:text-blue-400 dark:font-bold hover:text-blue-800 px-2">View<span class="sr-only">, {{$user->name}}</span></a>
                                         @if( Auth::user()->isAdmin() )
-                                            <a href="{{route('users.edit', $user->id)}}" class="text-blue-600 hover:text-blue-800 px-2">Edit<span class="sr-only">, {{$user->name}}</span></a>
+                                            <a href="{{route('users.edit', $user->id)}}" class="text-blue-600 dark:text-blue-400 dark:font-bold hover:text-blue-800 px-2">Edit<span class="sr-only">, {{$user->name}}</span></a>
                                         @endif
                                         {{-- <x-tailwind-dropdown id="{{$user->id}}">
                                             <div class="py-1" role="none">
