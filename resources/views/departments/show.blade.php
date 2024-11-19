@@ -45,16 +45,15 @@
                                         {{ $department->parent_sector_name }}</dd>
                                 </div>
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Department Members</dt>
+                                    <dt class="text-sm font-medium leading-6 text-gray-900">Department Members</dt>
                                     <dd class="mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
                                       <ul role="list" class="divide-y divide-gray-100 rounded-md border border-gray-200">
                                         @foreach($department->users as $user)
                                         <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6">
                                           <div class="flex w-0 flex-1 items-center">
-                                            <x-heroicon-o-user class="w-4 inline dark:text-white"/>
+                                            <x-heroicon-o-user class="w-4 inline"/>
                                             <div class="ml-4 flex min-w-0 flex-1 gap-2">
-                                              <span class="truncate font-medium dark:text-white">{{$user->name}}</span>
-                                              <span class="truncate font-medium dark:text-white">(Hours: {{format_hours($user->totalHoursForCurrentFiscalLedger())}})</span>
+                                              <span class="truncate font-medium">{{$user->name}}</span>
                                             </div>
                                           </div>
                                           <div class="ml-4 flex-shrink-0">

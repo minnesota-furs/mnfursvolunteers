@@ -23,12 +23,12 @@
                     @csrf
                     @method('PATCH')
                     <div class="px-4 sm:px-0">
-                        <h3 class="text-base font-semibold leading-7 text-gray-900 dark:text-white">Volunteer Contribution Information</h3>
+                        <h3 class="text-base font-semibold leading-7 text-gray-900">Volunteer Contribution Information</h3>
                     </div>
                     <div class="mt-6 border-t border-gray-100">
                         <dl class="divide-y divide-gray-100">
                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">User</dt>
+                                <dt class="text-sm font-medium leading-6 text-gray-900">User</dt>
                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                     @if($selectedUser)
                                         <div>
@@ -49,7 +49,7 @@
                                 </dd>
                             </div>
                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Short Description</dt>
+                                <dt class="text-sm font-medium leading-6 text-gray-900">Short Description</dt>
                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                     <x-text-input class="block w-64 text-sm" type="text" name="description" id="description" placeholder="Picnic Volunteer" :value="old('description', $hour->description)"/>
                                     <p class="text-xs text-gray-400">This helps us understand what you were doing. You can be descriptive like "Badge Checking at FM2024" or vauge like "Time volunteered during FM2024"</p>
@@ -57,14 +57,14 @@
                                 </dd>
                             </div>
                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Volunteer Date</dt>
+                                <dt class="text-sm font-medium leading-6 text-gray-900">Volunteer Date</dt>
                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                     <x-text-input class="block w-64 text-sm" type="date" name="volunteer_date" id="volunteer_date" :value="old('volunteer_date', $hour->volunteer_date ? $hour->volunteer_date->format('Y-m-d') : '')"/>
                                     <x-form-validation for="volunteer_date" />
                                 </dd>
                             </div>
                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Department</dt>
+                                <dt class="text-sm font-medium leading-6 text-gray-900">Department</dt>
                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                     <x-select-input name="primary_dept_id" id="primary_dept_id" class="block w-64 text-sm" required>
                                         <option value="">Select Department</option>
@@ -94,7 +94,7 @@
                                 </dd>
                             </div>
                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Hours</dt>
+                                <dt class="text-sm font-medium leading-6 text-gray-900">Hours</dt>
                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                     <x-text-input class="block w-64 text-sm" type="number" name="hours" id="hours" step="0.1" placeholder="2.5" :value="old('hours', $hour->hours)" required />
                                     <x-form-validation for="hours" />
@@ -102,7 +102,7 @@
                                 </dd>
                             </div>
                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Notes (Optional)</dt>
+                                <dt class="text-sm font-medium leading-6 text-gray-900">Notes (Optional)</dt>
                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                     <x-textarea-input id="notes" rows="8" name="notes" class="block w-full text-sm">{{ old('notes', $hour->notes) }}</x-textarea-input>
                                     <p class="text-xs text-gray-400">This is entirely optional but provided if your volunteer shift requires some contextual information.</p>
