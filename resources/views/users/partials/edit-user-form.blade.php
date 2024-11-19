@@ -7,8 +7,8 @@
             <div class="max-w-7xl mx-auto">
                 <div class="">
                     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                        <div class="grid grid-cols-3 gap-4">
-                            <div class="col-span-2">
+                        <div class="grid grid-cols-4 gap-4">
+                            <div class="col-span-4 md:col-span-2">
                                 {{-- Start Left Column --}}
                                 <div>
                                     <div class="px-4 sm:px-0">
@@ -80,7 +80,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div>
+                            <div class="col-span-4 md:col-span-2">
                                 {{-- Start Right Column --}}
                                 <div>
                                     <div class="px-4 sm:px-0">

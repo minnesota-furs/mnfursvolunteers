@@ -23,8 +23,8 @@
 
         <div class="py-4">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-2">
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="col-span-4 md:col-span-2">
                         {{-- Start Left Column --}}
                         <div>
                             <div class="px-4 sm:px-0">
@@ -88,7 +88,7 @@
                             </div>
                         </div>
                     </div>
-                    <div>
+                    <div class="col-span-4 md:col-span-2">
                         {{-- Start Right Column --}}
                         <div>
                             <div class="px-4 sm:px-0">
@@ -193,10 +193,10 @@
                             <thead>
                             <tr>
                                 <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">Short Description</th>
-                                <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">Sector, Department</th>
+                                <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 hidden md:table-cell">Sector, Department</th>
                                 <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">Amount</th>
-                                <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">Task Date</th>
-                                <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-16">Notes</th>
+                                <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32 hidden sm:table-cell">Task Date</th>
+                                <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-16 hidden sm:table-cell">Notes</th>
                                 <th scope="col" class="relative w-16 whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
                                 <span class="sr-only">Edit</span>
                                 </th>
@@ -214,7 +214,7 @@
                                     @endif
                                     </a>
                                 </td>
-                                <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-400 dark:text-gray-300">
+                                <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-400 dark:text-gray-300 hidden md:table-cell">
                                     @if ($volunteerHour->hasDepartment())
                                         {{$volunteerHour->department->sector->name ?? '-'}} / {{$volunteerHour->department->name ?? ''}}
                                     @else
@@ -224,14 +224,14 @@
                                 <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300" title="{{$volunteerHour->fiscalLedger->name ?? '???'}}">
                                     {{format_hours($volunteerHour->hours)}} hrs
                                 </td>
-                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300">
+                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">
                                     @if(isset($volunteerHour->volunteer_date))
                                         {{$volunteerHour->volunteer_date->diffForHumans() ?? '-'}}
                                     @else
                                         <span class="text-xs text-gray-300">Date not logged</span>
                                     @endif
                                 </td>
-                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300">
+                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">
                                     @if($volunteerHour->hasNotes())
                                         <x-heroicon-o-check title="{{$volunteerHour->notes ?? ''}}" class="w-4"/>
                                     @else

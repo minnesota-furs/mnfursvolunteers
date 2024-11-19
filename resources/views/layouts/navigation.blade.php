@@ -18,9 +18,9 @@
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                         {{ __('Users/Volunteers') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('orgchart')" :active="request()->routeIs('orgchart')">
+                    {{-- <x-nav-link :href="route('orgchart')" :active="request()->routeIs('orgchart')">
                         {{ __('Org Chart') }} (Test)
-                    </x-nav-link>
+                    </x-nav-link> --}}
                     {{-- <x-nav-link :href="route('ledger.index')" :active="request()->routeIs('ledger.*')">
                         {{ __('Ledgers') }}
                     </x-nav-link> --}}

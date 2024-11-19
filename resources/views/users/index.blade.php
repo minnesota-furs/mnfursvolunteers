@@ -56,8 +56,8 @@
                                     <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 w-64">
                                         <x-sortable-column column="name" label="Name" :sort="$sort" :direction="$direction" />
                                     </th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Sector/Dept</th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32">
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden sm:table-cell">Sector/Dept</th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32 hidden md:table-cell">
                                         <x-sortable-column column="active" label="Active" :sort="$sort" :direction="$direction" />
                                     </th>
                                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-16">
@@ -91,16 +91,16 @@
                                         </div>
                                     </div>
                                     </td>
-                                    <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+                                    <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 hidden sm:table-cell">
                                         <div class="flex flex-wrap gap-2">
                                         @foreach($user->departments as $department)
-                                        <span class="dept-badge inline-flex items-center ">{{$department->name}} ({{$department->sector->name}})</span>
+                                        <span class="dept-badge inline-flex items-center">{{$department->name}} ({{$department->sector->name}})</span>
                                         @endforeach
                                         </div>
                                         {{-- <div class="text-gray-900">{{$user->sector->name ?? '-'}}</div>
                                         <div class="mt-1 text-gray-500">{{$user->department->name ?? '-'}}</div> --}}
                                     </td>
-                                    <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+                                    <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 hidden md:table-cell">
                                         @if($user->active)
                                         <span class="active-badge">Active</span>
                                         @else
