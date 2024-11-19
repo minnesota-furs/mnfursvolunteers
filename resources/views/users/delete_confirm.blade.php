@@ -3,7 +3,7 @@
     @auth
         <x-slot name="header">
             Delete an existing User
-            <h2 class="dark:text-white">
+            <h2>
                 You are currently signed in as <i>Administrator <b>{{Auth::user()->name}}</b></i>
             </h2>
         </x-slot>

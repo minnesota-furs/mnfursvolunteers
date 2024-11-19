@@ -9,7 +9,7 @@
                 @csrf
                 @method('PUT')
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Name</dt>
+                    <dt class="text-sm font-medium leading-6 text-gray-900">Name</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-text-input class="block w-64 text-sm" type="text" name="name" id="name" :value="old('name', $ledger->name)" required />
                         <x-form-validation for="name" />
@@ -17,7 +17,7 @@
                 </div>
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Start Date</dt>
+                    <dt class="text-sm font-medium leading-6 text-gray-900">Start Date</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-text-input class="block w-64 text-sm" type="date" name="start_date" id="start_date" :value="old('start_date', $ledger->start_date ? $ledger->start_date->format('Y-m-d') : '')" required />
                         <x-form-validation for="start_date" />
@@ -25,7 +25,7 @@
                 </div>
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">End Date</dt>
+                    <dt class="text-sm font-medium leading-6 text-gray-900">End Date</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-text-input class="block w-64 text-sm" type="date" name="end_date" id="end_date" :value="old('end_date', $ledger->end_date ? $ledger->end_date->format('Y-m-d') : '')" required />
                         <x-form-validation for="end_date" />
