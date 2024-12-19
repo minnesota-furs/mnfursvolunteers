@@ -131,6 +131,7 @@ class VolunteerHoursController extends Controller
         }
         
         $hour = VolunteerHours::find($id);
+        $ledgers = FiscalLedger::all();
 
         $selectedUser = $hour->user;
 
@@ -149,7 +150,7 @@ class VolunteerHoursController extends Controller
         $users = null;
 
         // Pass the user (if any) to the view
-        return view('hours.edit', compact('hour', 'selectedUser', 'users', 'sectors', 'recentDepartments'));
+        return view('hours.edit', compact('hour', 'selectedUser', 'users', 'sectors', 'recentDepartments', 'ledgers'));
     }
 
     /**
@@ -169,6 +170,7 @@ class VolunteerHoursController extends Controller
             'notes'         => 'nullable|string',
             'volunteer_date' => 'nullable|date',
             'primary_dept_id' => 'integer|exists:departments,id',
+            'fiscal_ledger_id' => 'integer'
         ]);
 
         // Find the user by ID

@@ -108,9 +108,12 @@ class DepartmentController extends Controller
         {
             $department = Department::findOrFail($id);
             $sectors = Sector::all();
+            $users = User::all();
+
+            return view('departments.edit', compact('department', 'sectors', 'users'));
             return view('departments.edit', [
                 'department' => $department,
-                'sectors' => $sectors
+                'sectors' => $sectors,
             ]);
         }
         else
@@ -130,7 +133,8 @@ class DepartmentController extends Controller
             $validated = $request->validate([
                 'name' => ['required','string','max:255'], // required string, max len 255
                 'description' => ['nullable','string','max:255'],  // optional string, max len 255
-                'sector_id' => ['required','integer','exists:sectors,id']     // Ensure 'sector' is a valid integer and exists in the sectors table
+                'sector_id' => ['required','integer','exists:sectors,id'],     // Ensure 'sector' is a valid integer and exists in the sectors table
+                'department_head_id' => 'nullable|exists:users,id',
             ]);
 
             // Find the department by ID

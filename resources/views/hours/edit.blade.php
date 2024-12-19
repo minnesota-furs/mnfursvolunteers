@@ -101,6 +101,23 @@
                                     <p class="text-xs text-gray-400">Example: An hour and a half would be 1.5</p>
                                 </dd>
                             </div>
+                            @if (Auth::user()->isAdmin())
+                            <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                <dt class="text-sm font-medium leading-6 text-gray-900">Ledger Period (Admin)</dt>
+                                <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                    <x-select-input name="fiscal_ledger_id" id="fiscal_ledger_id" class="block w-64 text-sm" required>
+                                        @foreach ($ledgers as $ledger)
+                                            <option value="{{ $ledger->id }}" 
+                                                {{ $hour->fiscal_ledger_id == $ledger->id ? 'selected' : '' }}>
+                                                {{ $ledger->name }}
+                                            </option>
+                                        @endforeach
+                                    </x-select-input>
+                                    <p class="text-xs text-gray-400">Which Fiscal Ledger does this logged report belong to? If you dont know what this does, don't edit it.</p>
+                                    <x-form-validation for="fiscal_ledger_id" />
+                                </dd>
+                            </div>
+                            @endif
                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                 <dt class="text-sm font-medium leading-6 text-gray-900">Notes (Optional)</dt>
                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">

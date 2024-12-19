@@ -17,7 +17,8 @@ class Department extends Model
     protected $fillable = [
         'name',
         'description',
-        'sector_id'
+        'sector_id',
+        'department_head_id'
     ];
 
     // public function users()
@@ -43,5 +44,10 @@ class Department extends Model
     public function userCount()
     {
         return $this->users()->count();
+    }
+
+    public function head()
+    {
+        return $this->belongsTo(User::class, 'department_head_id');
     }
 }

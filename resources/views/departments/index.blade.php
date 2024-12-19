@@ -36,6 +36,9 @@
                                                 Sector</th>
                                             <th scope="col"
                                                 class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+                                                Dept Head</th>
+                                            <th scope="col"
+                                                class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
                                                 Staff Count</th>
                                             {{-- <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0 w-16">
                                                 <span class="sr-only">Edit</span>
@@ -46,6 +49,9 @@
                                         <tr>
                                             <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                 Unassigned
+                                            </td>
+                                            <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                -
                                             </td>
                                             <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                 -
@@ -64,6 +70,9 @@
                                                 </td>
                                                 <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                     <p>{{ $sectors->where('id', $department->sector_id)->first()->name }}</p>
+                                                </td>
+                                                <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                    {{$department->head->name ?? ''}}
                                                 </td>
                                                 <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                     {{$department->userCount() ?? '-'}}
