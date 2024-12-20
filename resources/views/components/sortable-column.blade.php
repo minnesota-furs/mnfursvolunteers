@@ -1,4 +1,4 @@
-<a href="{{ route('users.index', ['sort' => $column, 'direction' => $nextDirection]) }}"
+<a href="{{ route($route, ['sort' => $column, 'direction' => $nextDirection]) }}"
     class="flex items-center">
      {{ $label }}
      @if($sort === $column)

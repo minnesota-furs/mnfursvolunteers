@@ -7,6 +7,10 @@
         </x-slot>
 
         <x-slot name="actions">
+                <a href="{{route('departments.index')}}"
+                    class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                    Back
+                </a>
             @if( Auth::user()->isAdmin() )
                 <a href="{{route('departments.edit', $department->id)}}"
                     class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
@@ -53,7 +57,7 @@
                                     <dt class="text-sm font-medium leading-6 text-gray-900">Department Members</dt>
                                     <dd class="mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
                                       <ul role="list" class="divide-y divide-gray-100 rounded-md border border-gray-200">
-                                        @foreach($department->users as $user)
+                                        @forelse($department->users as $user)
                                         <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6">
                                           <div class="flex w-0 flex-1 items-center">
                                             <x-heroicon-o-user class="w-4 inline"/>
@@ -65,7 +69,11 @@
                                             <a href="{{route('users.show', $user->id)}}" class="font-medium text-indigo-600 hover:text-indigo-500">View</a>
                                           </div>
                                         </li>
-                                        @endforeach
+                                        @empty
+                                        <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6 text-gray-400">
+                                            <span class="truncate font-medium">No Volunteers in this department</span>
+                                        </li>
+                                        @endforelse
                                       </ul>
                                     </dd>
                                 </div>

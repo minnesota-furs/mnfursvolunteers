@@ -6,6 +6,15 @@
             {{ __('View All Departments') }}
         </x-slot>
 
+        <x-slot name="actions">
+            @if( Auth::user()->isAdmin() )
+                <a href="{{route('departments.create')}}"
+                    class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                    <x-heroicon-s-plus class="w-4 inline"/> Create Department
+                </a>
+            @endif
+        </x-slot>
+
         <div class="">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="px-4 sm:px-6 lg:px-8">
@@ -14,26 +23,38 @@
                             <h1 class="text-base font-semibold leading-6 text-gray-900">Departments</h1>
                         </div>
                         <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                            @if( Auth::user()->isAdmin() )
-                                <a href="{{ route('departments.create') }}" type="button"
-                                    class="block rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add
-                                    department</a>
-                            @endif
+                            <form method="GET" action="{{ route('departments.index') }}" class="mb-4">
+                                <div class="flex items-center gap-2">
+                                    <label for="sector" class="text-sm font-medium text-gray-700">Filter by Sector:</label>
+                                    <select name="sector" id="sector" class="border rounded-md px-3 py-2 text-xs">
+                                        <option value="">All Sectors</option>
+                                        @foreach ($sectors as $sector)
+                                            <option value="{{ $sector->id }}" {{ $selectedSector == $sector->id ? 'selected' : '' }}>
+                                                {{ $sector->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-1 rounded-md hover:bg-blue-600">
+                                        Filter
+                                    </button>
+                                    <a href="{{ route('departments.index') }}" class="text-gray-500 hover:underline">Reset</a>
+                                </div>
+                            </form>
                         </div>
                     </div>
                     <div class="mt-8 flow-root">
                         <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                             <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                                {{-- {{ $sectors->links() }} --}}
+                                {{ $departments->links() }}
                                 <table class="min-w-full divide-y divide-gray-300">
                                     <thead>
                                         <tr>
                                             <th scope="col"
                                                 class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                                Name</th>
+                                                <x-sortable-column column="name" label="Name" :sort="$sort" :direction="$direction" route="departments.index" /></th>
                                             <th scope="col"
                                                 class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                                Sector</th>
+                                                <x-sortable-column column="sector_id" label="Sector" :sort="$sort" :direction="$direction" route="departments.index" /></th>
                                             <th scope="col"
                                                 class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
                                                 Dept Head</th>
@@ -90,7 +111,7 @@
                                         @endforelse
                                     </tbody>
                                 </table>
-                                {{-- {{ $sectors->links() }} --}}
+                                {{ $departments->links() }}
                             </div>
                         </div>
                     </div>

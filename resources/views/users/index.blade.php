@@ -54,14 +54,14 @@
                                 <thead>
                                 <tr>
                                     <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 w-64">
-                                        <x-sortable-column column="name" label="Name" :sort="$sort" :direction="$direction" />
+                                        <x-sortable-column column="name" label="Name" :sort="$sort" :direction="$direction" route="users.index" />
                                     </th>
                                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden sm:table-cell">Sector/Dept</th>
                                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32 hidden md:table-cell">
-                                        <x-sortable-column column="active" label="Active" :sort="$sort" :direction="$direction" />
+                                        <x-sortable-column column="active" label="Active" :sort="$sort" :direction="$direction" route="users.index" />
                                     </th>
                                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-16">
-                                        <x-sortable-column column="hours" label="Hours" :sort="$sort" :direction="$direction" />
+                                        <x-sortable-column column="hours" label="Hours" :sort="$sort" :direction="$direction" route="users.index" />
                                     </th>
                                     {{-- <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Role</th> --}}
                                     <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0 w-16">

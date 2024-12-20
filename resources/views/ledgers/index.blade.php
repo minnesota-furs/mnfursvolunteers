@@ -3,27 +3,24 @@
         {{ __('View All Ledgers') }}
     </x-slot>
 
+    <x-slot name="actions">
+        @if( Auth::user()->isAdmin() )
+            <a href="{{route('ledger.create')}}"
+                class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                <x-heroicon-s-plus class="w-4 inline"/> Create Ledger
+            </a>
+        @endif
+    </x-slot>
+
     <div class="">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="px-4 sm:px-6 lg:px-8">
                 <div class="sm:flex sm:items-center">
                     <div class="sm:flex-auto">
                         <h1 class="text-base font-semibold leading-6 text-gray-900">Ledgers</h1>
-                        @if (null !== request('search'))
-                            <p class="mt-2 text-sm text-orange-700"><x-heroicon-s-magnifying-glass class="w-4 inline" />
-                                Currently showing {{ count($users) }} result(s) for search term: <span
-                                    class="underline">{{ request('search') }}</span>.
-                                <a class="text-blue-600" href="{{ route('users.index') }}">Clear Search</a>
-                        @endif
                     </div>
                     <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                        @auth
-                            @if( Auth::user()->isAdmin() )
-                                <a href="{{ route('ledger.create') }}" type="button"
-                                    class="block rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add
-                                    ledger</a>
-                            @endif
-                        @endauth
+                        
                     </div>
                 </div>
                 <div class="mt-8 flow-root">

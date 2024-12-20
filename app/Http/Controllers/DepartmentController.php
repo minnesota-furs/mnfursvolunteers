@@ -22,14 +22,33 @@ class DepartmentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $departments = Department::join('sectors', 'departments.sector_id', '=', 'sectors.id')
-                             ->select('departments.*')
-                             ->orderBy('sectors.name')
-                             ->orderBy('departments.name')
-                             ->get();
+        $search = $request->input('search');
+
+        $sort = $request->input('sort', 'name'); // Default sort column
+        $direction = $request->input('direction', 'asc'); // Default sort direction
+
+        // Fetch all sectors for the filter dropdown
         $sectors = Sector::all();
+
+        // Get the selected sector ID from the request
+        $selectedSector = $request->input('sector');
+
+        // Query departments, optionally filter by sector
+        $departments = Department::when($selectedSector, function ($query, $selectedSector) {
+            $query->where('sector_id', $selectedSector);
+        })->with('sector')->orderBy($sort, $direction)->paginate(30);
+
+        return view('departments.index', compact('departments', 'sectors', 'selectedSector',  'sort', 'direction'));
+        
+        // $sectors = Sector::all();
+        
+        // $departments = Department::join('sectors', 'departments.sector_id', '=', 'sectors.id')
+        //                      ->select('departments.*')
+        //                      ->orderBy('sectors.name')
+        //                      ->orderBy('departments.name')
+        //                      ->get();
 
         return view('departments.index', [
             'departments'     => $departments,
@@ -45,9 +64,8 @@ class DepartmentController extends Controller
         if(Auth::check() && Auth::user()->isAdmin())
         {
             $sectors = Sector::all();
-            return view('departments.create', [
-                'sectors'   => $sectors,
-            ]);
+            $users = User::orderBy('name')->get();
+            return view('departments.create', compact('sectors', 'users'));
         }
         else
         {
@@ -66,7 +84,8 @@ class DepartmentController extends Controller
             $validated = $request->validate([
                 'name' => ['required','string','max:255'], // required string, max len 255
                 'description' => ['nullable','string','max:255'],  // optional string, max len 255
-                'sector_id' => ['required','integer','exists:sectors,id']     // Ensure 'sector' is a valid integer and exists in the sectors table
+                'sector_id' => ['required','integer','exists:sectors,id'],     // Ensure 'sector' is a valid integer and exists in the sectors table
+                'department_head_id' => ['nullable','exists:users,id'],
             ]);
 
             // Create the department
@@ -74,7 +93,7 @@ class DepartmentController extends Controller
 
             // Redirect user to departments list
             // Optionally, flash a success message to the session
-            return redirect()->route('departments.index')
+            return redirect()->route('departments.show', $department->id)
                 ->with('success', [
                     'message' => "Department <span class=\"text-brand-green\">{$department->name}</span> created successfully",
                     'action_text' => 'View Department',
@@ -108,13 +127,9 @@ class DepartmentController extends Controller
         {
             $department = Department::findOrFail($id);
             $sectors = Sector::all();
-            $users = User::all();
+            $users = User::orderBy('name')->get();
 
             return view('departments.edit', compact('department', 'sectors', 'users'));
-            return view('departments.edit', [
-                'department' => $department,
-                'sectors' => $sectors,
-            ]);
         }
         else
         {

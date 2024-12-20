@@ -11,14 +11,16 @@ class SortableColumn extends Component
     public $sort;
     public $direction;
     public $nextDirection;
+    public $route;
 
-    public function __construct($column, $label, $sort, $direction)
+    public function __construct($column, $label, $sort, $direction, $route)
     {
         $this->column = $column; // The column name
         $this->label = $label; // The display label for the column
         $this->sort = $sort; // The currently sorted column
         $this->direction = $direction; // The current sort direction
         $this->nextDirection = $this->calculateNextDirection(); // Pre-compute next direction
+        $this->route = $route;
     }
 
     private function calculateNextDirection()
