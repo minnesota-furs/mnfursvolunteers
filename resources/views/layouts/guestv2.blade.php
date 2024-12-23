@@ -41,9 +41,9 @@
                 </div>
                 <div class="hidden lg:flex lg:flex-1 lg:justify-end">
                 @auth
-                    <a href="#" class="text-sm/6 font-semibold text-gray-900">Goto Dashboard <span aria-hidden="true">&rarr;</span></a>
+                    <a href="{{ url('/dashboard') }}" class="text-sm/6 font-semibold text-gray-900">Goto Dashboard <span aria-hidden="true">&rarr;</span></a>
                 @else
-                    <a href="#" class="text-sm/6 font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
+                    <a href="{{ route('login') }}" class="text-sm/6 font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
                 @endauth
                 </div>
               </nav>
