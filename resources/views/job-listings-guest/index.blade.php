@@ -10,6 +10,7 @@
     </div> --}}
     <div class="overflow-hidden">
         <div class="mx-auto max-w-7xl px-6 pb-32 pt-36 sm:pt-60 lg:px-8 lg:pt-32">
+          <h1 class="text-4xl font-semibold tracking-tight sm:text-4xl">Current Openings ({{count($jobListings)}})</h1>
             <div class="mx-auto max-w-2xl gap-x-14 lg:mx-0 lg:max-w-none lg:items-center">
                 {{-- Start --}}
                 {{ $jobListings->links() }}

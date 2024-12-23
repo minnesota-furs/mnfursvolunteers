@@ -51,7 +51,11 @@
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                     <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Department Head</dt>
                                     <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
-                                        {{ $department->head->name ?? 'None' }}</dd>
+                                        @if(isset($department->head->name))
+                                        <a class="text-blue-600" href="{{route('users.show', $department->head->id)}}">{{ $department->head->name ?? 'None' }}</a></dd>
+                                        @else
+                                            None
+                                        @endif
                                 </div>
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                     <dt class="text-sm font-medium leading-6 text-gray-900">Department Members</dt>
@@ -72,6 +76,31 @@
                                         @empty
                                         <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6 text-gray-400">
                                             <span class="truncate font-medium">No Volunteers in this department</span>
+                                        </li>
+                                        @endforelse
+                                      </ul>
+                                    </dd>
+                                </div>
+
+                                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                    <dt class="text-sm font-medium leading-6 text-gray-900">Position Openings</dt>
+                                    <dd class="mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                                      <ul role="list" class="divide-y divide-gray-100 rounded-md border border-gray-200">
+                                        @forelse($department->jobListings as $listing)
+                                        <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6">
+                                          <div class="flex w-0 flex-1 items-center">
+                                            <x-heroicon-o-briefcase class="w-4 inline"/>
+                                            <div class="ml-4 flex min-w-0 flex-1 gap-2">
+                                              <span class="truncate font-medium">{{$listing->position_title}}</span>
+                                            </div>
+                                          </div>
+                                          <div class="ml-4 flex-shrink-0">
+                                            <a href="{{route('job-listings.show', $listing->id)}}" class="font-medium text-indigo-600 hover:text-indigo-500">View</a>
+                                          </div>
+                                        </li>
+                                        @empty
+                                        <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6 text-gray-400">
+                                            <span class="truncate font-medium">No Open Positions</span>
                                         </li>
                                         @endforelse
                                       </ul>

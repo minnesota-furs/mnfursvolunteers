@@ -1,7 +1,4 @@
 <x-app-layout>
-
-    @auth
-
         <x-slot name="header">
             {{ __('Open Position:') }} {{ $jobListing->position_title }} for {{ $jobListing->department->name}}
         </x-slot>
@@ -25,6 +22,13 @@
                     class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                     Submit Interest / Apply
                 </a> --}}
+                @if ($jobListing->visibility === 'public')
+                    <button
+                        class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                        onclick="copyToClipboard('{{ route('job-listings-public.show', $jobListing->id) }}')">
+                        <x-heroicon-s-link class="w-4 inline"/> Copy Public URL
+                    </button>
+                @endif
         </x-slot>
 
         @if($jobListing->visibility == 'draft')
@@ -84,6 +88,13 @@
                 </div>
             </div>
         </div>
-
-    @endauth
+        <script>
+            function copyToClipboard(url) {
+                navigator.clipboard.writeText(url).then(function() {
+                    alert('Public URL copied to clipboard!');
+                }, function(err) {
+                    console.error('Failed to copy URL: ', err);
+                });
+            }
+        </script>
 </x-app-layout>

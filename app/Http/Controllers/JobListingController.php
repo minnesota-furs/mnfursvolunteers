@@ -24,7 +24,10 @@ class JobListingController extends Controller
             })
             ->with('department')
             ->paginate(15);
-        return view('job-listings.index', compact('jobListings'));
+
+        $trashedListings = JobListing::onlyTrashed()->get(); 
+        
+        return view('job-listings.index', compact('jobListings', 'trashedListings'));
     }
 
     /**
@@ -144,8 +147,8 @@ class JobListingController extends Controller
         return redirect()->route('job-listings.index')
             ->with('success', [
                 'message' => "Position Deleted",
-                'action_text' => 'Undo',
-                'action_url' => route('job-listings.show', $jobListing->id),
+                'action_text' => 'Undo Deletion',
+                'action_url' => route('job-listings.restore', $jobListing->id),
             ]);
     }
 
@@ -156,6 +159,9 @@ class JobListingController extends Controller
         // Restore the soft-deleted record
         $jobListing->restore();
 
-        return redirect()->route('job-listings.trash')->with('success', 'Job Listing restored successfully.');
+        return redirect()->route('job-listings.index')
+            ->with('success', [
+                'message' => "Listing Restored Successfully"
+            ]);
     }
 }

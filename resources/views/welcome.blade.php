@@ -33,7 +33,11 @@
                         <div class="mt-10 flex items-center gap-x-6">
                             <a href="{{route('job-listings-public.index')}}"
                                 class="rounded-md bg-brand-green px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">View Openings</a>
-                            {{-- <a href="#" class="text-sm/6 font-semibold text-gray-900">Live demo <span aria-hidden="true">→</span></a> --}}
+                            @auth
+                                <a href="{{ url('/dashboard') }}" class="text-sm/6 font-semibold text-gray-900">Goto Dashboard <span aria-hidden="true">&rarr;</span></a>
+                            @else
+                                <a href="{{ route('login') }}" class="text-sm/6 font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
+                            @endauth
                         </div>
                     </div>
                     <div class="mt-14 flex justify-end gap-8 sm:-mt-44 sm:justify-start sm:pl-20 lg:mt-0 lg:pl-0">
@@ -45,6 +49,7 @@
                                     class="aspect-[2/3] w-full rounded-xl bg-gray-900/5 object-cover shadow-lg">
                                 <div
                                     class="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-gray-900/10">
+                                    <span class="text-xs text-white text-opacity-50 absolute bottom-0 right-0 m-1">&#xa9;Yarrick</span>
                                 </div>
                             </div>
                         </div>
@@ -55,6 +60,7 @@
                                     class="aspect-[2/3] w-full rounded-xl bg-gray-900/5 object-cover shadow-lg">
                                 <div
                                     class="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-gray-900/10">
+                                    <span class="text-xs text-white text-opacity-50 absolute bottom-0 right-0 m-1">&#xa9;Yarrick</span>
                                 </div>
                             </div>
                             <div class="relative">
@@ -63,6 +69,7 @@
                                     class="aspect-[2/3] w-full rounded-xl bg-gray-900/5 object-cover shadow-lg">
                                 <div
                                     class="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-gray-900/10">
+                                    <span class="text-xs text-white text-opacity-50 absolute bottom-0 right-0 m-1">&#xa9;Kehmet</span>
                                 </div>
                             </div>
                         </div>
@@ -73,6 +80,7 @@
                                     class="aspect-[2/3] w-full rounded-xl bg-gray-900/5 object-cover shadow-lg">
                                 <div
                                     class="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-gray-900/10">
+                                    <span class="text-xs text-white text-opacity-50 absolute bottom-0 right-0 m-1">&#xa9;Drake M </span>
                                 </div>
                             </div>
                             <div class="relative">
@@ -81,6 +89,7 @@
                                     class="aspect-[2/3] w-full rounded-xl bg-gray-900/5 object-cover shadow-lg">
                                 <div
                                     class="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-gray-900/10">
+                                    <span class="text-xs text-white text-opacity-50 absolute bottom-0 right-0 m-1">&#xa9;Drake M</span>
                                 </div>
                             </div>
                         </div>
