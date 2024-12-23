@@ -63,7 +63,8 @@
                                             {{$ledger->end_date->format('F j, Y')}}
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-
+                                            <a href="{{ route('ledgers.export-csv', $ledger->id) }}"
+                                                class="text-blue-600 hover:text-blue-900"><x-heroicon-s-arrow-up-on-square-stack class="w-4 inline"/> Hour Report</a>
                                         </td>
                                     </tr>
                                     @empty

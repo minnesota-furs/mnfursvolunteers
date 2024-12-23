@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\FiscalLedger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 
 class fiscalLedgerController extends Controller
 {
@@ -149,4 +150,38 @@ class fiscalLedgerController extends Controller
     {
         //
     }
+
+    public function exportCsv($id)
+{
+    $ledger = FiscalLedger::with('users')->findOrFail($id);
+
+    // Prepare CSV data
+    $header = ['User ID', 'Name', 'Email', 'Total Hours'];
+    $rows = [];
+
+    foreach ($ledger->users as $user) {
+        $totalHours = $user->volunteerHours()
+            ->where('fiscal_ledger_id', $ledger->id)
+            ->sum('hours');
+
+        $rows[] = [
+            $user->id,
+            $user->name,
+            $user->email,
+            $totalHours,
+        ];
+    }
+
+    // Create the CSV content
+    $csvContent = implode(',', $header) . "\n";
+    foreach ($rows as $row) {
+        $csvContent .= implode(',', $row) . "\n";
+    }
+
+    // Return CSV response
+    return Response::make($csvContent, 200, [
+        'Content-Type' => 'text/csv',
+        'Content-Disposition' => "attachment; filename=ledger_{$ledger->id}_users.csv",
+    ]);
+}
 }

@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
     
     // Ledger
     Route::resource('ledger', FiscalLedgerController::class);
+    Route::get('/ledgers/{id}/export-csv', [FiscalLedgerController::class, 'exportCsv'])->name('ledgers.export-csv');
 
     // Hours
     Route::get('/hours/create/{user?}', [VolunteerHoursController::class, 'create'])->name('hours.create');

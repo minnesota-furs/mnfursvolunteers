@@ -16,6 +16,13 @@ class FiscalLedger extends Model
         'end_date' => 'date',
     ];
 
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'volunteer_hours', 'fiscal_ledger_id', 'user_id')
+                    ->withPivot('hours')
+                    ->withTimestamps();
+    }
+
     public function volunteerHours()
     {
         return $this->hasMany(VolunteerHours::class);
