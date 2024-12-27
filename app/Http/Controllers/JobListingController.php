@@ -39,7 +39,7 @@ class JobListingController extends Controller
         $jobListings = JobListing::query()
             ->where('visibility', 'public')
             ->with('department')
-            ->paginate(2);
+            ->paginate(15);
         return view('job-listings-guest.index', compact('jobListings'));
     }
 
