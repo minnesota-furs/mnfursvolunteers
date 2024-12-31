@@ -43,7 +43,7 @@
                                             class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32">End Date
                                         </th>
                                         <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0 w-16">
-                                            <span class="sr-only">Edit</span>
+                                            <span class="sr-only">Actions</span>
                                         </th>
                                     </tr>
                                 </thead>
@@ -63,8 +63,10 @@
                                             {{$ledger->end_date->format('F j, Y')}}
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                            @if( Auth::user()->isAdmin() )
                                             <a href="{{ route('ledgers.export-csv', $ledger->id) }}"
                                                 class="text-blue-600 hover:text-blue-900"><x-heroicon-s-arrow-up-on-square-stack class="w-4 inline"/> Hour Report</a>
+                                            @endif
                                         </td>
                                     </tr>
                                     @empty

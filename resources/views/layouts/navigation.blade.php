@@ -40,6 +40,9 @@
                         </x-slot>
 
                         <x-slot name="content" class="-mt-32">
+                            <x-dropdown-link :href="route('settings.index')">
+                                {{ __('Main Settings') }}
+                            </x-dropdown-link>
                             <x-dropdown-link :href="route('ledger.index')">
                                 {{ __('Ledgers') }}
                             </x-dropdown-link>
@@ -123,15 +126,21 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                {{ __('Users/Volunteers') }}
+                {{ __('Volunteers') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('logging.*')">
-                {{ __('Logging') }}
+            <x-responsive-nav-link :href="route('job-listings.index')" :active="request()->routeIs('job-listings.*')">
+                {{ __('Open Positions') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('ledgers.*')">
+            <x-responsive-nav-link :href="route('sectors.index')" :active="request()->routeIs('sectors.*')">
+                {{ __('Sectors') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('departments.index')" :active="request()->routeIs('departments.*')">
+                {{ __('Departments') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('ledger.index')" :active="request()->routeIs('ledger.*')">
                 {{ __('Ledgers') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('ledgers.*')">
+            <x-responsive-nav-link :href="route('settings.index')" :active="request()->routeIs('settings.*')">
                 {{ __('Settings') }}
             </x-responsive-nav-link>
         </div>

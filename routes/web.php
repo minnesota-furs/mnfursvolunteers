@@ -7,6 +7,7 @@ use App\Http\Controllers\FiscalLedgerController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\SectorController;
 use App\Http\Controllers\JobListingController;
+use App\Http\Controllers\SettingController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -38,6 +39,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Application Settings
+    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
 
     // User management
     Route::get('/users/{id}/delete', [UserController::class, 'delete'])->name('users.delete_confirm');

@@ -43,6 +43,8 @@
     </div>
 </div>
 
-        
+<div class="mx-auto max-w-7xl px-6 sm:pt-60 lg:px-8 lg:pt-32">
+<p class="text-sm text-gray-500">All positions within our organization are volunteer-based as we are a 501(c)(3) nonprofit organization. We greatly appreciate your willingness to contribute your time and expertise to support our mission.</p>
+</div>
 
 </x-guestv2-layout>
