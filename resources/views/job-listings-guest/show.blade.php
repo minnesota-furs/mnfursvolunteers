@@ -1,4 +1,11 @@
-<x-guestv2-layout>
+<x-guestv2-layout
+  title="My Custom Page Title"
+  ogTitle="Help wanted! {{$jobListing->department->sector->name}} - {{$jobListing->position_title}}"
+  ogDescription="{{\Str::limit($jobListing->plainTextDescription, 200)}}"
+  ogImage="{{URL('/images/dashboard/image1.jpg')}}"
+  ogUrl="{{ url()->current() }}"
+  ogType="article"
+>
 
   <div class="relative isolate">
     {{-- <div class="absolute left-1/2 right-0 top-0 -ml-24 transform-gpu overflow-hidden blur-3xl lg:ml-24 xl:ml-48"

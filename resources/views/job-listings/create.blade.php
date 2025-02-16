@@ -43,7 +43,8 @@
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <dt class="text-sm font-medium leading-6 text-gray-900">Description</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                        <x-textarea-input id="notes" rows="14" name="description" class="block w-full text-sm" placeholder="Our discord server is seeking new **moderators**!&#10;&#10;# Responsiblities&#10;- Monitoring for CoC Infractions&#10;- Removing Spammers & Bots&#10;&#10;# Benefits&#10;- Sweet discord role">{{ old('description') }}</x-textarea-input>
+                        <x-textarea-input id="description" rows="14" name="description" class="block w-full text-sm" placeholder="Our discord server is seeking new **moderators**!&#10;&#10;# Responsiblities&#10;- Monitoring for CoC Infractions&#10;- Removing Spammers & Bots&#10;&#10;# Benefits&#10;- Sweet discord role">{{ old('description') }}</x-textarea-input>
+                        {{-- <textarea id="description" name="description" class="mt-1 p-2 w-full border rounded-md" rows="10">{{ old('description') }}</textarea> --}}
                         <x-form-validation for="description" />
                         <p class="text-xs text-gray-400">Description for the role. This supports <a class="text-blue-500" href="https://www.markdownguide.org/basic-syntax/"">markdown syntax</a>.</p>
                     </dd>
@@ -94,4 +95,14 @@
             </form>
         </div>
     </div>
+    <!-- Include EasyMDE -->
+    {{-- @push('scripts') --}}
+        <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                new EasyMDE({ element: document.getElementById("description") });
+            });
+        </script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    {{-- @endpush --}}
 </x-app-layout>

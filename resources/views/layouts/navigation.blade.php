@@ -40,6 +40,9 @@
                         </x-slot>
 
                         <x-slot name="content" class="-mt-32">
+                            {{-- <x-dropdown-link :href="route('settings.index')">
+                                {{ __('Main Settings') }}
+                            </x-dropdown-link> --}}
                             <x-dropdown-link :href="route('ledger.index')">
                                 {{ __('Ledgers') }}
                             </x-dropdown-link>

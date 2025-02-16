@@ -12,12 +12,36 @@
               <x-heroicon-o-trash class="w-4 inline"/> Show Trash</button>
             <a href="{{route('job-listings.create')}}"
                 class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                <x-heroicon-o-user class="w-4 inline"/> Create New Listing
+                <x-heroicon-o-plus class="w-4 inline"/> Create New Listing
             </a>
         @endif
     </x-slot>
 
     <div class="">
+      <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+            <h1 class="text-base font-semibold leading-6 text-gray-900">Departments</h1>
+        </div>
+        <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+            <form method="GET" action="{{ route('job-listings.index') }}" class="mb-4">
+                <div class="flex items-center gap-2">
+                    <label for="sector" class="text-sm font-medium text-gray-700">Filter by Sector:</label>
+                    <select name="sector" id="sector" class="border rounded-md px-3 py-2 text-xs">
+                        <option value="">All Sectors</option>
+                        @foreach ($sectors as $sector)
+                            <option value="{{ $sector->id }}" {{ $selectedSector == $sector->id ? 'selected' : '' }}>
+                                {{ $sector->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-1 rounded-md hover:bg-blue-600">
+                        Filter
+                    </button>
+                    <a href="{{ route('job-listings.index') }}" class="text-gray-500 hover:underline">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
         {{ $jobListings->links() }}
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <ul role="list" class="divide-y divide-gray-100">

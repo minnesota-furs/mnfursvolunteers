@@ -1,4 +1,11 @@
-<x-guestv2-layout>
+<x-guestv2-layout
+  title="My Custom Page Title"
+  ogTitle="MNFurs Help Wanted (Open Positions)"
+  ogDescription="Want to help out? All positions within our organization are volunteer-based as we are a 501(c)(3) nonprofit organization."
+  ogImage="{{URL('/images/dashboard/image2.jpg')}}"
+  ogUrl="{{ url()->current() }}"
+  ogType="article"
+>
 
   <div class="relative isolate">
 

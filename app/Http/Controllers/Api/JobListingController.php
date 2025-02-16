@@ -16,8 +16,12 @@ class JobListingController extends Controller
             ->where(function ($query) {
                 $query->whereNull('closing_date') // No closing date
                     ->orWhere('closing_date', '>=', now()); // Still open
-            })
-            ->with('department.sector'); // Include department details
+            });
+
+        // Apply optional additional data
+        if ($request->has('with_dept')) {
+            $query->with('department.sector');
+        }
 
         // Apply optional filters
         if ($request->has('department_id')) {
@@ -35,6 +39,12 @@ class JobListingController extends Controller
         }
 
         $jobListings = $query->get();
+
+        if ($request->has('with_html_markdown')) {
+            $jobListings->each(function ($listing) {
+                $listing->description_html = $listing->html_description; // Replace with HTML version
+            });
+        }
 
         // Return the data in JSON format
         return response()->json([

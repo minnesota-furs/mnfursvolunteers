@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Department;
 use App\Models\JobListing;
+use App\Models\Sector;
+
 use Illuminate\Http\Request;
 use Parsedown;
 
@@ -12,22 +14,36 @@ class JobListingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Check if the user is an admin
-        $isAdmin = auth()->user()->isAdmin(); // c
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+
         // Query job listings
         $jobListings = JobListing::query()
             ->when(!$isAdmin, function ($query) {
                 // For non-admins, exclude drafts
                 $query->where('visibility', '!=', 'draft');
             })
+            ->when($request->filled('sector'), function ($query) use ($request) {
+                // Filter by sector
+                $query->whereHas('department', function ($q) use ($request) {
+                    $q->where('sector_id', $request->input('sector'));
+                });
+            })
             ->with('department')
+            ->orderBy(
+                in_array($request->input('sort'), ['position_title', 'closing_date']) ? $request->input('sort') : 'position_title',
+                $request->input('direction', 'asc') === 'desc' ? 'desc' : 'asc'
+            )
             ->paginate(15);
 
-        $trashedListings = JobListing::onlyTrashed()->get(); 
-        
-        return view('job-listings.index', compact('jobListings', 'trashedListings'));
+        $trashedListings = JobListing::onlyTrashed()->get();
+        $sectors = Sector::all(); // Fetch all sectors for the filter dropdown
+        $selectedSector = $request->input('sector');
+        $sort = $request->input('sort', 'name');
+        $direction = $request->input('direction', 'asc');
+
+        return view('job-listings.index', compact('jobListings', 'trashedListings', 'sectors', 'selectedSector', 'sort', 'direction'));
     }
 
     /**
@@ -39,6 +55,7 @@ class JobListingController extends Controller
         $jobListings = JobListing::query()
             ->where('visibility', 'public')
             ->with('department')
+            ->where('closing_date', '>=', now())
             ->paginate(15);
         return view('job-listings-guest.index', compact('jobListings'));
     }
@@ -90,7 +107,14 @@ class JobListingController extends Controller
 
     public function guestShow(string $id)
     {
-        $jobListing = JobListing::with('department')->findOrFail($id);
+        $jobListing = JobListing::with('department')
+            ->where('id', $id)
+            ->where('visibility', 'public')
+            ->where(function ($query) {
+                $query->whereNull('closing_date') // No closing date
+                      ->orWhere('closing_date', '>=', now()); // Closing date not passed
+            })
+            ->firstOrFail();
 
         // Convert markdown to HTML using Parsedown
         $parsedown = new Parsedown();
