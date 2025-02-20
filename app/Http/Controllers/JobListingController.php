@@ -55,7 +55,10 @@ class JobListingController extends Controller
         $jobListings = JobListing::query()
             ->where('visibility', 'public')
             ->with('department')
-            ->where('closing_date', '>=', now())
+            ->where(function ($query) {
+                $query->whereNull('closing_date') // No closing date
+                    ->orWhere('closing_date', '>=', now()); // Still open
+            })
             ->paginate(15);
         return view('job-listings-guest.index', compact('jobListings'));
     }
