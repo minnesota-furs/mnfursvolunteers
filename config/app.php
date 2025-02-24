@@ -31,6 +31,8 @@ return [
 
     'env' => env('APP_ENV', 'production'),
 
+    'wordpress_accounts' => env('WORDPRESS_LOGIN', true),
+
     /*
     |--------------------------------------------------------------------------
     | Application Debug Mode

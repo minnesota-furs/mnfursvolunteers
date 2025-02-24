@@ -7,6 +7,7 @@ use App\Http\Controllers\FiscalLedgerController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\SectorController;
 use App\Http\Controllers\JobListingController;
+use App\Http\Controllers\WordPressAuthController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +32,11 @@ Route::get('/openings/{id}', [JobListingController::class, 'guestShow'])->name('
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/wordpress-login', [WordPressAuthController::class, 'showLoginForm'])->name('wordpress.login');
+Route::post('/wordpress-login', [WordPressAuthController::class, 'login']);
+// Route::post('/logout', [WordPressAuthController::class, 'logout'])->name('logout');
+
 
 Route::middleware('auth')->group(function () {
 
