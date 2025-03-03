@@ -96,6 +96,11 @@
                             {{ __('Account Settings') }}
                         </x-dropdown-link>
 
+                        <x-dropdown-link href="#" 
+                                onclick="window.themeController.toggleTheme();">
+                            {{ __('Light/Dark Mode') }}
+                        </x-dropdown-link>
+
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -106,13 +111,6 @@
                                 {{ __('Log Out') }}
                             </x-dropdown-link>
                         </form>
-
-                        <!-- light/dark mode selection -->
-                        <!-- I'm not sure why i need to use `href="#"` here instead of `:href="#"`, but the latter throws an error `syntax error, unexpected token ";"` -->
-                        <x-dropdown-link href="#" 
-                                onclick="window.themeController.toggleTheme();">
-                            {{ __('Light/Dark Mode') }}
-                        </x-dropdown-link>
                     </x-slot>
                 </x-dropdown>
             </div>
