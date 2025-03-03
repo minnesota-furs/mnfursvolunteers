@@ -35,7 +35,9 @@ class WordPressAuthController extends Controller
         }
 
         // Check if the user exists in Laravel's users table
-        $user = User::where('wordpress_user_id', $wpUser->ID)->first();
+        $user = User::where('wordpress_user_id', $wpUser->ID)
+            ->orWhere('email', $wpUser->email)
+            ->first();
 
         // If not found, create a Laravel user
         if (!$user) {
