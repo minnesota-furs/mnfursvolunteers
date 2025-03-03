@@ -96,6 +96,11 @@
                             {{ __('Account Settings') }}
                         </x-dropdown-link>
 
+                        <x-dropdown-link href="#" 
+                                onclick="window.themeController.toggleTheme();">
+                            {{ __('Light/Dark Mode') }}
+                        </x-dropdown-link>
+
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
