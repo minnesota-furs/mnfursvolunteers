@@ -30,6 +30,9 @@ class Sector extends Model
      */
     public function getTotalStaffCountAttribute()
     {
-        return $this->departments()->withCount('users')->get()->sum('users_count');
+        return $this->departments()
+            ->withCount(['users' => function ($query) {
+                $query->where('active', true); // Only count active users
+            }])->get()->sum('users_count');
     }
 }
