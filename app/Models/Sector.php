@@ -24,4 +24,12 @@ class Sector extends Model
     {
         return $this->hasMany(Department::class);
     }
+
+    /**
+     * Get total staff count across all departments in this sector.
+     */
+    public function getTotalStaffCountAttribute()
+    {
+        return $this->departments()->withCount('users')->get()->sum('users_count');
+    }
 }
