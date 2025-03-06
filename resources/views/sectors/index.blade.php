@@ -31,7 +31,10 @@
                                                 Name</th>
                                             <th scope="col"
                                                 class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                                Staff Count</th>
+                                                Unique Staff</th>
+                                            <th scope="col"
+                                                class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+                                                Total Staff</th>
                                             {{-- <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0 w-16">
                                                 <span class="sr-only">Edit</span>
                                             </th> --}}
@@ -55,6 +58,9 @@
                                                         href="{{ route('sectors.show', $sector->id) }}">{{ $sector->name }}</a>
                                                 </td>
                                                 <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                    {{$sector->unique_staff_count}}
+                                                </td>
+                                                <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                     {{$sector->total_staff_count}}
                                                 </td>
                                                 {{-- <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
@@ -76,7 +82,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -85,7 +90,10 @@
             <p class="py-4 text-justify">An Organizational Sector represents a distinct division or area within an
                 organization, designed to group related activities, functions, or responsibilities under a common goal or
                 focus. Sectors are often aligned with key strategic objectives and help streamline the management and
-                oversight of the organization's various departments or initiatives. Within a sector is multiple <a class="text-blue-500" href="{{route('departments.index')}}">departments</a>.</p>
+                oversight of the organization's various departments or initiatives. Within a sector is multiple 
+                <a class="text-blue-500" href="{{route('departments.index')}}">departments</a>.</p>
+            <p class="py-4 text-justify">Unique staff is the total staff count without considering multiple department 
+                coverage. Total staff is all departments staff count irregardless of multiple staff department coverage.</p>
         </x-slot>
     @endauth
 </x-app-layout>

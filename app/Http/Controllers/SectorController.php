@@ -74,10 +74,9 @@ class SectorController extends Controller
      */
     public function show(string $id)
     {
-        $sector = Sector::findOrFail($id);
-        return view('sectors.show', [
-            'sector' => $sector
-        ]);
+        $sector = Sector::with(['departments', 'users'])->findOrFail($id);
+    
+        return view('sectors.show', compact('sector'));
     }
 
     /**
