@@ -75,6 +75,14 @@ Route::middleware('auth')->group(function () {
     // Job Listings
     Route::resource('job-listings', JobListingController::class);
     Route::post('/job-listings/{id}/restore', [JobListingController::class, 'restore'])->name('job-listings.restore');
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::resource('events', \App\Http\Controllers\Admin\EventController::class);
+        Route::resource('events.shifts', \App\Http\Controllers\Admin\ShiftController::class)->except(['show']);
+    });
+    
+    Route::post('/shifts/{shift}/signup', [\App\Http\Controllers\Volunteer\ShiftSignupController::class, 'store'])->name('shifts.signup');
+    Route::delete('/shifts/{shift}/signup', [\App\Http\Controllers\Volunteer\ShiftSignupController::class, 'destroy'])->name('shifts.cancel');
 });
 
 require __DIR__.'/auth.php';

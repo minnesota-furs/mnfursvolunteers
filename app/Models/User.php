@@ -73,6 +73,11 @@ class User extends Authenticatable
         return $this->belongsTo(Sector::class, 'primary_sector_id');
     }
 
+    public function shifts()
+    {
+        return $this->belongsToMany(Shift::class, 'shift_signups')->withTimestamps();
+    }
+
     public function totalVolunteerHours()
     {
         if (!$this->relationLoaded('volunteerHours')) {
