@@ -13,7 +13,7 @@ class EventController extends Controller
      */
     public function index()
     {
-        $events = Event::latest()->get();
+        $events = Event::orderBy('start_date', 'asc')->get();
         return view('admin.events.index', compact('events'));
     }
 
@@ -43,7 +43,10 @@ class EventController extends Controller
             'created_by' => auth()->id(),
         ]);
 
-        return redirect()->route('admin.events.index')->with('success', 'Event created.');
+        return redirect()->route('admin.events.index')
+            ->with('success', [
+                'message' => "Event <span class=\"text-brand-green\">{$request->name}</span> created successfully",
+            ]);
     }
 
     /**
@@ -59,7 +62,7 @@ class EventController extends Controller
      */
     public function edit(Event $event)
     {
-        return view('admin.events.edit', compact('event'));
+        return view('admin.events.create', compact('event'));
     }
 
     /**
@@ -77,7 +80,10 @@ class EventController extends Controller
 
         $event->update($request->only(['name', 'description', 'start_date', 'end_date', 'location']));
 
-        return redirect()->route('admin.events.index')->with('success', 'Event updated.');
+        return redirect()->route('admin.events.index')
+            ->with('success', [
+                'message' => "Event <span class=\"text-brand-green\">{$event->name}</span> updated successfully"
+            ]);
     }
 
     /**

@@ -22,7 +22,9 @@ class ShiftSignupController extends Controller
 
         $shift->users()->attach($user->id, ['signed_up_at' => now()]);
 
-        return back()->with('success', 'You signed up for the shift!');
+        return back()->with('success', [
+            'message' => "You've signed up for <span class=\"text-brand-green\">{$shift->name}</span> successfully",
+        ]);
     }
 
     public function destroy(Request $request, Shift $shift)
@@ -31,6 +33,8 @@ class ShiftSignupController extends Controller
 
         $shift->users()->detach($user->id);
 
-        return back()->with('success', 'You have been removed from the shift.');
+        return back()->with('success', [
+            'message' => "You've been removed from the shift.",
+        ]);
     }
 }

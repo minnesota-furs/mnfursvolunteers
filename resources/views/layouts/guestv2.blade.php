@@ -41,7 +41,8 @@
                   </button> --}}
                 </div>
                 <div class="hidden lg:flex lg:gap-x-12">
-                  <a href="{{route('job-listings-public.index')}}" class="text-sm/6 font-semibold text-gray-900">Open Positions</a>
+                  <a href="{{route('job-listings-public.index')}}" class="text-sm/6 font-semibold text-gray-900">Staff Opportunities</a>
+                  <a href="{{route('vol-listings-public.index')}}" class="text-sm/6 font-semibold text-gray-900">Volunteering</a>
                   <a href="https://www.mnfurs.org/about/" class="text-sm/6 font-semibold text-gray-900">About MNFurs</a>
                   {{-- <a href="#" class="text-sm/6 font-semibold text-gray-900">Marketplace</a>
                   <a href="#" class="text-sm/6 font-semibold text-gray-900">Company</a> --}}

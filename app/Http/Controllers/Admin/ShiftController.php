@@ -14,7 +14,7 @@ class ShiftController extends Controller
      */
     public function index(Event $event)
     {
-        $shifts = $event->shifts()->latest()->get();
+        $shifts = $event->shifts()->orderBy('start_time', 'asc')->get();
         return view('admin.shifts.index', compact('event', 'shifts'));
     }
 
@@ -41,8 +41,11 @@ class ShiftController extends Controller
 
         $event->shifts()->create($request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers']));
 
-        return redirect()->route('admin.events.shifts.index', $event)->with('success', 'Shift created.');
-    }
+        return redirect()->route('admin.events.shifts.index', $event)
+            ->with('success', [
+                'message' => "Shift <span class=\"text-brand-green\">{$request->name}</span> created successfully",
+            ]);
+        }
 
     /**
      * Display the specified resource.
@@ -57,7 +60,7 @@ class ShiftController extends Controller
      */
     public function edit(Event $event, Shift $shift)
     {
-        return view('admin.shifts.edit', compact('event', 'shift'));
+        return view('admin.shifts.create', compact('event', 'shift'));
     }
 
     /**
@@ -75,7 +78,10 @@ class ShiftController extends Controller
 
         $shift->update($request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers']));
 
-        return redirect()->route('admin.events.shifts.index', $event)->with('success', 'Shift updated.');
+        return redirect()->route('admin.events.shifts.index', $event)
+            ->with('success', [
+                'message' => "Shift <span class=\"text-brand-green\">{$event->name}</span> updated successfully",
+            ]);
     }
 
     /**
@@ -84,6 +90,25 @@ class ShiftController extends Controller
     public function destroy(Event $event, Shift $shift)
     {
         $shift->delete();
-        return back()->with('success', 'Shift deleted.');
+        return back()->with('success', [
+            'message' => "Shift <span class=\"text-brand-green\">{$shift->name}</span> deleted",
+        ]);
     }
+
+    public function duplicate(Event $event, Shift $shift)
+    {
+        $newShift = $shift->replicate();
+        $newShift->name = $shift->name . ' (Copy)';
+        $newShift->start_time = $newShift->start_time->addHour();
+        $newShift->end_time = $newShift->end_time->addHour(1);
+        $newShift->save();
+
+        $event->shifts()->save($newShift);
+
+        return redirect()->route('admin.events.shifts.index', $event)
+            ->with('success', [
+                'message' => "Shift <span class=\"text-brand-green\">{$shift->name}</span> duplicated successfully",
+            ]); 
+    }
+
 }
