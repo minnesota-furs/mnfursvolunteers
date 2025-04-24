@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Shift;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ShiftController extends Controller
@@ -110,5 +111,16 @@ class ShiftController extends Controller
                 'message' => "Shift <span class=\"text-brand-green\">{$shift->name}</span> duplicated successfully",
             ]); 
     }
+
+    public function removeVolunteer(Event $event, Shift $shift, User $user)
+    {
+        $shift->users()->detach($user->id);
+
+        return redirect()->back()
+            ->with('success', [
+                'message' => "<span class=\"text-brand-green\">{$user->name}</span> removed from shift",
+            ]); 
+    }
+
 
 }

@@ -36,10 +36,15 @@ class EventController extends Controller
             'start_date'  => 'required|date',
             'end_date'    => 'required|date|after_or_equal:start_date',
             'location'    => 'nullable|string',
+            'visibility' => 'required|in:public,unlisted,draft',
+            'hide_past_shifts' => 'nullable|boolean',
         ]);
 
+        // Normalize checkbox (unchecked checkboxes don't get sent)
+        $validated['hide_past_shifts'] = $request->has('hide_past_shifts');
+
         Event::create([
-            ...$request->only(['name', 'description', 'start_date', 'end_date', 'location']),
+            ...$request->only(['name', 'description', 'start_date', 'end_date', 'location', 'visibility', 'hide_past_shifts']),
             'created_by' => auth()->id(),
         ]);
 
@@ -76,9 +81,14 @@ class EventController extends Controller
             'start_date'  => 'required|date',
             'end_date'    => 'required|date|after_or_equal:start_date',
             'location'    => 'nullable|string',
+            'visibility' => 'required|in:public,unlisted,draft',
+            'hide_past_shifts' => 'nullable|boolean',
         ]);
 
-        $event->update($request->only(['name', 'description', 'start_date', 'end_date', 'location']));
+        // Normalize checkbox (unchecked checkboxes don't get sent)
+        $validated['hide_past_shifts'] = $request->has('hide_past_shifts');
+
+        $event->update($request->only(['name', 'description', 'start_date', 'end_date', 'location', 'visibility', 'hide_past_shifts']));
 
         return redirect()->route('admin.events.index')
             ->with('success', [
@@ -92,6 +102,9 @@ class EventController extends Controller
     public function destroy(Event $event)
     {
         $event->delete();
-        return back()->with('success', 'Event deleted.');
+
+        return redirect()->route('admin.events.index')->with('success', [
+            'message' => "Event <span class=\"text-brand-green\">{$event->name}</span> deleted"
+        ]);
     }
 }

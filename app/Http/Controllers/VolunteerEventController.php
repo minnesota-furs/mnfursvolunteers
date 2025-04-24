@@ -14,16 +14,37 @@ class VolunteerEventController extends Controller
         $now = Carbon::now();
         $threeMonthsAgo = $now->copy()->subMonths(3);
 
-        $upcomingEvents = Event::where('start_date', '>=', $now)->orderBy('start_date')->get();
-        $recentPastEvents = Event::whereBetween('start_date', [$threeMonthsAgo, $now])->orderByDesc('start_date')->get();
+        $upcomingEvents = Event::visibleToPublic()
+            ->where('start_date', '>=', $now)
+            ->orderBy('start_date')
+            ->get();
+
+        $recentPastEvents = Event::visibleToPublic()
+            ->whereBetween('start_date', [$threeMonthsAgo, $now])  
+            ->orderByDesc('start_date')
+            ->get();
 
         return view('events.index', compact('upcomingEvents', 'recentPastEvents'));
     }
 
     public function show(Event $event)
     {
-        $shifts = $event->shifts()->orderBy('start_time')->get();
+        // Load users for use in shift->users
+        $event->load('shifts.users');
 
-        return view('events.show', compact('event', 'shifts'));
+        $shifts = $event->shifts
+            ->when($event->hide_past_shifts, fn ($shifts) =>
+                $shifts->filter(fn ($shift) => $shift->start_time->isFuture())
+            )
+            ->sortBy('start_time')
+            ->values(); // reindex
+
+        $userShifts = auth()->user()->shiftsForEvent($event->id)->sortBy('start_time');
+
+        return view('events.show', [
+            'event' => $event,
+            'shifts' => $shifts,
+            'userShifts' => $userShifts,
+        ]);
     }
 }

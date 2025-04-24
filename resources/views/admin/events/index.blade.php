@@ -28,16 +28,19 @@
                                 <thead>
                                     <tr>
                                         <th scope="col"
-                                            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+                                            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-0">
                                             Name</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-16">
+                                            class="py-3.5 pl-4 pr-3 w-32 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-0">
+                                            Visibility</th>
+                                        <th scope="col"
+                                            class="px-3 py-3.5 w-16 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 w-16">
                                             Shifts</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 w-32">
+                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
                                             Start Date</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 w-32">End Date
+                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">End Date
                                         </th>
                                         <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0 w-16">
                                             <span class="sr-only">Edit</span>
@@ -48,9 +51,33 @@
                                     @forelse ($events as $event)
                                     <tr>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            <a class="text-blue-700" href="{{route('admin.events.edit', $event->id)}}">{{$event->name}}</a>
+                                            <span class="font-extrabold" href="{{route('admin.events.edit', $event->id)}}">{{$event->name}}</span>
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                            @if($event->visibility === 'draft')
+                                                <span class="inline-flex items-center gap-x-1.5 rounded-md bg-gray-200 px-1.5 py-0.5 text-xs font-medium text-gray-600">
+                                                    <svg class="size-1.5 fill-gray-800" viewBox="0 0 6 6" aria-hidden="true">
+                                                    <circle cx="3" cy="3" r="3" />
+                                                    </svg>
+                                                    Draft
+                                                </span>
+                                            @elseif($event->visibility === 'unlisted')
+                                                <span class="inline-flex items-center gap-x-1.5 rounded-md bg-yellow-200 px-1.5 py-0.5 text-xs font-medium text-yellow-800">
+                                                    <svg class="size-1.5 fill-yellow-800" viewBox="0 0 6 6" aria-hidden="true">
+                                                    <circle cx="3" cy="3" r="3" />
+                                                    </svg>
+                                                    Unlisted
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-x-1.5 rounded-md bg-green-200 px-1.5 py-0.5 text-xs font-medium text-green-800">
+                                                    <svg class="size-1.5 fill-green-800" viewBox="0 0 6 6" aria-hidden="true">
+                                                    <circle cx="3" cy="3" r="3" />
+                                                    </svg>
+                                                    Public
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td class="whitespace-nowrap py-5 pl-1 pr-3 text-sm sm:pl-0">
                                             {{ $event->shifts()->count() }}
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm text-center sm:pl-0">
@@ -62,8 +89,8 @@
                                             <div>{{ $event->end_date->format('g:i A') }}</div>
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            <a href="{{ route('admin.events.edit', $event) }}" class="text-blue-600">Edit</a> |
-                                            <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-green-600">Manage Shifts</a>
+                                            <a href="{{ route('admin.events.edit', $event) }}" class="text-blue-600 px-2">Edit</a>
+                                            <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-green-600 px-2">Manage Shifts</a>
                                         </td>
                                     </tr>
                                     @empty
@@ -84,8 +111,8 @@
         </div>
     </div>
 
-    <x-slot name="right">
+    {{-- <x-slot name="right">
         <p class="py-4 text-justify">Paragraph one.</p>
         <p class="py-4 text-justify">Paragraph two.</p>
-    </x-slot>
+    </x-slot> --}}
 </x-app-layout>

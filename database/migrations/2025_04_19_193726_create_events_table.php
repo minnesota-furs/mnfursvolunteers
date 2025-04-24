@@ -19,6 +19,8 @@ return new class extends Migration
             $table->dateTime('end_date');
             $table->string('location')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->enum('visibility', ['public', 'unlisted', 'draft'])->default('draft');
+            $table->boolean('hide_past_shifts')->default(false);
             $table->timestamps();
         });        
     }

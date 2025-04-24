@@ -47,9 +47,54 @@
                   </dl>
                 </div>
                 {{-- End --}}
+                
                 <div class="prose prose-sm max-w-none mt-8">
-                  <h1 class="text-3xl font-semibold tracking-tight sm:text-3xl">Help Wanted</h1>
-                  {{-- {!! $jobListing->parsedDescription !!} --}}
+                  <h1 class="text-3xl font-semibold tracking-tight sm:text-3xl">Available Slots</h1>
+                  @auth
+                    <p>Hello {{Auth::user()->name}}. This is the public view of the volunteer event. You can pickup slots in the application.
+                      <a class="text-blue-700 no-underline" href="{{ route('volunteer.events.show', $event) }}">View Event in Application</a>
+                    </p>
+                  @else
+                    <p>See somewhere you want to help? Login or create an account and pickup a slot!</p>
+                  @endauth
+                  <ul role="list" class="divide-y divide-gray-100">
+                    @forelse($event->shifts as $shift)
+                      <li class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-nowrap">
+                        <div>
+                          <p class="text-sm/6 mt-4">
+                            <x-heroicon-s-rss class="w-4 mb-1 inline"/>
+                            <span class="font-semibold text-gray-900">{{$shift->name}}</span>
+                            <span class="font-light text-gray-500"> - 
+                              @if($event->isMultiDay())
+                                {{ $shift->start_time->format('l') }}
+                              @endif
+                               {{ $shift->start_time->format('g:i A') }}</span>
+                          </p>
+                          <div class="mt-1 flex items-center gap-x-2 text-xs/5 text-gray-500">
+                            <p>
+                              {{$shift->description ?? ''}} (Slot ID {{$shift->id}})
+                            </p>
+                            <p>
+                          </div>
+                        </div>
+                        <dl class="flex w-full flex-none justify-between gap-x-8 sm:w-auto">
+                          <div class="flex w-32 gap-x-2.5">
+                            <dt>
+                              <span class="sr-only">Openings</span>
+                            </dt>
+                            <dd class="text-sm/6 text-gray-900">{{ $shift->max_volunteers - $shift->users->count()}} Openings</dd>
+                          </div>
+                        </dl>
+                      </li>
+                    @empty
+                    <li class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-nowrap">
+                      <div>
+                        <p class="text-sm/6 mt-4">
+                          <span class="text-gray-400">No slots are currently available.</span>
+                        </p>
+                    </li>
+                    @endforelse
+                  </ul>
                 </div>
             </div>
         </div>

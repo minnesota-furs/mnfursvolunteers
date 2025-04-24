@@ -5,10 +5,25 @@
 
     <x-slot name="actions">
         @if( Auth::user()->isAdmin() )
+            <a href="{{route('admin.events.index')}}"
+                class="block rounded-md px-3 py-2 text-center text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                Back
+            </a>
+            <a href="{{route('admin.events.edit', $event->id)}}"
+                class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                <x-heroicon-s-pencil class="w-4 inline"/> Edit Event
+            </a>
             <a href="{{ route('admin.events.shifts.create', $event) }}"
                 class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                 <x-heroicon-s-plus class="w-4 inline"/> Create New Shift
             </a>
+            @if ($event->visibility === 'public' || $event->visibility === 'unlisted' )
+                <button
+                    class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    onclick="copyToClipboard('{{ route('vol-listings-public.show', $event->id) }}')">
+                    <x-heroicon-s-link class="w-4 inline"/> Copy Public URL
+                </button>
+            @endif
         @endif
     </x-slot>
 
@@ -28,16 +43,16 @@
                                 <thead>
                                     <tr>
                                         <th scope="col"
-                                            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+                                            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-0">
                                             Name</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32">
+                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
                                             Start Time</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32">
+                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
                                             End Time</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32">
+                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
                                             Volunteers
                                         </th>
                                         <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0 w-16">
@@ -57,12 +72,27 @@
                                                 {{$shift->name}}</a>
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            {{ $shift->start_time->format('M j, Y \@ g:i A') }}
+                                            @if($event->isMultiDay())
+                                                {{ $shift->start_time->format('l \@ g:i A') }}
+                                            @else
+                                                {{ $shift->start_time->format('g:i A') }}
+                                            @endif
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            {{ $shift->end_time->format('M j, Y \@ g:i A') }}
+                                            @if($event->isMultiDay())
+                                                {{ $shift->end_time->format('l \@ g:i A') }}
+                                            @else
+                                                {{ $shift->end_time->format('g:i A') }}
+                                            @endif
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm text-center sm:pl-0 {{ $textClass }}">
+                                            @if($signupCount >= $shift->max_volunteers)
+                                                <x-heroicon-s-battery-100 class="w-4 mb-1 inline"/>
+                                            @elseif($signupCount > 0)
+                                                <x-heroicon-s-battery-50 class="w-4 mb-1 inline"/>
+                                            @else
+                                                <x-heroicon-s-battery-0 class="w-4 mb-1 inline"/>
+                                            @endif
                                             {{ $shift->users->count() }} of {{ $shift->max_volunteers }}
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
@@ -81,7 +111,8 @@
                                     @empty
                                     <tr>
                                         <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center" colspan="4">
-                                            <p class="">No shifts created yet.</p>
+                                            <p class="font-semibold">No shifts created.</p>
+                                            <p class="">People cannot signup for shifts until they are created.</p>
                                         </td>
                                     </tr>
                                     @endforelse
@@ -100,4 +131,13 @@
         <p class="py-4 text-justify">Paragraph one.</p>
         <p class="py-4 text-justify">Paragraph two.</p>
     </x-slot> --}}
+    <script>
+        function copyToClipboard(url) {
+            navigator.clipboard.writeText(url).then(function() {
+                alert('Public URL copied to clipboard!');
+            }, function(err) {
+                console.error('Failed to copy URL: ', err);
+            });
+        }
+    </script>
 </x-app-layout>

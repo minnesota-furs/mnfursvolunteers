@@ -41,7 +41,7 @@
                                 {{ __('Main Settings') }}
                             </x-dropdown-link> --}} 
                             <x-dropdown-link :href="route('admin.events.index')">
-                                {{ __('Events') }}
+                                {{ __('Manage Events') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('ledger.index')">
                                 {{ __('Ledgers') }}
