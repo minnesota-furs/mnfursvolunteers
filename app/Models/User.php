@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -31,6 +32,7 @@ class User extends Authenticatable
         'is_linked_to_wp',
         'notes',
         'admin',
+        'telegram_id'
     ];
 
     /**
@@ -148,5 +150,29 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->admin;
+    }
+
+    public function generateTelegramLinkToken(): string
+    {
+        $token = Str::random(8);
+
+        $this->telegramLinkToken()->delete(); // remove previous
+
+        TelegramLinkToken::create([
+            'user_id' => $this->id,
+            'token' => $token,
+        ]);
+
+        return $token;
+    }
+
+    public function unlinkTelegram(): void
+    {
+        $this->update(['telegram_id' => null]);
+    }
+
+    public function telegramLinkToken()
+    {
+        return $this->hasOne(TelegramLinkToken::class);
     }
 }

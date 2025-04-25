@@ -45,6 +45,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::delete('/profile/telegram/unlink', function () {
+        auth()->user()->unlinkTelegram();
+        return back();
+    })->name('settings.telegram.unlink');
+
     // User management
     Route::get('/users/{id}/delete', [UserController::class, 'delete'])->name('users.delete_confirm');
     Route::get('/users/import', [UserController::class, 'import_view'])->name('users.import');
