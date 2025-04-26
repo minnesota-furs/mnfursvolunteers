@@ -1,0 +1,72 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Event extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'description',
+        'start_date',
+        'end_date',
+        'location',
+        'created_by',
+        'visibility',
+        'hide_past_shifts'
+    ];
+
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+        'hide_past_shifts' => 'boolean',
+    ];
+    
+
+    public function shifts()
+    {
+        return $this->hasMany(Shift::class);
+    }
+
+    public function getRemainingVolunteerSpotsAttribute()
+    {
+        return $this->shifts->sum(function ($shift) {
+            return max(0, $shift->max_volunteers - $shift->users->count());
+        });
+    }
+
+    public function isPublic()
+    {
+        return $this->visibility === 'public';
+    }
+
+    public function isUnlisted()
+    {
+        return $this->visibility === 'unlisted';
+    }
+
+    public function isDraft()
+    {
+        return $this->visibility === 'draft';
+    }
+
+    public function scopeVisibleToPublic($query)
+    {
+        return $query->where('visibility', 'public');
+    }
+
+    public function scopeNotDraft($query)
+    {
+        return $query->where('visibility', '!=', 'draft');
+    }
+
+    public function isMultiDay(): bool
+    {
+        return $this->start_date->startOfDay() != $this->end_date->startOfDay();
+    }
+
+}

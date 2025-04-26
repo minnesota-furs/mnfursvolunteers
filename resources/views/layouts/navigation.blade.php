@@ -21,15 +21,12 @@
                     <x-nav-link :href="route('job-listings.index')" :active="request()->routeIs('job-listings.*')">
                         {{ __('Open Positons') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('volunteer.events.index')" :active="request()->routeIs('volunteer.events.*')">
+                        {{ __('Events') }}
+                    </x-nav-link>
                     
                     {{-- <x-nav-link :href="route('orgchart')" :active="request()->routeIs('orgchart')">
                         {{ __('Org Chart') }} (Test)
-                    </x-nav-link> --}}
-                    {{-- <x-nav-link :href="route('ledger.index')" :active="request()->routeIs('ledger.*')">
-                        {{ __('Ledgers') }}
-                    </x-nav-link> --}}
-                    {{-- <x-nav-link :href="route('ledger.index')" :active="request()->routeIs('reports.*')">
-                        {{ __('Reports') }}
                     </x-nav-link> --}}
 
                     <x-dropdown align="right" width="48">
@@ -42,7 +39,10 @@
                         <x-slot name="content" class="-mt-32">
                             {{-- <x-dropdown-link :href="route('settings.index')">
                                 {{ __('Main Settings') }}
-                            </x-dropdown-link> --}}
+                            </x-dropdown-link> --}} 
+                            <x-dropdown-link :href="route('admin.events.index')">
+                                {{ __('Manage Events') }}
+                            </x-dropdown-link>
                             <x-dropdown-link :href="route('ledger.index')">
                                 {{ __('Ledgers') }}
                             </x-dropdown-link>

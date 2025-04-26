@@ -1,0 +1,143 @@
+<x-app-layout>
+    <x-slot name="header">
+        Manage Shifts for {{ $event->name }}
+    </x-slot>
+
+    <x-slot name="actions">
+        @if( Auth::user()->isAdmin() )
+            <a href="{{route('admin.events.index')}}"
+                class="block rounded-md px-3 py-2 text-center text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                Back
+            </a>
+            <a href="{{route('admin.events.edit', $event->id)}}"
+                class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                <x-heroicon-s-pencil class="w-4 inline"/> Edit Event
+            </a>
+            <a href="{{ route('admin.events.shifts.create', $event) }}"
+                class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                <x-heroicon-s-plus class="w-4 inline"/> Create New Shift
+            </a>
+            @if ($event->visibility === 'public' || $event->visibility === 'unlisted' )
+                <button
+                    class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    onclick="copyToClipboard('{{ route('vol-listings-public.show', $event->id) }}')">
+                    <x-heroicon-s-link class="w-4 inline"/> Copy Public URL
+                </button>
+            @endif
+        @endif
+    </x-slot>
+
+    <div class="">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="px-4 sm:px-6 lg:px-8">
+                {{-- <div class="sm:flex sm:items-center">
+                    <div class="sm:flex-auto">
+                        <h1 class="text-base font-semibold leading-6 text-gray-900">Events</h1>
+                    </div>
+                </div> --}}
+                <div class="flow-root">
+                    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                            {{-- {{ $shifts->links() }} --}}
+                            <table class="min-w-full divide-y divide-gray-300">
+                                <thead>
+                                    <tr>
+                                        <th scope="col"
+                                            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-0">
+                                            Name</th>
+                                        <th scope="col"
+                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
+                                            Start Time</th>
+                                        <th scope="col"
+                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
+                                            End Time</th>
+                                        <th scope="col"
+                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
+                                            Volunteers
+                                        </th>
+                                        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0 w-16">
+                                            <span class="sr-only">Edit</span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    @forelse ($shifts as $shift)
+                                    @php
+                                        $signupCount = $shift->users->count();
+                                        $textClass = $signupCount >= $shift->max_volunteers ? 'text-green-800 text-weight-800' : ($signupCount > 0 ? 'text-purple-700' : '');
+                                    @endphp
+                                    <tr class="">
+                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                            <a class="text-blue-700" href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}">
+                                                {{$shift->name}}</a>
+                                        </td>
+                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                            @if($event->isMultiDay())
+                                                {{ $shift->start_time->format('l \@ g:i A') }}
+                                            @else
+                                                {{ $shift->start_time->format('g:i A') }}
+                                            @endif
+                                        </td>
+                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                            @if($event->isMultiDay())
+                                                {{ $shift->end_time->format('l \@ g:i A') }}
+                                            @else
+                                                {{ $shift->end_time->format('g:i A') }}
+                                            @endif
+                                        </td>
+                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm text-center sm:pl-0 {{ $textClass }}">
+                                            @if($signupCount >= $shift->max_volunteers)
+                                                <x-heroicon-s-battery-100 class="w-4 mb-1 inline"/>
+                                            @elseif($signupCount > 0)
+                                                <x-heroicon-s-battery-50 class="w-4 mb-1 inline"/>
+                                            @else
+                                                <x-heroicon-s-battery-0 class="w-4 mb-1 inline"/>
+                                            @endif
+                                            {{ $shift->users->count() }} of {{ $shift->max_volunteers }}
+                                        </td>
+                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                            <a href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}" class="text-blue-600 px-2">Edit</a>
+                                            <form action="{{ route('admin.events.shifts.duplicate', [$event, $shift]) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" class="text-yellow-700 ml-2 hover:underline">Duplicate</button>
+                                            </form>
+                                            <form action="{{ route('admin.events.shifts.destroy', [$event, $shift]) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 ml-2" onclick="return confirm('Are you sure?')">Delete</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center" colspan="4">
+                                            <p class="font-semibold">No shifts created.</p>
+                                            <p class="">People cannot signup for shifts until they are created.</p>
+                                        </td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                            {{-- {{ $shifts->links() }} --}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    {{-- <x-slot name="right">
+        <p class="py-4 text-justify">Paragraph one.</p>
+        <p class="py-4 text-justify">Paragraph two.</p>
+    </x-slot> --}}
+    <script>
+        function copyToClipboard(url) {
+            navigator.clipboard.writeText(url).then(function() {
+                alert('Public URL copied to clipboard!');
+            }, function(err) {
+                console.error('Failed to copy URL: ', err);
+            });
+        }
+    </script>
+</x-app-layout>
