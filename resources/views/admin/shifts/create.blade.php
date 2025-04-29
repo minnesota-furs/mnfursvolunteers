@@ -12,6 +12,12 @@
 
     <div class="py-6d">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            @if(isset($shift) && $shift->users->isNotEmpty())
+                <div class="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-400 text-yellow-700">
+                    ⚠️ Warning: Volunteers have already signed up for this shift. 
+                    Be cautious when changing shift times or deleting this shift.
+                </div>
+            @endif
             <form method="POST"
                 action="{{ isset($shift) ? route('admin.events.shifts.update', [$event, $shift]) : route('admin.events.shifts.store', $event) }}">
                 @csrf

@@ -62,12 +62,18 @@
                                     <button type="submit" class="text-red-600 hover:underline">Cancel Signup</button>
                                 </form>
                             @elseif($shift->users->count() < $shift->max_volunteers)
-                                <form action="{{ route('shifts.signup', $shift) }}" method="POST">
-                                    @csrf
-                                    <button type="submit"
-                                        class="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700">Sign
-                                        Up</button>
-                                </form>
+                                @if(!$event->signup_open_date || $event->signup_open_date->isPast())
+                                    <form action="{{ route('shifts.signup', $shift) }}" method="POST">
+                                        @csrf
+                                        <button type="submit"
+                                            class="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700">Sign
+                                            Up</button>
+                                    </form>
+                                @else
+                                    <div class="text-gray-500 text-sm">
+                                        Signups open <span title="{{ $event->signup_open_date->format('F j, Y g:i A') }}">{{ $event->signup_open_date->diffForHumans() }}</span>
+                                    </div>
+                                @endif
                             @else
                                 <span class="text-sm text-red-600">This shift is full.</span>
                             @endif

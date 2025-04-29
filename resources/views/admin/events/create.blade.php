@@ -88,6 +88,16 @@
                 </div>
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                    <dt class="text-sm font-medium leading-6 text-gray-900">Signups Open Date</dt>
+                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <x-text-input class="block w-64 text-sm" type="datetime-local" name="signup_open_date" id="signup_open_date"
+                        value="{{ old('signup_open_date', isset($event) && $event->signup_open_date ? $event->signup_open_date->format('Y-m-d\TH:i') : '') }}" required />
+                        <x-form-validation for="signup_open_date" />
+                        <p class="text-gray-500 text-sm mt-1">Leave blank to allow signups immediately.</p>
+                    </dd>
+                </div>
+
+                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <dt class="text-sm font-medium leading-6 text-gray-900">Visibility</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-select-input name="visibility" id="visibility" class="block w-64 text-sm">

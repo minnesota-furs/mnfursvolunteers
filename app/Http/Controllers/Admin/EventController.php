@@ -35,6 +35,7 @@ class EventController extends Controller
             'description' => 'nullable|string',
             'start_date'  => 'required|date',
             'end_date'    => 'required|date|after_or_equal:start_date',
+            'signup_open_date' => 'nullable|date|before_or_equal:end_date',
             'location'    => 'nullable|string',
             'visibility' => 'required|in:public,unlisted,draft',
             'hide_past_shifts' => 'nullable|boolean',
@@ -44,7 +45,7 @@ class EventController extends Controller
         $validated['hide_past_shifts'] = $request->has('hide_past_shifts');
 
         Event::create([
-            ...$request->only(['name', 'description', 'start_date', 'end_date', 'location', 'visibility', 'hide_past_shifts']),
+            ...$request->only(['name', 'description', 'start_date', 'end_date', 'signup_open_date', 'location', 'visibility', 'hide_past_shifts']),
             'created_by' => auth()->id(),
         ]);
 
@@ -80,6 +81,7 @@ class EventController extends Controller
             'description' => 'nullable|string',
             'start_date'  => 'required|date',
             'end_date'    => 'required|date|after_or_equal:start_date',
+            'signup_open_date' => 'nullable|date|before_or_equal:end_date',
             'location'    => 'nullable|string',
             'visibility' => 'required|in:public,unlisted,draft',
             'hide_past_shifts' => 'nullable|boolean',
@@ -88,7 +90,7 @@ class EventController extends Controller
         // Normalize checkbox (unchecked checkboxes don't get sent)
         $validated['hide_past_shifts'] = $request->has('hide_past_shifts');
 
-        $event->update($request->only(['name', 'description', 'start_date', 'end_date', 'location', 'visibility', 'hide_past_shifts']));
+        $event->update($request->only(['name', 'description', 'start_date', 'end_date', 'signup_open_date', 'location', 'visibility', 'hide_past_shifts']));
 
         return redirect()->route('admin.events.index')
             ->with('success', [

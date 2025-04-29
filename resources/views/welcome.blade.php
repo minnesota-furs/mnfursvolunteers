@@ -1,4 +1,10 @@
-<x-guestv2-layout>
+<x-guestv2-layout
+    ogTitle="MNFurs Volunteer Portal"
+    ogDescription="Want to help out? We're always looking for volunteers to help make our events possible!"
+    ogImage="{{URL('/images/dashboard/image1.jpg')}}"
+    ogUrl="{{ url()->current() }}"
+    ogType="website"
+>
     <div class="relative isolate">
         <svg class="absolute inset-x-0 top-0 -z-10 h-[64rem] w-full stroke-gray-200 [mask-image:radial-gradient(32rem_32rem_at_center,white,transparent)]"
             aria-hidden="true">

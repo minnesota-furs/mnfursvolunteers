@@ -17,13 +17,15 @@ class Event extends Model
         'location',
         'created_by',
         'visibility',
-        'hide_past_shifts'
+        'hide_past_shifts',
+        'signup_open_date'
     ];
 
     protected $casts = [
         'start_date' => 'datetime',
         'end_date' => 'datetime',
         'hide_past_shifts' => 'boolean',
+        'signup_open_date' => 'datetime',
     ];
     
 

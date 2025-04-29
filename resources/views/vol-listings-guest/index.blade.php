@@ -1,5 +1,4 @@
 <x-guestv2-layout
-  {{-- title="My Custom Page Title" --}}
   ogTitle="MNFurs Help Wanted (Volunteers)"
   ogDescription="Want to help out? We're always looking for volunteers to help make our events possible!"
   ogImage="{{URL('/images/dashboard/image4.jpg')}}"
