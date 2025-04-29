@@ -1,5 +1,4 @@
 <x-guestv2-layout
-  {{-- title="My Custom Page Title" --}}
   ogTitle="Help wanted with {{$event->name}}"
   ogDescription="{{\Str::limit($event->description, 200)}}"
   ogImage="{{URL('/images/dashboard/image3.jpg')}}"
@@ -57,6 +56,10 @@
                   @else
                     <p>See somewhere you want to help? Login or create an account and pickup a slot!</p>
                   @endauth
+                  @if(!$event->signup_open_date || $event->signup_open_date->isPast())
+                  @else
+                    <p class="text-sm/6 text-gray-00 text-semibold">Signups open <span>{{ $event->signup_open_date->diffForHumans() }} ({{ $event->signup_open_date->format('l F j @ g:i A') }})</p>
+                  @endif
                   <ul role="list" class="divide-y divide-gray-100">
                     @forelse($shifts as $shift)
                       <li class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-nowrap">
@@ -73,7 +76,7 @@
                           </p>
                           <div class="mt-1 flex items-center gap-x-2 text-xs/5 text-gray-500">
                             <p>
-                              {{$shift->description ?? ''}} (Slot ID {{$shift->id}})
+                              {{$shift->description ?? 'No description given'}} (Slot ID {{$shift->id}})
                             </p>
                             <p>
                           </div>
