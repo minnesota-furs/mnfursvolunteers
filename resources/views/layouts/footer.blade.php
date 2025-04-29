@@ -42,14 +42,8 @@
             </a>
         </div>
         <div class="mt-10 text-center text-xs leading-5 text-gray-500">
-            <span class="block sm:inline">&copy; 2001-2024 Minnesota Furs a 501c3 Minnesota Non-Profit</span> <span
-                    class="block sm:inline">• Built and maintained by local furs.</span>
+            <span class="block sm:inline">&copy; 2001-2025 Minnesota Furs a 501c3 Minnesota Non-Profit</span>
+            <span class="block sm:inline">• Built and maintained by local furs.</span>
         </div>
-        {{-- <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-            <div class=" border-gray-200 py-8 text-sm text-gray-500 sm:text-left">
-                <span class="block sm:inline">&copy; 2001-2024 Minnesota Furs a 501c3 Minnesota Non-Profit</span> <span
-                    class="block sm:inline">• Built and maintained by local furs..</span>
-            </div>
-        </div> --}}
     </div>
 </footer>

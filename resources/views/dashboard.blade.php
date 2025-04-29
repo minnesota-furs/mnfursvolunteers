@@ -48,35 +48,42 @@
 
             <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
-                    <dt class="text-xl font-bold mb-3 text-gray-500">Upcoming Volunteer Events ({{$upcomingEvents->count()}})</dt>
+                    <dt class="text-xl font-bold mb-3 text-gray-500">Upcoming Volunteer Events
+                        ({{ $upcomingEvents->count() }})</dt>
                     <dd class="mt-1 tracking-tight text-gray-900">
-                      <ul class="mb-6 list-disc">
-                        @foreach($upcomingEvents as $event)
-                            <li class="ml-6"><a href="{{ route('volunteer.events.show', $event) }}" class="text-blue-600 hover:underline mt-2 inline-block">{{ $event->name }}</a> — {{ $event->start_date->format('M j, Y') }}</li>
-                        @endforeach
-                    </ul>
+                        <ul class="mb-6 list-disc">
+                            @forelse($upcomingEvents as $event)
+                                <li class="ml-6"><a href="{{ route('volunteer.events.show', $event) }}"
+                                        class="text-blue-600 hover:underline mt-2 inline-block">{{ $event->name }}</a>
+                                    — {{ $event->start_date->format('M j, Y') }}</li>
+                            @empty
+                                <p class="text-gray-300">No upcoming events in need of volunteers.</p>
+                            @endforelse
+                        </ul>
                     </dd>
                 </div>
                 <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
-                    <dt class="text-xl font-bold mb-3 text-gray-500">Your Upcoming Volunteering ({{$upcomingShifts->count()}})</dt>
+                    <dt class="text-xl font-bold mb-3 text-gray-500">Your Upcoming Volunteering
+                        ({{ $upcomingShifts->count() }})</dt>
                     <dd class="mt-1 tracking-tight text-gray-900">
+                        @forelse($upcomingShifts as $eventName => $shifts)
+                            <div class="mb-4">
+                                <h3 class="font-semibold text-lg">{{ $eventName }}</h3>
+                                <ul class="pl-4 list-disc text-sm">
+                                    @foreach ($shifts as $shift)
+                                        <li>{{ $shift->name }} — {{ $shift->start_time->format('M j, g:i A') }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @empty
+                            <p class="text-gray-300">No upcoming volunteer slots.</p>
+                        @endforelse
 
-                      @foreach($upcomingShifts as $eventName => $shifts)
-                          <div class="mb-4">
-                              <h3 class="font-semibold text-lg">{{ $eventName }}</h3>
-                              <ul class="pl-4 list-disc text-sm">
-                                  @foreach($shifts as $shift)
-                                      <li>{{ $shift->name }} — {{ $shift->start_time->format('M j, g:i A') }}</li>
-                                  @endforeach
-                              </ul>
-                          </div>
-                      @endforeach
-
-                      <ul class="mb-6 list-disc">
-                        @foreach($upcomingShifts as $shift)
-                            {{-- <li class="ml-6">{{ $shift->name }} ({{ $shift->start_time->format('M j, g:i A') }})</li> --}}
-                        @endforeach
-                      </ul>
+                        <ul class="mb-6 list-disc">
+                            @foreach ($upcomingShifts as $shift)
+                                {{-- <li class="ml-6">{{ $shift->name }} ({{ $shift->start_time->format('M j, g:i A') }})</li> --}}
+                            @endforeach
+                        </ul>
                     </dd>
                 </div>
             </dl>

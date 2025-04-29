@@ -58,7 +58,7 @@
                     <p>See somewhere you want to help? Login or create an account and pickup a slot!</p>
                   @endauth
                   <ul role="list" class="divide-y divide-gray-100">
-                    @forelse($event->shifts as $shift)
+                    @forelse($shifts as $shift)
                       <li class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-nowrap">
                         <div>
                           <p class="text-sm/6 mt-4">
@@ -68,7 +68,8 @@
                               @if($event->isMultiDay())
                                 {{ $shift->start_time->format('l') }}
                               @endif
-                               {{ $shift->start_time->format('g:i A') }}</span>
+                                {{ $shift->start_time->format('g:i A') }}
+                              </span>
                           </p>
                           <div class="mt-1 flex items-center gap-x-2 text-xs/5 text-gray-500">
                             <p>
