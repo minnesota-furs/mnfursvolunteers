@@ -72,7 +72,7 @@ jobs:
         env:
           USER: ${{ secrets.USER }}
         run: |
-          ssh $USER@reyote.mnfurs.org "cd public_html; git pull && \
+          ssh $USER@reyote.mnfurs.org "cd public_html; git fetch && git pull && \
           composer install --prefer-dist --no-interaction --no-suggest && \
           npm install && \
           npm run build && \
