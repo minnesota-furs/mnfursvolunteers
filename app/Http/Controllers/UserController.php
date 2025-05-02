@@ -61,7 +61,9 @@ class UserController extends Controller
         // Append the search term to pagination links
         $users->appends(['search' => $search]);
 
-        return view('users.index', compact('users', 'sort', 'direction'));
+        $trashedUsers = User::onlyTrashed()->get();
+
+        return view('users.index', compact('users', 'sort', 'direction', 'trashedUsers'));
     }
 
     /**
@@ -403,6 +405,19 @@ class UserController extends Controller
         }
 
         return view('users.orgchart', ['nodes' => $nodes]);
+    }
+
+    public function restore($id)
+    {
+        $userListing = User::onlyTrashed()->findOrFail($id);
+
+        // Restore the soft-deleted record
+        $userListing->restore();
+
+        return redirect()->route('users.index')
+            ->with('success', [
+                'message' => "User Restored Successfully"
+            ]);
     }
 
 }

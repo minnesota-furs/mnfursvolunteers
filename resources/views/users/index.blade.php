@@ -10,6 +10,11 @@
                 Log Hours
             </button> --}}
             @if( Auth::user()->isAdmin() )
+                <button
+                    class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    x-data=""
+                    x-on:click.prevent="$dispatch('open-modal', 'show-trashed')">
+                <x-heroicon-o-trash class="w-4 inline"/> Show Trash</button>
                 <a href="{{route('users.export')}}"
                     class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                     <x-heroicon-s-arrow-down-on-square-stack class="w-4 inline"/> Export CSV
@@ -157,3 +162,55 @@
         </div>
     @endauth
 </x-app-layout>
+
+<x-modal name="show-trashed" class="p-6" focusable>
+    <div class="p-6">
+      <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">{{ __('Trashed Users') }}</h2>
+      <div class="px-4 sm:px-6 lg:px-8">
+  
+        <div class="mt-8 flow-root">
+          <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+              <table class="min-w-full divide-y divide-gray-300">
+                <thead>
+                  <tr>
+                    <th scope="col" class="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">ID</th>
+                    <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">Title</th>
+                    <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">Deleted</th>
+                    <th scope="col" class="relative whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
+                      <span class="sr-only">Edit</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white">
+                  @forelse($trashedUsers as $trashed)
+                  <tr>
+                    <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 sm:pl-0">{{$trashed->name}}</td>
+                    <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900">{{$trashed->email}}</td>
+                    <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">{{$trashed->deleted_at->diffForHumans()}}</td>
+                    <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                      <a href="#" class="text-indigo-600 hover:text-indigo-900">
+                        <form action="{{ route('users.restore', $trashed->id) }}" method="POST" class="inline">
+                          @csrf
+                          <button type="submit" class="text-blue-600 hover:underline">Restore</button>
+                      </form>
+                      </a>
+                    </td>
+                    @empty
+                      <tr>
+                        <td colspan="4" class="text-center text-sm text-gray-500 py-4">Nothing Deleted Here!</td></tr>
+                    @endforelse
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    <div class="mt-6 flex justify-end">
+        <x-secondary-button x-on:click="$dispatch('close')">
+            {{ __('Close') }}
+        </x-secondary-button>
+    </div>
+  </div>
+  </x-modal>

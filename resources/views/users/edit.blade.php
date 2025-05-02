@@ -4,6 +4,16 @@
     </x-slot>
 
     <x-slot name="actions">
+        @if( Auth::user()->isAdmin() && Auth::user()->id != $user->id )
+        <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="inline">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="block rounded-md bg-red-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-md hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    onclick="return confirm('Are you sure you want to delete this user?');">
+                    <x-heroicon-s-trash class="w-4 inline"/> Delete
+            </button>
+        </form>
+        @endif
         <a href="{{ url()->previous() }}"
             class="block rounded-md bg-gray-500 px-3 py-2 text-center text-sm font-semibold text-white shadow-md hover:bg-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             Cancel
