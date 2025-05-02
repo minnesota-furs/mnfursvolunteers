@@ -1,5 +1,4 @@
 <section>
-
     <form action="{{ route( 'users.store' ) }}" id="form" method="post">
         @csrf
         {{-- @method('patch') --}}

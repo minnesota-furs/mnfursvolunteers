@@ -5,12 +5,20 @@
         </x-slot>
 
         <x-slot name="actions">
-            {{-- <button type="button"
-                class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                Log Hours
-            </button> --}}
             @if( Auth::user()->isAdmin() )
-                <a href="{{route('users.export')}}"
+                <x-tailwind-dropdown title="Admin Actions" id="0">
+                    <div class="py-1" role="none">
+                        <x-tailwind-dropdown-item title="Create New User" href="{{route('users.create')}}"/>
+                    </div>
+                    <div class="py-1" role="none">
+                        <x-tailwind-dropdown-item title="Export CSV" href="{{route('users.export')}}"/>
+                        <x-tailwind-dropdown-item title="Import CSV" href="{{route('users.import')}}"/>
+                    </div>
+                    {{-- <div class="py-1" role="none">
+                        <x-tailwind-dropdown-item title="Delete" href="#" class="hover:bg-red-50 text-red-900" />
+                    </div> --}}
+                </x-tailwind-dropdown>
+                {{-- <a href="{{route('users.export')}}"
                     class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                     <x-heroicon-s-arrow-down-on-square-stack class="w-4 inline"/> Export CSV
                 </a>
@@ -21,7 +29,7 @@
                 <a href="{{route('users.create')}}"
                     class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                     <x-heroicon-s-user class="w-4 inline"/> Create New User
-                </a>
+                </a> --}}
             @endif
         </x-slot>
 
@@ -93,9 +101,11 @@
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 hidden sm:table-cell">
                                         <div class="flex flex-wrap gap-2">
-                                        @foreach($user->departments as $department)
+                                        @forelse($user->departments as $department)
                                         <span class="dept-badge inline-flex items-center">{{$department->name}} ({{$department->sector->name}})</span>
-                                        @endforeach
+                                        @empty
+                                        <span class="text-gray-300 text-xs">No Department</span>
+                                        @endforelse
                                         </div>
                                         {{-- <div class="text-gray-900">{{$user->sector->name ?? '-'}}</div>
                                         <div class="mt-1 text-gray-500">{{$user->department->name ?? '-'}}</div> --}}

@@ -1,10 +1,10 @@
-@props(['id'])
+@props(['id' => 0, 'title' => 'Options'])
 <div class="relative inline-block text-left">
     <div>
-        <button id="menuButton" onclick="openMenu({{ $id }})" type="button"
-            {!! $attributes->merge(['class' => 'inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50']) !!}
-            aria-expanded="true" aria-haspopup="true">
-            Options
+        <button id="menuButton{{ $id }}" onclick="toggleMenu({{ $id }})" type="button"
+            {!! $attributes->merge(['class' => 'inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-brand-green shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50']) !!}
+            aria-expanded="false" aria-haspopup="true">
+            {{$title}}
             <svg class="-mr-1 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fill-rule="evenodd"
                     d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
@@ -13,47 +13,52 @@
         </button>
     </div>
 
-    <!--
-    Dropdown menu, show/hide based on menu state.
-
-    Entering: "transition ease-out duration-100"
-    From: "transform opacity-0 scale-95"
-    To: "transform opacity-100 scale-100"
-    Leaving: "transition ease-in duration-75"
-    From: "transform opacity-100 scale-100"
-    To: "transform opacity-0 scale-95"
--->
     <div id="optDropdown{{ $id }}"
-    class="hidden absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 scale-95 transition-transform" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+        class="hidden absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 scale-95 transition-transform"
+        role="menu" aria-orientation="vertical" aria-labelledby="menuButton{{ $id }}" tabindex="-1">
         {{ $slot }}
     </div>
+</div>
 
-    <script>
-        function openMenu(id) {
-            console.log('Opening ' + id);
-            const dropdownMenu = document.getElementById('optDropdown' + id);
+<script>
+    function toggleMenu(id) {
+        const dropdownMenu = document.getElementById('optDropdown' + id);
+        const menuButton = document.getElementById('menuButton' + id);
 
-            // Check if the menu is hidden
-            if (dropdownMenu.classList.contains('hidden')) {
-                // Remove 'hidden' immediately so the dropdown is visible, then apply the transition classes
-                dropdownMenu.classList.remove('hidden');
+        // Close all other dropdowns
+        document.querySelectorAll('[id^="optDropdown"]').forEach(menu => {
+            if (menu.id !== dropdownMenu.id) {
+                menu.classList.add('hidden');
+                menu.classList.remove('opacity-100', 'scale-100');
+                menu.classList.add('opacity-0', 'scale-95');
+            }
+        });
 
-                // Force reflow to ensure the transition starts (important for proper animation)
-                dropdownMenu.offsetHeight; // This forces a reflow
+        if (dropdownMenu.classList.contains('hidden')) {
+            dropdownMenu.classList.remove('hidden');
+            dropdownMenu.offsetHeight; // Force reflow for animation
+            dropdownMenu.classList.add('opacity-100', 'scale-100');
+            dropdownMenu.classList.remove('opacity-0', 'scale-95');
 
-                // Add entering transition classes
-                dropdownMenu.classList.add('transition', 'ease-out', 'duration-100');
-                dropdownMenu.classList.remove('opacity-0', 'scale-95');
-                dropdownMenu.classList.add('opacity-100', 'scale-100');
-            } else {
-                // Add leaving transition classes before hiding
-                dropdownMenu.classList.remove('opacity-100', 'scale-100');
-                dropdownMenu.classList.add('transition', 'ease-in', 'duration-75', 'opacity-0', 'scale-95');
+            // Add event listener for outside clicks
+            document.addEventListener('click', outsideClickListener);
+        } else {
+            closeMenu(dropdownMenu);
+        }
 
-                // Wait for the transition to finish before hiding it completely
-                setTimeout(() => {
-                    dropdownMenu.classList.add('hidden');
-                }, 75); // Match the duration-75 class
+        function outsideClickListener(event) {
+            if (!dropdownMenu.contains(event.target) && !menuButton.contains(event.target)) {
+                closeMenu(dropdownMenu);
+                document.removeEventListener('click', outsideClickListener);
             }
         }
-    </script>
+
+        function closeMenu(menu) {
+            menu.classList.remove('opacity-100', 'scale-100');
+            menu.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                menu.classList.add('hidden');
+            }, 75); // Match transition duration
+        }
+    }
+</script>
