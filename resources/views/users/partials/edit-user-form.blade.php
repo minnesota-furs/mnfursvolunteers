@@ -12,12 +12,12 @@
                                 {{-- Start Left Column --}}
                                 <div>
                                     <div class="px-4 sm:px-0">
-                                        <h3 class="text-base font-semibold leading-7 text-gray-900">Volunteer / User Information</h3>
+                                        <h3 class="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">Volunteer / User Information</h3>
                                     </div>
                                     <div class="mt-6 border-t border-gray-100">
                                         <dl class="divide-y divide-gray-100">
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                <dt class="text-sm font-medium leading-6 text-gray-900">Full name</dt>
+                                                <dt class="form-label">Full name</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-text-input id="name" name="name" type="text" class="block w-64 text-sm" :value="old('name', $user->name)" required autofocus autocomplete="name" />
                                                     <x-form-validation for="name" />
@@ -25,21 +25,21 @@
                                                 </dd>
                                             </div>
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                <dt class="text-sm font-medium leading-6 text-gray-900">Legal First Name</dt>
+                                                <dt class="form-label">Legal First Name</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-text-input id="first_name" name="first_name" type="text" class="block w-64 text-sm" :value="old('first_name', $user->first_name)" autofocus autocomplete="first_name" />
                                                     <x-form-validation for="first_name" />
                                                 </dd>
                                             </div>
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                <dt class="text-sm font-medium leading-6 text-gray-900">Legal Last Name</dt>
+                                                <dt class="form-label">Legal Last Name</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-text-input id="last_name" name="last_name" type="text" class="block w-64 text-sm" :value="old('name', $user->last_name)" autofocus autocomplete="last_name" />
                                                     <x-form-validation for="last_name" />
                                                 </dd>
                                             </div>
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                <dt class="text-sm font-medium leading-6 text-gray-900">Email address</dt>
+                                                <dt class="form-label">Email address</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-text-input id="email" name="email" type="email" class="block w-64 text-sm" :value="old('email', $user->email)" required autocomplete="email" />
                                                     <x-form-validation for="email" />
@@ -47,7 +47,7 @@
                                                 </dd>
                                             </div>
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                <dt class="text-sm font-medium leading-6 text-gray-900">Status</dt>
+                                                <dt class="form-label">Status</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-select-input id="active" name="active" class="block text-sm" required>
                                                         <option value="1" {{ old('active', $user->active) == 1 ? 'selected' : '' }}>Active</option>
@@ -58,7 +58,7 @@
                                                 </dd>
                                             </div>
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                <dt class="text-sm font-medium leading-6 text-gray-900">User Type</dt>
+                                                <dt class="form-label">User Type</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-select-input id="admin" name="admin" class="block text-sm" required>
                                                         <option value="0" {{ old('admin', $user->admin) == 0 ? 'selected' : '' }}>User</option>
@@ -69,7 +69,7 @@
                                                 </dd>
                                             </div>
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                <dt class="text-sm font-medium leading-6 text-gray-900">Notes</dt>
+                                                <dt class="form-label">Notes</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-textarea-input id="notes" rows="8" name="notes" class="block w-full text-sm">{{ old('notes', $user->notes ?? '') }}</x-textarea-input>
                                                     <x-form-validation for="notes" />
@@ -84,13 +84,13 @@
                                 {{-- Start Right Column --}}
                                 <div>
                                     <div class="px-4 sm:px-0">
-                                        <h3 class="text-base font-semibold leading-7 text-gray-900">Role Information</h3>
+                                        <h3 class="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">Role Information</h3>
                                         {{-- <p class="mt-1 max-w-2xl text-sm leading-6 text-gray-500">Information involving their staff involvement with the group</p> --}}
                                     </div>
                                     <div class="mt-6 border-t border-gray-100">
                                         <dl class="divide-y divide-gray-100">
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                <dt class="text-sm font-medium leading-6 text-gray-900">Primary Sector</dt>
+                                                <dt class="form-label">Primary Sector</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-select-input name="primary_sector_id" id="primary_sector_id" class="block text-sm" :value="old('primary_sector_id', $user->primary_sector_id)">
                                                         <option class="text-gray-400" value="" {{ old('primary_sector_id', $user->primary_sector_id) == null ? 'selected' : '' }}>-None-</option>
@@ -119,7 +119,7 @@
                                             </div> --}}
 
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                <dt class="text-sm font-medium leading-6 text-gray-900">Departments (BETA)</dt>
+                                                <dt class="form-label">Departments</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <select 
                                                         name="departments[]" 
@@ -146,11 +146,8 @@
                                                 <x-input-error class="mt-2" :messages="$errors->get('primary_dept_id')" />
                                             </div>
 
-
-
-
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                <dt class="text-sm font-medium leading-6 text-gray-900">Total Hours</dt>
+                                                <dt class="form-label">Total Hours</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     {{$user->totalVolunteerHours()}} hours
                                                 </dd>

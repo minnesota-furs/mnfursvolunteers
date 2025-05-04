@@ -70,7 +70,7 @@ class VolunteerHoursController extends Controller
             'description'   => 'nullable|string',
             'notes'         => 'nullable|string',
             'volunteer_date' => 'nullable|date',
-            'primary_dept_id' => 'integer|exists:departments,id',
+            // 'primary_dept_id' => 'integer|exists:departments,id',
         ]);
 
         // Get the current date

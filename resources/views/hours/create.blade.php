@@ -79,7 +79,7 @@
                                 <dt class="text-sm font-medium leading-6 text-gray-900">Department</dt>
                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                     @if($selectedUser)
-                                        <x-select-input name="primary_dept_id" id="primary_dept_id" class="block w-64 text-sm" required>
+                                        <x-select-input name="primary_dept_id" id="primary_dept_id" class="block w-64 text-sm" >
                                             <option value="">Select Department</option>
                                             <!-- Recent Departments Section -->
                                             @if($recentDepartments->isNotEmpty())

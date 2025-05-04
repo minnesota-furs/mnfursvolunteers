@@ -1,5 +1,5 @@
 <a href="{{ route($route, ['sort' => $column, 'direction' => $nextDirection]) }}"
-    class="flex items-center">
+    class="flex items-center dark:text-white">
      {{ $label }}
      @if($sort === $column)
          <span class="ml-2">

@@ -35,8 +35,8 @@
                 <div class="px-4 sm:px-6 lg:px-8">
                     <div class="sm:flex sm:items-center">
                         <div class="sm:flex-auto">
-                            <h1 class="text-base font-semibold leading-6 text-gray-900">Users/Volunteers</h1>
-                            <p class="mt-2 text-sm text-gray-700">Listing of all users/volunteers within the organzation including their email, sector/dept, status, and hours.</p>
+                            <h1 class="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100">Users/Volunteers</h1>
+                            <p class="mt-2 text-sm text-gray-700 dark:text-gray-400">Listing of all users/volunteers within the organzation including their email, sector/dept, status, and hours.</p>
                             @if(null !==request('page'))
                                 <p class="mt-2 text-sm text-orange-700"><x-heroicon-s-magnifying-glass class="w-4 inline"/> Currently showing <span class="underline">Page #{{$users->currentPage()}}</span> of {{$users->lastPage()}}.
                             @endif
@@ -61,9 +61,12 @@
                                     <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 w-64">
                                         <x-sortable-column column="name" label="Name" :sort="$sort" :direction="$direction" route="users.index" />
                                     </th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden sm:table-cell">Sector/Dept</th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white hidden sm:table-cell">Sector/Dept</th>
                                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32 hidden md:table-cell">
-                                        <x-sortable-column column="active" label="Active" :sort="$sort" :direction="$direction" route="users.index" />
+                                        <x-sortable-column column="created_at" label="Created" :sort="$sort" :direction="$direction" route="users.index" />
+                                    </th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32 hidden md:table-cell">
+                                        <x-sortable-column column="active" label="Status" :sort="$sort" :direction="$direction" route="users.index" />
                                     </th>
                                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-16">
                                         <x-sortable-column column="hours" label="Hours" :sort="$sort" :direction="$direction" route="users.index" />
@@ -74,7 +77,7 @@
                                     </th>
                                 </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-200 bg-white">
+                                <tbody class="divide-y divide-gray-200">
                                 @forelse ($users as $user)
                                 <tr>
                                     <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
@@ -85,7 +88,7 @@
                                         <img class="h-11 w-11 rounded-full" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
                                         </div> --}}
                                         <div class="ml-4">
-                                        <div class="font-medium text-gray-900">{{$user->name}}</div>
+                                        <div class="font-medium text-gray-900 dark:text-gray-100">{{$user->name}}</div>
                                         </a>
                                         @if(Auth::user()->isAdmin())
                                             <div class="mt-1 text-xs text-gray-500">{{$user->first_name}} {{$user->last_name}}</div>
@@ -98,12 +101,17 @@
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 hidden sm:table-cell">
                                         <div class="flex flex-wrap gap-2">
-                                        @foreach($user->departments as $department)
-                                        <span class="dept-badge inline-flex items-center">{{$department->name}} ({{$department->sector->name}})</span>
-                                        @endforeach
+                                        @forelse($user->departments as $department)
+                                            <span class="dept-badge inline-flex items-center">{{$department->name}} ({{$department->sector->name}})</span>
+                                        @empty
+                                        <span class="inline-flex text-xs items-center">No Department(s) Assigned</span>
+                                        @endforelse
                                         </div>
                                         {{-- <div class="text-gray-900">{{$user->sector->name ?? '-'}}</div>
                                         <div class="mt-1 text-gray-500">{{$user->department->name ?? '-'}}</div> --}}
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-5 text-xs text-gray-500 hidden md:table-cell">
+                                        {{$user->created_at->diffForHumans()}}
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 hidden md:table-cell">
                                         @if($user->active)
@@ -114,7 +122,7 @@
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
                                         @if( Auth::user()->isAdmin() || Auth::user()->id == $user->id)
-                                            <div class="text-gray-900">{{format_hours($user->totalHoursForCurrentFiscalLedger())}}</div>
+                                            <div class="text-gray-900 dark:text-gray-100 font-black">{{format_hours($user->totalHoursForCurrentFiscalLedger())}}</div>
                                             <div class="mt-1 text-gray-400 text-xs">{{format_hours($user->totalVolunteerHours())}}</div>
                                         @else
                                             @if($user->totalHoursForCurrentFiscalLedger() == 0)
