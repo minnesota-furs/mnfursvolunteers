@@ -45,6 +45,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // WordPress Authentication Via Profile
+    Route::post('/profile/link-wordpress', [ProfileController::class, 'linkWordPress'])->name('profile.link-wordpress');
+    Route::delete('/profile/unlink-wordpress', [ProfileController::class, 'unlinkWordPress'])->name('profile.unlink-wordpress');
+
     // User management
     Route::middleware(['isAdmin'])->group(function () {
         Route::get('/users/import', [UserController::class, 'import_view'])->name('users.import');

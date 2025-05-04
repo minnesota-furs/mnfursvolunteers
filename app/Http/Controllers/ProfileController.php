@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
+use Corcel\Model\User as WordPressUser;
+
 class ProfileController extends Controller
 {
     /**
@@ -57,5 +59,40 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    public function linkWordPress(Request $request)
+    {
+        \Log::debug('hey');
+        $request->validate([
+            'wordpress_email' => 'required|string',
+            'wordpress_password' => 'required|string',
+        ]);
+
+        // Attempt to find WordPress user
+        $wpUser = WordPressUser::where('user_email', $request->wordpress_email)->first();
+
+        if (!$wpUser || !app('hash')->check($request->wordpress_password, $wpUser->user_pass)) {
+            \Log::debug('errors 1');
+            return back()->withErrors(['wordpress_email' => 'Invalid WordPress credentials.']);
+        }
+
+        // Link WordPress user
+        $user = auth()->user();
+        $user->update([
+            'wordpress_id' => $wpUser->ID,
+        ]);
+
+        return back()->with('success', 'WordPress account linked successfully.');
+    }
+
+    public function unlinkWordPress()
+    {
+        $user = auth()->user();
+        $user->update([
+            'wordpress_id' => null,
+        ]);
+
+        return back()->with('success', 'WordPress account unlinked.');
     }
 }
