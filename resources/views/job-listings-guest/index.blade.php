@@ -20,7 +20,7 @@
           <h1 class="text-4xl font-semibold tracking-tight sm:text-4xl">Current Openings ({{count($jobListings)}})</h1>
             <div class="mx-auto max-w-2xl gap-x-14 lg:mx-0 lg:max-w-none lg:items-center">
                 {{-- Start --}}
-                {{ $jobListings->links() }}
+                {{ $jobListings->links('vendor.pagination.custom') }}
                 <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 py-6">
                     <ul role="list" class="divide-y divide-gray-100">
                         @forelse($jobListings as $listing)
@@ -54,7 +54,7 @@
                         @endforelse
                       </ul>  
                 </div>
-                {{ $jobListings->links() }}
+                {{ $jobListings->links('vendor.pagination.custom') }}
                 {{-- End --}}
             </div>
         </div>

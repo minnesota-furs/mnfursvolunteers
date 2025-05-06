@@ -42,7 +42,7 @@
             </form>
         </div>
     </div>
-        {{ $jobListings->links() }}
+        {{ $jobListings->links('vendor.pagination.custom') }}
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <ul role="list" class="divide-y divide-gray-100">
                 @forelse($jobListings as $listing)
@@ -118,7 +118,7 @@
                 @endforelse
               </ul>  
         </div>
-        {{ $jobListings->links() }}
+        {{ $jobListings->links('vendor.pagination.custom') }}
       </div>
 </x-app-layout>
 

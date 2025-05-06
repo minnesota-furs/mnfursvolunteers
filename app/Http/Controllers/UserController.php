@@ -56,7 +56,7 @@ class UserController extends Controller
             }, function (Builder $query) use ($sort, $direction) {
                 $query->orderBy($sort, $direction); // Default sorting
             })
-            ->paginate(10);
+            ->paginate(15);
 
         // Append the search term to pagination links
         $users->appends(['search' => $search]);
