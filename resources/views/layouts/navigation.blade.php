@@ -29,6 +29,7 @@
                         {{ __('Org Chart') }} (Test)
                     </x-nav-link> --}}
 
+                    @if( Auth::user()->isAdmin() )
                     <x-dropdown align="left" width="48">
                         <x-slot name="trigger">
                             <button class="inline-flex mt-5 pb-5 items-center px-1 pt-1 border-b-2 border-transparent hover:underline text-sm font-medium leading-5 text-gray-100 dark:text-gray-400 hover:text-gray-200 dark:hover:text-gray-300 hover:border-white/25 dark:hover:border-gray-700 focus:outline-none focus:text-gray-100 dark:focus:text-gray-300 focus:border-gray-100 dark:focus:border-gray-700 transition duration-150 ease-in-out">
@@ -48,6 +49,7 @@
                             </x-dropdown-link>
                         </x-slot>
                     </x-dropdown>
+                    @endif
 
                     <x-dropdown align="left" width="48">
                         <x-slot name="trigger">
@@ -60,15 +62,18 @@
                             {{-- <x-dropdown-link :href="route('settings.index')">
                                 {{ __('Main Settings') }}
                             </x-dropdown-link> --}} 
+                            @if( Auth::user()->isAdmin() )
                             <x-dropdown-link :href="route('admin.events.index')">
                                 {{ __('Manage Events') }}
                             </x-dropdown-link>
+                            
                             <x-dropdown-link :href="route('ledger.index')">
                                 {{ __('Ledgers') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('sectors.index')">
                                 {{ __('Sectors') }}
                             </x-dropdown-link>
+                            @endif
                             <x-dropdown-link :href="route('departments.index')">
                                 {{ __('Departments') }}
                             </x-dropdown-link>
