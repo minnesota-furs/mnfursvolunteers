@@ -11,6 +11,7 @@ use App\Http\Controllers\JobListingController;
 use App\Http\Controllers\WordPressAuthController;
 use App\Http\Controllers\VolunteerEventController;
 use App\Http\Controllers\VolunteerGuestController;
+use App\Http\Controllers\ReportsController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -62,6 +63,17 @@ Route::middleware('auth')->group(function () {
         // Ledger
         Route::resource('ledger', FiscalLedgerController::class);
         Route::get('/ledgers/{id}/export-csv', [FiscalLedgerController::class, 'exportCsv'])->name('ledgers.export-csv');
+
+        Route::prefix('report')->name('report.')->group(function () {
+            // Reports
+            Route::get('/users-without-departments', [ReportsController::class, 'usersWithoutDepartments'])
+                ->name('usersWithoutDepartments');
+            Route::get('/users-without-hours', [ReportsController::class, 'usersWithoutHoursThisPeriod'])
+                ->name('usersWithoutHoursThisPeriod');
+        });
+
+
+        
     });
 
     Route::resource('users', UserController::class);
