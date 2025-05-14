@@ -71,8 +71,8 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('users', UserController::class)->only(['create', 'edit', 'store', 'destroy', 'update'])->middleware(['can:manage-users']);
     Route::resource('users', UserController::class)->only(['index', 'show']);
-    Route::get('/users/{user}/permissions', [UserPermissionController::class, 'edit'])->name('users.permissions.edit');
-    Route::post('/users/{user}/permissions', [UserPermissionController::class, 'update'])->name('users.permissions.update');
+    Route::get('/users/{user}/permissions', [UserPermissionController::class, 'edit'])->middleware('isAdmin')->name('users.permissions.edit');
+    Route::post('/users/{user}/permissions', [UserPermissionController::class, 'update'])->middleware('isAdmin')->name('users.permissions.update');
 
     // Org chart view
     Route::get('/org-chart', [UserController::class, 'orgChart'])->name('orgchart');
@@ -85,14 +85,17 @@ Route::middleware('auth')->group(function () {
 
     // Departments
     Route::get('/departments-by-sector', [DepartmentController::class, 'getDepartmentsBySector'])->name('get-departments-by-sector');
-    Route::get('/departments/{id}/delete', [DepartmentController::class, 'delete'])->name('departments.delete_confirm');
-    Route::resource('departments', DepartmentController::class);
+    Route::get('/departments/{id}/delete', [DepartmentController::class, 'delete'])->middleware('isAdmin')->name('departments.delete_confirm');
+
+    Route::resource('departments', DepartmentController::class)->only(['create', 'edit', 'store', 'destroy', 'update'])->middleware(['isAdmin']);
+    Route::resource('departments', DepartmentController::class)->only(['index', 'show']);
 
     // Sectors & Ledger
     Route::middleware('isAdmin')->group(function () {
+        // Sectors
         Route::get('/sectors/{id}/delete', [SectorController::class, 'delete'])->name('sectors.delete_confirm');
         Route::resource('sectors', SectorController::class);
-
+        // Ledger
         Route::get('/ledgers/{id}/export-csv', [FiscalLedgerController::class, 'exportCsv'])->name('ledgers.export-csv');
         Route::resource('ledger', FiscalLedgerController::class);
     });
@@ -104,9 +107,9 @@ Route::middleware('auth')->group(function () {
     // Joblistings
     Route::middleware('can:manage-job-listings')->group(function () {
         Route::resource('job-listings', JobListingController::class)->only(['create', 'edit', 'store', 'destroy', 'update']);
+        Route::post('/job-listings/{id}/restore', [JobListingController::class, 'restore'])->name('job-listings.restore');
     });
     Route::resource('job-listings', JobListingController::class)->only(['index', 'show']);
-    Route::post('/job-listings/{id}/restore', [JobListingController::class, 'restore'])->name('job-listings.restore');
 
     // Volunteer Events
     Route::middleware('can:manage-volunteer-events')->prefix('admin')->name('admin.')->group(function () {
