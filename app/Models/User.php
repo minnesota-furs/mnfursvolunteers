@@ -50,7 +50,8 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'password'          => 'hashed',
+        'permissions'       => 'array',
     ];
 
     public function volunteerHours()
@@ -158,5 +159,27 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->admin;
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        return in_array($permission, $this->permissions ?? []);
+    }
+
+    public function givePermission(string $permission): void
+    {
+        $permissions = $this->permissions ?? [];
+        if (!in_array($permission, $permissions)) {
+            $permissions[] = $permission;
+            $this->permissions = $permissions;
+            $this->save();
+        }
+    }
+
+    public function revokePermission(string $permission): void
+    {
+        $permissions = $this->permissions ?? [];
+        $this->permissions = array_values(array_diff($permissions, [$permission]));
+        $this->save();
     }
 }

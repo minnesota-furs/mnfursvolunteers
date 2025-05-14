@@ -12,6 +12,7 @@ use App\Http\Controllers\WordPressAuthController;
 use App\Http\Controllers\VolunteerEventController;
 use App\Http\Controllers\VolunteerGuestController;
 use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\UserPermissionController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -51,11 +52,14 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile/unlink-wordpress', [ProfileController::class, 'unlinkWordPress'])->name('profile.unlink-wordpress');
 
     // User management
-    Route::middleware(['isAdmin'])->group(function () {
+    Route::middleware(['can:manage-users'])->group(function () {
         Route::get('/users/import', [UserController::class, 'import_view'])->name('users.import');
         Route::post('/users/import', [UserController::class, 'import'])->name('users.import_post');
         Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
+        Route::post('/users/{id}/restore', [UserController::class, 'restore'])->middleware(['isAdmin'])->name('users.restore');
+    });
 
+    Route::middleware(['isAdmin'])->group(function () {
         // Sectors
         Route::get('/sectors/{id}/delete', [SectorController::class, 'delete'])->name('sectors.delete_confirm');
         Route::resource('sectors', SectorController::class);
@@ -63,24 +67,24 @@ Route::middleware('auth')->group(function () {
         // Ledger
         Route::resource('ledger', FiscalLedgerController::class);
         Route::get('/ledgers/{id}/export-csv', [FiscalLedgerController::class, 'exportCsv'])->name('ledgers.export-csv');
-
-        Route::prefix('report')->name('report.')->group(function () {
-            // Reports
-            Route::get('/users-without-departments', [ReportsController::class, 'usersWithoutDepartments'])
-                ->name('usersWithoutDepartments');
-            Route::get('/users-without-hours', [ReportsController::class, 'usersWithoutHoursThisPeriod'])
-                ->name('usersWithoutHoursThisPeriod');
-        });
-
-
-        
     });
 
-    Route::resource('users', UserController::class);
-    Route::post('/users/{id}/restore', [UserController::class, 'restore'])->middleware(['isAdmin'])->name('users.restore');
+    // Route::resource('users', UserController::class);
+    Route::resource('users', UserController::class)->only(['create', 'edit', 'store', 'destroy', 'update'])->middleware(['can:manage-users']);
+    Route::resource('users', UserController::class)->only(['index', 'show']);
+    Route::get('/users/{user}/permissions', [UserPermissionController::class, 'edit'])->name('users.permissions.edit');
+    Route::post('/users/{user}/permissions', [UserPermissionController::class, 'update'])->name('users.permissions.update');
 
     // Experimental
     Route::get('/org-chart', [UserController::class, 'orgChart'])->name('orgchart');
+
+    // Reports
+    Route::prefix('report')->name('report.')->middleware('can:view-reports')->group(function () {
+        Route::get('/users-without-departments', [ReportsController::class, 'usersWithoutDepartments'])
+            ->name('usersWithoutDepartments');
+        Route::get('/users-without-hours', [ReportsController::class, 'usersWithoutHoursThisPeriod'])
+            ->name('usersWithoutHoursThisPeriod');
+    });
 
     // Departments
     Route::get('/departments/{id}/delete', [DepartmentController::class, 'delete'])->name('departments.delete_confirm');
@@ -92,10 +96,11 @@ Route::middleware('auth')->group(function () {
     Route::resource('hours', VolunteerHoursController::class)->except(['create']);
 
     // Job Listings
-    Route::resource('job-listings', JobListingController::class);
+    Route::resource('job-listings', JobListingController::class)->only(['create', 'edit', 'store', 'destroy', 'update'])->middleware(['can:manage-job-listings']);
+    Route::resource('job-listings', JobListingController::class)->only(['index', 'show']);
     Route::post('/job-listings/{id}/restore', [JobListingController::class, 'restore'])->name('job-listings.restore');
 
-    Route::middleware(['isAdmin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['can:manage-volunteer-events'])->prefix('admin')->name('admin.')->group(function () {
         Route::resource('events', \App\Http\Controllers\Admin\EventController::class);
         Route::resource('events.shifts', \App\Http\Controllers\Admin\ShiftController::class)->except(['show']);
         Route::post('events/{event}/shifts/{shift}/duplicate', [\App\Http\Controllers\Admin\ShiftController::class, 'duplicate'])->name('events.shifts.duplicate');

@@ -66,6 +66,9 @@
                                                     </x-select-input>
                                                     <x-form-validation for="admin" />
                                                     <x-input-error class="mt-2" :messages="$errors->get('admin')" />
+                                                    <p class="mt-2 text-xs text-gray-500">
+                                                        An admin can set granular permissions for users, including themselves. Its recommends only to give this to users you trust.
+                                                    </p>
                                                 </dd>
                                             </div>
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -74,6 +77,9 @@
                                                     <x-textarea-input id="notes" rows="8" name="notes" class="block w-full text-sm">{{ old('notes', $user->notes ?? '') }}</x-textarea-input>
                                                     <x-form-validation for="notes" />
                                                     <x-input-error class="mt-2" :messages="$errors->get('notes')" />
+                                                    <p class="mt-2 text-xs text-gray-500">
+                                                        Careful what you write. Notes are public and can be seen by other users.
+                                                    </p>
                                                 </dd>
                                             </div>
                                         </dl>
@@ -144,13 +150,6 @@
                                                 </dd>
                                                 <x-form-validation for="primary_dept_id" />
                                                 <x-input-error class="mt-2" :messages="$errors->get('primary_dept_id')" />
-                                            </div>
-
-                                            <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                <dt class="form-label">Total Hours</dt>
-                                                <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                                                    {{$user->totalVolunteerHours()}} hours
-                                                </dd>
                                             </div>
                                         </dl>
                                     </div>

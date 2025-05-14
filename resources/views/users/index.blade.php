@@ -9,7 +9,7 @@
                 class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                 Log Hours
             </button> --}}
-            @if( Auth::user()->isAdmin() )
+            @can('manage-users')
                 <button
                     class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                     x-data=""
@@ -27,7 +27,7 @@
                     class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                     <x-heroicon-s-user class="w-4 inline"/> Create New User
                 </a>
-            @endif
+            @endcan
         </x-slot>
 
         <div class="">
@@ -135,9 +135,9 @@
                                     {{-- <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500"> | </td> --}}
                                     <td class="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                         <a href="{{route('users.show', $user->id)}}" class="text-blue-600 hover:text-blue-800 px-2">View<span class="sr-only">, {{$user->name}}</span></a>
-                                        @if( Auth::user()->isAdmin() )
+                                        @can('manage-users')
                                             <a href="{{route('users.edit', $user->id)}}" class="text-blue-600 hover:text-blue-800 px-2">Edit<span class="sr-only">, {{$user->name}}</span></a>
-                                        @endif
+                                        @endcan
                                         {{-- <x-tailwind-dropdown id="{{$user->id}}">
                                             <div class="py-1" role="none">
                                                 <x-tailwind-dropdown-item title="Duplicate" href="#"/>
