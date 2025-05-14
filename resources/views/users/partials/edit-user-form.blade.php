@@ -96,6 +96,12 @@
                                     <div class="mt-6 border-t border-gray-100">
                                         <dl class="divide-y divide-gray-100">
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                                <dt class="form-label">App Permissions</dt>
+                                                <dd class="mt-1 text-xs leading-6 text-gray-500 sm:col-span-2 sm:mt-0">
+                                                    Permissions are granted at the "details" page by a user with admin rights.
+                                                </dd>
+                                            </div>
+                                            <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                 <dt class="form-label">Primary Sector</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-select-input name="primary_sector_id" id="primary_sector_id" class="block text-sm" :value="old('primary_sector_id', $user->primary_sector_id)">

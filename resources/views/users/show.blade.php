@@ -100,6 +100,22 @@
                             <div class="mt-6 border-t border-gray-100">
                                 <dl class="divide-y divide-gray-100">
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">App Permissions</dt>
+                                        <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
+                                        @if (!empty($user->permissions))
+                                            <div class="flex flex-wrap gap-2">
+                                                @foreach ($user->permissions as $permissionLabel)
+                                                    <span class="inline-flex items-center rounded-md bg-yellow-50 dark:bg-yellow-800 px-2 py-1 text-xs font-medium text-yellow-700 dark:text-yellow-100 ring-1 ring-inset ring-yellow-600/20">
+                                                        {{ $permissionLabel }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <p class="text-gray-500 italic">This user has no permissions assigned.</p>
+                                        @endif
+                                        </dd>
+                                    </div>
+                                    <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Primary Sector</dt>
                                         <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">{{$user->sector->name ?? '-'}}</dd>
                                     </div>
