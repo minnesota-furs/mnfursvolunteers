@@ -9,10 +9,16 @@
                 class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                 Log Hours
             </button> --}}
+            @can('manage-users')
+            <a href="{{route('users.edit', $user->id)}}"
+                class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                Edit
+            </a>
+            @endcan
             @if( Auth::user()->isAdmin() )
-                <a href="{{route('users.edit', $user->id)}}"
+                <a href="{{route('users.permissions.edit', $user->id)}}"
                     class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                    Edit
+                    Permissions
                 </a>
             @endif
         </x-slot>
@@ -93,6 +99,22 @@
                             </div>
                             <div class="mt-6 border-t border-gray-100">
                                 <dl class="divide-y divide-gray-100">
+                                    <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">App Permissions</dt>
+                                        <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
+                                        @if (!empty($user->permissions))
+                                            <div class="flex flex-wrap gap-2">
+                                                @foreach ($user->permissions as $permissionLabel)
+                                                    <span class="inline-flex items-center rounded-md bg-yellow-50 dark:bg-yellow-800 px-2 py-1 text-xs font-medium text-yellow-700 dark:text-yellow-100 ring-1 ring-inset ring-yellow-600/20">
+                                                        {{ $permissionLabel }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <p class="text-gray-500 italic">This user has no permissions assigned.</p>
+                                        @endif
+                                        </dd>
+                                    </div>
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Primary Sector</dt>
                                         <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">{{$user->sector->name ?? '-'}}</dd>

@@ -4,17 +4,17 @@
     </x-slot>
 
     <x-slot name="actions">
-        @if( Auth::user()->isAdmin() )
-            <button
-              class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              x-data=""
-              x-on:click.prevent="$dispatch('open-modal', 'show-trashed')">
-              <x-heroicon-o-trash class="w-4 inline"/> Show Trash</button>
-            <a href="{{route('job-listings.create')}}"
-                class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                <x-heroicon-o-plus class="w-4 inline"/> Create New Listing
-            </a>
-        @endif
+      @can('manage-job-listings')
+        <button
+          class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          x-data=""
+          x-on:click.prevent="$dispatch('open-modal', 'show-trashed')">
+          <x-heroicon-o-trash class="w-4 inline"/> Show Trash</button>
+        <a href="{{route('job-listings.create')}}"
+            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <x-heroicon-o-plus class="w-4 inline"/> Create New Listing
+        </a>
+      @endcan
     </x-slot>
 
     <div class="">
