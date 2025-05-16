@@ -109,4 +109,19 @@ class EventController extends Controller
             'message' => "Event <span class=\"text-brand-green\">{$event->name}</span> deleted"
         ]);
     }
+
+    public function volunteerList(Event $event)
+    {
+        $volunteers = $event->shifts()
+            ->with('users')
+            ->get()
+            ->pluck('users')
+            ->flatten()
+            ->unique('id')
+            ->values();
+
+        $bccList = $volunteers->map(fn($v) => "{$v->name}<{$v->email}>")->join(',');
+
+        return view('admin.events.volunteers', compact('event', 'volunteers', 'bccList'));
+    }
 }

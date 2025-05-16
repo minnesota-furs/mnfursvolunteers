@@ -20,7 +20,7 @@
                 {{-- Start --}}
                 <h1 class="text-5xl font-semibold tracking-tight sm:text-6xl">{{$event->name}}</h1>
                 <div class="mt-6">
-                  <dl class="grid grid-cols-4 gap-4">
+                  <dl class="grid grid-cols-3 gap-4">
                     <div class="border-t border-gray-100 px-4 py-6 sm:col-span-1 sm:px-0">
                       <dt class="text-sm/6 font-medium text-gray-900">Starts</dt>
                       <dd class="mt-1 text-sm/6 text-gray-700 sm:mt-2">
@@ -35,13 +35,9 @@
                       <dt class="text-sm/6 font-medium text-gray-900">Positions</dt>
                       <dd class="mt-1 text-sm/6 text-gray-700 sm:mt-2">{{ $event->shifts()->count() }}</dd>
                     </div>
-                    <div class="border-t border-gray-100 px-4 py-6 sm:col-span-1 sm:px-0">
-                      <dt class="text-sm/6 font-medium text-gray-900">Sector</dt>
-                      {{-- <dd class="mt-1 text-sm/6 text-gray-700 sm:mt-2">{{$event->department->sector->name}}</dd> --}}
-                    </div>
                     {{-- <div class="border-t border-gray-100 px-4 py-6 sm:col-span-1 sm:px-0">
-                      <dt class="text-sm/6 font-medium text-gray-900">Reports To</dt>
-                      <dd class="mt-1 text-sm/6 text-gray-700 sm:mt-2">{{$jobListing->department->head->name ?? 'Not specified'}}</dd>
+                      <dt class="text-sm/6 font-medium text-gray-900">Sector</dt>
+                      <dd class="mt-1 text-sm/6 text-gray-700 sm:mt-2">{{$event->department->sector->name}}</dd>
                     </div> --}}
                   </dl>
                 </div>
@@ -62,19 +58,29 @@
                   @endif
                   <ul role="list" class="divide-y divide-gray-100">
                     @forelse($shifts as $shift)
+                    @php
+                      $openings = $shift->max_volunteers - $shift->users->count();
+                      $isFull = $openings <= 0;
+                    @endphp
                       <li class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-nowrap">
                         <div>
                           <p class="text-sm/6 mt-4">
-                            <x-heroicon-s-rss class="w-4 mb-1 inline"/>
-                            <span class="font-semibold text-gray-900">{{$shift->name}}</span>
-                            <span class="font-light text-gray-500"> - 
+                            @if($isFull)
+                              <x-heroicon-o-check class="w-4 mb-1 inline text-gray-400"/>
+                            @else
+                              <x-heroicon-s-users class="w-4 mb-1 inline"/>
+                            @endif
+                            <span class="font-semibold {{ $isFull ? 'text-gray-400' : 'text-gray-900' }}">
+                              {{$shift->name}}
+                            </span>
+                            <span class="font-light {{ $isFull ? 'text-gray-300' : 'text-gray-500' }}"> - 
                               @if($event->isMultiDay())
                                 {{ $shift->start_time->format('l') }}
                               @endif
                                 {{ $shift->start_time->format('g:i A') }}
                               </span>
                           </p>
-                          <div class="mt-1 flex items-center gap-x-2 text-xs/5 text-gray-500">
+                          <div class="mt-1 flex items-center gap-x-2 text-xs/5 {{ $isFull ? 'text-gray-400' : 'text-gray-500' }}">
                             <p>
                               {{$shift->description ?? 'No description given'}} (Slot ID {{$shift->id}})
                             </p>
@@ -86,7 +92,7 @@
                             <dt>
                               <span class="sr-only">Openings</span>
                             </dt>
-                            <dd class="text-sm/6 text-gray-900">{{ $shift->max_volunteers - $shift->users->count()}} Openings</dd>
+                            <dd class="text-sm/6 {{ $isFull ? 'text-gray-300' : 'text-gray-900' }}">{{ $shift->max_volunteers - $shift->users->count()}} Openings</dd>
                           </div>
                         </dl>
                       </li>

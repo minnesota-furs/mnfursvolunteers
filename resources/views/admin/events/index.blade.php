@@ -89,8 +89,9 @@
                                             <div>{{ $event->end_date->format('g:i A') }}</div>
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            <a href="{{ route('admin.events.edit', $event) }}" class="text-blue-600 px-2">Edit</a>
-                                            <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-green-600 px-2">Manage Shifts</a>
+                                            <a href="{{ route('admin.events.edit', $event) }}" class="text-blue-600 px-2"><x-heroicon-s-pencil class="w-3 inline"/> Edit</a>
+                                            <a href="{{ route('admin.events.volunteers', $event) }}" class="text-blue-600 px-2"><x-heroicon-m-users class="w-3 inline"/> View Volunteers</a>
+                                            <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-green-600 px-2"><x-heroicon-s-clock class="w-3 inline"/> Manage Shifts</a>
                                         </td>
                                     </tr>
                                     @empty
