@@ -25,7 +25,7 @@
                     @method('PUT')
                 @endif
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="text-sm font-medium leading-6 text-gray-900">Shift Name</dt>
+                    <dt class="form-label">Shift Name</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-text-input class="block w-64 text-sm" type="text" name="name" id="name"
                             :value="old('name', $shift->name ?? '')" required />
@@ -34,7 +34,7 @@
                 </div>
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="text-sm font-medium leading-6 text-gray-900">Volunteers Neeed</dt>
+                    <dt class="form-label">Volunteers Neeed</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-text-input class="block w-64 text-sm" type="number" name="max_volunteers"
                             id="max_volunteers" min="1"
@@ -44,7 +44,7 @@
                 </div>
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="text-sm font-medium leading-6 text-gray-900">Description</dt>
+                    <dt class="form-label">Description</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-textarea-input id="notes" rows="6" name="description"
                             class="block w-full text-sm">{{ old('description', $shift->description ?? '') }}</x-textarea-input>
@@ -58,7 +58,7 @@
                 @endphp
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="text-sm font-medium leading-6 text-gray-900">Start Date/Time</dt>
+                    <dt class="form-label">Start Date/Time</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-text-input class="block w-64 text-sm" type="datetime-local" name="start_time" id="start_time"
                             value="{{ old('start_time', $defaultStart->format('Y-m-d\TH:i')) }}" required />
@@ -67,7 +67,7 @@
                 </div>
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="text-sm font-medium leading-6 text-gray-900">End Date/Time</dt>
+                    <dt class="form-label">End Date/Time</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-text-input class="block w-64 text-sm" type="datetime-local" name="end_time" id="end_time"
                             value="{{ old('end_time', $defaultEnd->format('Y-m-d\TH:i')) }}" required />
@@ -134,16 +134,17 @@
     </div>
     <x-slot name="right">
         @if (isset($shift))
-        <h2 class="text-xl font-semibold mb-3">Volunteers Signed Up ({{ $shift->users->count() }})</h2>
+        <h2 class="text-xl font-semibold mb-3 dark:text-white">Volunteers Signed Up ({{ $shift->users->count() }})</h2>
             <ul class="list-disc pl-5 text-sm text-gray-800">
                 @forelse ($shift->users as $user)
-                    <li class="flex items-center justify-between hover:bg-gray-100 p-3">
+                    <li class="flex items-center justify-between hover:bg-gray-100 p-1">
                         <span>{{ $user->name }} ({{ $user->email }})</span>
                         <form action="{{ route('admin.events.shifts.remove-volunteer', [$event, $shift, $user]) }}"
                             method="POST">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="text-red-600 text-sm hover:underline ml-4">Remove</button>
+                            <a href="{{ route('users.show', $user->id) }}" class="text-blue-600 hover:underline px-1">View</a>
+                            <button type="submit" class="text-red-600 px-1 text-sm hover:underline" onclick="return confirm('Are you sure you want to remove {{$user->name}}?')">Remove</button>
                         </form>
                     </li>
                 @empty
@@ -153,8 +154,8 @@
                 @endforelse
             </ul>
         @else
-            <h2 class="text-xl font-semibold mb-3">Volunteers Signed Up (0)</h2>
-            <p class="text-gray-500">This is where your signed up volunteers will appear.</p>
+            <h2 class="text-xl font-semibold mb-3 dark:text-white">Volunteers Signed Up (0)</h2>
+            <p class="text-gray-500 dark:text-gray-400">This is where your signed up volunteers will appear.</p>
         @endif
     </x-slot>
 </x-app-layout>

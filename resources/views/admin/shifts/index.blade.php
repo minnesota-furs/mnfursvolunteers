@@ -73,11 +73,11 @@
                                     @forelse ($shifts as $shift)
                                     @php
                                         $signupCount = $shift->users->count();
-                                        $textClass = $signupCount >= $shift->max_volunteers ? 'text-green-800 text-weight-800' : ($signupCount > 0 ? 'text-purple-700' : '');
+                                        $textClass = $signupCount >= $shift->max_volunteers ? 'text-green-800 dark:text-green-500 text-weight-800' : ($signupCount > 0 ? 'text-purple-700 dark:text-purple-400' : '');
                                     @endphp
                                     <tr class="">
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            <a class="text-blue-700" href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}">
+                                            <a class="text-blue-700 dark:text-blue-200" href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}">
                                                 {{$shift->name}}</a>
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
@@ -96,24 +96,24 @@
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm text-center sm:pl-0 {{ $textClass }}">
                                             @if($signupCount >= $shift->max_volunteers)
-                                                <x-heroicon-s-battery-100 class="w-4 mb-1 inline"/>
+                                                <x-heroicon-s-battery-100 title="Fully Staffed" class="w-4 mb-1 inline"/>
                                             @elseif($signupCount > 0)
-                                                <x-heroicon-s-battery-50 class="w-4 mb-1 inline"/>
+                                                <x-heroicon-s-battery-50 title="Partially Staffed" class="w-4 mb-1 inline"/>
                                             @else
-                                                <x-heroicon-s-battery-0 class="w-4 mb-1 inline"/>
+                                                <x-heroicon-s-battery-0 title="No Staff" class="w-4 mb-1 inline"/>
                                             @endif
                                             {{ $shift->users->count() }} of {{ $shift->max_volunteers }}
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            <a href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}" class="text-blue-600 px-2">Edit</a>
+                                            <a href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}" class="text-blue-600 dark:text-blue-200 px-2"><x-heroicon-m-pencil class="w-3 inline"/> Edit</a>
                                             <form action="{{ route('admin.events.shifts.duplicate', [$event, $shift]) }}" method="POST" class="inline">
                                                 @csrf
-                                                <button type="submit" class="text-yellow-700 ml-2 hover:underline">Duplicate</button>
+                                                <button type="submit" class="text-yellow-700 dark:text-yellow-200 ml-2 hover:underline"><x-heroicon-m-document-duplicate class="w-3 inline"/> Duplicate</button>
                                             </form>
                                             <form action="{{ route('admin.events.shifts.destroy', [$event, $shift]) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="text-red-600 ml-2" onclick="return confirm('Are you sure?')">Delete</button>
+                                                <button type="submit" class="text-red-600 dark:text-red-400 ml-2" onclick="return confirm('Are you sure you want to delete slot {{$shift->name}} on {{$shift->start_time->format('l \@ g:i A')}}?\n\nThis cannot be undone!')"><x-heroicon-m-trash class="w-3 inline"/> Delete</button>
                                             </form>
                                         </td>
                                     </tr>
