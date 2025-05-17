@@ -30,6 +30,10 @@ class Shift extends Model
 
     public function users()
     {
+        return $this->belongsToMany(User::class, 'shift_signups')
+                ->withPivot(['hours_logged_at'])
+                ->withTimestamps();
+                
         return $this->belongsToMany(User::class, 'shift_signups')->withTimestamps();
     }
 }
