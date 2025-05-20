@@ -46,7 +46,7 @@ class LogShiftVolunteerHours extends Command
         foreach ($events as $event) {
             $this->line($event->name);
             foreach ($event->shifts as $shift) {
-                $this->line('  '.$shift->name);a
+                $this->line('  '.$shift->name);
                 foreach ($shift->users as $user) {
                     $pivot = $user->pivot; // Access pivot data
                     
