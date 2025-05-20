@@ -124,4 +124,62 @@ class EventController extends Controller
 
         return view('admin.events.volunteers', compact('event', 'volunteers', 'bccList'));
     }
+
+    public function agendaView(Event $event)
+    {
+        // Load all shifts and users signed up
+        $shifts = $event->shifts()->with('users')->orderBy('start_time')->get();
+
+        // Calculate visual position per shift to avoid overlap
+        $positions = $this->assignShiftColumns($shifts);
+
+        return view('admin.events.agenda', [
+            'event' => $event,
+            'shifts' => $shifts,
+            'positions' => $positions,
+            'startHour' => 5,
+            'endHour' => 24,
+        ]);
+    }
+
+    protected function assignShiftColumns($shifts)
+    {
+        $groups = [];
+        foreach ($shifts as $shift) {
+            $added = false;
+            foreach ($groups as &$group) {
+                $conflict = false;
+                foreach ($group as $existing) {
+                    $endBuffer = $existing->end_time->copy()->subMinute();
+                    if (
+                        $shift->start_time->lt($endBuffer) &&
+                        $shift->end_time->gt($existing->start_time)
+                    ) {
+                        $conflict = true;
+                        break;
+                    }
+                }
+                if (!$conflict) {
+                    $group[] = $shift;
+                    $added = true;
+                    break;
+                }
+            }
+            if (!$added) {
+                $groups[] = [$shift];
+            }
+        }
+
+        $shiftPositions = [];
+        foreach ($groups as $group) {
+            foreach ($group as $i => $shift) {
+                $shiftPositions[$shift->id] = [
+                    'column' => $i,
+                    'columns' => count($group),
+                ];
+            }
+        }
+
+        return $shiftPositions;
+    }
 }

@@ -118,6 +118,7 @@ Route::middleware('auth')->group(function () {
         Route::post('events/{event}/shifts/{shift}/duplicate', [ShiftController::class, 'duplicate'])->name('events.shifts.duplicate');
         Route::delete('events/{event}/shifts/{shift}/remove-volunteer/{user}', [ShiftController::class, 'removeVolunteer'])->name('events.shifts.remove-volunteer');
         Route::get('/admin/events/{event}/volunteers', [EventController::class, 'volunteerList'])->name('events.volunteers');
+        Route::get('/admin/events/{event}/agenda', [EventController::class, 'agendaView'])->name('events.agenda');
     });
 
     Route::prefix('volunteer')->name('volunteer.')->group(function () {
