@@ -14,6 +14,7 @@ class Event extends Model
         'description',
         'start_date',
         'end_date',
+        'auto_credit_hours',
         'location',
         'created_by',
         'visibility',

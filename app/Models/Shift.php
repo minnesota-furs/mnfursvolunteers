@@ -15,6 +15,7 @@ class Shift extends Model
         'description',
         'start_time',
         'end_time',
+        'double_hours',
         'max_volunteers',
     ];
     

@@ -38,9 +38,12 @@ class ShiftController extends Controller
             'start_time'     => 'required|date',
             'end_time'       => 'required|date|after:start_time',
             'max_volunteers' => 'required|integer|min:1',
+            'double_hours'   => 'nullable|boolean',
         ]);
 
-        $event->shifts()->create($request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers']));
+        $validated['double_hours'] = $request->has('double_hours');
+
+        $event->shifts()->create($request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers', 'double_hours']));
 
         return redirect()->route('admin.events.shifts.index', $event)
             ->with('success', [
@@ -75,9 +78,12 @@ class ShiftController extends Controller
             'start_time'     => 'required|date',
             'end_time'       => 'required|date|after:start_time',
             'max_volunteers' => 'required|integer|min:1',
+            'double_hours'    => 'nullable|boolean',
         ]);
 
-        $shift->update($request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers']));
+        $validated['double_hours'] = $request->has('double_hours');
+
+        $shift->update($request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers', 'double_hours']));
 
         return redirect()->route('admin.events.shifts.index', $event)
             ->with('success', [

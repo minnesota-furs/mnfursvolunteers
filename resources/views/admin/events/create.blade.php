@@ -64,7 +64,7 @@
                     <dt class="text-sm font-medium leading-6 text-gray-900">Location</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-text-input class="block w-64 text-sm" type="text" name="location" id="location"
-                            :value="old('location', $event->location ?? '')" required />
+                            :value="old('location', $event->location ?? '')" />
                         <x-form-validation for="location" />
                     </dd>
                 </div>
@@ -88,7 +88,10 @@
                 </div>
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="text-sm font-medium leading-6 text-gray-900">Signups Open Date</dt>
+                    <div>
+                        <dt class="text-sm font-medium leading-6 text-gray-900">Signups Open Date</dt>
+                        <p class="text-gray-500 text-sm mt-1">When users start picking up shifts.</p>
+                    </div>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-text-input class="block w-64 text-sm" type="datetime-local" name="signup_open_date" id="signup_open_date"
                         value="{{ old('signup_open_date', isset($event) && $event->signup_open_date ? $event->signup_open_date->format('Y-m-d\TH:i') : '') }}" />
@@ -106,6 +109,30 @@
                             <option value="public" {{ old('visibility', $event->visibility ?? '') == 'public' ? 'selected' : '' }}>Public</option>
                         </x-select-input>
                         <x-form-validation for="sector_id" />
+                    </dd>
+                </div>
+
+                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                    <div>
+                        <dt class="text-sm font-medium leading-6 text-gray-900">Hide Past Shifts</dt>
+                        <p class="text-gray-500 text-sm mt-1">Default hide shifts that have past. This is useful for multiday events.</p>
+                    </div>
+                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <x-checkbox-input class="block w-64 text-sm" name="hide_past_shifts" id="hide_past_shifts"
+                            checked="{{ old('hide_past_shifts', isset($event) ? $event->hide_past_shifts : false) }}" />
+                        <x-form-validation for="hide_past_shifts" />
+                    </dd>
+                </div>
+
+                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                    <div>
+                        <dt class="text-sm font-medium leading-6 text-gray-900">Automatically Credit Hours</dt>
+                        <p class="text-gray-500 text-sm mt-1">Credit volunteer hours the day after the event completes. If disabled, you will need to manually approve each volunteers hours for crediting.</p>
+                    </div>
+                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <x-checkbox-input class="block w-64 text-sm" name="auto_credit_hours" id="auto_credit_hours"
+                            checked="{{ old('auto_credit_hours', isset($event) ? $event->auto_credit_hours : false) }}" />
+                        <x-form-validation for="auto_credit_hours" />
                     </dd>
                 </div>
 

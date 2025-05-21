@@ -78,7 +78,8 @@
                                     <tr class="">
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                             <a class="text-blue-700 dark:text-blue-200" href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}">
-                                                {{$shift->name}}</a>
+                                                {{$shift->name}}
+                                            </a>
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                             @if($event->isMultiDay())
@@ -92,6 +93,9 @@
                                                 {{ $shift->end_time->format('l \@ g:i A') }}
                                             @else
                                                 {{ $shift->end_time->format('g:i A') }}
+                                            @endif
+                                            @if($shift->double_hours)
+                                                <x-heroicon-m-star title="Double Hours" class="w-3 mb-1 inline"/>
                                             @endif
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm text-center sm:pl-0 {{ $textClass }}">

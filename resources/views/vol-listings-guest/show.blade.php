@@ -80,11 +80,15 @@
                                 {{ $shift->start_time->format('g:i A') }}
                               </span>
                           </p>
-                          <div class="mt-1 flex items-center gap-x-2 text-xs/5 {{ $isFull ? 'text-gray-400' : 'text-gray-500' }}">
+                          <div class="flex flex-col mt-1 gap-x-2 text-xs/5 {{ $isFull ? 'text-gray-400' : 'text-gray-500' }}">
+                            @if($shift->double_hours)
+                            <div>
+                              <x-heroicon-s-star title="Double Hours" class="w-3 mb-1 inline"/> This slot grants Double Hours
+                            </div>
+                            @endif
                             <p>
                               {{$shift->description ?? 'No description given'}} (Slot ID {{$shift->id}})
                             </p>
-                            <p>
                           </div>
                         </div>
                         <dl class="flex w-full flex-none justify-between gap-x-8 sm:w-auto">

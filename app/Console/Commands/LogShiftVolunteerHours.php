@@ -45,30 +45,46 @@ class LogShiftVolunteerHours extends Command
 
         foreach ($events as $event) {
             $this->line($event->name);
-            foreach ($event->shifts as $shift) {
-                $this->line('  '.$shift->name);
-                foreach ($shift->users as $user) {
-                    $pivot = $user->pivot; // Access pivot data
-                    
-                    if ($pivot->hours_logged_at) {
-                        continue; // already logged for this user/shift
+            if ($event->auto_credit_hours) {
+                foreach ($event->shifts as $shift) {
+                    $this->line('  '.$shift->name);
+                    foreach ($shift->users as $user) {
+                        $pivot = $user->pivot; // Access pivot data
+                        
+                        if ($pivot->hours_logged_at) {
+                            continue; // already logged for this user/shift
+                        }
+    
+                        $this->line('    '.$user->name);
+
+                        $hoursToCredit = 0;
+                        $description = '';
+                        $notes = '';
+
+                        if ($shift->double_hours) {
+                            $hoursToCredit = round($shift->start_time->diffInMinutes($shift->end_time) / 60, 2) * 2;
+                            $description = "[VOL][DBL] Volunteered {$shift->name} for {$event->name}";
+                            $notes = "Auto-logged from shift participation. (Shift ID {$shift->id} on event ID {$event->id}) with double hours";
+                        } else {
+                            $hoursToCredit = round($shift->start_time->diffInMinutes($shift->end_time) / 60, 2);
+                            $description = "[VOL] Volunteered {$shift->name} for {$event->name}";
+                            $notes = "Auto-logged from shift participation. (Shift ID {$shift->id} on event ID {$event->id})";
+                        }
+    
+                        VolunteerHours::create([
+                            'user_id'   => $user->id,
+                            'hours'     => $hoursToCredit,
+                            'volunteer_date' => $shift->start_time->toDateString(),
+                            'description' => $description,
+                            'notes'     => $notes,
+                            'primary_dept_id' => null,
+                            'fiscal_ledger_id' => $fiscalLedger->id,
+                        ]);
+    
+                        $shift->users()->updateExistingPivot($user->id, [
+                            'hours_logged_at' => now(),
+                        ]);
                     }
-
-                    $this->line('    '.$user->name);
-
-                    VolunteerHours::create([
-                        'user_id'   => $user->id,
-                        'hours'     => round($shift->start_time->diffInMinutes($shift->end_time) / 60, 2),
-                        'volunteer_date' => $shift->start_time->toDateString(),
-                        'description' => "[VOL] Volunteered {$shift->name} for {$event->name}",
-                        'notes'     => "Auto-logged from shift participation. (Shift ID {$shift->id} on event ID {$event->id})",
-                        'primary_dept_id' => null,
-                        'fiscal_ledger_id' => $fiscalLedger->id,
-                    ]);
-
-                    $shift->users()->updateExistingPivot($user->id, [
-                        'hours_logged_at' => now(),
-                    ]);
                 }
             }
         }

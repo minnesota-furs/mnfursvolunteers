@@ -39,13 +39,15 @@ class EventController extends Controller
             'location'    => 'nullable|string',
             'visibility' => 'required|in:public,unlisted,draft',
             'hide_past_shifts' => 'nullable|boolean',
+            'auto_credit_hours' => 'nullable|boolean',
         ]);
 
         // Normalize checkbox (unchecked checkboxes don't get sent)
         $validated['hide_past_shifts'] = $request->has('hide_past_shifts');
+        $validated['auto_credit_hours'] = $request->has('auto_credit_hours');
 
         Event::create([
-            ...$request->only(['name', 'description', 'start_date', 'end_date', 'signup_open_date', 'location', 'visibility', 'hide_past_shifts']),
+            ...$request->only(['name', 'description', 'start_date', 'end_date', 'signup_open_date', 'location', 'visibility', 'hide_past_shifts', 'auto_credit_hours']),
             'created_by' => auth()->id(),
         ]);
 
@@ -85,12 +87,14 @@ class EventController extends Controller
             'location'    => 'nullable|string',
             'visibility' => 'required|in:public,unlisted,draft',
             'hide_past_shifts' => 'nullable|boolean',
+            'auto_credit_hours' => 'nullable|boolean',
         ]);
 
         // Normalize checkbox (unchecked checkboxes don't get sent)
         $validated['hide_past_shifts'] = $request->has('hide_past_shifts');
+        $validated['auto_credit_hours'] = $request->has('auto_credit_hours');
 
-        $event->update($request->only(['name', 'description', 'start_date', 'end_date', 'signup_open_date', 'location', 'visibility', 'hide_past_shifts']));
+        $event->update($request->only(['name', 'description', 'start_date', 'end_date', 'signup_open_date', 'location', 'visibility', 'hide_past_shifts', 'auto_credit_hours']));
 
         return redirect()->route('admin.events.index')
             ->with('success', [
