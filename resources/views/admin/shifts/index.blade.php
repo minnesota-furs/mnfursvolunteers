@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'Manage Shifts for ' . $event->name)
     <x-slot name="header">
         Manage Shifts for {{ $event->name }}
     </x-slot>

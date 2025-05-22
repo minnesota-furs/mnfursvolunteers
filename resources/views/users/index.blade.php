@@ -1,5 +1,6 @@
 <x-app-layout>
     @auth
+        @section('title', 'Users - Show all')
         <x-slot name="header">
             {{ __('All Users') }}
         </x-slot>

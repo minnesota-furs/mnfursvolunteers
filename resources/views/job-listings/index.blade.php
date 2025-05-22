@@ -1,4 +1,5 @@
 <x-app-layout>
+  @section('title', 'Positions')
     <x-slot name="header">
         {{ __('Open Positions') }}
     </x-slot>

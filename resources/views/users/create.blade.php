@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'Users - Create New')
     @auth
         <x-slot name="header">
             Create a new User

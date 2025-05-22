@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'Manage Events')
     <x-slot name="header">
         {{ __('Manage Events') }}
     </x-slot>

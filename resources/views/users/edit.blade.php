@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'Users - Edit ' . $user->name)
     <x-slot name="header">
         {{ __('Edit User: ') }} {{$user->name}}
     </x-slot>

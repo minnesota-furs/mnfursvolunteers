@@ -1,5 +1,6 @@
 <x-app-layout>
     @auth
+        @section('title', 'Users - Import Wizard')
         <x-slot name="header">
             Import Users (CSV)
         </x-slot>

@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'Log Entry - Edit')
     <x-slot name="header">
         Edit Log Entry
     </x-slot>

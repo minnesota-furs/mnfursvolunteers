@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'Event - ' . $event->name)
     <x-slot name="header">
         {{ $event->name }} ({{ $event->start_date->format('F j') }})
     </x-slot>

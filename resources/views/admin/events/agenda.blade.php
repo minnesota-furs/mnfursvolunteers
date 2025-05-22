@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'Event Agenda for ' . $event->name)
     <x-slot name="header">
         Agenda for {{ $event->name }}
     </x-slot>

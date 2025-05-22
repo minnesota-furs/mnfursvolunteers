@@ -1,7 +1,7 @@
 <x-app-layout>
-
+    @section('title', 'Position - Create')
     <x-slot name="header">
-        {{ __('Create New Department') }}
+        {{ __('Create New Positon') }}
     </x-slot>
 
     <div class="py-6d">

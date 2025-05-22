@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'Log Entry - New')
     <x-slot name="header">
         {{ __('New Hour Log') }}
     </x-slot>

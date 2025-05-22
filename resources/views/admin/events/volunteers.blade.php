@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'Event Volunteers for ' . $event->name)
     <x-slot name="header">
         Volunteers for {{ $event->name }}
     </x-slot>

@@ -1,7 +1,7 @@
 <x-app-layout>
-
+    @section('title', 'Position - Edit ' . $jobListing->position_title)
     <x-slot name="header">
-        {{ __('Create New Department') }}
+        {{ __('Edit Position') }}
     </x-slot>
 
     <x-slot name="actions">

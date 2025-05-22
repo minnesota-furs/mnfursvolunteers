@@ -1,5 +1,6 @@
 <x-app-layout>
     @auth
+        @section('title', 'Users - View ' . $user->name)
         <x-slot name="header">
             {{ __('Volunteer: ') }}{{ $user->name }}
         </x-slot>

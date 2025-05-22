@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'Position Details for ' . $jobListing->position_title)
         <x-slot name="header">
             {{ __('Open Position:') }} {{ $jobListing->position_title }} for {{ $jobListing->department->name}}
         </x-slot>
