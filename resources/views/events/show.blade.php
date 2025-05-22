@@ -15,7 +15,7 @@
         <p class="text-gray-600 mb-4">{{ $event->description ?? 'No description...' }}</p>
 
         @if ($userShifts->isNotEmpty())
-            <h2 class="text-xl font-semibold mt-8">Your Shifts</h2>
+            <h2 class="text-xl font-semibold mt-8">Your Volunteer Slots</h2>
             <p class="text-sm text-gray-700 mb-3">You picked up some volunteer slots! Thanks for your help! 
                 @if($event->auto_credit_hours)
                 Your volunteer hours will credit automatically after the event.
@@ -31,17 +31,20 @@
                         <strong>{{ $s->name }}</strong> — {{ $s->start_time->format('g:i A') }} to
                         {{ $s->end_time->format('g:i A') }}
                     @endif
+                    @if(\Carbon\Carbon::parse($s->start_time)->isPast())
+                        <span class="text-sm text-red-600">This slot has past and cannot be cancelled.</span>
+                    @else
                     <form action="{{ route('shifts.cancel', $s) }}" method="POST">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="text-red-600 hover:underline inline-block">Cancel</button>
+                        <button type="submit" class="text-red-600 hover:underline inline-block" onclick="return confirm('Are you sure you want to cancel your signup for {{$s->name}}?')">Cancel</button>
                     </form>
+                    @endif
                 </li>
             @endforeach
         @endif
 
-        <h2 class="text-xl font-semibold mt-8 mb-3">Available Shifts</h2>
-
+        <h2 class="text-xl font-semibold mt-8 mb-3">Openings</h2>
         <ul role="list" class="divide-y divide-gray-100">
             @forelse ($shifts as $shift)
             @php
@@ -91,36 +94,50 @@
                         </div>
                     </div>
                     <div class="flex flex-none items-center gap-x-4">
-                        @if ($signedUp)
-                                <form action="{{ route('shifts.cancel', $shift) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" 
-                                    class="hidden rounded-md bg-red-500 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-600 sm:block"
-                                    onclick="return confirm('Are you sure you want to cancel your signup for {{$shift->name}}?')">Cancel Signup</button>
-                                </form>
-                        @elseif($shift->users->count() < $shift->max_volunteers)
-                            @if (!$event->signup_open_date || $event->signup_open_date->isPast())
-                                <form action="{{ route('shifts.signup', $shift) }}" method="POST">
-                                    @csrf
-                                    <button type="submit"
-                                        class="hidden rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:block"
-                                        onclick="return confirm('Are you sure you want to pickup the volunteer slot for {{$shift->name}}?')">
-                                        Sign Up
-                                    </button>
-                                </form>
-                            @else
-                                <div class="text-gray-500 text-sm">
-                                    Signups open <span
-                                        title="{{ $event->signup_open_date->format('F j, Y g:i A') }}">{{ $event->signup_open_date->diffForHumans() }}</span>
-                                </div>
-                            @endif
+                        @if(\Carbon\Carbon::parse($shift->start_time)->isPast())
+                            <span class="text-sm text-gray-400">This slot has past, and cannot be changed.</span>
                         @else
-                            <span class="text-sm text-red-600">This slot is full.</span>
+                            @if ($signedUp)
+                                    <form action="{{ route('shifts.cancel', $shift) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                        class="hidden rounded-md bg-red-500 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-600 sm:block"
+                                        onclick="return confirm('Are you sure you want to cancel your signup for {{$shift->name}}?')">Cancel Signup</button>
+                                    </form>
+                            @elseif($shift->users->count() < $shift->max_volunteers)
+                                @if (!$event->signup_open_date || $event->signup_open_date->isPast())
+                                    <form action="{{ route('shifts.signup', $shift) }}" method="POST">
+                                        @csrf
+                                        <button type="submit"
+                                            class="hidden rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:block"
+                                            onclick="return confirm('Are you sure you want to pickup the volunteer slot for {{$shift->name}}?')">
+                                            Sign Up
+                                        </button>
+                                    </form>
+                                @else
+                                    <div class="text-gray-500 text-sm">
+                                        Signups open <span
+                                            title="{{ $event->signup_open_date->format('F j, Y g:i A') }}">{{ $event->signup_open_date->diffForHumans() }}</span>
+                                    </div>
+                                @endif
+                            @else
+                                <span class="text-sm text-red-600">This slot is full.</span>
+                            @endif
                         @endif
                     </div>
                 </li>
             @empty
+            <li class="flex items-center justify-between gap-x-6 py-5 pl-4">
+                <div class="min-w-0">
+                    <div class="flex items-start gap-x-3">
+                        <p class="text-sm/6 text-gray-500">
+                            No openings are currently available.
+                        </p>
+                    </div>
+                </div>
+            </li>
+
             @endforelse
         </ul>
 
