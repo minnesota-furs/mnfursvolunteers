@@ -39,17 +39,24 @@ class ShiftController extends Controller
             'end_time'       => 'required|date|after:start_time',
             'max_volunteers' => 'required|integer|min:1',
             'double_hours'   => 'nullable|boolean',
+            'user_id'        => 'nullable|integer|exists:users,id' // Validate user_id if present
         ]);
 
-        $validated['double_hours'] = $request->has('double_hours');
+        $shiftData = $request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers']);
+        $shiftData['double_hours'] = $request->has('double_hours');
 
-        $event->shifts()->create($request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers', 'double_hours']));
+        $shift = $event->shifts()->create($shiftData);
+
+        if ($request->filled('user_id')) {
+            $userId = $request->input('user_id');
+            $shift->users()->syncWithoutDetaching([$userId]);
+        }
 
         return redirect()->route('admin.events.shifts.index', $event)
             ->with('success', [
-                'message' => "Shift <span class=\"text-brand-green\">{$request->name}</span> created successfully",
+                'message' => "Shift <span class=\"text-brand-green\">{$shift->name}</span> created successfully",
             ]);
-        }
+    }
 
     /**
      * Display the specified resource.
@@ -78,16 +85,23 @@ class ShiftController extends Controller
             'start_time'     => 'required|date',
             'end_time'       => 'required|date|after:start_time',
             'max_volunteers' => 'required|integer|min:1',
-            'double_hours'    => 'nullable|boolean',
+            'double_hours'   => 'nullable|boolean',
+            'user_id'        => 'nullable|integer|exists:users,id' // Validate user_id if present
         ]);
 
-        $validated['double_hours'] = $request->has('double_hours');
+        $updateData = $request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers']);
+        $updateData['double_hours'] = $request->has('double_hours');
 
-        $shift->update($request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers', 'double_hours']));
+        $shift->update($updateData);
+
+        if ($request->filled('user_id')) {
+            $userId = $request->input('user_id');
+            $shift->users()->syncWithoutDetaching([$userId]);
+        }
 
         return redirect()->route('admin.events.shifts.index', $event)
             ->with('success', [
-                'message' => "Shift <span class=\"text-brand-green\">{$event->name}</span> updated successfully",
+                'message' => "Shift <span class=\"text-brand-green\">{$shift->name}</span> updated successfully",
             ]);
     }
 

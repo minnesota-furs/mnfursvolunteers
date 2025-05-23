@@ -384,6 +384,26 @@ class UserController extends Controller
         }
     }
 
+    public function search(Request $request)
+    {
+        $searchTerm = $request->input('term');
+
+        if (empty($searchTerm) || strlen($searchTerm) < 2) {
+            return response()->json([]);
+        }
+
+        $users = User::where(function ($query) use ($searchTerm) {
+            $query->where('first_name', 'LIKE', "%" . $searchTerm . "%")
+                  ->orWhere('username', 'LIKE', "%" . $searchTerm . "%")
+                  ->orWhere('email', 'LIKE', "%" . $searchTerm . "%");
+        })
+        ->select('id', 'first_name', 'last_name', 'username', 'email') // Select desired fields
+        ->take(10) // Limit results to a reasonable number
+        ->get();
+
+        return response()->json($users);
+    }
+
     public function orgChart()
     {
         $sectors = Sector::with('departments.users')->get();
