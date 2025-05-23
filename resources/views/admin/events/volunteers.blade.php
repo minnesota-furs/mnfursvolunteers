@@ -9,10 +9,18 @@
             class="block rounded-md px-3 py-2 text-center text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             Back to All Events
         </a>
+        <a href="{{ route('admin.events.allShifts', $event) }}"
+            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <x-heroicon-m-queue-list class="w-4 inline"/> View Shifts + Volunteers
+        </a>
         <a href="{{ route('admin.events.shifts.index', $event) }}"
             class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-s-clock class="w-4 inline"/> Manage Volunteer Slots
         </a>
+
+
+
+        
     </x-slot>
 
     <div class="">

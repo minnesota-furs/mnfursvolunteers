@@ -1,7 +1,7 @@
 <x-app-layout>
     @section('title', 'Event Agenda for ' . $event->name)
     <x-slot name="header">
-        Agenda for {{ $event->name }}
+        Agenda for {{ $event->name }} (BETA)
     </x-slot>
 
     <x-slot name="actions">
@@ -19,40 +19,40 @@
 
     <div class="">
         @php
-    function getShiftBgColor($name) {
-        $colors = [
-            'a' => 'bg-red-100 text-red-800',
-            'b' => 'bg-orange-100 text-orange-800',
-            'c' => 'bg-yellow-100 text-yellow-800',
-            'd' => 'bg-lime-100 text-lime-800',
-            'e' => 'bg-green-100 text-green-800',
-            'f' => 'bg-emerald-100 text-emerald-800',
-            'g' => 'bg-teal-100 text-teal-800',
-            'h' => 'bg-cyan-100 text-cyan-800',
-            'i' => 'bg-sky-100 text-sky-800',
-            'j' => 'bg-blue-100 text-blue-800',
-            'k' => 'bg-indigo-100 text-indigo-800',
-            'l' => 'bg-violet-100 text-violet-800',
-            'm' => 'bg-purple-100 text-purple-800',
-            'n' => 'bg-fuchsia-100 text-fuchsia-800',
-            'o' => 'bg-pink-100 text-pink-800',
-            'p' => 'bg-rose-100 text-rose-800',
-            'q' => 'bg-red-200 text-red-900',
-            'r' => 'bg-orange-200 text-orange-900',
-            's' => 'bg-yellow-200 text-yellow-900',
-            't' => 'bg-lime-200 text-lime-900',
-            'u' => 'bg-green-200 text-green-900',
-            'v' => 'bg-emerald-200 text-emerald-900',
-            'w' => 'bg-teal-200 text-teal-900',
-            'x' => 'bg-cyan-200 text-cyan-900',
-            'y' => 'bg-blue-200 text-blue-900',
-            'z' => 'bg-indigo-200 text-indigo-900',
-        ];
+            function getShiftBgColor($name) {
+                $colors = [
+                    'a' => 'bg-red-100 text-red-800',
+                    'b' => 'bg-orange-100 text-orange-800',
+                    'c' => 'bg-yellow-100 text-yellow-800',
+                    'd' => 'bg-lime-100 text-lime-800',
+                    'e' => 'bg-green-100 text-green-800',
+                    'f' => 'bg-emerald-100 text-emerald-800',
+                    'g' => 'bg-teal-100 text-teal-800',
+                    'h' => 'bg-cyan-100 text-cyan-800',
+                    'i' => 'bg-sky-100 text-sky-800',
+                    'j' => 'bg-blue-100 text-blue-800',
+                    'k' => 'bg-indigo-100 text-indigo-800',
+                    'l' => 'bg-violet-100 text-violet-800',
+                    'm' => 'bg-purple-100 text-purple-800',
+                    'n' => 'bg-fuchsia-100 text-fuchsia-800',
+                    'o' => 'bg-pink-100 text-pink-800',
+                    'p' => 'bg-rose-100 text-rose-800',
+                    'q' => 'bg-red-200 text-red-900',
+                    'r' => 'bg-orange-200 text-orange-900',
+                    's' => 'bg-yellow-200 text-yellow-900',
+                    't' => 'bg-lime-200 text-lime-900',
+                    'u' => 'bg-green-200 text-green-900',
+                    'v' => 'bg-emerald-200 text-emerald-900',
+                    'w' => 'bg-teal-200 text-teal-900',
+                    'x' => 'bg-cyan-200 text-cyan-900',
+                    'y' => 'bg-blue-200 text-blue-900',
+                    'z' => 'bg-indigo-200 text-indigo-900',
+                ];
 
-        $letter = strtolower(substr($name ?? '', 0, 1));
-        return $colors[$letter] ?? 'bg-gray-100 text-gray-800';
-    }
-@endphp
+                $letter = strtolower(substr($name ?? '', 0, 1));
+                return $colors[$letter] ?? 'bg-gray-100 text-gray-800';
+            }
+        @endphp
         <div class="grid grid-cols-[100px_1fr] gap-2 relative">
             <!-- Time Column -->
             <div class="text-sm text-right pr-2">

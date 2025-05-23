@@ -1,6 +1,6 @@
 <footer class="-mt-16 -z-10">
     <div class="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
-        <div class="flex justify-center space-x-6 md:order-2">
+        <div class="flex justify-center space-x-6 md:order-2 print:hidden">
             <a href="https://www.facebook.com/pages/MNFurs/252250438145155" class="text-gray-400 hover:text-gray-500">
                 <span class="sr-only">Facebook</span>
                 <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">

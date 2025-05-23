@@ -129,6 +129,20 @@ class EventController extends Controller
         return view('admin.events.volunteers', compact('event', 'volunteers', 'bccList'));
     }
 
+    public function indexWithShifts(Event $event)
+        {
+            $events = $event->shifts()->get();
+
+            return view('admin.shifts.allShifts', compact('event', 'events'));
+        }
+
+    public function indexWithShiftsPrint(Event $event)
+        {
+            $events = $event->shifts()->get();
+
+            return view('admin.shifts.allShiftsPrint', compact('event', 'events'));
+        }
+
     public function agendaView(Event $event)
     {
         // Load all shifts and users signed up
@@ -137,7 +151,7 @@ class EventController extends Controller
         // Calculate visual position per shift to avoid overlap
         $positions = $this->assignShiftColumns($shifts);
 
-        return view('admin.events.agenda', [
+        return view('admin.shifts.agenda', [
             'event' => $event,
             'shifts' => $shifts,
             'positions' => $positions,

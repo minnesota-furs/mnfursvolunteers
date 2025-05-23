@@ -13,6 +13,10 @@ export default {
 
     theme: {
         extend: {
+            screens: {
+                print: { raw: 'print' },
+                screen: { raw: 'screen' },
+            },
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },

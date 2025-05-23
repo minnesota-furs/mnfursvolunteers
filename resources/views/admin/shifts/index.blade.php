@@ -13,6 +13,8 @@
             <div class="py-1" role="none">
                 <x-tailwind-dropdown-item href="{{route('admin.events.edit', $event->id)}}">Edit Event</x-tailwind-dropdown-item>
                 <x-tailwind-dropdown-item href="{{ route('admin.events.volunteers', $event) }}">View All Volunteers</x-tailwind-dropdown-item>
+                <x-tailwind-dropdown-item href="{{ route('admin.events.allShifts', $event) }}">View All Shifts</x-tailwind-dropdown-item>
+                <x-tailwind-dropdown-item href="{{ route('admin.events.agenda', $event) }}">View Agenda (BETA)</x-tailwind-dropdown-item>
             </div>
             @if ($event->visibility === 'public' || $event->visibility === 'unlisted' )
             <div class="py-1" role="none">

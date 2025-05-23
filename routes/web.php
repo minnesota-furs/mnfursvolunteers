@@ -119,6 +119,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('events/{event}/shifts/{shift}/remove-volunteer/{user}', [ShiftController::class, 'removeVolunteer'])->name('events.shifts.remove-volunteer');
         Route::get('/admin/events/{event}/volunteers', [EventController::class, 'volunteerList'])->name('events.volunteers');
         Route::get('/admin/events/{event}/agenda', [EventController::class, 'agendaView'])->name('events.agenda');
+        Route::get('/admin/events/{event}/allShifts', [EventController::class, 'indexWithShifts'])->name('events.allShifts');
+        Route::get('/admin/events/{event}/allShifts/print', [EventController::class, 'indexWithShiftsPrint'])->name('events.allShifts.print');
     });
 
     Route::prefix('volunteer')->name('volunteer.')->group(function () {

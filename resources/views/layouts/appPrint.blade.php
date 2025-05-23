@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="h-full bg-gray-100" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html class="h-full" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="utf-8">
@@ -14,20 +14,13 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/darkmode.js'])
-    <script>
-        // yes i know this is redundant but we need it here to make sure it has priority.
-        // without it, there will be a brief moment where the light theme flashes on the screen before switching to dark mode. this is annoying.
-        // everything this does and more is included in `/resources/js/darkmode.js`
-        if (localStorage.getItem('theme') === 'dark')
-        {
-            document.documentElement.classList.add('dark');
-        }
-    </script>
 </head>
 
 <body class="min-h-full">
-    <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
-        <div class="bg-brand-green dark:bg-gray-800 pt-2 pb-32 shadow-lg">
+    <div class="min-h-screen max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold tracking-tight">{{ $header }}</h1>
+        {{ $slot }}
+        {{-- <div class="bg-brand-green dark:bg-gray-800 pt-2 pb-32 shadow-lg">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
@@ -92,11 +85,11 @@
             <main class="-mt-32">
                 <div class="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
                     <div class="rounded-lg bg-white dark:bg-slate-900 bg-opacity-90 dark:bg-opacity-75 backdrop-blur-md dark:backdrop-blur-md dark:text-white px-5 py-6 shadow sm:px-6">
-                        {{ $slot }}
+                        
                     </div>
                 </div>
             </main>
-        @endif
+        @endif --}}
         @include('layouts.footer')
     </div>
     <!-- Global notification live region, render this permanently at the end of the document -->

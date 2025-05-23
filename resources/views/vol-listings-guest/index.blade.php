@@ -53,7 +53,4 @@
         </div>
     </div>
 </div>
-
-
-
 </x-guestv2-layout>
