@@ -352,10 +352,7 @@
                                     <tr>
                                         <th scope="col"
                                             class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">
-                                            Shift Name</th>
-                                        <th scope="col"
-                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 hidden md:table-cell">
-                                            Event Dates</th>
+                                            Event/Task Name</th>
                                         <th scope="col"
                                             class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">
                                             Duration</th>
@@ -384,10 +381,6 @@
                                             <tr class="even:bg-gray-50 even:dark:bg-gray-800/25">
                                                 <td class="whitespace-nowrap pl-10 pr-2 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">
                                                     {{ $shift->name ?? 'Unnamed Shift' }}
-                                                </td>
-                                                <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-500 dark:text-gray-300 hidden md:table-cell">
-                                                    {{ $shift->event->start_date?->format('M d') ?? '?' }} –
-                                                    {{ $shift->event->end_date?->format('M d, Y') ?? '?' }}
                                                 </td>
                                                 <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300">
                                                     {{ \Carbon\Carbon::parse($shift->start_time)->diffForHumans(\Carbon\Carbon::parse($shift->end_time), true) }}
