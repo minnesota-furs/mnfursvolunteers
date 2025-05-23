@@ -117,10 +117,10 @@ Route::middleware('auth')->group(function () {
         Route::resource('events.shifts', ShiftController::class)->except(['show']);
         Route::post('events/{event}/shifts/{shift}/duplicate', [ShiftController::class, 'duplicate'])->name('events.shifts.duplicate');
         Route::delete('events/{event}/shifts/{shift}/remove-volunteer/{user}', [ShiftController::class, 'removeVolunteer'])->name('events.shifts.remove-volunteer');
-        Route::get('/admin/events/{event}/volunteers', [EventController::class, 'volunteerList'])->name('events.volunteers');
-        Route::get('/admin/events/{event}/agenda', [EventController::class, 'agendaView'])->name('events.agenda');
-        Route::get('/admin/events/{event}/allShifts', [EventController::class, 'indexWithShifts'])->name('events.allShifts');
-        Route::get('/admin/events/{event}/allShifts/print', [EventController::class, 'indexWithShiftsPrint'])->name('events.allShifts.print');
+        Route::get('/events/{event}/volunteers', [EventController::class, 'volunteerList'])->name('events.volunteers');
+        Route::get('/events/{event}/agenda', [EventController::class, 'agendaView'])->name('events.agenda');
+        Route::get('/events/{event}/allShifts', [EventController::class, 'indexWithShifts'])->name('events.allShifts');
+        Route::get('/events/{event}/allShifts/print', [EventController::class, 'indexWithShiftsPrint'])->name('events.allShifts.print');
     });
 
     Route::prefix('volunteer')->name('volunteer.')->group(function () {
