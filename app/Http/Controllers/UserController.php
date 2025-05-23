@@ -394,7 +394,7 @@ class UserController extends Controller
 
         $users = User::where(function ($query) use ($searchTerm) {
             $query->where('first_name', 'LIKE', "%" . $searchTerm . "%")
-                  ->orWhere('username', 'LIKE', "%" . $searchTerm . "%")
+                  ->orWhere('last_name', 'LIKE', "%" . $searchTerm . "%")
                   ->orWhere('email', 'LIKE', "%" . $searchTerm . "%");
         })
         ->select('id', 'first_name', 'last_name', 'username', 'email') // Select desired fields

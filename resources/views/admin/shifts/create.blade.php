@@ -91,7 +91,7 @@
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <dt class="form-label">Assign User (Optional)</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                        <x-text-input type="text" id="user_search_input" name="user_search_input" class="block w-full text-sm" placeholder="Search by name, username, or email..." />
+                        <x-text-input type="text" id="user_search_input" name="user_search_input" class="block w-full text-sm" placeholder="Search by name or email..." />
                         <div id="user_search_results" class="mt-2"></div>
                         <input type="hidden" name="user_id" id="selected_user_id">
                         <div id="selected_user_display" class="mt-2"></div>
@@ -193,10 +193,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         li.className = 'p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200';
                         // Handle null last_name gracefully
                         const lastName = user.last_name ? user.last_name : '';
-                        const displayName = `${user.first_name} ${lastName} (${user.username}) - ${user.email}`.trim();
+                        const displayName = `${user.first_name} ${lastName} - ${user.email}`.trim();
                         li.textContent = displayName;
                         li.dataset.userId = user.id;
-                        li.dataset.userName = `${user.first_name} ${lastName} (${user.username})`.trim(); // Store name for display
+                        li.dataset.userName = `${user.first_name} ${lastName}`.trim(); // Store name for display
 
                         li.addEventListener('click', function () {
                             selectedUserIdInput.value = this.dataset.userId;

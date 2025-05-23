@@ -94,19 +94,24 @@ class UserControllerTest extends TestCase
     }
 
     /** @test */
-    public function admin_can_search_users_by_username()
+    public function admin_can_search_users_by_last_name()
     {
         $this->actingAs($this->adminUser);
 
-        $response = $this->getJson(route('admin.users.search', ['term' => 'bobthe']));
+        // userBob has last_name 'The Builder'
+        $response = $this->getJson(route('admin.users.search', ['term' => 'Builder']));
 
         $response->assertOk();
         $response->assertJsonCount(1);
         $response->assertJsonFragment([
             'id' => $this->userBob->id,
+            'first_name' => 'Bob',
+            'last_name' => 'The Builder',
             'username' => 'bobthebuilder',
             'email' => 'bob@example.com',
         ]);
+        // Ensure it's not accidentally matching first_name or email of another user
+        $response->assertJsonMissing(['email' => $this->userAlice->email]);
     }
 
     /** @test */
