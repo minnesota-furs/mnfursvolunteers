@@ -131,16 +131,30 @@ class EventController extends Controller
 
     public function indexWithShifts(Event $event)
         {
-            $events = $event->shifts()->get();
+            $events = $event->shifts()
+                ->with('users')
+                ->orderBy('start_time')
+                ->get();
 
-            return view('admin.shifts.allShifts', compact('event', 'events'));
+            $shifts = $events->groupBy(function ($shift) {
+                return $shift->start_time->format('Y-m-d');
+            });
+
+            return view('admin.shifts.allShifts', compact('event', 'shifts'));
         }
 
     public function indexWithShiftsPrint(Event $event)
         {
-            $events = $event->shifts()->get();
+            $events = $event->shifts()
+                ->with('users')
+                ->orderBy('start_time')
+                ->get();
 
-            return view('admin.shifts.allShiftsPrint', compact('event', 'events'));
+            $shifts = $events->groupBy(function ($shift) {
+                return $shift->start_time->format('Y-m-d');
+            });
+
+            return view('admin.shifts.allShiftsPrint', compact('event', 'shifts'));
         }
 
     public function agendaView(Event $event)

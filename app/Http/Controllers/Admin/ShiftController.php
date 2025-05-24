@@ -89,9 +89,11 @@ class ShiftController extends Controller
             'user_id'        => 'nullable|integer|exists:users,id' // Validate user_id if present
         ]);
 
-        $updateData = $request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers']);
-        $updateData['double_hours'] = $request->has('double_hours');
 
+        $updateData = $request->only(['name', 'description', 'start_time', 'double_hours', 'end_time', 'max_volunteers']);
+
+        $updateData['double_hours'] = $request->has('double_hours');
+        
         $shift->update($updateData);
 
         if ($request->filled('user_id')) {

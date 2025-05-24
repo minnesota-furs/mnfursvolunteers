@@ -20,11 +20,7 @@
     </x-slot>
 
     <div class="">
-        @php
-            $shiftsByDate = $event->shifts->groupBy(fn($shift) => \Carbon\Carbon::parse($shift->start_time)->toDateString());
-        @endphp
-
-        @foreach ($shiftsByDate as $date => $shifts)
+        @foreach ($shifts as $date => $shifts)
             <div class="">
                 <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200">
                     {{ \Carbon\Carbon::parse($date)->format('l, F j, Y') }}
