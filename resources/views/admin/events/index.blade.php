@@ -20,7 +20,7 @@
                     </div>
                 </div> --}}
                 <div class="flow-root">
-                    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                    <div class="-mx-4 -my-2 sm:-mx-6 lg:-mx-8">
                         <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                             {{-- {{ $evemts->links() }} --}}
                             <table class="min-w-full divide-y divide-gray-300">
@@ -77,7 +77,7 @@
                                             @endif
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-1 pr-3 text-sm sm:pl-0">
-                                            {{ $event->shifts()->count() }}
+                                            <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-blue-500 font-semibold px-2">{{ $event->shifts()->count() }}</a>
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm text-center sm:pl-0">
                                             <div>{{ $event->start_date->format('M j, Y') }}</div>
@@ -89,8 +89,40 @@
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                             <a href="{{ route('admin.events.edit', $event) }}" class="text-blue-600 px-2"><x-heroicon-s-pencil class="w-3 inline"/> Edit</a>
-                                            <a href="{{ route('admin.events.volunteers', $event) }}" class="text-blue-600 px-2"><x-heroicon-m-users class="w-3 inline"/> View Volunteers</a>
-                                            <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-green-600 px-2"><x-heroicon-s-clock class="w-3 inline"/> Manage Shifts</a>
+                                            <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-blue-600 px-2"><x-heroicon-m-clock class="w-3 inline"/> Manage Shifts</a>
+                                            <x-tailwind-dropdown buttonClass="dropdown-link text-blue-600" label="Manage" id="{{ $event->id }}">
+                                                <div class="py-1" role="none">
+                                                    <x-tailwind-dropdown-item href="{{route('admin.events.edit', $event->id)}}" title="Edit Event Details"><x-heroicon-o-pencil class="w-4 inline"/> Edit Event</x-tailwind-dropdown-item>
+                                                    <x-tailwind-dropdown-item href="{{route('admin.events.shifts.index', $event->id)}}" title="Create/Edit/View Event Shifts"><x-heroicon-o-clock class="w-4 inline"/> Manage Shifts</x-tailwind-dropdown-item>
+                                                </div>
+                                                <div class="py-1" role="none">
+                                                    <x-tailwind-dropdown-item href="{{ route('admin.events.volunteers', $event) }}" title="View all unquie volunteers signed up and email actions">View All Volunteers / Email</x-tailwind-dropdown-item>
+                                                    <x-tailwind-dropdown-item href="{{ route('admin.events.allShifts', $event) }}" title="View all the shifts and their associated volunteers">View Shift Overview</x-tailwind-dropdown-item>
+                                                    <x-tailwind-dropdown-item href="{{ route('admin.events.agenda', $event) }}" title="View the shifts in a day agenda view">View Agenda (BETA)</x-tailwind-dropdown-item>
+                                                </div>
+                                                @if ($event->visibility === 'public' || $event->visibility === 'unlisted' )
+                                                <div class="py-1" role="none">
+                                                    <x-tailwind-dropdown-item href="#" title="Link to the logged in user signup sheet" onclick="copyToClipboard('{{ route('volunteer.events.show', $event) }}')">
+                                                        <x-heroicon-s-link class="w-4 inline"/> Copy Internal Signup URL
+                                                    </x-tailwind-dropdown-item>
+                                                    <x-tailwind-dropdown-item href="#" title="Link the to the public site listing for this event" onclick="copyToClipboard('{{ route('vol-listings-public.show', $event->id) }}')">
+                                                        <x-heroicon-s-link class="w-4 inline"/> Copy Public URL
+                                                    </x-tailwind-dropdown-item>
+                                                </div>
+                                                @else
+                                                <div class="py-1" role="none">
+                                                    <x-tailwind-dropdown-item class="opacity-20 cursor-not-allowed" title="Link to the logged in user signup sheet">
+                                                        <x-heroicon-s-link class="w-4 inline"/> Copy Internal Signup URL
+                                                    </x-tailwind-dropdown-item>
+                                                    <x-tailwind-dropdown-item class="opacity-20 cursor-not-allowed">
+                                                        <x-heroicon-s-link class="w-4 inline"/> Copy Public URL ({{ucfirst($event->visibility)}})
+                                                    </x-tailwind-dropdown-item>
+                                                </div>
+                                                @endif
+                                                {{-- <div class="py-1" role="none">
+                                                    <x-tailwind-dropdown-item title="Delete" href="#" class="hover:bg-red-50 text-red-900" />
+                                                </div> --}}
+                                            </x-tailwind-dropdown>
                                         </td>
                                     </tr>
                                     @empty
@@ -107,12 +139,14 @@
                     </div>
                 </div>
             </div>
-
         </div>
-    </div>
-
-    {{-- <x-slot name="right">
-        <p class="py-4 text-justify">Paragraph one.</p>
-        <p class="py-4 text-justify">Paragraph two.</p>
-    </x-slot> --}}
+        <script>
+        function copyToClipboard(url) {
+            navigator.clipboard.writeText(url).then(function() {
+                alert('Public URL copied to clipboard!');
+            }, function(err) {
+                console.error('Failed to copy URL: ', err);
+            });
+        }
+    </script>
 </x-app-layout>

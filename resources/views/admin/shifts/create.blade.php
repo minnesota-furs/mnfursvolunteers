@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'Manage Shift for ' . $event->name)
     <x-slot name="header">
         {{ isset($shift) ? 'Edit Shift' : 'Create Shift' }} for Event: {{ $event->name }}
     </x-slot>
@@ -89,7 +90,10 @@
 
                 {{-- User Search Section --}}
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="form-label">Assign User (Optional)</dt>
+                    <div>
+                        <dt class="text-sm font-medium leading-6 text-gray-900">Assign User</dt>
+                        <p class="text-gray-500 text-sm mt-1">Manually add a volunteer. Be sure to save after</p>
+                    </div>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-text-input type="text" id="user_search_input" name="user_search_input" class="block w-full text-sm" placeholder="Search by name or email..." />
                         <div id="user_search_results" class="mt-2"></div>
@@ -112,16 +116,22 @@
     <x-slot name="right">
         @if (isset($shift))
         <h2 class="text-xl font-semibold mb-3 dark:text-white">Volunteers Signed Up ({{ $shift->users->count() }})</h2>
-            <ul class="list-disc pl-5 text-sm text-gray-800">
+            <ul class="list-disc pl-1 text-sm text-gray-800">
                 @forelse ($shift->users as $user)
                     <li class="flex items-center justify-between hover:bg-gray-100 p-1">
-                        <span>{{ $user->name }} ({{ $user->email }})</span>
-                        <form action="{{ route('admin.events.shifts.remove-volunteer', [$event, $shift, $user]) }}"
-                            method="POST">
+                        <span>
+                            @if($user->pivot->hours_logged_at)
+                                <x-heroicon-m-check-badge title="Hours Credited" class="w-5 inline text-green-600"/> 
+                            @endif
+                            {{ $user->name }}</span>
+                        <form class="text-xs" action="{{ route('admin.events.shifts.remove-volunteer', [$event, $shift, $user]) }}" method="POST">
                             @csrf
                             @method('DELETE')
-                            <a href="{{ route('users.show', $user->id) }}" class="text-blue-600 hover:underline px-1">View</a>
-                            <button type="submit" class="text-red-600 px-1 text-sm hover:underline" onclick="return confirm('Are you sure you want to remove {{$user->name}}?')">Remove</button>
+                            <a href="{{ route('users.show', $user->id) }}" class="text-blue-600 hover:underline px-1">
+                                View
+                            </a>
+                            <button type="submit" class="text-red-600 px-1 hover:underline" onclick="return confirm('Are you sure you want to remove {{$user->name}}?')">
+                                <x-heroicon-m-trash title="Hours Credited" class="w-3 mb-1 inline"/> Remove</button>
                         </form>
                     </li>
                 @empty
@@ -177,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        fetch(`{{ route('admin.users.search') }}?term=\${encodeURIComponent(searchTerm)}`)
+        fetch(`{{ route('admin.users.search') }}?term=${encodeURIComponent(searchTerm)}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -192,11 +202,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         const li = document.createElement('li');
                         li.className = 'p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200';
                         // Handle null last_name gracefully
+                        const firstName = user.first_name ? user.first_name : '';
                         const lastName = user.last_name ? user.last_name : '';
-                        const displayName = `${user.first_name} ${lastName} - ${user.email}`.trim();
+                        const displayName = `${firstName} ${lastName} (${user.name}) - ${user.email}`.trim();
                         li.textContent = displayName;
                         li.dataset.userId = user.id;
-                        li.dataset.userName = `${user.first_name} ${lastName}`.trim(); // Store name for display
+                        // li.dataset.userName = `${user.first_name} ${lastName}`.trim(); // Store name for display
 
                         li.addEventListener('click', function () {
                             selectedUserIdInput.value = this.dataset.userId;
@@ -233,22 +244,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Initial check to add clear button listener if a user was pre-selected (e.g. from old input)
-    // This part is a bit more complex if the name isn't directly available.
-    // The current logic will add the clear button when a user is *clicked*.
-    // If `old('user_id')` is present and we were to display something in `selectedUserDisplay`
-    // with a clear button, then `addClearButtonListener()` would be needed on DOMContentLoaded.
-    // For now, the following logic ensures that if a user IS selected (and thus display is populated),
-    // the search input is disabled.
     if (selectedUserIdInput.value && selectedUserIdInput.value !== '') {
-        // If a user ID is already set (e.g., from old() input),
-        // assume a user is "selected", so disable the search input.
-        // The user would need to "Clear" it to search for another.
-        // This also implies selectedUserDisplay should ideally show something.
-        // Let's assume if old('user_id') is set, we want to disable search and show a basic clear option.
-        // This part is tricky because we don't have the user's name.
-        // A robust solution for repopulating display would involve fetching user by ID if old('user_id') exists.
-        // For now, if an ID is set, we disable the input. The user can clear it.
         searchInput.disabled = true;
         if (!document.getElementById('clear_selected_user') && selectedUserDisplay.innerHTML === '') {
              // If the display is empty but an ID is set (from old()), offer a way to clear.

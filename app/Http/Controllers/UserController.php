@@ -397,7 +397,7 @@ class UserController extends Controller
                   ->orWhere('last_name', 'LIKE', "%" . $searchTerm . "%")
                   ->orWhere('email', 'LIKE', "%" . $searchTerm . "%");
         })
-        ->select('id', 'first_name', 'last_name', 'username', 'email') // Select desired fields
+        ->select('id', 'first_name', 'last_name', 'name', 'email') // Select desired fields
         ->take(10) // Limit results to a reasonable number
         ->get();
 
