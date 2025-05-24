@@ -15,11 +15,7 @@
                 <p class="text-sm text-gray-500"><x-heroicon-o-clock class="w-4 inline"/> Hour Logging: {{ $event->auto_credit_hours ? 'Automatic Logging' : 'Manual Approval Logging' }}</p>
                 <p class="text-sm text-gray-500"><x-heroicon-o-user class="w-4 inline"/> Total Shifts: {{$event->shifts()->count()}}</p>
             </div>
-        @php
-            $shiftsByDate = $event->shifts->groupBy(fn($shift) => \Carbon\Carbon::parse($shift->start_time)->toDateString());
-        @endphp
-
-        @foreach ($shiftsByDate as $date => $shifts)
+            @foreach ($shifts as $date => $shifts)
             <div class="">
                 <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">
                     {{ \Carbon\Carbon::parse($date)->format('l, F j, Y') }}
@@ -44,7 +40,8 @@
                     @endforeach
                 </div>
             </div>
-        @endforeach
+            @endforeach
+        </div>
     </div>
 
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
