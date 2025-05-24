@@ -44,18 +44,19 @@ class LogShiftVolunteerHours extends Command
                                     ->first();
 
         foreach ($events as $event) {
-            $this->line($event->name);
+            $this->line('└── Event: ' . $event->name);
             if ($event->auto_credit_hours) {
                 foreach ($event->shifts as $shift) {
-                    $this->line('  '.$shift->name);
+                    $this->line('  └── Shift: '.$shift->name);
                     foreach ($shift->users as $user) {
                         $pivot = $user->pivot; // Access pivot data
                         
                         if ($pivot->hours_logged_at) {
+                            $this->line('    └── User: '.$user->name.' (Already logged, Skipping)');
                             continue; // already logged for this user/shift
                         }
     
-                        $this->line('    '.$user->name);
+                        $this->line('    └── User: '.$user->name. ' - Logging hours...');
 
                         $hoursToCredit = 0;
                         $description = '';
@@ -86,6 +87,8 @@ class LogShiftVolunteerHours extends Command
                         ]);
                     }
                 }
+            } else {
+                $this->line('  Auto-credit disabled for this event. Skipping...');
             }
         }
 

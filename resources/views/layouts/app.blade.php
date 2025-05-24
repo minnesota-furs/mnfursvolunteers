@@ -66,7 +66,7 @@
                     <div class="grid grid-cols-1 gap-4 lg:col-span-2">
                         <section aria-labelledby="section-1-title">
                             <h2 class="sr-only" id="section-1-title">Section title</h2>
-                            <div class="overflow-hidden rounded-lg bg-white dark:bg-slate-900 bg-opacity-90 dark:bg-opacity-75 backdrop-blur-md dark:backdrop-blur-md shadow">
+                            <div class="rounded-lg bg-white dark:bg-slate-900 bg-opacity-90 dark:bg-opacity-75 backdrop-blur-md dark:backdrop-blur-md shadow">
                                 <div class="p-6">
                                     {{ $slot }}
                                 </div>
@@ -78,7 +78,7 @@
                     <div class="grid grid-cols-1 gap-4">
                         <section aria-labelledby="section-2-title">
                             <h2 class="sr-only" id="section-2-title">Section title</h2>
-                            <div class="overflow-hidden rounded-lg bg-white dark:bg-slate-900 bg-opacity-90 dark:bg-opacity-75 backdrop-blur-md dark:backdrop-blur-md shadow">
+                            <div class="rounded-lg bg-white dark:bg-slate-900 bg-opacity-90 dark:bg-opacity-75 backdrop-blur-md dark:backdrop-blur-md shadow">
                                 <div class="p-6">
                                     {{ $right }}
                                 </div>
@@ -91,7 +91,7 @@
         @else
             <main class="-mt-32">
                 <div class="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-                    <div class="rounded-lg bg-white dark:bg-slate-900 bg-opacity-90 dark:bg-opacity-75 backdrop-blur-md dark:backdrop-blur-md dark:text-white px-5 py-6 shadow sm:px-6">
+                    <div class="overflow-visible rounded-lg bg-white dark:bg-slate-900 bg-opacity-90 dark:bg-opacity-75 backdrop-blur-md dark:backdrop-blur-md dark:text-white px-5 py-6 shadow sm:px-6">
                         {{ $slot }}
                     </div>
                 </div>
@@ -113,7 +113,7 @@
             From: "opacity-100"
             To: "opacity-0"
         -->
-        <div class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+        <div class="pointer-events-auto w-full max-w-sm rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
             <div class="p-4">
             <div class="flex items-start">
                 <div class="flex-shrink-0">

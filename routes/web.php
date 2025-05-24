@@ -74,6 +74,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/{user}/permissions', [UserPermissionController::class, 'edit'])->middleware('isAdmin')->name('users.permissions.edit');
     Route::post('/users/{user}/permissions', [UserPermissionController::class, 'update'])->middleware('isAdmin')->name('users.permissions.update');
 
+    // Admin User Management
+    Route::middleware(['can:manage-users'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/users/search', [UserController::class, 'search'])->name('users.search');
+    });
+
     // Org chart view
     Route::get('/org-chart', [UserController::class, 'orgChart'])->name('orgchart');
 

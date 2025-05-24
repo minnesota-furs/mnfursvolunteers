@@ -1,16 +1,16 @@
-@props(['id', 'label' => 'Options'])
+@props(['id', 'buttonClass' => 'inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-brand-green shadow-sm hover:bg-gray-50', 'label' => 'Options'])
 <div class="relative inline-block text-left">
     <div>
         <button id="menuButton" onclick="openMenu({{ $id }})" type="button"
-            {!! $attributes->merge(['class' => 'inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-brand-green shadow-sm hover:bg-gray-50']) !!}
+            {!! $attributes->merge(['class' => $buttonClass]) !!}
             aria-expanded="true" aria-haspopup="true">
             {{$label}}
-            <x-heroicon-m-chevron-down class="-mr-1 h-5 w-5 text-brand-green"/>
+            <x-heroicon-m-chevron-down class="-mr-1 h-5 w-5"/>
         </button>
     </div>
 
     <div id="optDropdown{{ $id }}"
-        class="hidden absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 scale-95 transition-transform" 
+        class="hidden absolute right-0 z-50 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 scale-95 transition-transform" 
         role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
         {{ $slot }}
     </div>
