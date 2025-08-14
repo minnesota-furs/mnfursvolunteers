@@ -70,11 +70,13 @@ class VolunteerHoursController extends Controller
             'description'   => 'nullable|string',
             'notes'         => 'nullable|string',
             'volunteer_date' => 'nullable|date',
-            // 'primary_dept_id' => 'integer|exists:departments,id',
+            'primary_dept_id' => 'integer|exists:departments,id',
         ]);
 
         // Get the current date
         $currentDate = now();
+
+        // dd($request->all());
 
         // Find the fiscal ledger that covers the volunteer date
         $fiscalLedger = FiscalLedger::where('start_date', '<=', $currentDate)
@@ -103,7 +105,7 @@ class VolunteerHoursController extends Controller
         $username = User::select('name')->find($validated['user_id'])->name;
 
         // Redirect back with a success message
-        return redirect()->route('users.index')
+        return redirect()->route('users.show', $validated['user_id'])
             ->with('success', [
                 'message' => "<span class=\"text-brand-green\">{$validated['hours']}</span> volunteer " . ($validated['hours'] == 1 ? 'hour' : 'hours') . " logged successfully for <span class=\"text-brand-green\">{$username}</span>.",
                 'action_text' => 'View User',

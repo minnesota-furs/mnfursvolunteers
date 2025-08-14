@@ -13,6 +13,7 @@ use App\Http\Controllers\VolunteerEventController;
 use App\Http\Controllers\VolunteerGuestController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\UserPermissionController;
+use App\Http\Controllers\OneOffEventController;
 use App\Http\Controllers\Volunteer\ShiftSignupController;
 use App\Http\Controllers\Admin\ShiftController;
 use App\Http\Controllers\Admin\EventController;
@@ -61,6 +62,15 @@ Route::middleware('auth')->group(function () {
         Route::delete('/unlink-wordpress', [ProfileController::class, 'unlinkWordPress'])->name('unlink-wordpress');
     });
 
+    // One Off Events
+    Route::prefix('one-off-events')->name('one-off-events.')->group(function () {
+        Route::get('/', [OneOffEventController::class, 'index'])->name('index');
+        Route::get('/create', [OneOffEventController::class, 'create'])->middleware('can:manage-events')->name('create');
+        Route::post('/', [OneOffEventController::class, 'store'])->middleware('can:manage-events')->name('store');
+        Route::get('/{oneOffEvent}', [OneOffEventController::class, 'show'])->name('show');
+        Route::post('/{oneOffEvent}/check-in', [OneOffEventController::class, 'checkIn'])->name('check-in');
+    });
+    
     // Users
     Route::middleware(['can:manage-users'])->group(function () {
         Route::get('/users/import', [UserController::class, 'import_view'])->name('users.import');

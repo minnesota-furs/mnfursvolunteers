@@ -16,11 +16,14 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                        {{ __('Users/Volunteers') }}
+                        {{ __('Users') }}
                     </x-nav-link>
                     <x-nav-link :href="route('job-listings.index')" :active="request()->routeIs('job-listings.*')">
                         {{ __('Open Positons') }}
                     </x-nav-link>
+                    {{-- <x-nav-link :href="route('one-off-events.index')" :active="request()->routeIs('one-off-events.*')">
+                        {{ __('One-Off Event') }}
+                    </x-nav-link> --}}
                     <x-nav-link :href="route('volunteer.events.index')" :active="request()->routeIs('volunteer.events.*')">
                         {{ __('Events') }}
                     </x-nav-link>
@@ -67,6 +70,10 @@
                                 {{ __('Manage Events') }}
                             </x-dropdown-link>
                             @endcan
+
+                            <x-dropdown-link :href="route('one-off-events.index')">
+                                {{ __('One Off Events') }}
+                            </x-dropdown-link>
                             
                             @if( Auth::user()->isAdmin() )
                             <x-dropdown-link :href="route('ledger.index')">
@@ -162,7 +169,7 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                {{ __('Users/Volunteers') }}
+                {{ __('Users') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('logging.*')">
                 {{ __('Logging') }}

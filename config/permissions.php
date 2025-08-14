@@ -17,6 +17,10 @@ return [
         'label' => 'View Reports',
         'description' => 'Permits viewing prebuilt reports.',
     ],
+    'manage-events' => [
+        'label' => 'Manage Events',
+        'description' => 'Manage events and one-off events.',
+    ],
 ];
 
 
