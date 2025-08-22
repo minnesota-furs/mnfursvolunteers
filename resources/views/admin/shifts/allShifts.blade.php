@@ -19,10 +19,10 @@
         </a>
     </x-slot>
 
-    <div class="">
+    <div class="space-y-6">
         @foreach ($shifts as $date => $shifts)
             <div class="">
-                <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200">
+                <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 pt-4">
                     {{ \Carbon\Carbon::parse($date)->format('l, F j, Y') }}
                 </h3>
 

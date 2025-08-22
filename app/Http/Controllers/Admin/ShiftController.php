@@ -143,6 +143,4 @@ class ShiftController extends Controller
                 'message' => "<span class=\"text-brand-green\">{$user->name}</span> removed from shift",
             ]); 
     }
-
-
 }

@@ -50,7 +50,12 @@
                                     @forelse ($events as $event)
                                     <tr>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            <span class="font-extrabold" href="{{route('admin.events.edit', $event->id)}}">{{$event->name}}</span>
+                                            <span class="font-extrabold {{ $event->hasPast() ? 'text-gray-400' : '' }}" href="{{route('admin.events.edit', $event->id)}}">{{$event->name}}
+                                                <!-- If event past -->
+                                                @if ($event->hasPast())
+                                                    <span>(Past Event)</span>
+                                                @endif
+                                            </span>
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                             @if($event->visibility === 'draft')

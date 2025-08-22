@@ -72,4 +72,9 @@ class Event extends Model
         return $this->start_date->startOfDay() != $this->end_date->startOfDay();
     }
 
+    public function hasPast(): bool
+    {
+        return $this->end_date < now();
+    }
+
 }

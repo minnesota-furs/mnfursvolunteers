@@ -11,20 +11,28 @@
         </a>
         <x-tailwind-dropdown label="More" id=1>
             <div class="py-1" role="none">
-                <x-tailwind-dropdown-item href="{{route('admin.events.edit', $event->id)}}">Edit Event</x-tailwind-dropdown-item>
-                <x-tailwind-dropdown-item href="{{ route('admin.events.volunteers', $event) }}">View All Volunteers</x-tailwind-dropdown-item>
-                <x-tailwind-dropdown-item href="{{ route('admin.events.allShifts', $event) }}">View All Shifts</x-tailwind-dropdown-item>
-                <x-tailwind-dropdown-item href="{{ route('admin.events.agenda', $event) }}">View Agenda (BETA)</x-tailwind-dropdown-item>
+                <x-tailwind-dropdown-item href="{{route('admin.events.edit', $event->id)}}"><x-heroicon-o-pencil class="w-4 inline"/>  Edit Event</x-tailwind-dropdown-item>
+            </div>
+            <div class="py-1" role="none">
+                <x-tailwind-dropdown-item href="{{ route('admin.events.volunteers', $event) }}" title="View all unquie volunteers signed up and email actions">View All Volunteers / Email</x-tailwind-dropdown-item>
+                <x-tailwind-dropdown-item href="{{ route('admin.events.allShifts', $event) }}" title="View all the shifts and their associated volunteers">View Shift Overview</x-tailwind-dropdown-item>
+                <x-tailwind-dropdown-item href="{{ route('admin.events.agenda', $event) }}" title="View the shifts in a day agenda view">View Agenda (BETA)</x-tailwind-dropdown-item>
             </div>
             @if ($event->visibility === 'public' || $event->visibility === 'unlisted' )
             <div class="py-1" role="none">
-                <x-tailwind-dropdown-item href="#" onclick="copyToClipboard('{{ route('vol-listings-public.show', $event->id) }}')">
+                <x-tailwind-dropdown-item href="#" title="Link to the logged in user signup sheet" onclick="copyToClipboard('{{ route('volunteer.events.show', $event) }}')">
+                    <x-heroicon-s-link class="w-4 inline"/> Copy Internal Signup URL
+                </x-tailwind-dropdown-item>
+                <x-tailwind-dropdown-item href="#" title="Link the to the public site listing for this event" onclick="copyToClipboard('{{ route('vol-listings-public.show', $event->id) }}')">
                     <x-heroicon-s-link class="w-4 inline"/> Copy Public URL
                 </x-tailwind-dropdown-item>
             </div>
             @else
             <div class="py-1" role="none">
-                <x-tailwind-dropdown-item class="opacity-20 cursor-not-allowed" href="#">
+                <x-tailwind-dropdown-item class="opacity-20 cursor-not-allowed" title="Link to the logged in user signup sheet">
+                    <x-heroicon-s-link class="w-4 inline"/> Copy Internal Signup URL
+                </x-tailwind-dropdown-item>
+                <x-tailwind-dropdown-item class="opacity-20 cursor-not-allowed">
                     <x-heroicon-s-link class="w-4 inline"/> Copy Public URL ({{ucfirst($event->visibility)}})
                 </x-tailwind-dropdown-item>
             </div>

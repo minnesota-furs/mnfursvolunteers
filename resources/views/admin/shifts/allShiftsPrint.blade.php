@@ -15,32 +15,34 @@
                 <p class="text-sm text-gray-500"><x-heroicon-o-clock class="w-4 inline"/> Hour Logging: {{ $event->auto_credit_hours ? 'Automatic Logging' : 'Manual Approval Logging' }}</p>
                 <p class="text-sm text-gray-500"><x-heroicon-o-user class="w-4 inline"/> Total Shifts: {{$event->shifts()->count()}}</p>
             </div>
-            @foreach ($shifts as $date => $shifts)
-            <div class="">
-                <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">
-                    {{ \Carbon\Carbon::parse($date)->format('l, F j, Y') }}
-                </h2>
+            <div class="space-y-8">
+                @foreach ($shifts as $date => $shifts)
+                <div class="">
+                    <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">
+                        {{ \Carbon\Carbon::parse($date)->format('l, F j, Y') }}
+                    </h2>
 
-                <div class="mt-2 space-y-4">
-                    @foreach ($shifts as $shift)
-                        <div class="p-3 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700">
-                            <div class="font-semibold text-gray-800 dark:text-gray-200">
-                                {{ $shift->name }} ({{ \Carbon\Carbon::parse($shift->start_time)->format('g:i A') }} - {{ \Carbon\Carbon::parse($shift->end_time)->format('g:i A') }}) - {{$shift->users->count()}} Signups
+                    <div class="mt-2 space-y-4">
+                        @foreach ($shifts as $shift)
+                            <div class="p-3 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700">
+                                <div class="font-semibold text-gray-800 dark:text-gray-200">
+                                    {{ $shift->name }} ({{ \Carbon\Carbon::parse($shift->start_time)->format('g:i A') }} - {{ \Carbon\Carbon::parse($shift->end_time)->format('g:i A') }}) - {{$shift->users->count()}} Signups
+                                </div>
+                                @if ($shift->users->isEmpty())
+                                    <p class="text-sm text-gray-500">No volunteers signed up.</p>
+                                @else
+                                    <ul class="list-disc ml-6 text-sm text-gray-700 dark:text-gray-300">
+                                        @foreach ($shift->users as $user)
+                                            <li>{{ $user->name }} ({{ $user->email }})</li>
+                                        @endforeach
+                                    </ul>
+                                @endif
                             </div>
-                            @if ($shift->users->isEmpty())
-                                <p class="text-sm text-gray-500">No volunteers signed up.</p>
-                            @else
-                                <ul class="list-disc ml-6 text-sm text-gray-700 dark:text-gray-300">
-                                    @foreach ($shift->users as $user)
-                                        <li>{{ $user->name }} ({{ $user->email }})</li>
-                                    @endforeach
-                                </ul>
-                            @endif
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
                 </div>
+                @endforeach
             </div>
-            @endforeach
         </div>
     </div>
 
