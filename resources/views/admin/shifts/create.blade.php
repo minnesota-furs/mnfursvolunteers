@@ -91,14 +91,13 @@
                 {{-- User Search Section --}}
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <div>
-                        <dt class="text-sm font-medium leading-6 text-gray-900">Assign User</dt>
-                        <p class="text-gray-500 text-sm mt-1">Manually add a volunteer. Be sure to save after</p>
+                        <dt class="text-sm font-medium leading-6 text-gray-900">Assign Users</dt>
+                        <p class="text-gray-500 text-sm mt-1">Manually add volunteers. Be sure to save after</p>
                     </div>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-text-input type="text" id="user_search_input" name="user_search_input" class="block w-full text-sm" placeholder="Search by name or email..." />
                         <div id="user_search_results" class="mt-2"></div>
-                        <input type="hidden" name="user_id" id="selected_user_id">
-                        <div id="selected_user_display" class="mt-2"></div>
+                        <div id="selected_users_container"></div>
                     </dd>
                 </div>
 
@@ -144,6 +143,25 @@
             <h2 class="text-xl font-semibold mb-3 dark:text-white">Volunteers Signed Up (0)</h2>
             <p class="text-gray-500 dark:text-gray-400">This is where your signed up volunteers will appear.</p>
         @endif
+        {{-- asds --}}
+        {{-- <form method="POST" action="{{ route('shifts.quick-add', $shift) }}" class="flex items-center gap-2">
+            @csrf
+            <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <dt class="form-label">Shift Name</dt>
+                <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                    <x-text-input class="block w-full text-sm" type="text" name="vol_code" maxlength="6"
+                         placeholder="VOLCODE" oninput="this.value=this.value.toUpperCase()" required />
+                    <x-form-validation for="name" />
+                </dd>
+            </div>
+        </form> --}}
+
+        {{-- <form method="POST" action="{{ route('shifts.quick-add', $shift) }}" class="flex items-center gap-2">
+            @csrf
+            <input type="text" name="vol_code" maxlength="6" class="border rounded px-2 py-1 uppercase tracking-widest w-28"
+                    placeholder="VOLCODE" oninput="this.value=this.value.toUpperCase()" required />
+            <button class="bg-emerald-600 text-white rounded px-3 py-1">Quick add</button>
+        </form> --}}
     </x-slot>
 </x-app-layout>
 
@@ -151,39 +169,28 @@
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('user_search_input');
     const searchResultsContainer = document.getElementById('user_search_results');
-    const selectedUserIdInput = document.getElementById('selected_user_id');
-    const selectedUserDisplay = document.getElementById('selected_user_display');
+    const selectedUsersContainer = document.getElementById('selected_users_container');
+    
+    // An array to keep track of the IDs of selected users
+    let selectedUserIds = new Set(); 
 
-    // Populate hidden field and display if old user_id exists (e.g., due to validation error)
-    const oldUserId = "{{ old('user_id') }}";
-    const oldUserSearchInput = "{{ old('user_search_input') }}"; // Get old search term
-
-    if (oldUserId) {
-        selectedUserIdInput.value = oldUserId;
-        // Displaying name here is tricky without another query or passing more data.
-        // For now, we'll just show the ID if we don't have the old search input to re-trigger a display.
-        // If oldUserSearchInput is available, we might be able to repopulate and show it.
-        // However, the primary goal is that the ID is preserved.
-        // A simple approach: if an ID is set, show a generic message or the ID itself.
-        // selectedUserDisplay.innerHTML = `User ID: ${oldUserId} <button type="button" id="clear_selected_user" class="text-red-500 ml-2 text-sm hover:underline">Clear</button>`;
-        // addClearButtonListener();
-        // If you want to attempt to show the name, you'd need the name associated with oldUserId.
-        // For now, the selection logic below will handle displaying the name upon a new selection.
+    // Re-populate selected users from old data (if any) on page load
+    const oldUserIds = JSON.parse("{{ json_encode(old('user_id', [])) }}");
+    if (oldUserIds.length > 0) {
+        // You'll need to fetch user names here if you want to display them on reload
+        // A simple solution is to just display the ID or re-fetch them.
+        // For now, let's just add the IDs to our set.
+        oldUserIds.forEach(id => {
+            selectedUserIds.add(id);
+            // You can add a placeholder display here, e.g., 'User (ID: ${id})'
+        });
     }
-    if (oldUserSearchInput) {
-        searchInput.value = oldUserSearchInput; // Repopulate search input if there was an old value
-    }
-
 
     searchInput.addEventListener('keyup', function () {
         const searchTerm = this.value.trim();
-        searchResultsContainer.innerHTML = ''; // Clear previous results
+        searchResultsContainer.innerHTML = '';
 
         if (searchTerm.length < 2) {
-            // Do not clear selected user display here if a user is already selected.
-            // Only clear it if the user actively clears the selection via the "Clear" button.
-            // selectedUserDisplay.innerHTML = '';
-            // selectedUserIdInput.value = '';
             return;
         }
 
@@ -195,33 +202,40 @@ document.addEventListener('DOMContentLoaded', function () {
                 return response.json();
             })
             .then(users => {
-                if (users.length > 0) {
+                // Filter out users who are already selected
+                const unselectedUsers = users.filter(user => !selectedUserIds.has(user.id.toString()));
+
+                if (unselectedUsers.length > 0) {
                     const ul = document.createElement('ul');
                     ul.className = 'border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto bg-white shadow-lg';
-                    users.forEach(user => {
+                    unselectedUsers.forEach(user => {
                         const li = document.createElement('li');
                         li.className = 'p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200';
-                        // Handle null last_name gracefully
-                        const firstName = user.first_name ? user.first_name : '';
-                        const lastName = user.last_name ? user.last_name : '';
-                        const displayName = `${firstName} ${lastName} (${user.name}) - ${user.email}`.trim();
+                        const firstName = user.first_name || '';
+                        const lastName = user.last_name || '';
+                        const displayName = `${user.name} - ${user.email}`.trim();
                         li.textContent = displayName;
                         li.dataset.userId = user.id;
-                        // li.dataset.userName = `${user.first_name} ${lastName}`.trim(); // Store name for display
+                        li.dataset.userName = `${user.name}`.trim();
 
                         li.addEventListener('click', function () {
-                            selectedUserIdInput.value = this.dataset.userId;
-                            selectedUserDisplay.innerHTML = `<div class="flex items-center justify-between p-2 bg-gray-100 rounded-md"><span>Selected: <strong>\${this.dataset.userName}</strong></span><button type="button" id="clear_selected_user" class="text-red-600 ml-2 text-sm hover:underline font-semibold">Clear</button></div>`;
-                            searchInput.value = ''; // Clear search input
-                            searchResultsContainer.innerHTML = ''; // Clear results list
-                            addClearButtonListener(); // Re-add listener for the new clear button
-                            searchInput.disabled = true; // Disable search input when a user is selected
+                            const userId = this.dataset.userId;
+                            const userName = this.dataset.userName;
+                            
+                            // Check if the user is already selected before adding
+                            if (!selectedUserIds.has(userId)) {
+                                selectedUserIds.add(userId);
+                                appendSelectedUser(userId, userName);
+                                
+                                searchInput.value = ''; // Clear search input
+                                searchResultsContainer.innerHTML = ''; // Clear results list
+                            }
                         });
                         ul.appendChild(li);
                     });
                     searchResultsContainer.appendChild(ul);
                 } else {
-                    searchResultsContainer.innerHTML = '<p class="text-gray-500 p-2">No users found.</p>';
+                    searchResultsContainer.innerHTML = '<p class="text-gray-500 p-2">No users found or all found users are already selected.</p>';
                 }
             })
             .catch(error => {
@@ -230,30 +244,25 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     });
 
-    function addClearButtonListener() {
-        const clearButton = document.getElementById('clear_selected_user');
-        if (clearButton) {
-            clearButton.addEventListener('click', function() {
-                selectedUserIdInput.value = '';
-                selectedUserDisplay.innerHTML = '';
-                searchInput.value = ''; // Clear search input text
-                searchResultsContainer.innerHTML = ''; // Clear any stray results
-                searchInput.disabled = false; // Re-enable search input
-                searchInput.focus();
-            });
-        }
+    function appendSelectedUser(userId, userName) {
+        const userDisplay = document.createElement('div');
+        userDisplay.className = 'flex items-center justify-between p-2 mt-2 bg-gray-100 rounded-md';
+        userDisplay.innerHTML = `
+            <span>Selected: <strong>${userName}</strong></span>
+            <button type="button" class="remove-user-button text-red-600 ml-2 text-sm hover:underline font-semibold" data-user-id="${userId}">
+                Remove
+            </button>
+            <input type="hidden" name="user_id[]" value="${userId}">
+        `;
+        selectedUsersContainer.appendChild(userDisplay);
+        
+        // Add listener for the remove button
+        userDisplay.querySelector('.remove-user-button').addEventListener('click', function() {
+            const idToRemove = this.dataset.userId;
+            selectedUserIds.delete(idToRemove);
+            userDisplay.remove();
+        });
     }
 
-    if (selectedUserIdInput.value && selectedUserIdInput.value !== '') {
-        searchInput.disabled = true;
-        if (!document.getElementById('clear_selected_user') && selectedUserDisplay.innerHTML === '') {
-             // If the display is empty but an ID is set (from old()), offer a way to clear.
-             selectedUserDisplay.innerHTML = `<div class="flex items-center justify-between p-2 bg-gray-100 rounded-md"><span>User ID: ${selectedUserIdInput.value} (Search to update)</span><button type="button" id="clear_selected_user" class="text-red-600 ml-2 text-sm hover:underline font-semibold">Clear</button></div>`;
-             addClearButtonListener();
-        } else if (document.getElementById('clear_selected_user')) {
-            // If a clear button already exists (e.g. from a previous dynamic add that failed validation)
-            addClearButtonListener();
-        }
-    }
 });
 </script>
