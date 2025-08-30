@@ -120,6 +120,7 @@
                                             {{ $shift->users->count() }} of {{ $shift->max_volunteers }}
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                            {{-- <a href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}" class="text-blue-600 dark:text-blue-200 px-2"><x-heroicon-m-plus class="w-3 inline"/> Signup</a> --}}
                                             <a href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}" class="text-blue-600 dark:text-blue-200 px-2"><x-heroicon-m-pencil class="w-3 inline"/> Edit</a>
                                             <form action="{{ route('admin.events.shifts.duplicate', [$event, $shift]) }}" method="POST" class="inline">
                                                 @csrf

@@ -131,6 +131,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('events', EventController::class);
         Route::resource('events.shifts', ShiftController::class)->except(['show']);
         Route::post('events/{event}/shifts/{shift}/duplicate', [ShiftController::class, 'duplicate'])->name('events.shifts.duplicate');
+        Route::post('events/{event}/shifts/import', [ShiftController::class, 'importCsv'])->name('events.shifts.import');
         Route::delete('events/{event}/shifts/{shift}/remove-volunteer/{user}', [ShiftController::class, 'removeVolunteer'])->name('events.shifts.remove-volunteer');
         Route::get('/events/{event}/volunteers', [EventController::class, 'volunteerList'])->name('events.volunteers');
         Route::get('/events/{event}/agenda', [EventController::class, 'agendaView'])->name('events.agenda');
@@ -143,7 +144,9 @@ Route::middleware('auth')->group(function () {
         Route::get('events/{event}', [VolunteerEventController::class, 'show'])->name('events.show');
     });
 
+    
     // Shift Signups
+    Route::post('/shifts/{shift}/quick-add', [ShiftSignupController::class, 'storeByVolCode'])->name('shifts.quick-add');
     Route::post('/shifts/{shift}/signup', [ShiftSignupController::class, 'store'])->name('shifts.signup');
     Route::delete('/shifts/{shift}/signup', [ShiftSignupController::class, 'destroy'])->name('shifts.cancel');
 });

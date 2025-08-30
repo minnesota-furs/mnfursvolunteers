@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\GeneratesVolCode;
+
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,7 +13,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, GeneratesVolCode;
 
     /**
      * The attributes that are mass assignable.
@@ -181,5 +183,10 @@ class User extends Authenticatable
         $permissions = $this->permissions ?? [];
         $this->permissions = array_values(array_diff($permissions, [$permission]));
         $this->save();
+    }
+
+    public function getVolCodeAttribute($value)
+    {
+        return strtoupper($value);
     }
 }

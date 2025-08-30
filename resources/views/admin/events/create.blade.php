@@ -27,7 +27,7 @@
 
     <div class="py-6d">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <form method="POST" action="{{ isset($event) ? route('admin.events.update', $event) : route('admin.events.store') }}">
+            <form method="POST" id="main" action="{{ isset($event) ? route('admin.events.update', $event) : route('admin.events.store') }}">
                 @csrf
                 @if(isset($event))
                     @method('PUT')
@@ -108,7 +108,10 @@
                             <option value="unlisted" {{ old('visibility', $event->visibility ?? '') == 'unlisted' ? 'selected' : '' }}>Unlisted</option>
                             <option value="public" {{ old('visibility', $event->visibility ?? '') == 'public' ? 'selected' : '' }}>Public</option>
                         </x-select-input>
-                        <x-form-validation for="sector_id" />
+                        <x-form-validation for="visibility" />
+                        <p class="text-gray-500 text-sm mt-1">Public will show up on to everyone, including guests.</p>
+                        <p class="text-gray-500 text-sm mt-1">Unlisted lets you link it to people, but isn't organically discoverable.</p>
+                        <p class="text-gray-500 text-sm mt-1">Draft is just when you are working on it and don't want to publish it yet.</p>
                     </dd>
                 </div>
 
@@ -139,13 +142,31 @@
                 <div class="py-6 flex justify-end space-x-2">
                     <a type="submit" id="submit" href="{{ url()->previous() }}"
                         class="block rounded-md bg-gray-400 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400">Cancel</a>
-                    <button type="submit"
+                    <button type="submit" form="main"
                         class="block rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">
                         {{ isset($event) ? 'Update Event' : 'Create Event' }}
                     </button>
                 </div>
+                
             </form>
-            
+
+            @if(isset($event))
+                <h2 class="text-2xl font-semibold text-gray-900 mt-10 mb-4">Mass Shift Creation (Advanced)</h2>
+                <x-shifts.csv-example />
+                
+                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                    <dt class="text-sm font-medium leading-6 text-gray-900">CSV Import</dt>
+                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <form id="import" action="{{ route('admin.events.shifts.import', $event) }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <input class="text-sm p-1.5 text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                            type="file" name="csv_file" accept=".csv" required>
+                            <button type="submit" class="inline rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green" form="import">Import Shifts CSV</button>
+                        </form>
+                        <x-form-validation for="location" />
+                    </dd>
+                </div>
+                @endif
         </div>
     </div>
     <script>

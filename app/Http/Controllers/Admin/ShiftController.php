@@ -7,6 +7,9 @@ use App\Models\Event;
 use App\Models\Shift;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use League\Csv\Reader;
+use League\Csv\Statement;
 
 class ShiftController extends Controller
 {
@@ -142,5 +145,54 @@ class ShiftController extends Controller
             ->with('success', [
                 'message' => "<span class=\"text-brand-green\">{$user->name}</span> removed from shift",
             ]); 
+    }
+
+    public function importCsv(Request $request, Event $event)
+    {
+        \Log::debug('Importing CSV', ['event_id' => $event->id]);
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt',
+        ]);
+
+        $path = $request->file('csv_file')->getRealPath();
+
+        // Open with League\Csv (composer require league/csv if not present)
+        $csv = Reader::createFromPath($path, 'r');
+        $csv->setHeaderOffset(0); // use first row as header
+
+        $records = (new Statement())->process($csv);
+
+        $created = 0;
+        foreach ($records as $record) {
+            $validator = Validator::make($record, [
+                'name'       => 'required|string|max:255',
+                'start_time'  => 'required|date',
+                'end_time'    => 'required|date|after:start_time',
+                'max_volunteers'    => 'nullable|integer|min:1',
+                'description' => 'nullable|string',
+                'double_hours' => 'nullable|boolean',
+
+            ]);
+
+            if ($validator->fails()) {
+                \Log::debug('failed validation', $validator->errors()->toArray());
+                continue; // you could also collect errors to show later
+            }
+
+            $event->shifts()->create([
+                'name'       => $record['name'],
+                'start_time'  => $record['start_time'],
+                'end_time'    => $record['end_time'],
+                'max_volunteers'    => $record['max_volunteers'] ?? 1,
+                'description' => $record['description'] ?? null,
+                'double_hours' => isset($record['double_hours']) ? (bool)$record['double_hours'] : false,
+            ]);
+
+            $created++;
+        }
+
+        return redirect()->route('admin.events.shifts.index', $event)->with('success', [
+                'message' => "$created shifts imported successfully.",
+            ]);
     }
 }
