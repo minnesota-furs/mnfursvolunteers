@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Event;
+use App\Models\AuditLog;
 
 class EventController extends Controller
 {
@@ -23,6 +24,15 @@ class EventController extends Controller
     public function create()
     {
         return view('admin.events.create');
+    }
+    
+    public function log(Event $event)
+    {
+        $logs = AuditLog::where('auditable_type', Event::class)
+            ->where('auditable_id', $event->id)
+            ->latest()
+            ->paginate(20);
+        return view('admin.events.log', compact('event', 'logs'));
     }
 
     /**

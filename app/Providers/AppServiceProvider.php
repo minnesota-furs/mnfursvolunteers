@@ -3,6 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Models\User;
+use App\Models\Event;
+use App\Models\Shift;
+use App\Observers\AuditableObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        User::observe(AuditableObserver::class);
+        Event::observe(AuditableObserver::class);
+        Shift::observe(AuditableObserver::class);
     }
 }

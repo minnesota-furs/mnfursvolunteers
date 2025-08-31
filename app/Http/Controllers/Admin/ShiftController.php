@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Shift;
 use App\Models\User;
+use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use League\Csv\Reader;
@@ -141,6 +142,14 @@ class ShiftController extends Controller
     {
         $shift->users()->detach($user->id);
 
+        AuditLog::create([
+            'action'         => 'shift_volunteer_removed',
+            'auditable_type' => Event::class,
+            'auditable_id'   => $shift->event->id,
+            'comment'        => "User {$user->name} removed from {$shift->name} (ID: {$shift->id}) by " . auth()->user()->name,
+            'user_id'        => auth()->id(),
+        ]);
+
         return redirect()->back()
             ->with('success', [
                 'message' => "<span class=\"text-brand-green\">{$user->name}</span> removed from shift",
@@ -190,6 +199,14 @@ class ShiftController extends Controller
 
             $created++;
         }
+
+        AuditLog::create([
+            'action'         => 'csv_import',
+            'auditable_type' => Event::class,
+            'auditable_id'   => $event->id,
+            'comment'        => "User " . auth()->user()->name . " imported $created shifts from CSV",
+            'user_id'        => auth()->id(),
+        ]);
 
         return redirect()->route('admin.events.shifts.index', $event)->with('success', [
                 'message' => "$created shifts imported successfully.",

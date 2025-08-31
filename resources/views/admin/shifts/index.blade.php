@@ -12,6 +12,7 @@
         <x-tailwind-dropdown label="More" id=1>
             <div class="py-1" role="none">
                 <x-tailwind-dropdown-item href="{{route('admin.events.edit', $event->id)}}"><x-heroicon-o-pencil class="w-4 inline"/>  Edit Event</x-tailwind-dropdown-item>
+                <x-tailwind-dropdown-item href="{{route('admin.events.log', $event->id)}}" title="View Event Logs"><x-heroicon-o-list-bullet class="w-4 inline"/> View Logs</x-tailwind-dropdown-item>
             </div>
             <div class="py-1" role="none">
                 <x-tailwind-dropdown-item href="{{ route('admin.events.volunteers', $event) }}" title="View all unquie volunteers signed up and email actions">View All Volunteers / Email</x-tailwind-dropdown-item>
