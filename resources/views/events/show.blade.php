@@ -82,7 +82,7 @@
                             <svg viewBox="0 0 2 2" class="size-0.5 fill-current">
                                 <circle cx="1" cy="1" r="1" />
                             </svg>
-                            <p class="" title="{{$shift->users->pluck('name')->join(', ')}}">Signups: {{$shift->users->count()}} of {{ $shift->max_volunteers }}</p>
+                            <p class="visible sm:invisible" title="{{$shift->users->pluck('name')->join(', ')}}">Signups: {{$shift->users->count()}} of {{ $shift->max_volunteers }}</p>
                             @if($shift->double_hours)
                                 <svg viewBox="0 0 2 2" class="size-0.5 fill-current">
                                     <circle cx="1" cy="1" r="1" />
@@ -94,7 +94,7 @@
                             <p class="">{{ $shift->description ?? 'No description was provided for this slot/task.' }}</p>
                         </div>
                     </div>
-                    <div class="flex flex-none items-center gap-x-4">
+                    <div class="flex flex-none sm:flex-row items-center gap-x-4">
                         @if(\Carbon\Carbon::parse($shift->start_time)->isPast())
                             <span class="text-sm text-gray-400">This slot has past, and cannot be changed.</span>
                         @else
@@ -103,7 +103,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" 
-                                        class="hidden rounded-md bg-red-500 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-600 sm:block"
+                                        class="rounded-md bg-red-500 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-600 sm:block"
                                         onclick="return confirm('Are you sure you want to cancel your signup for {{$shift->name}}?')">Cancel Signup</button>
                                     </form>
                             @elseif($shift->users->count() < $shift->max_volunteers)
@@ -111,7 +111,7 @@
                                     <form action="{{ route('shifts.signup', $shift) }}" method="POST">
                                         @csrf
                                         <button type="submit"
-                                            class="hidden rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:block"
+                                            class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:block"
                                             onclick="return confirm('Are you sure you want to pickup the volunteer slot for {{$shift->name}}?')">
                                             Sign Up
                                         </button>

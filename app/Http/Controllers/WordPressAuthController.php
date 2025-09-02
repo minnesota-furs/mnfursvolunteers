@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Corcel\Model\User as WPUser;
-use App\Helpers\WordPressHasher;
+// use App\Helpers\WordPressHasher;
 
 class WordPressAuthController extends Controller
 {
@@ -29,8 +29,20 @@ class WordPressAuthController extends Controller
                         ->orWhere('user_email', $request->email)
                         ->first();
 
-        // If no WordPress user is found
-        if (!$wpUser || !WordPressHasher::check($request->password, $wpUser->user_pass)) {
+        if (!$wpUser) {
+            return back()->withErrors(['email' => 'Invalid MNFurs.org credentials']);
+        }
+
+        // Implemented workaround from https://github.com/corcel/corcel/issues/655#issuecomment-2818424369
+        if($wpUser !== null) {
+            if ( str_starts_with( $wpUser->user_pass, '$wp' ) ) {
+                // Check the password using the current prefixed hash.
+                $password_to_verify = base64_encode( hash_hmac( 'sha384', $request->password, 'wp-sha384', true ) );
+                $check              = password_verify( $password_to_verify, substr( $wpUser->user_pass, 3 ) );
+            }
+        }
+
+        if (!$check) {
             return back()->withErrors(['email' => 'Invalid MNFurs.org credentials']);
         }
 
