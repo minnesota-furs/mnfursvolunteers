@@ -46,7 +46,8 @@ class UserController extends Controller
                 $query->where('name', 'like', '%' . $search . '%') // Search by name
                     ->orWhere('first_name', 'like', '%' . $search . '%') // Search by first legal name
                     ->orWhere('last_name', 'like', '%' . $search . '%') // Search by last legal name
-                    ->orWhere('email', 'like', '%' . $search . '%'); // Search by email
+                    ->orWhere('email', 'like', '%' . $search . '%') // Search by email
+                    ->orWhere('vol_code', $search); // Search by volunteer code
             })
             ->when($sort === 'hours', function (Builder $query) use ($currentLedger, $direction) {
                 $query->withSum(['volunteerHours' => function ($q) use ($currentLedger) {

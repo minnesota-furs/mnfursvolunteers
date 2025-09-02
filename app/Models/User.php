@@ -189,4 +189,10 @@ class User extends Authenticatable
     {
         return strtoupper($value);
     }
+
+    // Attribute to get if user is volunteer or staff based on having any departments or not
+    public function getIsStaffAttribute(): bool
+    {
+        return $this->hasDept();
+    }
 }

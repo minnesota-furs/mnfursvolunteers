@@ -9,10 +9,12 @@
             class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-o-user class="w-4 inline" /> View Your Profile
         </a>
+        @if (Auth::user()->isStaff)
         <a href="{{ route('hours.create', Auth::user()->id) }}"
             class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-o-clock class="w-4 inline" /> Log New Hours
         </a>
+        @endif
     </x-slot>
 
     <x-slot name="postHeader">
@@ -28,6 +30,7 @@
                     <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
                         {{ floor(Auth::user()->totalVolunteerHours()) }}</dd>
                 </div>
+                @if (Auth::user()->isStaff)
                 <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
                     <dt class="truncate text-sm font-medium text-gray-500">Your Department(s)</dt>
                     @if (Auth::user()->hasDept())
@@ -45,6 +48,13 @@
                         <dd class="mt-1 text-xl font-semibold tracking-tight text-gray-300">No Department Assigned</dd>
                     @endif
                 </div>
+                @else
+                <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
+                    <dt class="truncate text-sm font-medium text-gray-500">Your Volunteer Code</dt>
+                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+                        {{Auth::user()->vol_code}}</dd>
+                </div>
+                @endif
             </dl>
 
             <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -71,20 +81,22 @@
                             <div class="mb-4">
                                 <h3 class="font-semibold text-lg">{{ $eventName }}</h3>
                                 <ul class="pl-4 list-disc text-sm">
-                                    @foreach ($shifts as $shift)
+                                    <!-- Limit to first 3 shifts -->
+                                    @foreach ($shifts->take(5) as $shift)
                                         <li>{{ $shift->name }} — {{ $shift->start_time->format('M j, g:i A') }}</li>
                                     @endforeach
+                                    @if ($shifts->count() > 3)
+                                        <li class="text-gray-500 italic">and {{ $shifts->count() - 5 }} more...</li>
+                                    @endif
                                 </ul>
                             </div>
                         @empty
                             <p class="text-gray-300">No upcoming volunteer slots.</p>
                         @endforelse
 
-                        <ul class="mb-6 list-disc">
-                            @foreach ($upcomingShifts as $shift)
-                                {{-- <li class="ml-6">{{ $shift->name }} ({{ $shift->start_time->format('M j, g:i A') }})</li> --}}
-                            @endforeach
-                        </ul>
+                        <div class="mt-4">
+                            <a href="{{ route('volunteer.events.index') }}" class="text-sm text-blue-600 hover:underline">View all your shifts</a>
+                        </div>
                     </dd>
                 </div>
             </dl>
