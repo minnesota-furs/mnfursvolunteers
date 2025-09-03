@@ -5,9 +5,13 @@
     </x-slot>
 
     <x-slot name="actions">
-        <a href="{{ route('volunteer.events.index') }}"
-            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+        <a href="{{route('volunteer.events.index')}}"
+            class="block rounded-md px-3 py-2 text-center text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             Back
+        </a>
+        <a href="{{ route('volunteer.events.my-shifts', $event) }}"
+            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            My Shift Summary
         </a>
     </x-slot>
 

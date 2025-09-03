@@ -74,8 +74,7 @@
                     </dd>
                 </div>
                 <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
-                    <dt class="text-xl font-bold mb-3 text-gray-500">Your Upcoming Volunteering
-                        ({{ $upcomingShifts->count() }})</dt>
+                    <dt class="text-xl font-bold mb-3 text-gray-500">Your Upcoming Volunteer Slots</dt>
                     <dd class="mt-1 tracking-tight text-gray-900">
                         @forelse($upcomingShifts as $eventName => $shifts)
                             <div class="mb-4">
@@ -83,9 +82,9 @@
                                 <ul class="pl-4 list-disc text-sm">
                                     <!-- Limit to first 3 shifts -->
                                     @foreach ($shifts->take(5) as $shift)
-                                        <li>{{ $shift->name }} — {{ $shift->start_time->format('M j, g:i A') }}</li>
+                                        <li>{{ $shift->name }} - {{ $shift->start_time->diffForHumans() }} ({{ $shift->start_time->format('M j, g:i A') }})</li>
                                     @endforeach
-                                    @if ($shifts->count() > 3)
+                                    @if ($shifts->count() > 5)
                                         <li class="text-gray-500 italic">and {{ $shifts->count() - 5 }} more...</li>
                                     @endif
                                 </ul>
@@ -95,7 +94,7 @@
                         @endforelse
 
                         <div class="mt-4">
-                            <a href="{{ route('volunteer.events.index') }}" class="text-sm text-blue-600 hover:underline">View all your shifts</a>
+                            <a href="{{ route('volunteer.events.index') }}" class="text-sm text-blue-600 hover:underline">View Volunteer Opportunities</a>
                         </div>
                     </dd>
                 </div>

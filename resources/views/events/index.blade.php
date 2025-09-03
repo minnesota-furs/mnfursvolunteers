@@ -62,8 +62,9 @@
                                             <div>{{ $event->end_date->format('M j, Y') ?? '-' }}</div>
                                             <div>{{ $event->end_date->format('g:i A') }}</div>
                                         </td>
-                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            <a href="{{ route('volunteer.events.show', $event) }}" class="text-blue-600 hover:underline mt-2 inline-block">View Shifts</a>
+                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0 flex flex-col items-end">
+                                            <a href="{{ route('volunteer.events.show', $event) }}" class="text-blue-600 hover:underline mt-2 inline-block"><x-heroicon-s-magnifying-glass class="w-4 inline mr-1"/>Available Slots</a>
+                                            <a href="{{ route('volunteer.events.my-shifts', $event) }}" class="text-blue-600 hover:underline mt-2 inline-block"><x-heroicon-s-user class="w-4 inline mr-1"/>My Summary</a>
                                         </td>
                                     </tr>
                                     @empty
@@ -84,7 +85,7 @@
             <div class="px-4 sm:px-6 lg:px-8 pt-12">
                 <div class="sm:flex sm:items-center">
                     <div class="sm:flex-auto">
-                        <h1 class="text-base font-semibold leading-6 text-gray-900">Past </h1>
+                        <h1 class="text-base font-semibold leading-6 text-gray-900">Past</h1>
                     </div>
                 </div>
                 <div class="flow-root">

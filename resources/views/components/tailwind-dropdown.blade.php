@@ -18,7 +18,7 @@
 
 <script>
     // Store reference to open dropdown
-    let currentOpenDropdown = null;
+    var currentOpenDropdown = null;
 
     function openMenu(id) {
         const dropdownMenu = document.getElementById('optDropdown' + id);

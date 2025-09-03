@@ -37,4 +37,9 @@ class Shift extends Model
                 
         return $this->belongsToMany(User::class, 'shift_signups')->withTimestamps();
     }
+
+    public function durationInHours(): float
+    {
+        return $this->end_time->floatDiffInHours($this->start_time);
+    }
 }

@@ -47,4 +47,30 @@ class VolunteerEventController extends Controller
             'userShifts' => $userShifts,
         ]);
     }
+
+    public function myShifts(Event $event)
+    {
+        $user = auth()->user();
+
+        // Get all shifts for this event the user signed up for
+        $shifts = $event->shifts()
+            ->whereHas('users', fn ($q) => $q->where('users.id', $user->id))
+            ->orderBy('start_time')
+            ->get();
+
+        $futureShifts = $event->shifts()
+            ->whereHas('users', fn ($q) => $q->where('users.id', $user->id))
+            ->where('start_time', '>=', now()) // Only future shifts
+            ->orderBy('start_time')
+            ->get();
+
+        // Add up hours across all shifts
+        $totalVolunteerHours = $shifts->sum(function ($shift) {
+            return $shift->durationInHours();
+        });
+
+        $shiftsRemaining = $shifts->filter(fn($shift) => $shift->start_time->isFuture())->count();
+
+        return view('events.my-shifts', compact('event', 'shifts', 'futureShifts', 'totalVolunteerHours', 'shiftsRemaining'));
+    }
 }

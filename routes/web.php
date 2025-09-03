@@ -143,6 +143,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('volunteer')->name('volunteer.')->group(function () {
         Route::get('events', [VolunteerEventController::class, 'index'])->name('events.index');
         Route::get('events/{event}', [VolunteerEventController::class, 'show'])->name('events.show');
+        Route::get('events/{event}/my-shifts', [VolunteerEventController::class, 'myShifts'])->name('events.my-shifts');
     });
 
     
