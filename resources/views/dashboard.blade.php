@@ -95,6 +95,7 @@
 
                         <div class="mt-4">
                             <a href="{{ route('volunteer.events.index') }}" class="text-sm text-blue-600 hover:underline">View Volunteer Opportunities</a>
+                            <a href="{{ route('volunteer.events.my-shifts-all') }}" class="ml-4 text-sm text-blue-600 hover:underline">View Full Itinerary</a>
                         </div>
                     </dd>
                 </div>

@@ -66,11 +66,33 @@ class VolunteerEventController extends Controller
 
         // Add up hours across all shifts
         $totalVolunteerHours = $shifts->sum(function ($shift) {
-            return $shift->durationInHours();
+            return $shift->double_hours ? $shift->durationInHours() * 2 : $shift->durationInHours();
         });
 
         $shiftsRemaining = $shifts->filter(fn($shift) => $shift->start_time->isFuture())->count();
 
         return view('events.my-shifts', compact('event', 'shifts', 'futureShifts', 'totalVolunteerHours', 'shiftsRemaining'));
+    }
+
+    public function myShiftsAll()
+    {
+        $user = auth()->user();
+
+        // Eager load event for each shift
+        $shifts = $user->shifts()
+            ->with('event')
+            ->orderBy('start_time')
+            ->get();
+
+        $futureShifts = $shifts->filter(fn($shift) => $shift->start_time->isFuture());
+
+        // Add up hours across all shifts and double the shifts that have double_hours set
+        $totalVolunteerHours = $shifts->sum(function ($shift) {
+            return $shift->double_hours ? $shift->durationInHours() * 2 : $shift->durationInHours();
+        });
+
+        $shiftsRemaining = $shifts->filter(fn($shift) => $shift->start_time->isFuture())->count();
+
+        return view('events.my-shifts-all', compact('shifts', 'futureShifts', 'totalVolunteerHours', 'shiftsRemaining'));
     }
 }

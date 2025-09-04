@@ -4,14 +4,12 @@
         {{ __('Events') }}
     </x-slot>
 
-    {{-- <x-slot name="actions">
-        @if( Auth::user()->isAdmin() )
-            <a href="{{route('admin.events.create')}}"
-                class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                <x-heroicon-s-plus class="w-4 inline"/> Create New Event
-            </a>
-        @endif
-    </x-slot> --}}
+    <x-slot name="actions">
+        <a href="{{route('volunteer.events.my-shifts-all')}}"
+            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <x-heroicon-s-list-bullet class="w-4 inline"/> View Full Itinerary
+        </a>
+    </x-slot>
 
     <div class="">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">

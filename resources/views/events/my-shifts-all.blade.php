@@ -1,18 +1,16 @@
 <x-app-layout>
-    @section('title', 'Event Summary - My Shifts for ' . $event->name)
+    @section('title', 'Event Summary - All My Shifts')
     <x-slot name="header">
-        My Volunteer Summary for {{ $event->name }}
+        My Volunteer Summary all slots
     </x-slot>
 
     <x-slot name="actions">
-        <a href="{{route('volunteer.events.show', $event)}}"
-            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-            View/Manage Slots
-        </a>
-        <a href="{{route('volunteer.events.my-shifts-all')}}"
-            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-            <x-heroicon-s-list-bullet class="w-4 inline"/> View All
-        </a>
+        @if( Auth::user()->isAdmin() )
+            <a href="{{route('volunteer.events.index')}}"
+                class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                View Volunteer Events
+            </a>
+        @endif
     </x-slot>
 
     <x-slot name="postHeader">
@@ -26,7 +24,7 @@
                     <dt class="truncate text-sm font-medium text-gray-500">Volunteer Opportunities Left</dt>
                     <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{ $shiftsRemaining }}</dd>
                 </div>
-                <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6" title="Double hours counted as double">
+                <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6" title="Total hours across all shifts, double hours counted as double">
                     <dt class="truncate text-sm font-medium text-gray-500">Total Volunteer Net Hours</dt>
                     <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{ $totalVolunteerHours }} hours</dd>
                     @if($totalVolunteerHours >= 10)
@@ -47,6 +45,7 @@
                         <time datetime="{{ $shift->start_time }}" class="w-28 flex-none">{{ $shift->start_time->format('D, M j') }}</time>
                         <div class="w-full">
                             <p class="mt-2 flex-auto font-semibold text-gray-900 sm:mt-0 dark:text-white">{{ $shift->name }}</p>
+                            <p class="text-xs italic text-gray-400"><a href="{{ route('volunteer.events.show', $shift->event) }}" class="hover:underline">{{ $shift->event->name }}</a></p>
                             <p class="text-xs">{{ $shift->description }}</p>
                             {{-- <form action="{{ route('shifts.cancel', $shift) }}" method="POST">
                                 @csrf
