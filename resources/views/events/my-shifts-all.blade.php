@@ -104,10 +104,10 @@
                                                     @foreach($otherVolunteers->take(3) as $volunteer)
                                                         <div class="flex items-center text-xs">
                                                             <div class="w-5 h-5 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-200 mr-2">
-                                                                {{ strtoupper(substr($volunteer->first_name, 0, 1)) }}{{ strtoupper(substr($volunteer->last_name, 0, 1)) }}
+                                                                {{ strtoupper(substr($volunteer->name ?? 'M', 0, 1)) }}
                                                             </div>
                                                             <span class="text-gray-700 dark:text-gray-300">
-                                                                {{ $volunteer->first_name }} {{ $volunteer->last_name }}
+                                                                {{ $volunteer->name ?? 'NoName?' }}
                                                             </span>
                                                         </div>
                                                     @endforeach

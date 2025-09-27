@@ -246,7 +246,7 @@
                                                         </div>
                                                         
                                                         <div class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                                            {{ $candidate->user->email }}
+                                                            
                                                             @if($candidate->user->primaryDepartment)
                                                                 • {{ $candidate->user->primaryDepartment->name }}
                                                             @endif
@@ -344,7 +344,6 @@
                                                 </div>
                                                 
                                                 <div class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                                    {{ $candidate->user->email }}
                                                     @if($candidate->user->primaryDepartment)
                                                         • {{ $candidate->user->primaryDepartment->name }}
                                                     @endif
@@ -382,7 +381,7 @@
                                                 </div>
                                                 
                                                 <div class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                                    {{ $candidate->user->email }}
+                                                    
                                                     @if($candidate->user->primaryDepartment)
                                                         • {{ $candidate->user->primaryDepartment->name }}
                                                     @endif
