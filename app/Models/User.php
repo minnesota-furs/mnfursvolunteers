@@ -195,4 +195,14 @@ class User extends Authenticatable
     {
         return $this->hasDept();
     }
+
+    /**
+     * Get volunteer hours for the current fiscal year (alias for totalHoursForCurrentFiscalLedger)
+     *
+     * @return float
+     */
+    public function getCurrentFiscalYearHours()
+    {
+        return $this->totalHoursForCurrentFiscalLedger();
+    }
 }

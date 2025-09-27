@@ -21,6 +21,10 @@ return [
         'label' => 'Manage Events',
         'description' => 'Manage events and one-off events.',
     ],
+    'manage-elections' => [
+        'label' => 'Manage Elections',
+        'description' => 'Create, edit, and manage board elections and view results.',
+    ],
 ];
 
 

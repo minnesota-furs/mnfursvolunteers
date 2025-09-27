@@ -57,6 +57,70 @@
                 @endif
             </dl>
 
+            @if($activeElections->count() > 0)
+            <div class="mt-5">
+                <div class="overflow-hidden rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 px-4 py-5 shadow-lg sm:p-6">
+                    <h3 class="text-xl font-bold mb-3 text-blue-800 flex items-center">
+                        <x-heroicon-o-check-badge class="w-6 h-6 mr-2" />
+                        Active Elections ({{ $activeElections->count() }})
+                    </h3>
+                    <div class="space-y-4">
+                        @foreach($activeElections as $election)
+                        <div class="bg-white p-4 rounded-lg border border-blue-100">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-semibold text-lg text-gray-900">{{ $election->name }}</h4>
+                                    @if($election->description)
+                                        <div class="text-gray-600 mt-1 prose prose-sm max-w-none">
+                                            {!! $election->parsedDescription !!}
+                                        </div>
+                                    @endif
+                                    
+                                    @php
+                                        $now = now();
+                                        $isNominationPeriod = $election->nomination_start_date && $now >= $election->nomination_start_date && $now <= $election->nomination_end_date;
+                                        $isVotingPeriod = $now >= $election->start_date && $now <= $election->end_date;
+                                    @endphp
+                                    
+                                    <div class="mt-2 flex items-center space-x-4 text-sm">
+                                        @if($isNominationPeriod)
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                Nomination Period
+                                            </span>
+                                            <span class="text-gray-500">
+                                                Ends {{ $election->nomination_end_date->format('M j, Y g:i A') }}
+                                            </span>
+                                        @elseif($isVotingPeriod)
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Voting Open
+                                            </span>
+                                            <span class="text-gray-500">
+                                                Ends {{ $election->end_date->format('M j, Y g:i A') }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                                
+                                <div class="text-right">
+                                    <a href="{{ route('elections.show', $election) }}" 
+                                       class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        @if($isNominationPeriod)
+                                            View Nominations
+                                        @elseif($isVotingPeriod)
+                                            Vote Now
+                                        @else
+                                            View Election
+                                        @endif
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
                     <dt class="text-xl font-bold mb-3 text-gray-500">Upcoming Volunteer Events
