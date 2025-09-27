@@ -39,45 +39,123 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <section class="">
                 <h2 class="text-base font-semibold text-gray-900 dark:text-white">Upcoming Volunteer Slots</h2>
-                <ol class="mt-2 divide-y divide-gray-200 text-sm/6 text-gray-500 dark:divide-white/10 dark:text-gray-400">
-                    @forelse($futureShifts as $shift)
-                    <li class="py-4 sm:flex justify-between items-center">
-                        <time datetime="{{ $shift->start_time }}" class="w-28 flex-none">{{ $shift->start_time->format('D, M j') }}</time>
-                        <div class="w-full">
-                            <p class="mt-2 flex-auto font-semibold text-gray-900 sm:mt-0 dark:text-white">{{ $shift->name }}</p>
-                            <p class="text-xs italic text-gray-400"><a href="{{ route('volunteer.events.show', $shift->event) }}" class="hover:underline">{{ $shift->event->name }}</a></p>
-                            <p class="text-xs">{{ $shift->description }}</p>
-                            {{-- <form action="{{ route('shifts.cancel', $shift) }}" method="POST">
-                                @csrf
-                                @method('DELETE')
-                                    <button type="submit" 
-                                    class="text-red-600 hover:underline inline-block text-xs"
-                                    onclick="return confirm('Are you sure you want to cancel your signup for {{$shift->name}}?')">Drop Commitment</button>
-                            </form> --}}
+                
+                @forelse($futureShifts as $shift)
+                    <div class="mt-4 bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <!-- Date Column -->
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex flex-col">
+                                            <time datetime="{{ $shift->start_time }}" class="text-sm font-medium text-gray-900 dark:text-white">
+                                                {{ $shift->start_time->format('D, M j') }}
+                                            </time>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ $shift->start_time->diffForHumans() }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    
+                                    <!-- Shift Details Column -->
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-col">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $shift->name }}</span>
+                                                @if($shift->double_hours)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                                                        <x-heroicon-s-star class="w-3 h-3 mr-1" />
+                                                        Double Hours
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <p class="text-xs italic text-gray-400 mb-1">
+                                                <a href="{{ route('volunteer.events.show', $shift->event) }}" class="hover:underline">{{ $shift->event->name }}</a>
+                                            </p>
+                                            @if($shift->description)
+                                                <p class="text-xs text-gray-600 dark:text-gray-300 mb-2">{{ $shift->description }}</p>
+                                            @endif
+                                            <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                                                <span>
+                                                    <x-heroicon-s-clock class="w-3 h-3 inline mr-1" />
+                                                    {{ $shift->start_time->format('g:i A') }} - {{ $shift->end_time->format('g:i A') }}
+                                                </span>
+                                                <span>{{ $shift->durationInHours() }} {{ Str::plural('hour', $shift->durationInHours()) }}</span>
+                                                @if($shift->max_volunteers)
+                                                    <span>{{ $shift->users->count() }}/{{ $shift->max_volunteers }} volunteers</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+                                    
+                                    <!-- Teammates Column -->
+                                    <td class="px-6 py-4 w-48">
+                                        <div class="flex flex-col">
+                                            <span class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                <x-heroicon-s-users class="w-3 h-3 inline mr-1" />
+                                                Teammates
+                                            </span>
+                                            @php
+                                                $otherVolunteers = $shift->users->where('id', '!=', auth()->id());
+                                            @endphp
+                                            
+                                            @if($otherVolunteers->count() > 0)
+                                                <div class="space-y-1">
+                                                    @foreach($otherVolunteers->take(3) as $volunteer)
+                                                        <div class="flex items-center text-xs">
+                                                            <div class="w-5 h-5 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-200 mr-2">
+                                                                {{ strtoupper(substr($volunteer->first_name, 0, 1)) }}{{ strtoupper(substr($volunteer->last_name, 0, 1)) }}
+                                                            </div>
+                                                            <span class="text-gray-700 dark:text-gray-300">
+                                                                {{ $volunteer->first_name }} {{ $volunteer->last_name }}
+                                                            </span>
+                                                        </div>
+                                                    @endforeach
+                                                    @if($otherVolunteers->count() > 3)
+                                                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                            +{{ $otherVolunteers->count() - 3 }} more
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <span class="text-xs text-gray-500 dark:text-gray-400 italic">
+                                                    Solo shift
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    
+                                    <!-- Actions Column -->
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <x-tailwind-dropdown buttonClass="dropdown-link text-blue-800" label="Manage" id="{{ $shift->id }}">
+                                            <div class="py-1" role="none">
+                                                <form action="{{ route('shifts.cancel', $shift) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" 
+                                                        class="text-red-600 block px-4 py-2 text-sm text-gray-700"
+                                                        onclick="return confirm('Are you sure you want to cancel your signup for {{$shift->name}}?')">
+                                                        <x-heroicon-m-trash class="w-4 inline mb-1" /> Drop Volunteer Slot
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </x-tailwind-dropdown>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                @empty
+                    <div class="mt-4 bg-white dark:bg-gray-800 shadow-sm rounded-lg px-6 py-8 text-center">
+                        <span class="font-semibold text-gray-900 dark:text-white">No shifts signed up.</span>
+                        <div class="mt-2">
+                            <a href="{{route('volunteer.events.index')}}" 
+                               class="text-blue-600 hover:text-blue-800 text-sm">
+                                Browse available events →
+                            </a>
                         </div>
-                        <p class="flex-none sm:ml-6">
-                            {{$shift->start_time->diffForHumans()}} •
-                            <time datetime="{{ $shift->start_time }}">{{ $shift->start_time->format('g:i A') }}</time> - <time datetime="{{ $shift->end_time }}">{{ $shift->end_time->format('g:i A') }}</time> • 
-                            {{-- {{ $shift->durationInHours() }} {{ Str::plural('hour', $shift->durationInHours()) }} --}}
-                            <x-tailwind-dropdown buttonClass="dropdown-link text-blue-800" label="Manage" id="{{ $shift->id }}">
-                                <div class="py-1" role="none">
-                                    <form action="{{ route('shifts.cancel', $shift) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                        <button type="submit" 
-                                        class="text-red-600 block px-4 py-2 text-sm text-gray-700"
-                                        onclick="return confirm('Are you sure you want to cancel your signup for {{$shift->name}}?')"><x-heroicon-m-trash class="w-4 inline mb-1" /> Drop Volunteer Slot</button>
-                                </form>
-                            </div>
-                        </x-tailwind-dropdown>
-                        </p>
-                    </li>
-                    @empty
-                    <li class="py-4">
-                        <p class="mt-2 flex-auto sm:mt-0"><span class="font-semibold">No shifts signed up.</span></p>
-                    </li>
-                    @endforelse
-                </ol>
+                    </div>
+                @endforelse
             </section>
         </div>
     </div>

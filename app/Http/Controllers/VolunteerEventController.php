@@ -54,11 +54,13 @@ class VolunteerEventController extends Controller
 
         // Get all shifts for this event the user signed up for
         $shifts = $event->shifts()
+            ->with('users:id,first_name,last_name,vol_code') // Eager load volunteers
             ->whereHas('users', fn ($q) => $q->where('users.id', $user->id))
             ->orderBy('start_time')
             ->get();
 
         $futureShifts = $event->shifts()
+            ->with('users:id,first_name,last_name,vol_code') // Eager load volunteers
             ->whereHas('users', fn ($q) => $q->where('users.id', $user->id))
             ->where('start_time', '>=', now()) // Only future shifts
             ->orderBy('start_time')
@@ -78,9 +80,9 @@ class VolunteerEventController extends Controller
     {
         $user = auth()->user();
 
-        // Eager load event for each shift
+        // Eager load event and volunteers for each shift
         $shifts = $user->shifts()
-            ->with('event')
+            ->with(['event', 'users:id,first_name,last_name,vol_code'])
             ->orderBy('start_time')
             ->get();
 
