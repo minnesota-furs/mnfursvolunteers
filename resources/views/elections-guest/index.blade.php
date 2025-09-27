@@ -14,17 +14,17 @@
             <div class="mx-auto max-w-2xl gap-x-14 lg:mx-0 lg:max-w-none lg:items-center">
                 <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 py-6">
                     @forelse($elections as $election)
-                    <div class="mb-8 bg-white shadow sm:rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div class="mb-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200">
                         <div class="px-6 py-6">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-3 mb-3">
-                                        <h2 class="text-xl font-semibold text-gray-900">
-                                            <a href="{{route('elections-public.show', $election)}}" class="hover:text-blue-700">{{ $election->title }}</a>
+                                        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                                            <a href="{{route('elections-public.show', $election)}}" class="hover:text-blue-700 dark:hover:text-blue-400">{{ $election->title }}</a>
                                         </h2>
                                         
                                         @if($election->isVotingPeriod())
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
                                                 Voting Open
                                             </span>
                                         @elseif($election->isNominationPeriod())

@@ -6,12 +6,12 @@
     
     <x-slot name="actions">
         <a href="{{ route('users.show', Auth::user()->id) }}"
-            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-o-user class="w-4 inline" /> View Your Profile
         </a>
         @if (Auth::user()->isStaff)
         <a href="{{ route('hours.create', Auth::user()->id) }}"
-            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-o-clock class="w-4 inline" /> Log New Hours
         </a>
         @endif
@@ -20,22 +20,22 @@
     <x-slot name="postHeader">
         <div>
             <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-                <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
-                    <dt class="truncate text-sm font-medium text-gray-500">Your Hours This Year</dt>
-                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+                <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow-lg sm:p-6">
+                    <dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Your Hours This Year</dt>
+                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
                         {{ format_hours(Auth::user()->totalHoursForCurrentFiscalLedger()) }}</dd>
                 </div>
-                <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
-                    <dt class="truncate text-sm font-medium text-gray-500">Your Lifetime Hours</dt>
-                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+                <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow-lg sm:p-6">
+                    <dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Your Lifetime Hours</dt>
+                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
                         {{ floor(Auth::user()->totalVolunteerHours()) }}</dd>
                 </div>
                 @if (Auth::user()->isStaff)
-                <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
-                    <dt class="truncate text-sm font-medium text-gray-500">Your Department(s)</dt>
+                <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow-lg sm:p-6">
+                    <dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Your Department(s)</dt>
                     @if (Auth::user()->hasDept())
                         {{-- <dd class="mt-1 text-2xl font-semibold tracking-tight text-gray-900">{{Auth::user()->department->name ?? 'NO_DEPARTMENT'}} for {{Auth::user()->sector->name ?? 'NO_SECTOR'}}</dd> --}}
-                        <dd class="mt-1 text-2xl tracking-tight text-gray-900">
+                        <dd class="mt-1 text-2xl tracking-tight text-gray-900 dark:text-gray-100">
                             @foreach (Auth::user()->departments as $department)
                                 <span class="font-semibold">{{ $department->name }}</span> for <span
                                     class="font-semibold">{{ $department->sector->name }}</span>
@@ -45,13 +45,13 @@
                             @endforeach
                         </dd>
                     @else
-                        <dd class="mt-1 text-xl font-semibold tracking-tight text-gray-300">No Department Assigned</dd>
+                        <dd class="mt-1 text-xl font-semibold tracking-tight text-gray-300 dark:text-gray-500">No Department Assigned</dd>
                     @endif
                 </div>
                 @else
-                <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
-                    <dt class="truncate text-sm font-medium text-gray-500">Your Volunteer Code</dt>
-                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+                <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow-lg sm:p-6">
+                    <dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Your Volunteer Code</dt>
+                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
                         {{Auth::user()->vol_code}}</dd>
                 </div>
                 @endif
@@ -59,19 +59,19 @@
 
             @if($activeElections->count() > 0)
             <div class="mt-5">
-                <div class="overflow-hidden rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 px-4 py-5 shadow-lg sm:p-6">
-                    <h3 class="text-xl font-bold mb-3 text-blue-800 flex items-center">
+                <div class="overflow-hidden rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900 border-2 border-blue-200 dark:border-blue-700 px-4 py-5 shadow-lg sm:p-6">
+                    <h3 class="text-xl font-bold mb-3 text-blue-800 dark:text-blue-200 flex items-center">
                         <x-heroicon-o-check-badge class="w-6 h-6 mr-2" />
                         Active Elections ({{ $activeElections->count() }})
                     </h3>
                     <div class="space-y-4">
                         @foreach($activeElections as $election)
-                        <div class="bg-white p-4 rounded-lg border border-blue-100">
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-blue-100 dark:border-blue-700">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <h4 class="font-semibold text-lg text-gray-900">{{ $election->name }}</h4>
+                                    <h4 class="font-semibold text-lg text-gray-900 dark:text-gray-100">{{ $election->name }}</h4>
                                     @if($election->description)
-                                        <div class="text-gray-600 mt-1 prose prose-sm max-w-none">
+                                        <div class="text-gray-600 dark:text-gray-300 mt-1 prose prose-sm max-w-none">
                                             {!! $election->parsedDescription !!}
                                         </div>
                                     @endif
@@ -84,17 +84,17 @@
                                     
                                     <div class="mt-2 flex items-center space-x-4 text-sm">
                                         @if($isNominationPeriod)
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
                                                 Nomination Period
                                             </span>
-                                            <span class="text-gray-500">
+                                            <span class="text-gray-500 dark:text-gray-400">
                                                 Ends {{ $election->nomination_end_date->format('M j, Y g:i A') }}
                                             </span>
                                         @elseif($isVotingPeriod)
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
                                                 Voting Open
                                             </span>
-                                            <span class="text-gray-500">
+                                            <span class="text-gray-500 dark:text-gray-400">
                                                 Ends {{ $election->end_date->format('M j, Y g:i A') }}
                                             </span>
                                         @endif

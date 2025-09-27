@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="h-full bg-gray-100" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html class="h-full bg-gray-100 dark:bg-gray-900" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="utf-8">
@@ -113,7 +113,7 @@
             From: "opacity-100"
             To: "opacity-0"
         -->
-        <div class="pointer-events-auto w-full max-w-sm rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+        <div class="pointer-events-auto w-full max-w-sm rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-gray-600">
             <div class="p-4">
             <div class="flex items-start">
                 <div class="flex-shrink-0">
@@ -122,16 +122,16 @@
                 </svg>
                 </div>
                 <div class="ml-3 w-0 flex-1 pt-0.5">
-                <p class="text-sm font-medium text-gray-900">Operation Complete!</p>
-                <p class="mt-1 text-sm text-gray-500">{!! session('success')['message'] !!}</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Operation Complete!</p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-300">{!! session('success')['message'] !!}</p>
                 @if(isset(session('success')['action_text']) && isset(session('success')['action_url']))
-                    <a href="{{ session('success')['action_url'] }}" class="mt-1 text-sm text-blue-500">
+                    <a href="{{ session('success')['action_url'] }}" class="mt-1 text-sm text-blue-500 dark:text-blue-400">
                         {{ session('success')['action_text'] }}
                     </a>
                 @endif
                 </div>
                 <div class="ml-4 flex flex-shrink-0">
-                <button type="button" onclick="closeToastNow()" class="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <button type="button" onclick="closeToastNow()" class="inline-flex rounded-md bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                     <span class="sr-only">Close</span>
                     <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />

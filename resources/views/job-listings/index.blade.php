@@ -7,12 +7,12 @@
     <x-slot name="actions">
       @can('manage-job-listings')
         <button
-          class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           x-data=""
           x-on:click.prevent="$dispatch('open-modal', 'show-trashed')">
           <x-heroicon-o-trash class="w-4 inline"/> Show Trash</button>
         <a href="{{route('job-listings.create')}}"
-            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-o-plus class="w-4 inline"/> Create New Listing
         </a>
       @endcan
@@ -21,12 +21,12 @@
     <div class="">
       <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-            <h1 class="text-base font-semibold leading-6 text-gray-900">Departments</h1>
+            <h1 class="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100">Departments</h1>
         </div>
         <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
             <form method="GET" action="{{ route('job-listings.index') }}" class="mb-4">
                 <div class="flex items-center gap-2">
-                    <label for="sector" class="text-sm font-medium text-gray-700">Filter by Sector:</label>
+                    <label for="sector" class="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by Sector:</label>
                     <select name="sector" id="sector" class="border rounded-md px-3 py-2 text-xs">
                         <option value="">All Sectors</option>
                         @foreach ($sectors as $sector)
@@ -77,7 +77,7 @@
                   </div>
                   <div class="flex flex-none items-center gap-x-4">
                     @if($listing->visibility == 'draft' && Auth::user()->isAdmin())
-                      <a href="{{route('job-listings.edit', $listing->id)}}" class="hidden rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:block"><x-heroicon-o-pencil class="w-3 inline"/> Edit Draft</a>
+                      <a href="{{route('job-listings.edit', $listing->id)}}" class="hidden rounded-md bg-white dark:bg-gray-800 px-2.5 py-1.5 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 sm:block"><x-heroicon-o-pencil class="w-3 inline"/> Edit Draft</a>
                     @endif
                     <a href="{{route('job-listings.show', $listing->id)}}" class="hidden rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:block">View Position</a>
                     {{-- <div class="relative flex-none">

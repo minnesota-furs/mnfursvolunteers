@@ -1,7 +1,11 @@
 <x-guestv2-layout
   title="{{ $election->title }} - Board Elections - MNFurs"
   ogTitle="{{ $election->title }} - MNFurs Board Elections"
-  ogDescription="{{ strip_tags($election->parsedDescription) }}"
+  ogDes            <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-6">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Nominations</h2>     <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-6">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Candidates</h2>ption="{{ strip_tags($election->parsedDescription) }}"
   ogImage="{{URL('/images/dashboard/image2.jpg')}}"
   ogUrl="{{ url()->current() }}"
   ogType="article"
@@ -39,22 +43,22 @@
             </div>
             
             @if($election->description)
-                <div class="prose prose-lg max-w-none text-gray-600 mb-8">
+                <div class="prose prose-lg max-w-none text-gray-600 dark:text-gray-300 mb-8">
                     {!! $election->parsedDescription !!}
                 </div>
             @endif
           </div>
 
           <!-- Election Details -->
-          <div class="bg-white shadow sm:rounded-lg border border-gray-200 mb-8">
+          <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg border border-gray-200 dark:border-gray-700 mb-8">
             <div class="px-6 py-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Election Information</h2>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Election Information</h2>
                 
                 <dl class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     @if($election->hasNominationPeriod())
                     <div>
-                        <dt class="text-sm font-medium text-gray-500">Nomination Period</dt>
-                        <dd class="mt-1 text-sm text-gray-900">
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Nomination Period</dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
                             {{ $election->nomination_start_date->format('M j, Y g:i A') }}<br>
                             to {{ $election->nomination_end_date->format('M j, Y g:i A') }}
                         </dd>
