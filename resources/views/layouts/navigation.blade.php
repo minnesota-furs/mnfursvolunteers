@@ -27,6 +27,28 @@
                     <x-nav-link :href="route('volunteer.events.index')" :active="request()->routeIs('volunteer.events.*')">
                         {{ __('Events') }}
                     </x-nav-link>
+
+                    @php
+                        $activeElections = \App\Models\Election::where('active', true)
+                            ->where(function($query) {
+                                // Show if voting is active
+                                $query->where(function($q) {
+                                    $q->where('start_date', '<=', now())
+                                      ->where('end_date', '>=', now());
+                                })
+                                // OR if nominations are active
+                                ->orWhere(function($q) {
+                                    $q->where('nomination_start_date', '<=', now())
+                                      ->where('nomination_end_date', '>=', now());
+                                });
+                            })
+                            ->exists();
+                    @endphp
+                    @if($activeElections)
+                        <x-nav-link :href="route('elections.index')" :active="request()->routeIs('elections.*')">
+                            {{ __('Elections') }}
+                        </x-nav-link>
+                    @endif
                     
                     {{-- <x-nav-link :href="route('orgchart')" :active="request()->routeIs('orgchart')">
                         {{ __('Org Chart') }} (Test)
@@ -67,7 +89,13 @@
                             </x-dropdown-link> --}} 
                             @can('manage-volunteer-events')
                             <x-dropdown-link :href="route('admin.events.index')">
-                                {{ __('Manage Events') }}
+                                {{ __('Volunteer Events') }}
+                            </x-dropdown-link>
+                            @endcan
+
+                            @can('manage-elections')
+                            <x-dropdown-link :href="route('admin.elections.index')">
+                                {{ __('Elections') }}
                             </x-dropdown-link>
                             @endcan
 
@@ -171,6 +199,29 @@
             <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                 {{ __('Users') }}
             </x-responsive-nav-link>
+            
+            @php
+                $activeElections = \App\Models\Election::where('active', true)
+                    ->where(function($query) {
+                        // Show if voting is active
+                        $query->where(function($q) {
+                            $q->where('start_date', '<=', now())
+                              ->where('end_date', '>=', now());
+                        })
+                        // OR if nominations are active
+                        ->orWhere(function($q) {
+                            $q->where('nomination_start_date', '<=', now())
+                              ->where('nomination_end_date', '>=', now());
+                        });
+                    })
+                    ->exists();
+            @endphp
+            @if($activeElections)
+                <x-responsive-nav-link :href="route('elections.index')" :active="request()->routeIs('elections.*')">
+                    {{ __('Elections') }}
+                </x-responsive-nav-link>
+            @endif
+            
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('logging.*')">
                 {{ __('Logging') }}
             </x-responsive-nav-link>

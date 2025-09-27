@@ -17,6 +17,7 @@ use App\Http\Controllers\OneOffEventController;
 use App\Http\Controllers\Volunteer\ShiftSignupController;
 use App\Http\Controllers\Admin\ShiftController;
 use App\Http\Controllers\Admin\EventController;
+use App\Http\Controllers\ElectionController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -153,6 +154,28 @@ Route::middleware('auth')->group(function () {
     Route::post('/shifts/{shift}/quick-add', [ShiftSignupController::class, 'storeByVolCode'])->name('shifts.quick-add');
     Route::post('/shifts/{shift}/signup', [ShiftSignupController::class, 'store'])->name('shifts.signup');
     Route::delete('/shifts/{shift}/signup', [ShiftSignupController::class, 'destroy'])->name('shifts.cancel');
+
+    // Board Elections - Admin Management
+    Route::middleware('can:manage-elections')->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('elections', \App\Http\Controllers\Admin\ElectionController::class);
+        Route::get('elections/{election}/candidates', [\App\Http\Controllers\Admin\ElectionController::class, 'candidates'])->name('elections.candidates');
+        Route::get('elections/{election}/candidates/create', [\App\Http\Controllers\Admin\ElectionController::class, 'createCandidate'])->name('elections.candidates.create');
+        Route::post('elections/{election}/candidates', [\App\Http\Controllers\Admin\ElectionController::class, 'storeCandidate'])->name('elections.candidates.store');
+        Route::post('elections/{election}/candidates/{candidate}/approve', [\App\Http\Controllers\Admin\ElectionController::class, 'approveCandidate'])->name('elections.candidates.approve');
+        Route::post('elections/{election}/candidates/{candidate}/reject', [\App\Http\Controllers\Admin\ElectionController::class, 'rejectCandidate'])->name('elections.candidates.reject');
+        Route::delete('elections/{election}/candidates/{candidate}', [\App\Http\Controllers\Admin\ElectionController::class, 'removeCandidate'])->name('elections.candidates.destroy');
+        Route::get('elections/{election}/results', [\App\Http\Controllers\Admin\ElectionController::class, 'results'])->name('elections.results');
+    });
+
+    // Board Elections - Public Voting
+    Route::prefix('elections')->name('elections.')->group(function () {
+        Route::get('/', [ElectionController::class, 'index'])->name('index');
+        Route::get('/{election}', [ElectionController::class, 'show'])->name('show');
+        Route::get('/{election}/results', [ElectionController::class, 'results'])->name('results');
+        Route::post('/{election}/vote', [ElectionController::class, 'vote'])->name('vote');
+        Route::get('/{election}/nominate', [ElectionController::class, 'nominate'])->name('nominate');
+        Route::post('/{election}/nominate', [ElectionController::class, 'storeNomination'])->name('nominate.store');
+    });
 });
 
 
