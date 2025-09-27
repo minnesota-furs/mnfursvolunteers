@@ -243,10 +243,86 @@ class ElectionController extends Controller
 
         $totalVotes = $election->votes()->count();
 
-        // Convert markdown to HTML using Parsedown
+                // Convert markdown to HTML using Parsedown
         $parsedown = new Parsedown();
         $election->parsedDescription = $parsedown->text($election->description);
 
         return view('elections.results', compact('election', 'candidates', 'totalVotes'));
+    }
+
+    /**
+     * Display public elections listing for guests
+     */
+    public function guestIndex()
+    {
+        $elections = Election::where('active', true)
+            ->where(function($query) {
+                // Show if voting is active
+                $query->where(function($q) {
+                    $q->where('start_date', '<=', now())
+                      ->where('end_date', '>=', now());
+                })
+                // OR if nominations are active
+                ->orWhere(function($q) {
+                    $q->where('nomination_start_date', '<=', now())
+                      ->where('nomination_end_date', '>=', now());
+                })
+                // OR if results are visible (completed elections)
+                ->orWhere(function($q) {
+                    $q->where('end_date', '<', now());
+                });
+            })
+            ->with(['candidates' => function($query) {
+                $query->where('approved', true)->where('withdrawn', false);
+            }])
+            ->orderBy('start_date', 'desc')
+            ->get();
+
+        // Convert markdown to HTML using Parsedown for all elections
+        // For index, only show content until first line break
+        $parsedown = new Parsedown();
+        foreach ($elections as $election) {
+            $firstParagraph = explode("\n\n", $election->description)[0];
+            $firstLine = explode("\n", $firstParagraph)[0];
+            $election->parsedDescription = $parsedown->text($firstLine);
+        }
+
+        return view('elections-guest.index', compact('elections'));
+    }
+
+    /**
+     * Display specific election details for guests
+     */
+    public function guestShow(Election $election)
+    {
+        // Only show active elections or completed ones
+        if (!$election->active && !$election->isCompleted()) {
+            abort(404);
+        }
+
+        // Only show if there's something to see (voting period, nomination period, or completed)
+        if (!$election->isVotingPeriod() && !$election->isNominationPeriod() && !$election->isCompleted()) {
+            abort(404);
+        }
+
+        // Get approved candidates
+        $candidates = $election->candidates()
+            ->where('approved', true)
+            ->where('withdrawn', false)
+            ->with('user.department.sector')
+            ->get();
+
+        // Convert markdown to HTML using Parsedown
+        $parsedown = new Parsedown();
+        $election->parsedDescription = $parsedown->text($election->description);
+        
+        // Parse candidate statements
+        foreach ($candidates as $candidate) {
+            if ($candidate->statement) {
+                $candidate->parsedStatement = $parsedown->text($candidate->statement);
+            }
+        }
+
+        return view('elections-guest.show', compact('election', 'candidates'));
     }
 }

@@ -46,6 +46,12 @@ Route::prefix('volunteering')->name('vol-listings-public.')->group(function () {
     Route::get('/{event}', [VolunteerGuestController::class, 'guestShow'])->name('show');
 });
 
+// Public elections
+Route::prefix('pub-elections')->name('elections-public.')->group(function () {
+    Route::get('/', [ElectionController::class, 'guestIndex'])->name('index');
+    Route::get('/{election}', [ElectionController::class, 'guestShow'])->name('show');
+});
+
 // Dashboard (requires auth & verified)
 Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])
