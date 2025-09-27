@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-guest-layout>
     <div class="py-6">
             <div class="text-center">
                 <x-heroicon-o-bug-ant class="w-16 inline"/>
@@ -15,5 +15,5 @@
                 </div>
               </div>
     </div>
-</x-app-layout>
+</x-guest-layout>
 

@@ -59,6 +59,8 @@ class WordPressAuthController extends Controller
                 'password'      => Hash::make(str()->random(16)), // Laravel does not store WordPress passwords
                 'wordpress_user_id' => $wpUser->ID, // Link WordPress account
                 'is_linked_to_wp' => 1,
+                'admin'         => false, // Explicitly set admin to false for WordPress users
+                'active'        => true,  // Set new WordPress users as active
             ]);
         }
 

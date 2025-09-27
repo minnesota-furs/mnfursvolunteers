@@ -103,7 +103,7 @@
                                 {{ __('One Off Events') }}
                             </x-dropdown-link>
                             
-                            @if( Auth::user()->isAdmin() )
+                            @if( Auth::check() && Auth::user()->isAdmin() )
                             <x-dropdown-link :href="route('ledger.index')">
                                 {{ __('Ledgers') }}
                             </x-dropdown-link>
@@ -279,7 +279,7 @@
                         {{ __('One Off Events') }}
                     </x-responsive-nav-link>
                     
-                    @if( Auth::user()->isAdmin() )
+                    @if( Auth::check() && Auth::user()->isAdmin() )
                     <x-responsive-nav-link :href="route('ledger.index')">
                         {{ __('Ledgers') }}
                     </x-responsive-nav-link>
