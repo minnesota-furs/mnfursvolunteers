@@ -192,12 +192,30 @@
 
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+        <!-- Mobile Search -->
+        <div class="pt-2 pb-3 px-4">
+            <form class="relative text-white focus-within:text-white" action="{{ route('users.index') }}" method="GET">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <input id="mobile-search" class="block w-full rounded-md border-0 bg-white/5 py-1.5 pl-10 pr-3 text-white focus:ring-2 focus:ring-white focus:ring-offset-white sm:text-sm sm:leading-6 placeholder-white/25" placeholder="Search Users" type="search" name="search" value="{{ request('search') }}">
+            </form>
+        </div>
+
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                 {{ __('Users') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('job-listings.index')" :active="request()->routeIs('job-listings.*')">
+                {{ __('Open Positons') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('volunteer.events.index')" :active="request()->routeIs('volunteer.events.*')">
+                {{ __('Events') }}
             </x-responsive-nav-link>
             
             @php
@@ -221,16 +239,59 @@
                     {{ __('Elections') }}
                 </x-responsive-nav-link>
             @endif
-            
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('logging.*')">
-                {{ __('Logging') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('ledgers.*')">
-                {{ __('Ledgers') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('ledgers.*')">
-                {{ __('Settings') }}
-            </x-responsive-nav-link>
+
+            @can('view-reports')
+            <!-- Reports Section -->
+            <div class="pt-2 pb-1 border-t border-gray-200 dark:border-gray-600">
+                <div class="px-4 py-2">
+                    <div class="font-medium text-base text-white dark:text-gray-200">Reports</div>
+                </div>
+                <div class="space-y-1">
+                    <x-responsive-nav-link :href="route('report.usersWithoutDepartments')">
+                        {{ __('Users without Dept') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('report.usersWithoutHoursThisPeriod')">
+                        {{ __('Users With Zero Hours') }}
+                    </x-responsive-nav-link>
+                </div>
+            </div>
+            @endcan
+
+            <!-- Settings Section -->
+            <div class="pt-2 pb-1 border-t border-gray-200 dark:border-gray-600">
+                <div class="px-4 py-2">
+                    <div class="font-medium text-base text-white dark:text-gray-200">Settings</div>
+                </div>
+                <div class="space-y-1">
+                    @can('manage-volunteer-events')
+                    <x-responsive-nav-link :href="route('admin.events.index')">
+                        {{ __('Volunteer Events') }}
+                    </x-responsive-nav-link>
+                    @endcan
+
+                    @can('manage-elections')
+                    <x-responsive-nav-link :href="route('admin.elections.index')">
+                        {{ __('Elections') }}
+                    </x-responsive-nav-link>
+                    @endcan
+
+                    <x-responsive-nav-link :href="route('one-off-events.index')">
+                        {{ __('One Off Events') }}
+                    </x-responsive-nav-link>
+                    
+                    @if( Auth::user()->isAdmin() )
+                    <x-responsive-nav-link :href="route('ledger.index')">
+                        {{ __('Ledgers') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('sectors.index')">
+                        {{ __('Sectors') }}
+                    </x-responsive-nav-link>
+                    @endif
+                    <x-responsive-nav-link :href="route('departments.index')">
+                        {{ __('Departments') }}
+                    </x-responsive-nav-link>
+                </div>
+            </div>
         </div>
 
         <!-- Responsive Settings Options -->
@@ -242,8 +303,17 @@
             </div>
 
             <div class="mt-3 space-y-1">
+                <x-responsive-nav-link :href="route('users.show', Auth::user()->id)">
+                    {{ __('My Profile') }}
+                </x-responsive-nav-link>
+
                 <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
+                    {{ __('Account Settings') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link href="#" 
+                        onclick="window.themeController.toggleTheme();">
+                    {{ __('Light/Dark Mode') }}
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->
