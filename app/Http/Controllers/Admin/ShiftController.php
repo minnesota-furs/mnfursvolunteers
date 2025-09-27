@@ -43,7 +43,8 @@ class ShiftController extends Controller
             'end_time'       => 'required|date|after:start_time',
             'max_volunteers' => 'required|integer|min:1',
             'double_hours'   => 'nullable|boolean',
-            'user_id'        => 'nullable|integer|exists:users,id' // Validate user_id if present
+            'user_id'        => 'nullable|array', // Accept array of user IDs
+            'user_id.*'      => 'integer|exists:users,id' // Validate each user ID
         ]);
 
         $shiftData = $request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers']);
@@ -52,8 +53,10 @@ class ShiftController extends Controller
         $shift = $event->shifts()->create($shiftData);
 
         if ($request->filled('user_id')) {
-            $userId = $request->input('user_id');
-            $shift->users()->syncWithoutDetaching([$userId]);
+            $userIds = $request->input('user_id');
+            // Ensure we have an array of user IDs
+            $userIds = is_array($userIds) ? $userIds : [$userIds];
+            $shift->users()->syncWithoutDetaching($userIds);
         }
 
         return redirect()->route('admin.events.shifts.index', $event)
@@ -90,7 +93,8 @@ class ShiftController extends Controller
             'end_time'       => 'required|date|after:start_time',
             'max_volunteers' => 'required|integer|min:1',
             'double_hours'   => 'nullable|boolean',
-            'user_id'        => 'nullable|integer|exists:users,id' // Validate user_id if present
+            'user_id'        => 'nullable|array', // Accept array of user IDs
+            'user_id.*'      => 'integer|exists:users,id' // Validate each user ID
         ]);
 
 
@@ -101,8 +105,10 @@ class ShiftController extends Controller
         $shift->update($updateData);
 
         if ($request->filled('user_id')) {
-            $userId = $request->input('user_id');
-            $shift->users()->syncWithoutDetaching([$userId]);
+            $userIds = $request->input('user_id');
+            // Ensure we have an array of user IDs
+            $userIds = is_array($userIds) ? $userIds : [$userIds];
+            $shift->users()->syncWithoutDetaching($userIds);
         }
 
         return redirect()->route('admin.events.shifts.index', $event)
@@ -150,10 +156,61 @@ class ShiftController extends Controller
             'user_id'        => auth()->id(),
         ]);
 
+        // Return JSON for AJAX requests
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "{$user->name} has been removed from the shift.",
+                'shift_count' => $shift->users()->count()
+            ]);
+        }
+
         return redirect()->back()
             ->with('success', [
                 'message' => "<span class=\"text-brand-green\">{$user->name}</span> removed from shift",
             ]); 
+    }
+
+    public function addVolunteer(Event $event, Shift $shift, User $user)
+    {
+        // Check if user is already assigned to this shift
+        if ($shift->users()->where('user_id', $user->id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => "{$user->name} is already assigned to this shift."
+            ], 400);
+        }
+
+        // Check if shift is full
+        if ($shift->users()->count() >= $shift->max_volunteers) {
+            return response()->json([
+                'success' => false,
+                'message' => "This shift is full ({$shift->max_volunteers} volunteers maximum)."
+            ], 400);
+        }
+
+        // Add the user to the shift
+        $shift->users()->attach($user->id, ['signed_up_at' => now()]);
+
+        // Log the action
+        AuditLog::create([
+            'action'         => 'shift_volunteer_added',
+            'auditable_type' => Event::class,
+            'auditable_id'   => $shift->event->id,
+            'comment'        => "User {$user->name} added to {$shift->name} (ID: {$shift->id}) by " . auth()->user()->name,
+            'user_id'        => auth()->id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$user->name} has been added to the shift successfully.",
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+            'shift_count' => $shift->users()->count()
+        ]);
     }
 
     public function importCsv(Request $request, Event $event)

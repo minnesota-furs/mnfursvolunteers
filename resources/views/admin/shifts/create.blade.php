@@ -88,18 +88,28 @@
                     </dd>
                 </div>
 
-                {{-- User Search Section --}}
+                @if (isset($shift))
+                {{-- User Search Section - Only show when editing existing shift --}}
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <div>
-                        <dt class="text-sm font-medium leading-6 text-gray-900">Assign Users</dt>
-                        <p class="text-gray-500 text-sm mt-1">Manually add volunteers. Be sure to save after</p>
+                        <dt class="text-sm font-medium leading-6 text-gray-900">Add Volunteers</dt>
+                        <p class="text-gray-500 text-sm mt-1">Search and instantly add volunteers to this shift</p>
                     </div>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                        <x-text-input type="text" id="user_search_input" name="user_search_input" class="block w-full text-sm" placeholder="Search by name or email..." />
-                        <div id="user_search_results" class="mt-2"></div>
-                        <div id="selected_users_container"></div>
+                        <div class="relative">
+                            <x-text-input type="text" id="volunteer_search" class="block w-full text-sm pr-10" placeholder="Type volunteer name or email..." />
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                <x-heroicon-m-magnifying-glass class="w-4 h-4 text-gray-400"/>
+                            </div>
+                        </div>
+                        <div id="search_results" class="mt-2 hidden"></div>
+                        <div id="search_message" class="mt-2 text-sm text-gray-500 hidden"></div>
+                        <p class="text-xs text-gray-400 mt-1">
+                            💡 Tip: Type at least 2 characters to search. Volunteers are added instantly when you click "Add".
+                        </p>
                     </dd>
                 </div>
+                @endif
 
                 <div class="py-6 flex justify-end space-x-2">
                     <a type="submit" id="submit" href="{{ url()->previous() }}"
@@ -114,34 +124,51 @@
     </div>
     <x-slot name="right">
         @if (isset($shift))
-        <h2 class="text-xl font-semibold mb-3 dark:text-white">Volunteers Signed Up ({{ $shift->users->count() }})</h2>
-            <ul class="list-disc pl-1 text-sm text-gray-800">
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-3 dark:text-white">
+                Volunteers Assigned 
+                <span class="text-sm bg-gray-100 px-2 py-1 rounded">{{ $shift->users->count() }} / {{ $shift->max_volunteers }}</span>
+            </h2>
+            <div class="volunteers-list">
                 @forelse ($shift->users as $user)
-                    <li class="flex items-center justify-between hover:bg-gray-100 p-1">
-                        <span>
+                    <div class="volunteer-item flex items-center justify-between p-3 mb-2 bg-gray-50 rounded-lg border" data-user-id="{{ $user->id }}">
+                        <div class="flex items-center">
                             @if($user->pivot->hours_logged_at)
-                                <x-heroicon-m-check-badge title="Hours Credited" class="w-5 inline text-green-600"/> 
+                                <x-heroicon-m-check-badge title="Hours Credited" class="w-5 mr-2 text-green-600"/> 
                             @endif
-                            {{ $user->name }}</span>
-                        <form class="text-xs" action="{{ route('admin.events.shifts.remove-volunteer', [$event, $shift, $user]) }}" method="POST">
-                            @csrf
-                            @method('DELETE')
-                            <a href="{{ route('users.show', $user->id) }}" class="text-blue-600 hover:underline px-1">
-                                View
+                            <div>
+                                <div class="font-medium">{{ $user->name }}</div>
+                                <div class="text-sm text-gray-500">{{ $user->email }}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <a href="{{ route('users.show', $user->id) }}" 
+                               class="text-blue-600 hover:underline text-sm">
+                                View Profile
                             </a>
-                            <button type="submit" class="text-red-600 px-1 hover:underline" onclick="return confirm('Are you sure you want to remove {{$user->name}}?')">
-                                <x-heroicon-m-trash title="Hours Credited" class="w-3 mb-1 inline"/> Remove</button>
-                        </form>
-                    </li>
+                            <button type="button" 
+                                    class="remove-volunteer-btn text-red-600 hover:bg-red-50 px-2 py-1 rounded text-sm"
+                                    data-user-id="{{ $user->id }}"
+                                    data-user-name="{{ $user->name }}">
+                                <x-heroicon-m-trash class="w-4 inline mr-1"/> Remove
+                            </button>
+                        </div>
+                    </div>
                 @empty
-                    <li class="flex items-center justify-between hover:bg-gray-100 p-3">
-                        <span class="text-gray-400">No volunteer signups...</span>
-                    </li>
+                    <div class="text-center py-8 text-gray-500">
+                        <x-heroicon-m-user-group class="w-12 h-12 mx-auto mb-2 text-gray-300"/>
+                        <p>No volunteers assigned yet</p>
+                        <p class="text-sm">Use the search above to add volunteers</p>
+                    </div>
                 @endforelse
-            </ul>
+            </div>
+        </div>
         @else
-            <h2 class="text-xl font-semibold mb-3 dark:text-white">Volunteers Signed Up (0)</h2>
-            <p class="text-gray-500 dark:text-gray-400">This is where your signed up volunteers will appear.</p>
+            <div class="text-center py-8 text-gray-500">
+                <x-heroicon-m-information-circle class="w-12 h-12 mx-auto mb-2 text-gray-300"/>
+                <h2 class="text-xl font-semibold mb-2 dark:text-white">Create Shift First</h2>
+                <p class="text-gray-500 dark:text-gray-400">Save the shift to start adding volunteers</p>
+            </div>
         @endif
         {{-- asds --}}
         {{-- <form method="POST" action="{{ route('shifts.quick-add', $shift) }}" class="flex items-center gap-2">
@@ -165,104 +192,236 @@
     </x-slot>
 </x-app-layout>
 
+@if (isset($shift))
+<!-- Notification area -->
+<div id="notification" class="fixed top-4 right-4 z-50 hidden">
+    <div class="bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-sm">
+        <div class="flex items-center">
+            <div id="notification-icon" class="mr-3"></div>
+            <div id="notification-message" class="text-sm"></div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.getElementById('user_search_input');
-    const searchResultsContainer = document.getElementById('user_search_results');
-    const selectedUsersContainer = document.getElementById('selected_users_container');
+    const searchInput = document.getElementById('volunteer_search');
+    const searchResults = document.getElementById('search_results');
+    const searchMessage = document.getElementById('search_message');
+    const volunteersContainer = document.querySelector('.volunteers-list');
     
-    // An array to keep track of the IDs of selected users
-    let selectedUserIds = new Set(); 
+    let searchTimeout;
 
-    // Re-populate selected users from old data (if any) on page load
-    const oldUserIds = JSON.parse("{{ json_encode(old('user_id', [])) }}");
-    if (oldUserIds.length > 0) {
-        // You'll need to fetch user names here if you want to display them on reload
-        // A simple solution is to just display the ID or re-fetch them.
-        // For now, let's just add the IDs to our set.
-        oldUserIds.forEach(id => {
-            selectedUserIds.add(id);
-            // You can add a placeholder display here, e.g., 'User (ID: ${id})'
-        });
+    // Notification functions
+    function showNotification(message, type = 'success') {
+        const notification = document.getElementById('notification');
+        const icon = document.getElementById('notification-icon');
+        const messageEl = document.getElementById('notification-message');
+        
+        messageEl.textContent = message;
+        
+        if (type === 'success') {
+            icon.innerHTML = '<div class="w-5 h-5 text-green-500">✓</div>';
+            notification.querySelector('div').className = 'bg-green-50 border border-green-200 rounded-lg shadow-lg p-4 max-w-sm';
+            messageEl.className = 'text-sm text-green-800';
+        } else {
+            icon.innerHTML = '<div class="w-5 h-5 text-red-500">✕</div>';
+            notification.querySelector('div').className = 'bg-red-50 border border-red-200 rounded-lg shadow-lg p-4 max-w-sm';
+            messageEl.className = 'text-sm text-red-800';
+        }
+        
+        notification.classList.remove('hidden');
+        
+        setTimeout(() => {
+            notification.classList.add('hidden');
+        }, 4000);
     }
 
-    searchInput.addEventListener('keyup', function () {
-        const searchTerm = this.value.trim();
-        searchResultsContainer.innerHTML = '';
-
-        if (searchTerm.length < 2) {
+    // Search for volunteers
+    searchInput.addEventListener('input', function () {
+        const query = this.value.trim();
+        
+        clearTimeout(searchTimeout);
+        
+        if (query.length < 2) {
+            hideSearchResults();
             return;
         }
 
-        fetch(`{{ route('admin.users.search') }}?term=${encodeURIComponent(searchTerm)}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(users => {
-                // Filter out users who are already selected
-                const unselectedUsers = users.filter(user => !selectedUserIds.has(user.id.toString()));
-
-                if (unselectedUsers.length > 0) {
-                    const ul = document.createElement('ul');
-                    ul.className = 'border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto bg-white shadow-lg';
-                    unselectedUsers.forEach(user => {
-                        const li = document.createElement('li');
-                        li.className = 'p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200';
-                        const firstName = user.first_name || '';
-                        const lastName = user.last_name || '';
-                        const displayName = `${user.name} - ${user.email}`.trim();
-                        li.textContent = displayName;
-                        li.dataset.userId = user.id;
-                        li.dataset.userName = `${user.name}`.trim();
-
-                        li.addEventListener('click', function () {
-                            const userId = this.dataset.userId;
-                            const userName = this.dataset.userName;
-                            
-                            // Check if the user is already selected before adding
-                            if (!selectedUserIds.has(userId)) {
-                                selectedUserIds.add(userId);
-                                appendSelectedUser(userId, userName);
-                                
-                                searchInput.value = ''; // Clear search input
-                                searchResultsContainer.innerHTML = ''; // Clear results list
-                            }
-                        });
-                        ul.appendChild(li);
-                    });
-                    searchResultsContainer.appendChild(ul);
-                } else {
-                    searchResultsContainer.innerHTML = '<p class="text-gray-500 p-2">No users found or all found users are already selected.</p>';
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching users:', error);
-                searchResultsContainer.innerHTML = '<p class="text-red-500 p-2">Error searching users. Please try again.</p>';
-            });
+        // Show loading message
+        showMessage('Searching...', 'text-gray-500');
+        
+        searchTimeout = setTimeout(() => {
+            const searchUrl = `{{ route('admin.users.search') }}?term=${encodeURIComponent(query)}`;
+            console.log('Searching for:', query, 'URL:', searchUrl);
+            
+            fetch(searchUrl)
+                .then(response => {
+                    console.log('Search response status:', response.status);
+                    return response.json();
+                })
+                .then(users => {
+                    console.log('Search results:', users);
+                    displaySearchResults(users);
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                    showMessage('Error searching volunteers', 'text-red-500');
+                });
+        }, 300);
     });
 
-    function appendSelectedUser(userId, userName) {
-        const userDisplay = document.createElement('div');
-        userDisplay.className = 'flex items-center justify-between p-2 mt-2 bg-gray-100 rounded-md';
-        userDisplay.innerHTML = `
-            <span>Selected: <strong>${userName}</strong></span>
-            <button type="button" class="remove-user-button text-red-600 ml-2 text-sm hover:underline font-semibold" data-user-id="${userId}">
-                Remove
-            </button>
-            <input type="hidden" name="user_id[]" value="${userId}">
-        `;
-        selectedUsersContainer.appendChild(userDisplay);
-        
-        // Add listener for the remove button
-        userDisplay.querySelector('.remove-user-button').addEventListener('click', function() {
-            const idToRemove = this.dataset.userId;
-            selectedUserIds.delete(idToRemove);
-            userDisplay.remove();
+    function displaySearchResults(users) {
+        if (users.length === 0) {
+            showMessage('No volunteers found', 'text-gray-500');
+            return;
+        }
+
+        searchResults.innerHTML = '';
+        searchResults.classList.remove('hidden');
+        searchMessage.classList.add('hidden');
+
+        const ul = document.createElement('ul');
+        ul.className = 'border border-gray-300 rounded-md bg-white shadow-lg max-h-60 overflow-y-auto';
+
+        users.forEach(user => {
+            const li = document.createElement('li');
+            li.className = 'p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 flex justify-between items-center';
+            
+            li.innerHTML = `
+                <div>
+                    <div class="font-medium">${user.name}</div>
+                    <div class="text-sm text-gray-500">${user.email}</div>
+                </div>
+                <button type="button" class="add-volunteer-btn bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700" data-user-id="${user.id}">
+                    Add
+                </button>
+            `;
+
+            ul.appendChild(li);
+        });
+
+        searchResults.appendChild(ul);
+
+        // Add click handlers for add buttons
+        searchResults.querySelectorAll('.add-volunteer-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.dataset.userId;
+                addVolunteerToShift(userId, this);
+            });
         });
     }
 
+    function addVolunteerToShift(userId, button) {
+        button.disabled = true;
+        button.textContent = 'Adding...';
+
+        fetch(`{{ route('admin.events.shifts.add-volunteer', [$event, $shift, '']) }}/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                // Refresh the volunteers list by reloading the page
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification(data.message || 'Failed to add volunteer', 'error');
+                button.disabled = false;
+                button.textContent = 'Add';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred while adding the volunteer', 'error');
+            button.disabled = false;
+            button.textContent = 'Add';
+        });
+    }
+
+    function hideSearchResults() {
+        searchResults.classList.add('hidden');
+        searchMessage.classList.add('hidden');
+    }
+
+    function showMessage(message, className) {
+        searchMessage.textContent = message;
+        searchMessage.className = `mt-2 text-sm ${className}`;
+        searchMessage.classList.remove('hidden');
+        searchResults.classList.add('hidden');
+    }
+
+    // Hide results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            hideSearchResults();
+        }
+    });
+
+    // Handle remove volunteer buttons
+    document.querySelectorAll('.remove-volunteer-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            const userName = this.dataset.userName;
+            
+            if (confirm(`Are you sure you want to remove ${userName} from this shift?`)) {
+                removeVolunteerFromShift(userId, this);
+            }
+        });
+    });
+
+    function removeVolunteerFromShift(userId, button) {
+        const volunteerItem = button.closest('.volunteer-item');
+        button.disabled = true;
+        button.innerHTML = '<span class="inline-block w-4 h-4 mr-1 animate-spin">⟳</span> Removing...';
+
+        fetch(`{{ route('admin.events.shifts.remove-volunteer', [$event, $shift, '']) }}/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                // Remove the volunteer item with animation
+                volunteerItem.style.transition = 'all 0.3s ease';
+                volunteerItem.style.opacity = '0';
+                volunteerItem.style.transform = 'translateX(-100%)';
+                
+                setTimeout(() => {
+                    volunteerItem.remove();
+                    // Update the count in the header
+                    updateVolunteerCount();
+                }, 300);
+            } else {
+                showNotification(data.message || 'Failed to remove volunteer', 'error');
+                button.disabled = false;
+                button.innerHTML = '<span class="w-4 inline mr-1">🗑</span> Remove';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred while removing the volunteer', 'error');
+            button.disabled = false;
+            button.innerHTML = '<span class="w-4 inline mr-1">🗑</span> Remove';
+        });
+    }
+
+    function updateVolunteerCount() {
+        const volunteerItems = document.querySelectorAll('.volunteer-item');
+        const countSpan = document.querySelector('h2 span');
+        if (countSpan) {
+            countSpan.textContent = `${volunteerItems.length} / {{ $shift->max_volunteers }}`;
+        }
+    }
 });
 </script>
+@endif

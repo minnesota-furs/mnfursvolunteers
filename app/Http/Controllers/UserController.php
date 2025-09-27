@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Response as FacadeResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -393,16 +394,35 @@ class UserController extends Controller
             return response()->json([]);
         }
 
-        $users = User::where(function ($query) use ($searchTerm) {
-            $query->where('first_name', 'LIKE', "%" . $searchTerm . "%")
-                  ->orWhere('last_name', 'LIKE', "%" . $searchTerm . "%")
-                  ->orWhere('email', 'LIKE', "%" . $searchTerm . "%");
-        })
-        ->select('id', 'first_name', 'last_name', 'name', 'email') // Select desired fields
-        ->take(10) // Limit results to a reasonable number
-        ->get();
+        try {
+            $users = User::where(function ($query) use ($searchTerm) {
+                $query->where('name', 'LIKE', "%" . $searchTerm . "%")
+                      ->orWhere('first_name', 'LIKE', "%" . $searchTerm . "%")
+                      ->orWhere('last_name', 'LIKE', "%" . $searchTerm . "%")
+                      ->orWhere('email', 'LIKE', "%" . $searchTerm . "%")
+                      ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%" . $searchTerm . "%"]);
+            })
+            ->where('active', true) // Only show active users
+            ->select('id', 'first_name', 'last_name', 'name', 'email') // Select desired fields
+            ->orderBy('name') // Order by name for consistent results
+            ->take(10) // Limit results to a reasonable number
+            ->get();
 
-        return response()->json($users);
+            Log::info('User search', [
+                'term' => $searchTerm,
+                'results_count' => $users->count(),
+                'results' => $users->pluck('name')->toArray()
+            ]);
+
+            return response()->json($users);
+        } catch (\Exception $e) {
+            Log::error('User search error', [
+                'term' => $searchTerm,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json(['error' => 'Search failed'], 500);
+        }
     }
 
     public function orgChart()
