@@ -20,131 +20,223 @@
         <p class="text-gray-600 mb-4">{{ $event->description ?? 'No description...' }}</p>
 
         @if ($userShifts->isNotEmpty())
-            <h2 class="text-xl font-semibold mt-8">Your Volunteer Slots</h2>
-            <p class="text-sm text-gray-700 mb-3">You picked up some volunteer slots! Thanks for your help! 
-                @if($event->auto_credit_hours)
-                Your volunteer hours will credit automatically after the event.
-                @else 
-                Your volunteer hours will credit after the event.
-                @endif</p>
-            @foreach ($userShifts as $s)
-                <li class="ml-6">
-                    @if ($event->isMultiDay())
-                        <strong>{{ $s->name }}</strong> — {{ $s->start_time->format('l g:i A') }} to
-                        {{ $s->end_time->format('g:i A') }}
-                    @else
-                        <strong>{{ $s->name }}</strong> — {{ $s->start_time->format('g:i A') }} to
-                        {{ $s->end_time->format('g:i A') }}
+            <h2 class="text-xl font-semibold mt-8 mb-3">Your Volunteer Slots</h2>
+            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6">
+                <p class="text-sm text-blue-800 dark:text-blue-200 mb-4">
+                    <x-heroicon-s-check-circle class="w-5 h-5 inline-block mr-1"/>
+                    You picked up some volunteer slots! Thanks for your help! 
+                    @if($event->auto_credit_hours)
+                    Your volunteer hours will credit automatically after the event.
+                    @else 
+                    Your volunteer hours will credit after the event.
                     @endif
-                    @if(\Carbon\Carbon::parse($s->start_time)->isPast())
-                        <span class="text-sm text-red-600">This slot has past and cannot be cancelled.</span>
-                    @else
-                    <form action="{{ route('shifts.cancel', $s) }}" method="POST">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="text-red-600 hover:underline inline-block" onclick="return confirm('Are you sure you want to cancel your signup for {{$s->name}}?')">Cancel</button>
-                    </form>
-                    @endif
-                </li>
-            @endforeach
+                </p>
+                <div class="space-y-3">
+                    @foreach ($userShifts as $s)
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-blue-200 dark:border-blue-700">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-900 dark:text-gray-100">{{ $s->name }}</h3>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                        @if ($event->isMultiDay())
+                                            {{ $s->start_time->format('l g:i A') }} to {{ $s->end_time->format('g:i A') }}
+                                        @else
+                                            {{ $s->start_time->format('g:i A') }} to {{ $s->end_time->format('g:i A') }}
+                                        @endif
+                                    </p>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    @if(\Carbon\Carbon::parse($s->start_time)->isPast())
+                                        <span class="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                                            <x-heroicon-s-clock class="w-3 h-3 mr-1"/>
+                                            Past Event
+                                        </span>
+                                    @else
+                                        <form action="{{ route('shifts.cancel', $s) }}" method="POST" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                class="inline-flex items-center rounded-md bg-red-100 hover:bg-red-200 px-3 py-2 text-sm font-medium text-red-700 transition-colors duration-200" 
+                                                onclick="return confirm('Are you sure you want to cancel your signup for {{$s->name}}?')">
+                                                <x-heroicon-s-x-mark class="w-4 h-4 mr-1"/>
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
         @endif
 
         <h2 class="text-xl font-semibold mt-8 mb-3">Openings</h2>
-        <ul role="list" class="divide-y divide-gray-100">
+        <div class="space-y-4">
             @forelse ($shifts as $shift)
             @php
                 $openings = $shift->max_volunteers - $shift->users->count();
                 $isFull = $openings <= 0;
                 $signedUp = $shift->users->contains(auth()->id());
             @endphp
-                <li class="flex items-center justify-between gap-x-6 py-5 pl-4 {{ $signedUp ? '' : '' }}">
-                    <div class="min-w-0">
-                        <div class="flex items-start gap-x-3">
-                            <p class="text-sm/6 font-semibold {{ $isFull ? 'text-gray-400' : 'text-gray-900' }}">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border {{ $signedUp ? 'border-blue-200 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-900/10' : 'border-gray-200 dark:border-gray-700' }} p-4 sm:p-6">
+                    <!-- Header with title and status -->
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
                                 @if($isFull)
-                                    <x-heroicon-o-check class="w-4 mb-1 inline text-gray-400"/>
+                                    <x-heroicon-o-check class="w-5 h-5 text-gray-400 flex-shrink-0"/>
                                 @else
-                                    <x-heroicon-s-users class="w-4 mb-1 inline"/>
+                                    <x-heroicon-s-users class="w-5 h-5 text-gray-600 dark:text-gray-400 flex-shrink-0"/>
                                 @endif
-                                {{ $shift->name }}
+                                <h3 class="text-lg font-semibold {{ $isFull ? 'text-gray-400' : 'text-gray-900 dark:text-gray-100' }}">
+                                    {{ $shift->name }}
+                                </h3>
                                 @if($signedUp)
-                                    <span class="text-sm/6 font-bold text-blue-500"> (You're Assigned)</span>
+                                    <span class="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200">
+                                        <x-heroicon-s-check class="w-3 h-3 mr-1"/>
+                                        You're Assigned
+                                    </span>
                                 @endif
-                            </p>
-                            {{-- <p
-                                class="mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                Complete</p> --}}
+                            </div>
+                            
+                            <!-- Time and signup info -->
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                <div class="flex items-center gap-1">
+                                    <x-heroicon-s-clock class="w-4 h-4"/>
+                                    <span>
+                                        @if($event->isMultiDay())
+                                            {{ $shift->start_time->format('l @ g:i A') }} — {{ $shift->end_time->format('l @ g:i A') }}
+                                        @else
+                                            {{ $shift->start_time->format('g:i A') }} — {{ $shift->end_time->format('g:i A') }}
+                                        @endif
+                                    </span>
+                                </div>
+                                
+                                <span class="hidden sm:inline text-gray-300 dark:text-gray-600">•</span>
+                                
+                                <div class="flex items-center gap-1" title="{{$shift->users->pluck('name')->join(', ')}}">
+                                    <x-heroicon-s-user-group class="w-4 h-4"/>
+                                    <span>{{$shift->users->count()}} of {{ $shift->max_volunteers }} spots filled</span>
+                                </div>
+                                
+                                @if($shift->double_hours)
+                                    <span class="hidden sm:inline text-gray-300 dark:text-gray-600">•</span>
+                                    <div class="flex items-center gap-1 font-medium text-yellow-600 dark:text-yellow-500">
+                                        <x-heroicon-m-star class="w-4 h-4"/>
+                                        <span>Double Hours</span>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
-                        <div class="mt-1 flex items-center gap-x-2 text-xs/5 text-gray-500">
-                            <p class="whitespace-nowrap">
-                            @if($event->isMultiDay())
-                                {{ $shift->start_time->format('l @ g:i A') }} — {{ $shift->end_time->format('l \@ g:i A') }}
+                        
+                        <!-- Action buttons for desktop -->
+                        <div class="hidden sm:flex flex-shrink-0">
+                            @if(\Carbon\Carbon::parse($shift->start_time)->isPast())
+                                <span class="inline-flex items-center rounded-md bg-gray-100 dark:bg-gray-700 px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+                                    <x-heroicon-s-clock class="w-4 h-4 mr-1"/>
+                                    Past Event
+                                </span>
                             @else
-                                {{ $shift->start_time->format('g:i A') }} — {{ $shift->end_time->format('g:i A') }}
-                            @endif
-                            </p>
-                            <svg viewBox="0 0 2 2" class="size-0.5 fill-current">
-                                <circle cx="1" cy="1" r="1" />
-                            </svg>
-                            <p class="visible sm:invisible" title="{{$shift->users->pluck('name')->join(', ')}}">Signups: {{$shift->users->count()}} of {{ $shift->max_volunteers }}</p>
-                            @if($shift->double_hours)
-                                <svg viewBox="0 0 2 2" class="size-0.5 fill-current">
-                                    <circle cx="1" cy="1" r="1" />
-                                </svg>
-                                <p class="font-bold"><x-heroicon-m-star class="w-3 mb-1 inline"/> Double Hours</p>
-                            @endif
-                        </div>
-                        <div class="mt-1 flex items-center gap-x-2 text-xs/5 {{ $isFull ? 'text-gray-400' : 'text-gray-500' }}">
-                            <p class="">{{ $shift->description ?? 'No description was provided for this slot/task.' }}</p>
-                        </div>
-                    </div>
-                    <div class="flex flex-none sm:flex-row items-center gap-x-4">
-                        @if(\Carbon\Carbon::parse($shift->start_time)->isPast())
-                            <span class="text-sm text-gray-400">This slot has past, and cannot be changed.</span>
-                        @else
-                            @if ($signedUp)
+                                @if ($signedUp)
                                     <form action="{{ route('shifts.cancel', $shift) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" 
-                                        class="rounded-md bg-red-500 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-600 sm:block"
-                                        onclick="return confirm('Are you sure you want to cancel your signup for {{$shift->name}}?')">Cancel Signup</button>
+                                            class="inline-flex items-center rounded-md bg-red-600 hover:bg-red-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-200"
+                                            onclick="return confirm('Are you sure you want to cancel your signup for {{$shift->name}}?')">
+                                            <x-heroicon-s-x-mark class="w-4 h-4 mr-1"/>
+                                            Cancel Signup
+                                        </button>
                                     </form>
+                                @elseif($shift->users->count() < $shift->max_volunteers)
+                                    @if (!$event->signup_open_date || $event->signup_open_date->isPast())
+                                        <form action="{{ route('shifts.signup', $shift) }}" method="POST">
+                                            @csrf
+                                            <button type="submit"
+                                                class="inline-flex items-center rounded-md bg-brand-green hover:bg-green-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-200"
+                                                onclick="return confirm('Are you sure you want to pickup the volunteer slot for {{$shift->name}}?')">
+                                                <x-heroicon-s-plus class="w-4 h-4 mr-1"/>
+                                                Sign Up
+                                            </button>
+                                        </form>
+                                    @else
+                                        <div class="text-gray-500 dark:text-gray-400 text-sm bg-gray-100 dark:bg-gray-700 rounded-md px-3 py-2">
+                                            <div class="font-medium">Signups open</div>
+                                            <div title="{{ $event->signup_open_date->format('F j, Y g:i A') }}">{{ $event->signup_open_date->diffForHumans() }}</div>
+                                        </div>
+                                    @endif
+                                @else
+                                    <span class="inline-flex items-center rounded-md bg-red-100 dark:bg-red-900 px-3 py-2 text-sm font-medium text-red-700 dark:text-red-400">
+                                        <x-heroicon-s-x-circle class="w-4 h-4 mr-1"/>
+                                        Full
+                                    </span>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    @if($shift->description)
+                        <p class="text-sm {{ $isFull ? 'text-gray-400' : 'text-gray-600 dark:text-gray-300' }} mb-4">
+                            {{ $shift->description }}
+                        </p>
+                    @endif
+                    
+                    <!-- Action buttons for mobile -->
+                    <div class="sm:hidden">
+                        @if(\Carbon\Carbon::parse($shift->start_time)->isPast())
+                            <div class="w-full text-center py-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-md">
+                                <x-heroicon-s-clock class="w-4 h-4 inline mr-1"/>
+                                This slot has past and cannot be changed
+                            </div>
+                        @else
+                            @if ($signedUp)
+                                <form action="{{ route('shifts.cancel', $shift) }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" 
+                                        class="w-full inline-flex items-center justify-center rounded-md bg-red-600 hover:bg-red-700 px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors duration-200"
+                                        onclick="return confirm('Are you sure you want to cancel your signup for {{$shift->name}}?')">
+                                        <x-heroicon-s-x-mark class="w-5 h-5 mr-2"/>
+                                        Cancel Your Signup
+                                    </button>
+                                </form>
                             @elseif($shift->users->count() < $shift->max_volunteers)
                                 @if (!$event->signup_open_date || $event->signup_open_date->isPast())
                                     <form action="{{ route('shifts.signup', $shift) }}" method="POST">
                                         @csrf
                                         <button type="submit"
-                                            class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:block"
+                                            class="w-full inline-flex items-center justify-center rounded-md bg-brand-green hover:bg-green-700 px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors duration-200"
                                             onclick="return confirm('Are you sure you want to pickup the volunteer slot for {{$shift->name}}?')">
-                                            Sign Up
+                                            <x-heroicon-s-plus class="w-5 h-5 mr-2"/>
+                                            Sign Up for This Slot
                                         </button>
                                     </form>
                                 @else
-                                    <div class="text-gray-500 text-sm">
-                                        Signups open <span
-                                            title="{{ $event->signup_open_date->format('F j, Y g:i A') }}">{{ $event->signup_open_date->diffForHumans() }}</span>
+                                    <div class="w-full text-center py-3 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-md">
+                                        <div class="font-medium">Signups open {{ $event->signup_open_date->diffForHumans() }}</div>
+                                        <div class="text-xs mt-1">{{ $event->signup_open_date->format('F j, Y g:i A') }}</div>
                                     </div>
                                 @endif
                             @else
-                                <span class="text-sm text-red-600">This slot is full.</span>
+                                <div class="w-full text-center py-3 text-sm font-medium text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900 rounded-md">
+                                    <x-heroicon-s-x-circle class="w-5 h-5 inline mr-1"/>
+                                    This slot is full
+                                </div>
                             @endif
                         @endif
                     </div>
-                </li>
-            @empty
-            <li class="flex items-center justify-between gap-x-6 py-5 pl-4">
-                <div class="min-w-0">
-                    <div class="flex items-start gap-x-3">
-                        <p class="text-sm/6 text-gray-500">
-                            No openings are currently available.
-                        </p>
-                    </div>
                 </div>
-            </li>
-
+            @empty
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 text-center">
+                    <x-heroicon-o-calendar-days class="w-12 h-12 text-gray-400 mx-auto mb-3"/>
+                    <p class="text-gray-500 dark:text-gray-400">
+                        No openings are currently available.
+                    </p>
+                </div>
             @endforelse
-        </ul>
+        </div>
 
     </div>
 </x-app-layout>

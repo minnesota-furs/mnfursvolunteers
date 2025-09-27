@@ -74,7 +74,7 @@
                     </li>
                     @empty
                     <li class="py-4">
-                        <p class="mt-2 flex-auto sm:mt-0"><span class="font-semibold">No shifts signed up.</span> Why not <a href="{{ route('volunteer.events.show', $event) }}" class="text-blue-600 hover:underline">checkout whats available</a>?</p>
+                        <p class="mt-2 flex-auto sm:mt-0"><span class="font-semibold">No shifts signed up.</span></p>
                     </li>
                     @endforelse
                 </ol>
