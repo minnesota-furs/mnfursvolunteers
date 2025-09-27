@@ -30,9 +30,9 @@
                     <div class="flex items-start justify-between">
                         <div class="flex-1">
                             @if($election->description)
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                    {{ $election->description }}
-                                </p>
+                                <div class="text-sm text-gray-600 dark:text-gray-400 mb-4 prose prose-sm max-w-none">
+                                    {!! $election->parsedDescription !!}
+                                </div>
                             @endif
 
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

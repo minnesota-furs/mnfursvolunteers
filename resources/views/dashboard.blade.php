@@ -70,7 +70,11 @@
                             <div class="flex justify-between items-start">
                                 <div>
                                     <h4 class="font-semibold text-lg text-gray-900">{{ $election->name }}</h4>
-                                    <p class="text-gray-600 mt-1">{{ $election->description }}</p>
+                                    @if($election->description)
+                                        <div class="text-gray-600 mt-1 prose prose-sm max-w-none">
+                                            {!! $election->parsedDescription !!}
+                                        </div>
+                                    @endif
                                     
                                     @php
                                         $now = now();

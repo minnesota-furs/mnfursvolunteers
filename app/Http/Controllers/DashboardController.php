@@ -42,6 +42,15 @@ class DashboardController extends Controller
             });
         })->get();
 
+        // Convert markdown to HTML using Parsedown for dashboard elections
+        // For dashboard, only show content until first line break
+        $parsedown = new \Parsedown();
+        foreach ($activeElections as $election) {
+            $firstParagraph = explode("\n\n", $election->description)[0];
+            $firstLine = explode("\n", $firstParagraph)[0];
+            $election->parsedDescription = $parsedown->text($firstLine);
+        }
+
         return view('dashboard', compact('upcomingEvents', 'upcomingShifts', 'activeElections'));
     }
 }

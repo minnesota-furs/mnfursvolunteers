@@ -54,7 +54,7 @@
                                                         </div>
                                                         @if($election->description)
                                                             <div class="text-gray-500 dark:text-gray-400 text-xs mt-1">
-                                                                {{ Str::limit($election->description, 50) }}
+                                                                {{ Str::limit(strip_tags($election->parsedDescription), 50) }}
                                                             </div>
                                                         @endif
                                                     </div>

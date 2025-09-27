@@ -7,6 +7,7 @@ use App\Models\Candidate;
 use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Parsedown;
 
 class ElectionController extends Controller
 {
@@ -30,6 +31,15 @@ class ElectionController extends Controller
             }])
             ->orderBy('start_date', 'asc')
             ->get();
+
+        // Convert markdown to HTML using Parsedown for all elections
+        // For index, only show content until first line break
+        $parsedown = new Parsedown();
+        foreach ($elections as $election) {
+            $firstParagraph = explode("\n\n", $election->description)[0];
+            $firstLine = explode("\n", $firstParagraph)[0];
+            $election->parsedDescription = $parsedown->text($firstLine);
+        }
 
         return view('elections.index', compact('elections'));
     }
@@ -56,6 +66,10 @@ class ElectionController extends Controller
             ->where('user_id', Auth::id())
             ->pluck('candidate_id')
             ->toArray();
+
+        // Convert markdown to HTML using Parsedown
+        $parsedown = new Parsedown();
+        $election->parsedDescription = $parsedown->text($election->description);
 
         return view('elections.show', compact('election', 'candidates', 'userHasVoted', 'userVoteCount', 'remainingVotes', 'userVotedCandidates'));
     }
@@ -228,6 +242,10 @@ class ElectionController extends Controller
             ->get();
 
         $totalVotes = $election->votes()->count();
+
+        // Convert markdown to HTML using Parsedown
+        $parsedown = new Parsedown();
+        $election->parsedDescription = $parsedown->text($election->description);
 
         return view('elections.results', compact('election', 'candidates', 'totalVotes'));
     }

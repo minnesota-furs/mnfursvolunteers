@@ -53,9 +53,9 @@
 
                     @if($election->description)
                         <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">
-                                {{ $election->description }}
-                            </p>
+                            <div class="text-sm text-gray-600 dark:text-gray-400 prose prose-sm max-w-none">
+                                {!! $election->parsedDescription !!}
+                            </div>
                         </div>
                     @endif
                 </div>

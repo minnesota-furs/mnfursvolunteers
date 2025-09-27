@@ -18,9 +18,9 @@
                                         </h3>
                                         
                                         @if($election->description)
-                                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                                {{ $election->description }}
-                                            </p>
+                                            <div class="mt-2 text-sm text-gray-600 dark:text-gray-400 prose prose-sm max-w-none">
+                                                {!! $election->parsedDescription !!}
+                                            </div>
                                         @endif
 
                                         <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
