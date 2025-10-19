@@ -107,7 +107,7 @@
                                                                 {{ strtoupper(substr($volunteer->name ?? 'M', 0, 1)) }}
                                                             </div>
                                                             <span class="text-gray-700 dark:text-gray-300">
-                                                                {{ $volunteer->name ?? 'NoName?' }}
+                                                                {{ $volunteer->name }}
                                                             </span>
                                                         </div>
                                                     @endforeach
