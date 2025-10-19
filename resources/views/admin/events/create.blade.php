@@ -27,6 +27,21 @@
 
     <div class="py-6d">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            @if(!isset($event))
+                <div class="mb-6 rounded-md bg-blue-50 p-4 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <x-heroicon-o-information-circle class="h-5 w-5 text-blue-400" />
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">Creating a New Event</h3>
+                            <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                                <p>After creating the event, you'll be able to add collaborators who can help manage the event. You can add editors from the event's management page.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
             <form method="POST" id="main" action="{{ isset($event) ? route('admin.events.update', $event) : route('admin.events.store') }}">
                 @csrf
                 @if(isset($event))
@@ -40,16 +55,6 @@
                         <x-form-validation for="name" />
                     </dd>
                 </div>
-
-                {{-- <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="text-sm font-medium leading-6 text-gray-900">Volunteers Neeed</dt>
-                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                        <x-text-input class="block w-64 text-sm" type="number" name="max_volunteers"
-                            id="max_volunteers" min="1"
-                            value="{{ old('max_volunteers', $shift->max_volunteers ?? 1) }}" required />
-                        <x-form-validation for="max_volunteers" />
-                    </dd>
-                </div> --}}
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <dt class="text-sm font-medium leading-6 text-gray-900">Description</dt>
@@ -114,6 +119,26 @@
                         <p class="text-gray-500 text-sm mt-1">Draft is just when you are working on it and don't want to publish it yet.</p>
                     </dd>
                 </div>
+
+                @if(isset($event) && auth()->user()->isAdmin())
+                    <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                        <div>
+                            <dt class="text-sm font-medium leading-6 text-gray-900">Event Creator</dt>
+                            <p class="text-gray-500 text-sm mt-1">Only admins can change this.</p>
+                        </div>
+                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                            <x-select-input name="created_by" id="created_by" class="block w-64 text-sm">
+                                @foreach(\App\Models\User::orderBy('name')->get() as $user)
+                                    <option value="{{ $user->id }}" {{ old('created_by', $event->created_by) == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }} ({{ $user->email }})
+                                    </option>
+                                @endforeach
+                            </x-select-input>
+                            <x-form-validation for="created_by" />
+                            <p class="text-gray-500 text-sm mt-1">The creator has full control over the event and can manage collaborators.</p>
+                        </dd>
+                    </div>
+                @endif
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <div>

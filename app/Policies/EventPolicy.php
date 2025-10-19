@@ -13,7 +13,7 @@ class EventPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermission('manage-events');
+        return $user->isAdmin() || $user->hasPermission('manage-events');
     }
 
     /**
@@ -29,7 +29,7 @@ class EventPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermission('manage-events');
+        return $user->isAdmin() || $user->hasPermission('manage-events');
     }
 
     /**
@@ -37,8 +37,8 @@ class EventPolicy
      */
     public function update(User $user, Event $event): bool
     {
-        // Admin with manage-events permission can edit any event
-        if ($user->hasPermission('manage-events')) {
+        // Admin or user with manage-events permission can edit any event
+        if ($user->isAdmin() || $user->hasPermission('manage-events')) {
             return true;
         }
 
@@ -56,8 +56,8 @@ class EventPolicy
      */
     public function delete(User $user, Event $event): bool
     {
-        // Admin with manage-events permission can delete any event
-        if ($user->hasPermission('manage-events')) {
+        // Admin or user with manage-events permission can delete any event
+        if ($user->isAdmin() || $user->hasPermission('manage-events')) {
             return true;
         }
 
@@ -70,8 +70,8 @@ class EventPolicy
      */
     public function manageEditors(User $user, Event $event): bool
     {
-        // Admin with manage-events permission can manage editors
-        if ($user->hasPermission('manage-events')) {
+        // Admin or user with manage-events permission can manage editors
+        if ($user->isAdmin() || $user->hasPermission('manage-events')) {
             return true;
         }
 
@@ -84,7 +84,7 @@ class EventPolicy
      */
     public function restore(User $user, Event $event): bool
     {
-        return $user->hasPermission('manage-events');
+        return $user->isAdmin() || $user->hasPermission('manage-events');
     }
 
     /**
@@ -92,6 +92,6 @@ class EventPolicy
      */
     public function forceDelete(User $user, Event $event): bool
     {
-        return $user->hasPermission('manage-events');
+        return $user->isAdmin() || $user->hasPermission('manage-events');
     }
 }

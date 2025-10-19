@@ -119,13 +119,22 @@ class EventController extends Controller
             'visibility' => 'required|in:public,unlisted,draft',
             'hide_past_shifts' => 'nullable|boolean',
             'auto_credit_hours' => 'nullable|boolean',
+            'created_by' => 'nullable|exists:users,id',
         ]);
 
+        // Build update data
+        $updateData = $request->only(['name', 'description', 'start_date', 'end_date', 'signup_open_date', 'location', 'visibility']);
+        
         // Normalize checkbox (unchecked checkboxes don't get sent)
-        $validated['hide_past_shifts'] = $request->has('hide_past_shifts');
-        $validated['auto_credit_hours'] = $request->has('auto_credit_hours');
-
-        $event->update($request->only(['name', 'description', 'start_date', 'end_date', 'signup_open_date', 'location', 'visibility', 'hide_past_shifts', 'auto_credit_hours']));
+        $updateData['hide_past_shifts'] = $request->has('hide_past_shifts');
+        $updateData['auto_credit_hours'] = $request->has('auto_credit_hours');
+        
+        // Only admins with manage-events permission can change the creator
+        if ($request->has('created_by') && auth()->user()->isAdmin()) {
+            $updateData['created_by'] = $request->created_by;
+        }
+        
+        $event->update($updateData);
 
         return redirect()->route('admin.events.index')
             ->with('success', [

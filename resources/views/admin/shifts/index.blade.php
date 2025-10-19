@@ -42,6 +42,12 @@
                 <x-tailwind-dropdown-item title="Delete" href="#" class="hover:bg-red-50 text-red-900" />
             </div> --}}
         </x-tailwind-dropdown>
+        @can('manageEditors', $event)
+            <a href="{{ route('admin.events.editors', $event) }}"
+                class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                <x-heroicon-o-user-group class="w-4 inline"/> Manage Collaborators
+            </a>
+        @endcan
         <a href="{{ route('admin.events.shifts.create', $event) }}"
             class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-s-plus class="w-4 inline"/> Create New Shift

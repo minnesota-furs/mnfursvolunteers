@@ -125,11 +125,11 @@
                                             @endif
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-1 pr-3 text-sm sm:pl-0">
-                                            @can('update', $event)
+                                            @if(auth()->user()->isAdmin() || auth()->user()->can('update', $event))
                                                 <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-blue-500 font-semibold px-2">{{ $event->shifts()->count() }}</a>
                                             @else
                                                 <span class="text-gray-500 font-semibold px-2">{{ $event->shifts()->count() }}</span>
-                                            @endcan
+                                            @endif
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm text-center sm:pl-0">
                                             <div>{{ $event->start_date->format('M j, Y') }}</div>
@@ -140,7 +140,7 @@
                                             <div>{{ $event->end_date->format('g:i A') }}</div>
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            @can('update', $event)
+                                            @if(auth()->user()->isAdmin() || auth()->user()->can('update', $event))
                                                 <a href="{{ route('admin.events.edit', $event) }}" class="text-blue-600 px-2"><x-heroicon-s-pencil class="w-3 inline"/> Edit</a>
                                                 <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-blue-600 px-2"><x-heroicon-m-clock class="w-3 inline"/> Manage Shifts</a>
                                             
@@ -148,9 +148,9 @@
                                                     <div class="py-1" role="none">
                                                         <x-tailwind-dropdown-item href="{{route('admin.events.edit', $event->id)}}" title="Edit Event Details"><x-heroicon-o-pencil class="w-4 inline"/> Edit Event</x-tailwind-dropdown-item>
                                                         <x-tailwind-dropdown-item href="{{route('admin.events.shifts.index', $event->id)}}" title="Create/Edit/View Event Shifts"><x-heroicon-o-clock class="w-4 inline"/> Manage Shifts</x-tailwind-dropdown-item>
-                                                        @can('manageEditors', $event)
+                                                        @if(auth()->user()->isAdmin() || auth()->user()->can('manageEditors', $event))
                                                             <x-tailwind-dropdown-item href="{{route('admin.events.editors', $event->id)}}" title="Manage who can edit this event"><x-heroicon-o-user-group class="w-4 inline"/> Manage Editors</x-tailwind-dropdown-item>
-                                                        @endcan
+                                                        @endif
                                                         <x-tailwind-dropdown-item href="{{route('admin.events.log', $event->id)}}" title="View Event Logs"><x-heroicon-o-list-bullet class="w-4 inline"/> View Logs</x-tailwind-dropdown-item>
                                                     </div>
                                                     <div class="py-1" role="none">
@@ -181,7 +181,7 @@
                                                         <x-tailwind-dropdown-item title="Delete" href="#" class="hover:bg-red-50 text-red-900" />
                                                     </div> --}}
                                                 </x-tailwind-dropdown>
-                                            @endcan
+                                            @endif
                                         </td>
                                     </tr>
                                     @empty
