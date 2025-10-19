@@ -85,7 +85,16 @@ class ElectionController extends Controller
         }
 
         if (!$election->userCanVote(Auth::user())) {
-            return back()->with('error', "You need at least {$election->min_voter_hours} volunteer hours in the current fiscal year to vote in this election.");
+            // Get user's hours for the relevant fiscal period
+            $userHours = $election->fiscal_ledger_id 
+                ? Auth::user()->getHoursForFiscalLedger($election->fiscal_ledger_id)
+                : Auth::user()->getCurrentFiscalYearHours();
+            
+            $fiscalPeriodName = $election->fiscal_ledger_id 
+                ? $election->fiscalLedger->name 
+                : 'the current fiscal year';
+            
+            return back()->with('error', "You need at least {$election->min_voter_hours} volunteer hours in {$fiscalPeriodName} to vote in this election.");
         }
 
         // Handle both single candidate (radio) and multiple candidates (checkbox)
@@ -161,8 +170,12 @@ class ElectionController extends Controller
         }
 
         if (!$election->userCanBeCandidate(Auth::user())) {
+            $fiscalPeriodName = $election->fiscal_ledger_id 
+                ? $election->fiscalLedger->name 
+                : 'the current fiscal year';
+            
             return redirect()->route('elections.show', $election)
-                ->with('error', "You need at least {$election->min_candidate_hours} volunteer hours in the current fiscal year to be a candidate in this election.");
+                ->with('error', "You need at least {$election->min_candidate_hours} volunteer hours in {$fiscalPeriodName} to be a candidate in this election.");
         }
 
         // Check if user is already a candidate
@@ -191,8 +204,12 @@ class ElectionController extends Controller
         }
 
         if (!$election->userCanBeCandidate(Auth::user())) {
+            $fiscalPeriodName = $election->fiscal_ledger_id 
+                ? $election->fiscalLedger->name 
+                : 'the current fiscal year';
+            
             return redirect()->route('elections.show', $election)
-                ->with('error', "You need at least {$election->min_candidate_hours} volunteer hours in the current fiscal year to be a candidate in this election.");
+                ->with('error', "You need at least {$election->min_candidate_hours} volunteer hours in {$fiscalPeriodName} to be a candidate in this election.");
         }
 
         $request->validate([

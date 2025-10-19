@@ -22,6 +22,7 @@ class Election extends Model
         'requires_approval',
         'min_candidate_hours',
         'min_voter_hours',
+        'fiscal_ledger_id',
     ];
 
     protected $casts = [
@@ -42,6 +43,11 @@ class Election extends Model
     public function votes()
     {
         return $this->hasMany(Vote::class);
+    }
+
+    public function fiscalLedger()
+    {
+        return $this->belongsTo(FiscalLedger::class);
     }
 
     public function isActive()
@@ -122,6 +128,12 @@ class Election extends Model
             return true;
         }
 
+        // If fiscal ledger is specified, check hours for that specific period
+        if ($this->fiscal_ledger_id) {
+            return $user->getHoursForFiscalLedger($this->fiscal_ledger_id) >= $this->min_voter_hours;
+        }
+
+        // Otherwise, default to current fiscal year
         return $user->getCurrentFiscalYearHours() >= $this->min_voter_hours;
     }
 
@@ -131,6 +143,12 @@ class Election extends Model
             return true;
         }
 
+        // If fiscal ledger is specified, check hours for that specific period
+        if ($this->fiscal_ledger_id) {
+            return $user->getHoursForFiscalLedger($this->fiscal_ledger_id) >= $this->min_candidate_hours;
+        }
+
+        // Otherwise, default to current fiscal year
         return $user->getCurrentFiscalYearHours() >= $this->min_candidate_hours;
     }
 

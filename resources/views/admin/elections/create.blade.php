@@ -114,6 +114,25 @@
                                 </dd>
                             </div>
 
+                            <!-- Fiscal Period Selection -->
+                            <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Fiscal Period for Hours</dt>
+                                <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
+                                    <select name="fiscal_ledger_id" id="fiscal_ledger_id" 
+                                        class="block w-full max-w-lg rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                        <option value="">Current Fiscal Period (Default)</option>
+                                        @foreach($fiscalLedgers as $fiscalLedger)
+                                            <option value="{{ $fiscalLedger->id }}" 
+                                                {{ old('fiscal_ledger_id', $election->fiscal_ledger_id ?? '') == $fiscalLedger->id ? 'selected' : '' }}>
+                                                {{ $fiscalLedger->name }} ({{ $fiscalLedger->start_date->format('M Y') }} - {{ $fiscalLedger->end_date->format('M Y') }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <p class="mt-1 text-xs text-gray-500">Choose which fiscal period's volunteer hours to check for eligibility requirements</p>
+                                    <x-form-validation for="fiscal_ledger_id" />
+                                </dd>
+                            </div>
+
                             <!-- Volunteer Hours Requirements -->
                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                 <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Hours Requirements</dt>

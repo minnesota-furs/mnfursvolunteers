@@ -205,4 +205,15 @@ class User extends Authenticatable
     {
         return $this->totalHoursForCurrentFiscalLedger();
     }
+
+    /**
+     * Get volunteer hours for a specific fiscal ledger period.
+     *
+     * @param int $fiscalLedgerId
+     * @return float
+     */
+    public function getHoursForFiscalLedger($fiscalLedgerId)
+    {
+        return $this->totalVolunteerHoursForFiscalPeriod($fiscalLedgerId);
+    }
 }

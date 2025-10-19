@@ -7,6 +7,7 @@ use App\Models\Election;
 use App\Models\Candidate;
 use App\Models\Vote;
 use App\Models\User;
+use App\Models\FiscalLedger;
 use Illuminate\Http\Request;
 use Parsedown;
 
@@ -32,7 +33,8 @@ class ElectionController extends Controller
 
     public function create()
     {
-        return view('admin.elections.create');
+        $fiscalLedgers = FiscalLedger::orderBy('start_date', 'desc')->get();
+        return view('admin.elections.create', compact('fiscalLedgers'));
     }
 
     public function store(Request $request)
@@ -49,6 +51,7 @@ class ElectionController extends Controller
             'requires_approval' => 'boolean',
             'min_candidate_hours' => 'nullable|numeric|min:0',
             'min_voter_hours' => 'nullable|numeric|min:0',
+            'fiscal_ledger_id' => 'nullable|exists:fiscal_ledgers,id',
         ]);
 
         $election = Election::create($validated);
@@ -79,7 +82,8 @@ class ElectionController extends Controller
 
     public function edit(Election $election)
     {
-        return view('admin.elections.edit', compact('election'));
+        $fiscalLedgers = FiscalLedger::orderBy('start_date', 'desc')->get();
+        return view('admin.elections.edit', compact('election', 'fiscalLedgers'));
     }
 
     public function update(Request $request, Election $election)
@@ -97,6 +101,7 @@ class ElectionController extends Controller
             'active' => 'boolean',
             'min_candidate_hours' => 'nullable|numeric|min:0',
             'min_voter_hours' => 'nullable|numeric|min:0',
+            'fiscal_ledger_id' => 'nullable|exists:fiscal_ledgers,id',
         ]);
 
         $election->update($validated);
@@ -201,9 +206,18 @@ class ElectionController extends Controller
         // Check hours requirement (admin can override with a warning)
         if ($election->min_candidate_hours > 0 && !$election->userCanBeCandidate($user)) {
             if (!$request->has('force_create')) {
+                // Get user's hours for the relevant fiscal period
+                $userHours = $election->fiscal_ledger_id 
+                    ? $user->getHoursForFiscalLedger($election->fiscal_ledger_id)
+                    : $user->getCurrentFiscalYearHours();
+                
+                $fiscalPeriodName = $election->fiscal_ledger_id 
+                    ? $election->fiscalLedger->name 
+                    : 'current fiscal year';
+                
                 return back()
                     ->withInput()
-                    ->with('warning', "This user only has {$user->getCurrentFiscalYearHours()} volunteer hours but {$election->min_candidate_hours} hours are required. Check 'Force Create' to add them anyway.");
+                    ->with('warning', "This user only has {$userHours} volunteer hours in {$fiscalPeriodName} but {$election->min_candidate_hours} hours are required. Check 'Force Create' to add them anyway.");
             }
         }
 
