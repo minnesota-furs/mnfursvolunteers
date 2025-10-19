@@ -1,31 +1,72 @@
 <x-app-layout>
     @section('title', 'Users - Edit ' . $user->name)
     <x-slot name="header">
-        {{ __('Edit User: ') }} {{$user->name}}
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div class="flex-1">
+                <h1 class="text-2xl font-bold text-white">Edit User: {{ $user->name }}</h1>
+                <div class="mt-2 flex flex-wrap gap-2">
+                    @if($user->active)
+                        <span class="inline-flex items-center rounded-full bg-white/20 backdrop-blur-sm px-3 py-1 text-xs font-medium text-white ring-1 ring-inset ring-white/30">
+                            <svg class="mr-1.5 h-1.5 w-1.5 fill-current" viewBox="0 0 6 6" aria-hidden="true">
+                                <circle cx="3" cy="3" r="3" />
+                            </svg>
+                            Active
+                        </span>
+                    @else
+                        <span class="inline-flex items-center rounded-full bg-yellow-500/20 backdrop-blur-sm px-3 py-1 text-xs font-medium text-yellow-100 ring-1 ring-inset ring-yellow-400/30">
+                            <svg class="mr-1.5 h-1.5 w-1.5 fill-current" viewBox="0 0 6 6" aria-hidden="true">
+                                <circle cx="3" cy="3" r="3" />
+                            </svg>
+                            Inactive
+                        </span>
+                    @endif
+                    @if($user->isAdmin())
+                        <span class="inline-flex items-center rounded-full bg-red-500/20 backdrop-blur-sm px-3 py-1 text-xs font-medium text-red-100 ring-1 ring-inset ring-red-400/30">
+                            <x-heroicon-s-shield-check class="mr-1.5 h-3 w-3" />
+                            Administrator
+                        </span>
+                    @endif
+                    @if($user->vol_code)
+                        <span class="inline-flex items-center rounded-full bg-blue-500/20 backdrop-blur-sm px-3 py-1 text-xs font-medium text-blue-100 ring-1 ring-inset ring-blue-400/30">
+                            <x-heroicon-o-identification class="mr-1.5 h-3 w-3" />
+                            {{ $user->vol_code }}
+                        </span>
+                    @endif
+                </div>
+            </div>
+        </div>
     </x-slot>
 
     <x-slot name="actions">
-        @if( Auth::user()->isAdmin() && Auth::user()->id != $user->id )
-        <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="inline">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="block rounded-md bg-red-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-md hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                    onclick="return confirm('Are you sure you want to delete this user?');">
-                    <x-heroicon-s-trash class="w-4 inline"/> Delete
+        <div class="flex items-center gap-3">
+            @if( Auth::user()->isAdmin() && Auth::user()->id != $user->id )
+                <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" 
+                            class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                            onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
+                        <x-heroicon-s-trash class="mr-2 h-4 w-4"/>
+                        Delete User
+                    </button>
+                </form>
+            @endif
+            
+            <a href="{{ route('users.show', $user->id) }}"
+                class="inline-flex items-center rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-200 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <x-heroicon-m-x-mark class="mr-2 h-4 w-4" />
+                Cancel
+            </a>
+            
+            <button type="submit" form="user-form"
+                class="inline-flex items-center rounded-md bg-brand-green px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">
+                <x-heroicon-m-check class="mr-2 h-4 w-4" />
+                Save Changes
             </button>
-        </form>
-        @endif
-        <a href="{{ url()->previous() }}"
-            class="block rounded-md bg-gray-500 px-3 py-2 text-center text-sm font-semibold text-white shadow-md hover:bg-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-            Cancel
-        </a>
-        <button onClick="document.getElementById('form').submit();"
-            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-            Save
-        </button>
+        </div>
     </x-slot>
 
-    @include('users.partials.edit-user-form')
+    @include('users.partials.edit-user-form-redesigned')
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 

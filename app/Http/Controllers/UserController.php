@@ -6,6 +6,7 @@ use App\Models\Sector;
 use App\Models\User;
 use App\Models\Department;
 use App\Models\FiscalLedger;
+use App\Models\AuditLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -141,10 +142,21 @@ class UserController extends Controller
         $volunteerHours = $user->volunteerHours()
             ->orderByRaw('COALESCE(volunteer_date, created_at) DESC')
             ->paginate(15);
+        
+        // Get audit logs for this user (only for admins)
+        $auditLogs = null;
+        if (Auth::check() && Auth::user()->admin) {
+            $auditLogs = AuditLog::where('auditable_type', User::class)
+                ->where('auditable_id', $user->id)
+                ->with('user')
+                ->latest()
+                ->paginate(10, ['*'], 'logs_page');
+        }
 
         return view('users.show', [
             'user' => $user,
             'volunteerHours' => $volunteerHours,
+            'auditLogs' => $auditLogs,
         ]);
     }
 
