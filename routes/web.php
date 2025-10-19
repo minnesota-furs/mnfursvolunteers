@@ -147,9 +147,9 @@ Route::middleware('auth')->group(function () {
         Route::delete('events/{event}/shifts/{shift}/remove-volunteer/{user}', [ShiftController::class, 'removeVolunteer'])->name('events.shifts.remove-volunteer');
         Route::post('events/{event}/shifts/{shift}/add-volunteer/{user}', [ShiftController::class, 'addVolunteer'])->name('events.shifts.add-volunteer');
         Route::get('/events/{event}/volunteers', [EventController::class, 'volunteerList'])->name('events.volunteers');
-        Route::get('/events/{event}/agenda', [EventController::class, 'agendaView'])->name('events.agenda');
         Route::get('/events/{event}/allShifts', [EventController::class, 'indexWithShifts'])->name('events.allShifts');
         Route::get('/events/{event}/allShifts/print', [EventController::class, 'indexWithShiftsPrint'])->name('events.allShifts.print');
+        Route::get('/events/{event}/agenda', [EventController::class, 'agenda'])->name('events.agenda');
         Route::get('/events/{event}/log', [EventController::class, 'log'])->name('events.log');
         Route::get('/events/{event}/editors', [EventController::class, 'editors'])->name('events.editors');
         Route::post('/events/{event}/editors', [EventController::class, 'addEditor'])->name('events.editors.add');

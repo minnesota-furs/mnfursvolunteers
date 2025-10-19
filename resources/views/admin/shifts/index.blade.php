@@ -17,7 +17,7 @@
             <div class="py-1" role="none">
                 <x-tailwind-dropdown-item href="{{ route('admin.events.volunteers', $event) }}" title="View all unquie volunteers signed up and email actions">View All Volunteers / Email</x-tailwind-dropdown-item>
                 <x-tailwind-dropdown-item href="{{ route('admin.events.allShifts', $event) }}" title="View all the shifts and their associated volunteers">View Shift Overview</x-tailwind-dropdown-item>
-                <x-tailwind-dropdown-item href="{{ route('admin.events.agenda', $event) }}" title="View the shifts in a day agenda view">View Agenda (BETA)</x-tailwind-dropdown-item>
+                <x-tailwind-dropdown-item href="{{ route('admin.events.agenda', $event) }}" title="View calendar-style agenda with shift coverage visualization"><x-heroicon-o-calendar class="w-4 inline"/> View Agenda Calendar</x-tailwind-dropdown-item>
             </div>
             @if ($event->visibility === 'public' || $event->visibility === 'unlisted' )
             <div class="py-1" role="none">
@@ -48,6 +48,10 @@
                 <x-heroicon-o-user-group class="w-4 inline"/> Manage Collaborators
             </a>
         @endcan
+        <a href="{{ route('admin.events.agenda', $event) }}"
+            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <x-heroicon-o-calendar class="w-4 inline"/> View Agenda
+        </a>
         <a href="{{ route('admin.events.shifts.create', $event) }}"
             class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-s-plus class="w-4 inline"/> Create New Shift

@@ -205,59 +205,125 @@ class EventController extends Controller
             return view('admin.shifts.allShiftsPrint', compact('event', 'shifts'));
         }
 
-    public function agendaView(Event $event)
+    /**
+     * Display the agenda/calendar view for an event
+     */
+    public function agenda(Event $event)
     {
         $this->authorize('update', $event);
         
-        // Load all shifts and users signed up
-        $shifts = $event->shifts()->with('users')->orderBy('start_time')->get();
+        $shifts = $event->shifts()
+            ->with('users')
+            ->orderBy('start_time')
+            ->get();
 
-        // Calculate visual position per shift to avoid overlap
-        $positions = $this->assignShiftColumns($shifts);
+        // Group shifts by date
+        $shiftsByDate = $shifts->groupBy(function ($shift) {
+            return $shift->start_time->format('Y-m-d');
+        });
 
-        return view('admin.shifts.agenda', [
-            'event' => $event,
-            'shifts' => $shifts,
-            'positions' => $positions,
-            'startHour' => 5,
-            'endHour' => 24,
-        ]);
+        // Calculate time range for the calendar (earliest to latest)
+        $earliestHour = 24;
+        $latestHour = 0;
+        
+        foreach ($shifts as $shift) {
+            $startHour = (int) $shift->start_time->format('G');
+            $endHour = (int) $shift->end_time->format('G');
+            
+            if ($shift->end_time->format('i') > 0) {
+                $endHour++; // Round up if there are minutes
+            }
+            
+            $earliestHour = min($earliestHour, $startHour);
+            $latestHour = max($latestHour, $endHour);
+        }
+
+        // Default to reasonable hours if no shifts
+        if ($shifts->isEmpty()) {
+            $earliestHour = 8;
+            $latestHour = 18;
+        }
+
+        // Ensure we have at least a reasonable window
+        $earliestHour = max(0, $earliestHour - 1);
+        $latestHour = min(24, $latestHour + 1);
+
+        // Calculate statistics
+        $totalSlots = $shifts->sum('max_volunteers');
+        $filledSlots = $shifts->sum(function ($shift) {
+            return $shift->users->count();
+        });
+        $coveragePercent = $totalSlots > 0 ? round(($filledSlots / $totalSlots) * 100) : 0;
+
+        // Calculate column positions for overlapping shifts per day
+        $shiftPositions = [];
+        foreach ($shiftsByDate as $date => $dayShifts) {
+            $positions = $this->assignShiftColumns($dayShifts);
+            foreach ($positions as $shiftId => $position) {
+                $shiftPositions[$shiftId] = $position;
+            }
+        }
+
+        return view('admin.shifts.agenda', compact(
+            'event', 
+            'shifts', 
+            'shiftsByDate', 
+            'earliestHour', 
+            'latestHour',
+            'totalSlots',
+            'filledSlots',
+            'coveragePercent',
+            'shiftPositions'
+        ));
     }
 
     protected function assignShiftColumns($shifts)
     {
-        $groups = [];
-        foreach ($shifts as $shift) {
-            $added = false;
-            foreach ($groups as &$group) {
-                $conflict = false;
-                foreach ($group as $existing) {
-                    $endBuffer = $existing->end_time->copy()->subMinute();
-                    if (
-                        $shift->start_time->lt($endBuffer) &&
-                        $shift->end_time->gt($existing->start_time)
-                    ) {
-                        $conflict = true;
+        // Sort shifts by start time
+        $sortedShifts = $shifts->sortBy('start_time')->values();
+        
+        $columns = [];
+        $shiftPositions = [];
+        
+        foreach ($sortedShifts as $shift) {
+            $placed = false;
+            
+            // Try to place shift in an existing column
+            foreach ($columns as $columnIndex => $columnShifts) {
+                $hasConflict = false;
+                
+                foreach ($columnShifts as $existingShift) {
+                    // Check if shifts overlap (with 1-minute buffer to allow back-to-back)
+                    if ($shift->start_time->lt($existingShift->end_time->copy()->subMinute()) &&
+                        $shift->end_time->gt($existingShift->start_time->copy()->addMinute())) {
+                        $hasConflict = true;
                         break;
                     }
                 }
-                if (!$conflict) {
-                    $group[] = $shift;
-                    $added = true;
+                
+                if (!$hasConflict) {
+                    // Place in this column
+                    $columns[$columnIndex][] = $shift;
+                    $placed = true;
                     break;
                 }
             }
-            if (!$added) {
-                $groups[] = [$shift];
+            
+            if (!$placed) {
+                // Create new column
+                $columns[] = [$shift];
             }
         }
-
-        $shiftPositions = [];
-        foreach ($groups as $group) {
-            foreach ($group as $i => $shift) {
+        
+        // Calculate total columns needed (max columns at any time)
+        $maxColumns = count($columns);
+        
+        // Assign positions to each shift
+        foreach ($columns as $columnIndex => $columnShifts) {
+            foreach ($columnShifts as $shift) {
                 $shiftPositions[$shift->id] = [
-                    'column' => $i,
-                    'columns' => count($group),
+                    'column' => $columnIndex,
+                    'columns' => $maxColumns,
                 ];
             }
         }
