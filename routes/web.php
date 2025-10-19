@@ -72,6 +72,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
         Route::post('/link-wordpress', [ProfileController::class, 'linkWordPress'])->name('link-wordpress');
         Route::delete('/unlink-wordpress', [ProfileController::class, 'unlinkWordPress'])->name('unlink-wordpress');
+        Route::patch('/email-preferences', [ProfileController::class, 'updateEmailPreferences'])->name('email-preferences');
     });
 
     // One Off Events

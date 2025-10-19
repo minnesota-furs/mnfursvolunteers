@@ -99,4 +99,27 @@ class ProfileController extends Controller
             'message' => 'WordPress account unlinked.',
         ]);
     }
+
+    /**
+     * Update the user's email preferences.
+     */
+    public function updateEmailPreferences(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'email_shift_reminders' => 'nullable|boolean',
+            'email_event_updates' => 'nullable|boolean',
+            'email_hour_approvals' => 'nullable|boolean',
+        ]);
+
+        $user = $request->user();
+        
+        // Checkboxes not checked won't be in the request, so we need to handle that
+        $user->update([
+            'email_shift_reminders' => $request->has('email_shift_reminders'),
+            'email_event_updates' => $request->has('email_event_updates'),
+            'email_hour_approvals' => $request->has('email_hour_approvals'),
+        ]);
+
+        return Redirect::route('profile.edit')->with('email-preferences-status', 'preferences-updated');
+    }
 }

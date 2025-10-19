@@ -33,6 +33,9 @@ class User extends Authenticatable
         'is_linked_to_wp',
         'notes',
         'admin',
+        'email_shift_reminders',
+        'email_event_updates',
+        'email_hour_approvals',
     ];
 
     /**
@@ -54,6 +57,9 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password'          => 'hashed',
         'permissions'       => 'array',
+        'email_shift_reminders' => 'boolean',
+        'email_event_updates' => 'boolean',
+        'email_hour_approvals' => 'boolean',
     ];
 
     public function volunteerHours()

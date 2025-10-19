@@ -14,6 +14,9 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('volunteer:log-shift-hours')->dailyAt('07:00');
+        
+        // Send shift reminder emails every morning at 8am
+        $schedule->command('shifts:send-reminders')->dailyAt('08:00');
     }
 
     /**
