@@ -151,6 +151,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/events/{event}/allShifts', [EventController::class, 'indexWithShifts'])->name('events.allShifts');
         Route::get('/events/{event}/allShifts/print', [EventController::class, 'indexWithShiftsPrint'])->name('events.allShifts.print');
         Route::get('/events/{event}/log', [EventController::class, 'log'])->name('events.log');
+        Route::get('/events/{event}/editors', [EventController::class, 'editors'])->name('events.editors');
+        Route::post('/events/{event}/editors', [EventController::class, 'addEditor'])->name('events.editors.add');
+        Route::delete('/events/{event}/editors/{user}', [EventController::class, 'removeEditor'])->name('events.editors.remove');
     });
 
     Route::prefix('volunteer')->name('volunteer.')->group(function () {

@@ -35,6 +35,17 @@ class Event extends Model
         return $this->hasMany(Shift::class);
     }
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function editors()
+    {
+        return $this->belongsToMany(User::class, 'event_user')
+                    ->withTimestamps();
+    }
+
     public function getRemainingVolunteerSpotsAttribute()
     {
         return $this->shifts->sum(function ($shift) {
@@ -65,6 +76,24 @@ class Event extends Model
     public function scopeNotDraft($query)
     {
         return $query->where('visibility', '!=', 'draft');
+    }
+
+    public function scopeUpcoming($query)
+    {
+        return $query->where('end_date', '>=', now());
+    }
+
+    public function scopeCreatedBy($query, $userId)
+    {
+        return $query->where('created_by', $userId);
+    }
+
+    public function scopeEditableBy($query, $userId)
+    {
+        return $query->where('created_by', $userId)
+                     ->orWhereHas('editors', function ($q) use ($userId) {
+                         $q->where('user_id', $userId);
+                     });
     }
 
     public function isMultiDay(): bool

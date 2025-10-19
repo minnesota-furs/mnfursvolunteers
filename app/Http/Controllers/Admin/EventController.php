@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Event;
+use App\Models\User;
 use App\Models\AuditLog;
 
 class EventController extends Controller
@@ -12,10 +13,24 @@ class EventController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $events = Event::orderBy('start_date', 'asc')->get();
-        return view('admin.events.index', compact('events'));
+        $showPast = $request->boolean('show_past');
+        $showMine = $request->boolean('show_mine');
+        
+        $query = Event::with(['creator', 'editors'])->orderBy('start_date', 'asc');
+        
+        if (!$showPast) {
+            $query->upcoming();
+        }
+        
+        if ($showMine) {
+            $query->editableBy(auth()->id());
+        }
+        
+        $events = $query->get();
+        
+        return view('admin.events.index', compact('events', 'showPast', 'showMine'));
     }
 
     /**
@@ -28,6 +43,8 @@ class EventController extends Controller
     
     public function log(Event $event)
     {
+        $this->authorize('update', $event);
+        
         $logs = AuditLog::where('auditable_type', Event::class)
             ->where('auditable_id', $event->id)
             ->latest()
@@ -80,6 +97,8 @@ class EventController extends Controller
      */
     public function edit(Event $event)
     {
+        $this->authorize('update', $event);
+        
         return view('admin.events.create', compact('event'));
     }
 
@@ -88,6 +107,8 @@ class EventController extends Controller
      */
     public function update(Request $request, Event $event)
     {
+        $this->authorize('update', $event);
+        
         $request->validate([
             'name'        => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -117,6 +138,8 @@ class EventController extends Controller
      */
     public function destroy(Event $event)
     {
+        $this->authorize('delete', $event);
+        
         $event->delete();
 
         return redirect()->route('admin.events.index')->with('success', [
@@ -126,6 +149,8 @@ class EventController extends Controller
 
     public function volunteerList(Event $event)
     {
+        $this->authorize('update', $event);
+        
         $volunteers = $event->shifts()
             ->with('users')
             ->get()
@@ -141,6 +166,8 @@ class EventController extends Controller
 
     public function indexWithShifts(Event $event)
         {
+            $this->authorize('update', $event);
+            
             $events = $event->shifts()
                 ->with('users')
                 ->orderBy('start_time')
@@ -155,6 +182,8 @@ class EventController extends Controller
 
     public function indexWithShiftsPrint(Event $event)
         {
+            $this->authorize('update', $event);
+            
             $events = $event->shifts()
                 ->with('users')
                 ->orderBy('start_time')
@@ -169,6 +198,8 @@ class EventController extends Controller
 
     public function agendaView(Event $event)
     {
+        $this->authorize('update', $event);
+        
         // Load all shifts and users signed up
         $shifts = $event->shifts()->with('users')->orderBy('start_time')->get();
 
@@ -223,5 +254,68 @@ class EventController extends Controller
         }
 
         return $shiftPositions;
+    }
+
+    /**
+     * Show the event editors management page
+     */
+    public function editors(Event $event)
+    {
+        $this->authorize('manageEditors', $event);
+        
+        $editors = $event->editors()->get();
+        $availableUsers = User::whereNotIn('id', $editors->pluck('id'))
+            ->where('id', '!=', $event->created_by)
+            ->orderBy('name')
+            ->get();
+        
+        return view('admin.events.editors', compact('event', 'editors', 'availableUsers'));
+    }
+
+    /**
+     * Add an editor to an event
+     */
+    public function addEditor(Request $request, Event $event)
+    {
+        $this->authorize('manageEditors', $event);
+        
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+        
+        // Prevent adding the creator as an editor (they already have full access)
+        if ($request->user_id == $event->created_by) {
+            return redirect()->back()->with('error', [
+                'message' => 'The event creator already has full edit permissions.'
+            ]);
+        }
+        
+        // Check if already an editor
+        if ($event->editors()->where('user_id', $request->user_id)->exists()) {
+            return redirect()->back()->with('error', [
+                'message' => 'This user already has edit permissions for this event.'
+            ]);
+        }
+        
+        $event->editors()->attach($request->user_id);
+        
+        $user = User::find($request->user_id);
+        return redirect()->back()->with('success', [
+            'message' => "Added <span class=\"text-brand-green\">{$user->name}</span> as an editor for this event."
+        ]);
+    }
+
+    /**
+     * Remove an editor from an event
+     */
+    public function removeEditor(Event $event, User $user)
+    {
+        $this->authorize('manageEditors', $event);
+        
+        $event->editors()->detach($user->id);
+        
+        return redirect()->back()->with('success', [
+            'message' => "Removed <span class=\"text-brand-green\">{$user->name}</span> as an editor for this event."
+        ]);
     }
 }
