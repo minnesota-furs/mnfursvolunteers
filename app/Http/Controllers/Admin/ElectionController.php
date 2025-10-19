@@ -9,6 +9,7 @@ use App\Models\Vote;
 use App\Models\User;
 use App\Models\FiscalLedger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Parsedown;
 
 class ElectionController extends Controller
@@ -73,11 +74,25 @@ class ElectionController extends Controller
 
         $totalVotes = $election->votes()->count();
 
+        // Calculate eligible voters based on fiscal period and hours requirements
+        $eligibleVoters = 0;
+        if ($election->min_voter_hours > 0) {
+            $allUsers = User::all();
+            foreach ($allUsers as $user) {
+                if ($election->userCanVote($user)) {
+                    $eligibleVoters++;
+                }
+            }
+        } else {
+            // If no hours requirement, all users are eligible
+            $eligibleVoters = User::count();
+        }
+
         // Convert markdown to HTML using Parsedown
         $parsedown = new Parsedown();
         $election->parsedDescription = $parsedown->text($election->description);
 
-        return view('admin.elections.show', compact('election', 'candidates', 'totalVotes'));
+        return view('admin.elections.show', compact('election', 'candidates', 'totalVotes', 'eligibleVoters'));
     }
 
     public function edit(Election $election)
@@ -246,6 +261,60 @@ class ElectionController extends Controller
 
         return back()->with('success', [
                 'message' => "Removed {$candidateName} successfully",
+            ]);
+    }
+
+    public function voters(Election $election)
+    {
+        // Get unique voters with their first vote timestamp (when they voted)
+        // We don't show who they voted for, just that they voted and when
+        $voters = $election->votes()
+            ->select('user_id', 'election_id', DB::raw('MIN(created_at) as voted_at'), DB::raw('COUNT(*) as vote_count'))
+            ->groupBy('user_id', 'election_id')
+            ->with('user:id,name,email,vol_code')
+            ->get()
+            ->map(function($vote) {
+                return [
+                    'user' => $vote->user,
+                    'voted_at' => $vote->voted_at,
+                    'vote_count' => $vote->vote_count
+                ];
+            })
+            ->sortBy('voted_at');
+
+        $totalVoters = $voters->count();
+        $totalVotes = $election->votes()->count();
+
+        return view('admin.elections.voters', compact('election', 'voters', 'totalVoters', 'totalVotes'));
+    }
+
+    public function editCandidate(Election $election, Candidate $candidate)
+    {
+        // Ensure the candidate belongs to this election
+        if ($candidate->election_id !== $election->id) {
+            abort(404);
+        }
+
+        return view('admin.elections.edit-candidate', compact('election', 'candidate'));
+    }
+
+    public function updateCandidate(Request $request, Election $election, Candidate $candidate)
+    {
+        // Ensure the candidate belongs to this election
+        if ($candidate->election_id !== $election->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'statement' => 'nullable|string|max:2000',
+            'approved' => 'boolean',
+        ]);
+
+        $candidate->update($validated);
+
+        return redirect()->route('admin.elections.candidates', $election)
+            ->with('success', [
+                'message' => "Candidate updated successfully",
             ]);
     }
 }

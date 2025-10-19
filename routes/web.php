@@ -172,9 +172,12 @@ Route::middleware('auth')->group(function () {
         Route::get('elections/{election}/candidates', [\App\Http\Controllers\Admin\ElectionController::class, 'candidates'])->name('elections.candidates');
         Route::get('elections/{election}/candidates/create', [\App\Http\Controllers\Admin\ElectionController::class, 'createCandidate'])->name('elections.candidates.create');
         Route::post('elections/{election}/candidates', [\App\Http\Controllers\Admin\ElectionController::class, 'storeCandidate'])->name('elections.candidates.store');
+        Route::get('elections/{election}/candidates/{candidate}/edit', [\App\Http\Controllers\Admin\ElectionController::class, 'editCandidate'])->name('elections.candidates.edit');
+        Route::put('elections/{election}/candidates/{candidate}', [\App\Http\Controllers\Admin\ElectionController::class, 'updateCandidate'])->name('elections.candidates.update');
         Route::post('elections/{election}/candidates/{candidate}/approve', [\App\Http\Controllers\Admin\ElectionController::class, 'approveCandidate'])->name('elections.candidates.approve');
         Route::post('elections/{election}/candidates/{candidate}/reject', [\App\Http\Controllers\Admin\ElectionController::class, 'rejectCandidate'])->name('elections.candidates.reject');
         Route::delete('elections/{election}/candidates/{candidate}', [\App\Http\Controllers\Admin\ElectionController::class, 'removeCandidate'])->name('elections.candidates.destroy');
+        Route::get('elections/{election}/voters', [\App\Http\Controllers\Admin\ElectionController::class, 'voters'])->name('elections.voters');
         Route::get('elections/{election}/results', [\App\Http\Controllers\Admin\ElectionController::class, 'results'])->name('elections.results');
     });
 

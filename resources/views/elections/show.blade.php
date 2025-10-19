@@ -159,8 +159,14 @@
                 <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                     <div class="px-4 py-5 sm:p-6">
                         <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-6">
-                            @if($userHasVoted || !$election->isVotingPeriod())
+                            @if(!$election->isVotingPeriod())
                                 Candidates
+                            @elseif($userVoteCount > 0)
+                                @if($userHasVoted)
+                                    Your Votes
+                                @else
+                                    Choose Your Candidates ({{ $remainingVotes }} remaining)
+                                @endif
                             @elseif($election->max_positions > 1)
                                 Choose Your Candidates (up to {{ $election->max_positions }})
                             @else
@@ -213,7 +219,7 @@
                                                             </span>
                                                         </div>
                                                         <div class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                                            {{ $candidate->user->email }}
+                                                            {{-- {{ $candidate->user->email }} --}}
                                                             @if($candidate->user->primaryDepartment)
                                                                 • {{ $candidate->user->primaryDepartment->name }}
                                                             @endif
@@ -255,9 +261,9 @@
                                                         @if($candidate->statement)
                                                             <div class="mt-3">
                                                                 <h5 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Campaign Statement:</h5>
-                                                                <p class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-3 rounded border">
-                                                                    {{ $candidate->statement }}
-                                                                </p>
+                                                                <div class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-3 rounded border prose prose-sm max-w-none dark:prose-invert">
+                                                                    {!! \Parsedown::instance()->text($candidate->statement) !!}
+                                                                </div>
                                                             </div>
                                                         @endif
                                                     </div>
@@ -352,9 +358,9 @@
                                                 @if($candidate->statement)
                                                     <div class="mt-3">
                                                         <h5 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Campaign Statement:</h5>
-                                                        <p class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-3 rounded border">
-                                                            {{ $candidate->statement }}
-                                                        </p>
+                                                        <div class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-3 rounded border prose prose-sm max-w-none dark:prose-invert">
+                                                            {!! \Parsedown::instance()->text($candidate->statement) !!}
+                                                        </div>
                                                     </div>
                                                 @endif
                                             </div>
@@ -366,8 +372,17 @@
                             <!-- Display Only (Already Voted or Voting Closed) -->
                             <div class="space-y-4">
                                 @foreach($candidates as $candidate)
-                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+                                    @php
+                                        $alreadyVoted = in_array($candidate->id, $userVotedCandidates);
+                                    @endphp
+                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-6
+                                        @if($alreadyVoted && $election->isVotingPeriod()) bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 @endif">
                                         <div class="flex items-start space-x-4">
+                                            @if($alreadyVoted && $election->isVotingPeriod())
+                                                <div class="mt-1">
+                                                    <x-heroicon-s-check-circle class="h-5 w-5 text-green-600"/>
+                                                </div>
+                                            @endif
                                             <div class="flex-1">
                                                 <div class="flex items-center space-x-3">
                                                     <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -376,6 +391,11 @@
                                                     @if($candidate->user_id === Auth::id())
                                                         <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
                                                             You
+                                                        </span>
+                                                    @endif
+                                                    @if($alreadyVoted && $election->isVotingPeriod())
+                                                        <span class="inline-flex items-center rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-800 ring-1 ring-inset ring-green-700/10">
+                                                            Voted
                                                         </span>
                                                     @endif
                                                 </div>
@@ -390,9 +410,9 @@
                                                 @if($candidate->statement)
                                                     <div class="mt-3">
                                                         <h5 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Campaign Statement:</h5>
-                                                        <p class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-3 rounded border">
-                                                            {{ $candidate->statement }}
-                                                        </p>
+                                                        <div class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-3 rounded border prose prose-sm max-w-none dark:prose-invert">
+                                                            {!! \Parsedown::instance()->text($candidate->statement) !!}
+                                                        </div>
                                                     </div>
                                                 @endif
                                             </div>

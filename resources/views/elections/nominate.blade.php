@@ -78,23 +78,6 @@
                                     </dd>
                                 </div>
                             @endif
-
-                            <!-- Campaign Statement -->
-                            <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
-                                    Campaign Statement
-                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 font-normal">Optional</p>
-                                </dt>
-                                <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
-                                    <textarea name="statement" id="statement" rows="6" 
-                                        class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-green sm:text-sm sm:leading-6"
-                                        placeholder="Tell voters about yourself, your qualifications, and why you're running for this position...">{{ old('statement') }}</textarea>
-                                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                        Share your background, experience, and vision. This will be visible to all voters.
-                                    </p>
-                                    <x-form-validation for="statement" />
-                                </dd>
-                            </div>
                         </div>
 
                         <!-- Confirmation -->

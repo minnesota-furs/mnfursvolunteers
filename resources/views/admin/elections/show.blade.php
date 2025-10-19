@@ -56,8 +56,17 @@
                             <dd class="mt-1 text-3xl font-semibold text-gray-900 dark:text-gray-100">{{ $candidates->count() }}</dd>
                         </div>
                         <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:p-6 rounded-lg">
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Votes</dt>
-                            <dd class="mt-1 text-3xl font-semibold text-gray-900 dark:text-gray-100">{{ $totalVotes }}</dd>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Voter Turnout</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-gray-900 dark:text-gray-100">
+                                {{ $totalVotes }} / {{ $eligibleVoters }}
+                            </dd>
+                            <dd class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                @if($eligibleVoters > 0)
+                                    {{ number_format(($totalVotes / $eligibleVoters) * 100, 1) }}% turnout
+                                @else
+                                    N/A
+                                @endif
+                            </dd>
                         </div>
                         <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:p-6 rounded-lg">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Positions Available</dt>
@@ -137,7 +146,7 @@
                         Quick Actions
                     </h3>
                     
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
                         <a href="{{ route('admin.elections.candidates', $election) }}"
                             class="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                             <x-heroicon-o-users class="mx-auto h-12 w-12 text-gray-400"/>
@@ -149,6 +158,17 @@
                             </span>
                         </a>
 
+                        <a href="{{ route('admin.elections.voters', $election) }}"
+                            class="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                            <x-heroicon-o-user-group class="mx-auto h-12 w-12 text-gray-400"/>
+                            <span class="mt-2 block text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                View Voters
+                            </span>
+                            <span class="mt-1 block text-xs text-gray-500 dark:text-gray-400">
+                                {{ $totalVotes }} vote(s) cast
+                            </span>
+                        </a>
+
                         @if($election->resultsAreVisible())
                             <a href="{{ route('admin.elections.results', $election) }}"
                                 class="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
@@ -157,7 +177,7 @@
                                     View Results
                                 </span>
                                 <span class="mt-1 block text-xs text-gray-500 dark:text-gray-400">
-                                    {{ $totalVotes }} vote(s) cast
+                                    See election results
                                 </span>
                             </a>
                         @else

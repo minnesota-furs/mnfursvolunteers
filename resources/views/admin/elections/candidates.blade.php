@@ -97,9 +97,9 @@
                                             @if($candidate->statement)
                                                 <div class="mt-4">
                                                     <h5 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Campaign Statement:</h5>
-                                                    <p class="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-3 rounded border">
-                                                        {{ $candidate->statement }}
-                                                    </p>
+                                                    <div class="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-3 rounded border prose prose-sm max-w-none dark:prose-invert">
+                                                        {!! \Parsedown::instance()->text($candidate->statement) !!}
+                                                    </div>
                                                 </div>
                                             @endif
 
@@ -121,6 +121,12 @@
 
                                         <!-- Action Buttons -->
                                         <div class="flex flex-col space-y-2 ml-4">
+                                            <!-- Edit Button -->
+                                            <a href="{{ route('admin.elections.candidates.edit', [$election, $candidate]) }}"
+                                                class="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                                                <x-heroicon-s-pencil class="w-4 h-4 mr-1"/> Edit
+                                            </a>
+
                                             @if($election->requires_approval && !$candidate->withdrawn)
                                                 @if(!$candidate->approved)
                                                     <form action="{{ route('admin.elections.candidates.approve', [$election, $candidate]) }}" method="POST" class="inline">

@@ -212,10 +212,6 @@ class ElectionController extends Controller
                 ->with('error', "You need at least {$election->min_candidate_hours} volunteer hours in {$fiscalPeriodName} to be a candidate in this election.");
         }
 
-        $request->validate([
-            'statement' => 'nullable|string|max:2000',
-        ]);
-
         // Check if user is already a candidate
         $existingCandidate = $election->candidates()
             ->where('user_id', Auth::id())
@@ -229,7 +225,7 @@ class ElectionController extends Controller
         Candidate::create([
             'election_id' => $election->id,
             'user_id' => Auth::id(),
-            'statement' => $request->statement,
+            'statement' => null, // Statement will be set by admin
             'approved' => !$election->requires_approval,
         ]);
 
