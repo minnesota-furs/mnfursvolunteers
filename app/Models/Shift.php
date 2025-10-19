@@ -17,6 +17,9 @@ class Shift extends Model
         'end_time',
         'double_hours',
         'max_volunteers',
+        'original_shift_id',
+        'duplicate_series_id',
+        'duplicate_sequence',
     ];
     
     protected $casts = [

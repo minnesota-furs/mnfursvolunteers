@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AdvancedDuplicateShiftRequest;
 use App\Models\Event;
 use App\Models\Shift;
 use App\Models\User;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 use League\Csv\Reader;
 use League\Csv\Statement;
 
@@ -211,6 +214,126 @@ class ShiftController extends Controller
             ],
             'shift_count' => $shift->users()->count()
         ]);
+    }
+
+    /**
+     * Process advanced duplicate request to create multiple shift copies
+     */
+    public function advancedDuplicate(AdvancedDuplicateShiftRequest $request, Event $event, Shift $shift)
+    {
+        $validated = $request->validated();
+        
+        $recurrence = $validated['recurrence'];
+        $interval = $validated['interval'];
+        $intervalUnit = $validated['interval_unit'];
+        $namingPattern = $validated['naming_pattern'];
+        $customPrefix = $validated['custom_prefix'] ?? '';
+        $customSuffix = $validated['custom_suffix'] ?? '';
+        $copyVolunteers = $validated['copy_volunteers'] ?? false;
+        $maintainCapacity = $validated['maintain_capacity'] ?? true;
+        $copyDescription = $validated['copy_description'] ?? true;
+
+        // Generate a unique series ID for tracking these duplicates together
+        $seriesId = Str::uuid()->toString();
+        
+        $createdShifts = [];
+        $volunteers = $copyVolunteers ? $shift->users->pluck('id')->toArray() : [];
+
+        for ($i = 1; $i <= $recurrence; $i++) {
+            // Calculate new times based on interval
+            $timeOffset = $interval * $i;
+            
+            $newStartTime = clone $shift->start_time;
+            $newEndTime = clone $shift->end_time;
+            
+            switch ($intervalUnit) {
+                case 'hours':
+                    $newStartTime->addHours($timeOffset);
+                    $newEndTime->addHours($timeOffset);
+                    break;
+                case 'days':
+                    $newStartTime->addDays($timeOffset);
+                    $newEndTime->addDays($timeOffset);
+                    break;
+                case 'weeks':
+                    $newStartTime->addWeeks($timeOffset);
+                    $newEndTime->addWeeks($timeOffset);
+                    break;
+            }
+
+            // Generate new name based on pattern
+            $newName = $this->generateShiftName($shift->name, $namingPattern, $i, $customPrefix, $customSuffix);
+
+            // Create the new shift
+            $newShift = $shift->replicate();
+            $newShift->name = $newName;
+            $newShift->start_time = $newStartTime;
+            $newShift->end_time = $newEndTime;
+            $newShift->original_shift_id = $shift->id;
+            $newShift->duplicate_series_id = $seriesId;
+            $newShift->duplicate_sequence = $i;
+            
+            if (!$maintainCapacity) {
+                $newShift->max_volunteers = 1;
+            }
+            
+            if (!$copyDescription) {
+                $newShift->description = null;
+            }
+            
+            $newShift->save();
+
+            // Copy volunteer assignments if requested
+            if ($copyVolunteers && !empty($volunteers)) {
+                $newShift->users()->attach($volunteers, ['signed_up_at' => now()]);
+            }
+
+            $createdShifts[] = $newShift;
+        }
+
+        // Log the action
+        AuditLog::create([
+            'action'         => 'shift_advanced_duplicate',
+            'auditable_type' => Event::class,
+            'auditable_id'   => $event->id,
+            'comment'        => "User " . auth()->user()->name . " created {$recurrence} duplicates of shift '{$shift->name}' (ID: {$shift->id}) with series ID {$seriesId}",
+            'user_id'        => auth()->id(),
+        ]);
+
+        return redirect()->route('admin.events.shifts.index', $event)
+            ->with('success', [
+                'message' => "Successfully created <span class=\"text-brand-green\">{$recurrence} duplicate shifts</span> from '{$shift->name}'",
+            ]);
+    }
+
+    /**
+     * Generate shift name based on naming pattern
+     */
+    private function generateShiftName(string $originalName, string $pattern, int $sequence, string $prefix = '', string $suffix = ''): string
+    {
+        switch ($pattern) {
+            case 'sequence':
+                return "{$originalName} ({$sequence})";
+            
+            case 'prefix':
+                return "{$prefix} {$originalName}";
+            
+            case 'suffix':
+                return "{$originalName} {$suffix}";
+            
+            case 'prefix_sequence':
+                return "{$prefix} {$originalName} ({$sequence})";
+            
+            case 'suffix_sequence':
+                return "{$originalName} ({$sequence}) {$suffix}";
+            
+            case 'custom':
+                return str_replace(['{n}', '{name}'], [$sequence, $originalName], $prefix);
+            
+            case 'none':
+            default:
+                return $originalName;
+        }
     }
 
     public function importCsv(Request $request, Event $event)

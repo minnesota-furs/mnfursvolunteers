@@ -17,7 +17,7 @@
             <div class="py-1" role="none">
                 <x-tailwind-dropdown-item href="{{ route('admin.events.volunteers', $event) }}" title="View all unquie volunteers signed up and email actions">View All Volunteers / Email</x-tailwind-dropdown-item>
                 <x-tailwind-dropdown-item href="{{ route('admin.events.allShifts', $event) }}" title="View all the shifts and their associated volunteers">View Shift Overview</x-tailwind-dropdown-item>
-                <x-tailwind-dropdown-item href="{{ route('admin.events.agenda', $event) }}" title="View calendar-style agenda with shift coverage visualization"><x-heroicon-o-calendar class="w-4 inline"/> View Agenda Calendar</x-tailwind-dropdown-item>
+                <x-tailwind-dropdown-item href="{{ route('admin.events.agenda', $event) }}" title="View calendar-style agenda with shift coverage visualization"><x-heroicon-o-calendar class="w-4 inline"/> View Agenda</x-tailwind-dropdown-item>
             </div>
             @if ($event->visibility === 'public' || $event->visibility === 'unlisted' )
             <div class="py-1" role="none">
@@ -48,10 +48,6 @@
                 <x-heroicon-o-user-group class="w-4 inline"/> Manage Collaborators
             </a>
         @endcan
-        <a href="{{ route('admin.events.agenda', $event) }}"
-            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-            <x-heroicon-o-calendar class="w-4 inline"/> View Agenda
-        </a>
         <a href="{{ route('admin.events.shifts.create', $event) }}"
             class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-s-plus class="w-4 inline"/> Create New Shift
@@ -133,15 +129,31 @@
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                             {{-- <a href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}" class="text-blue-600 dark:text-blue-200 px-2"><x-heroicon-m-plus class="w-3 inline"/> Signup</a> --}}
                                             <a href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}" class="text-blue-600 dark:text-blue-200 px-2"><x-heroicon-m-pencil class="w-3 inline"/> Edit</a>
-                                            <form action="{{ route('admin.events.shifts.duplicate', [$event, $shift]) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" class="text-yellow-700 dark:text-yellow-200 ml-2 hover:underline"><x-heroicon-m-document-duplicate class="w-3 inline"/> Duplicate</button>
-                                            </form>
-                                            <form action="{{ route('admin.events.shifts.destroy', [$event, $shift]) }}" method="POST" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-600 dark:text-red-400 ml-2" onclick="return confirm('Are you sure you want to delete slot {{$shift->name}} on {{$shift->start_time->format('l \@ g:i A')}}?\n\nThis cannot be undone!')"><x-heroicon-m-trash class="w-3 inline"/> Delete</button>
-                                            </form>
+                                    
+                                            <x-tailwind-dropdown buttonClass="dropdown-link text-blue-600" label="Manage" id="{{ $shift->id + 1 }}">
+                                                <div class="py-1" role="none">
+                                                    {{-- <x-tailwind-dropdown-item href="{{route('admin.events.edit', $event->id)}}" title="Edit Event Details"><x-heroicon-o-pencil class="w-4 inline"/> Delete</x-tailwind-dropdown-item> --}}
+                                                    <form action="{{ route('admin.events.shifts.duplicate', [$event, $shift]) }}" method="POST" class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700">
+                                                        @csrf
+                                                        <button type="submit" class="" title="Quick duplicate (adds 1 hour to time)">
+                                                            <x-heroicon-o-document-duplicate class="w-4 inline"/> Quick Duplicate
+                                                        </button>
+                                                    </form>
+                                                    <button type="button" 
+                                                        onclick="window.dispatchEvent(new CustomEvent('open-duplicate-modal', { detail: { id: {{ $shift->id }}, name: '{{ addslashes($shift->name) }}' } }))"
+                                                        class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
+                                                        title="Advanced duplicate with multiple options">
+                                                        <x-heroicon-o-squares-plus class="w-4 inline"/> Advanced Duplicate
+                                                    </button>
+                                                </div>
+                                                <div class="py-1" role="none">
+                                                    <form action="{{ route('admin.events.shifts.destroy', [$event, $shift]) }}" method="POST" class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="" onclick="return confirm('Are you sure you want to delete slot {{$shift->name}} on {{$shift->start_time->format('l \@ g:i A')}}?\n\nThis cannot be undone!')"><x-heroicon-o-trash class="w-4 inline"/> Delete</button>
+                                                    </form>
+                                                </div>
+                                            </x-tailwind-dropdown>
                                         </td>
                                     </tr>
                                     @empty
@@ -177,3 +189,6 @@
         }
     </script>
 </x-app-layout>
+
+{{-- Advanced Duplicate Modal - Outside layout to prevent constraints --}}
+@include('admin.shifts.advanced-duplicate-modal')

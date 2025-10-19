@@ -400,6 +400,7 @@ class UserController extends Controller
                       ->orWhere('first_name', 'LIKE', "%" . $searchTerm . "%")
                       ->orWhere('last_name', 'LIKE', "%" . $searchTerm . "%")
                       ->orWhere('email', 'LIKE', "%" . $searchTerm . "%")
+                      ->orWhere('vol_code', 'LIKE', "%" . $searchTerm . "%")
                       ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%" . $searchTerm . "%"]);
             })
             ->where('active', true) // Only show active users

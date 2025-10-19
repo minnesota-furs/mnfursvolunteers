@@ -105,7 +105,7 @@
                         <div id="search_results" class="mt-2 hidden"></div>
                         <div id="search_message" class="mt-2 text-sm text-gray-500 hidden"></div>
                         <p class="text-xs text-gray-400 mt-1">
-                            💡 Tip: Type at least 2 characters to search. Volunteers are added instantly when you click "Add".
+                            💡 Tip: Type at least 2 characters to search. Volunteers are added instantly when you click "Add". You can also look up volunteers by their volunteer code.
                         </p>
                     </dd>
                 </div>
