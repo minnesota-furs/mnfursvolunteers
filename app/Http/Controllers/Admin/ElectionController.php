@@ -58,7 +58,9 @@ class ElectionController extends Controller
         $election = Election::create($validated);
 
         return redirect()->route('admin.elections.show', $election)
-            ->with('success', 'Election created successfully.');
+            ->with('success', [
+                'message' => 'Election created successfully.',
+            ]);
     }
 
     public function show(Election $election)

@@ -27,8 +27,8 @@
               <nav class="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
                 <div class="flex lg:flex-1">
                   <a href="/" class="-m-1.5 p-1.5">
-                    <span class="sr-only">MNFurs</span>
-                    <x-application-logo class="h-12 w-auto fill-current text-gray-500" />
+                    <span class="sr-only">{{ app_name() }}</span>
+                    <img src="{{ app_logo() }}" alt="{{ app_name() }}" class="h-12 w-auto">
                     {{-- <img class="h-8 w-auto" src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600" alt=""> --}}
                   </a>
                 </div>
@@ -101,7 +101,7 @@
         {{-- <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
             <div>
                 <a href="/">
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
+                    <img src="{{ app_logo() }}" alt="{{ app_name() }}" class="w-20 h-auto">
                 </a>
             </div>
 

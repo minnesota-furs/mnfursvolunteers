@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-brand-green dark:bg-gray-800 border-brand-green print:hidden">
+<nav x-data="{ open: false }" class="border-brand-green print:hidden">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-16 w-auto fill-current text-gray-800 dark:text-gray-200" />
+                        <img src="{{ app_logo() }}" alt="{{ app_name() }}" class="block h-12 w-auto">
                     </a>
                 </div>
 
@@ -84,9 +84,13 @@
                         </x-slot>
 
                         <x-slot name="content" class="-mt-32">
-                            {{-- <x-dropdown-link :href="route('settings.index')">
-                                {{ __('Main Settings') }}
-                            </x-dropdown-link> --}} 
+                            @if( Auth::check() && Auth::user()->isAdmin() )
+                            <x-dropdown-link :href="route('settings.index')">
+                                {{ __('Application Settings') }}
+                            </x-dropdown-link>
+                            <div class="border-t border-gray-200 dark:border-gray-600"></div>
+                            @endif
+                            
                             @can('manage-volunteer-events')
                             <x-dropdown-link :href="route('admin.events.index')">
                                 {{ __('Volunteer Events') }}
@@ -151,17 +155,23 @@
 
                     <x-slot name="content">
                         <x-dropdown-link :href="route('users.show', Auth::user()->id)">
-                            {{ __('My Profile') }}
+                            {{ __('My Volunteer Profile') }}
                         </x-dropdown-link>
 
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Account Settings') }}
                         </x-dropdown-link>
 
+                        <x-dropdown-link href="/">
+                            {{ __('Public Site') }}
+                        </x-dropdown-link>
+
                         <x-dropdown-link href="#" 
                                 onclick="window.themeController.toggleTheme();">
                             {{ __('Light/Dark Mode') }}
                         </x-dropdown-link>
+
+                        <div class="border-t border-gray-200 dark:border-gray-600"></div>
 
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
@@ -263,6 +273,12 @@
                     <div class="font-medium text-base text-white dark:text-gray-200">Settings</div>
                 </div>
                 <div class="space-y-1">
+                    @if( Auth::check() && Auth::user()->isAdmin() )
+                    <x-responsive-nav-link :href="route('settings.index')">
+                        {{ __('Application Settings') }}
+                    </x-responsive-nav-link>
+                    @endif
+
                     @can('manage-volunteer-events')
                     <x-responsive-nav-link :href="route('admin.events.index')">
                         {{ __('Volunteer Events') }}
@@ -304,7 +320,7 @@
 
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('users.show', Auth::user()->id)">
-                    {{ __('My Profile') }}
+                    {{ __('My Volunteer Profile') }}
                 </x-responsive-nav-link>
 
                 <x-responsive-nav-link :href="route('profile.edit')">

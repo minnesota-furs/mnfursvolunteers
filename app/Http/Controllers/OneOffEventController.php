@@ -3,7 +3,50 @@
 namespace App\Http\Controllers;
 
 use App\Models\OneOffEvent;
-use App\Models\OneOffEventCheckIn;
+u                  $ch            return back()->with('error', 'You can only check in during the event.');
+        }
+
+        $checkIn = OneOffEventCheckIn::updateOrCreate(
+            [
+                'one_off_event_id' => $oneOffEvent->id,
+                'user_id' => Auth::id(),
+            ],
+            [
+                'checked_in_at' => $now,
+            ]
+        );
+
+        return back()->with('success', [
+            'message' => 'You\'ve been checked in!',
+        ]);
+    }
+}entCheckIn::updateOrCreate(
+            [
+                'one_off_event_id' => $oneOffEvent->id,
+                'user_id' => Auth::id(),
+            ],
+            [
+                'checked_in_at' => $now,
+            ]
+        );
+
+        return back()->with('success', [
+            'message' => 'You\'ve been checked in!',
+        ]);
+    }
+}f_event_id' => $oneOffEvent->id,
+                'user_id' => Auth::id(),
+            ],
+            [
+                'checked_in_at' => $now,
+            ]
+        );
+
+        return back()->with('success', [
+            'message' => 'You\'ve been checked in!',
+        ]);
+    }
+}ls\OneOffEventCheckIn;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 

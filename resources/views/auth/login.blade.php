@@ -74,8 +74,8 @@
 
         <div class="mt-6 grid grid-cols-1 gap-4">
           <a href="{{route('wordpress.login')}}" class="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent">
-            <x-application-logo class="w-6 fill-current text-gray-500" />
-            <span class="text-sm/6 font-semibold">MNFurs.org Account</span>
+            <img src="{{ app_logo() }}" alt="{{ app_name() }}" class="w-6 h-auto">
+            <span class="text-sm/6 font-semibold">{{ app_name() }} Account</span>
           </a>
 
           {{-- <a href="#" class="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent">

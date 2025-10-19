@@ -83,7 +83,9 @@ class ProfileController extends Controller
             'wordpress_id' => $wpUser->ID,
         ]);
 
-        return back()->with('success', 'WordPress account linked successfully.');
+        return back()->with('success', [
+            'message' => 'WordPress account linked successfully.',
+        ]);
     }
 
     public function unlinkWordPress()
@@ -93,6 +95,8 @@ class ProfileController extends Controller
             'wordpress_id' => null,
         ]);
 
-        return back()->with('success', 'WordPress account unlinked.');
+        return back()->with('success', [
+            'message' => 'WordPress account unlinked.',
+        ]);
     }
 }

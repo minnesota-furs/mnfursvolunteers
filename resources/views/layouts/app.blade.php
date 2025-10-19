@@ -27,7 +27,7 @@
 
 <body class="min-h-full">
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
-        <div class="bg-brand-green dark:bg-gray-800 pt-2 pb-32 shadow-lg">
+        <div class="pt-2 pb-32 shadow-lg dark:bg-gray-800" style="background-color: {{ app_setting('primary_color', '#10b981') }};">
             @include('layouts.navigation')
 
             <!-- Page Heading -->

@@ -104,6 +104,14 @@ Route::middleware('auth')->group(function () {
     // Org chart view
     Route::get('/org-chart', [UserController::class, 'orgChart'])->name('orgchart');
 
+    // Application Settings
+    Route::middleware('isAdmin')->prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\SettingsController::class, 'index'])->name('index');
+        Route::put('/', [\App\Http\Controllers\SettingsController::class, 'update'])->name('update');
+        Route::delete('/reset-logo', [\App\Http\Controllers\SettingsController::class, 'resetLogo'])->name('reset-logo');
+        Route::delete('/reset-favicon', [\App\Http\Controllers\SettingsController::class, 'resetFavicon'])->name('reset-favicon');
+    });
+
     // Reports
     Route::prefix('report')->name('report.')->middleware('can:view-reports')->group(function () {
         Route::get('/users-without-departments', [ReportsController::class, 'usersWithoutDepartments'])->name('usersWithoutDepartments');
