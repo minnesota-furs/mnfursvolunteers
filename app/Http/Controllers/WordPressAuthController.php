@@ -34,6 +34,8 @@ class WordPressAuthController extends Controller
         }
 
         // Implemented workaround from https://github.com/corcel/corcel/issues/655#issuecomment-2818424369
+        $check = false; // Initialize to false
+        
         if($wpUser !== null) {
             if ( str_starts_with( $wpUser->user_pass, '$wp' ) ) {
                 // Check the password using the current prefixed hash.
