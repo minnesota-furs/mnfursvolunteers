@@ -1,14 +1,24 @@
 <x-app-layout>
     @auth
         <x-slot name="header">
-            {{ __('One Off Event: ') }}
+            {{ __('One Off Event: ') }} {{ $oneOffEvent->name }}
         </x-slot>
 
         <x-slot name="actions">
-            {{-- <a href="{{route('one-off-events.create')}}"
-                    class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                    <x-heroicon-s-plus class="w-4 inline"/> New Event
-                </a> --}}
+            @can('manage-events')
+                <a href="{{ route('one-off-events.check-ins', $oneOffEvent) }}"
+                    class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100">
+                    <x-heroicon-o-user-group class="w-4 inline"/> View Check-ins ({{ $oneOffEvent->checkIns()->count() }})
+                </a>
+                <a href="{{ route('one-off-events.edit', $oneOffEvent) }}"
+                    class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100">
+                    <x-heroicon-m-pencil class="w-4 inline"/> Edit Event
+                </a>
+            @endcan
+            <a href="{{ route('one-off-events.index') }}"
+                class="block rounded-md px-3 py-2 text-center text-sm font-semibold text-white hover:bg-white/10">
+                <x-heroicon-o-arrow-left class="w-4 inline"/> Back to Events
+            </a>
         </x-slot>
 
         <div class="">
@@ -22,18 +32,6 @@
                         <strong>Starts:</strong> {{ $oneOffEvent->start_time->format('F j, Y g:i A') }}<br>
                         <strong>Ends:</strong> {{ $oneOffEvent->end_time->format('F j, Y g:i A') }}
                     </div>
-                
-                    @if (session('success'))
-                        <div class="mb-4 p-4 bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-200 rounded">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-                
-                    @if (session('error'))
-                        <div class="mb-4 p-4 bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-200 rounded">
-                            {{ session('error') }}
-                        </div>
-                    @endif
                 
                     @auth
                         @if ($checkIn)

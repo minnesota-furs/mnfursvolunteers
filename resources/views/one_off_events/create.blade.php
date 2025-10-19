@@ -50,10 +50,13 @@
                     </div>
             
                     <div class="mb-6">
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="auto_credit_hours" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                        <label class="inline-flex items-start">
+                            <input type="checkbox" name="auto_credit_hours" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:ring-indigo-500 mt-0.5"
                                 {{ old('auto_credit_hours', true) ? 'checked' : '' }}>
-                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Automatically credit hours the next day</span>
+                            <span class="ml-2">
+                                <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Automatically credit hours when users check in</span>
+                                <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">Hours will be calculated based on event duration</span>
+                            </span>
                         </label>
                     </div>
             
