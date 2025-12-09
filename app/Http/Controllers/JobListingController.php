@@ -49,18 +49,58 @@ class JobListingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function guestIndex()
+    public function guestIndex(Request $request)
     {
+        // Get all sectors for filter dropdown
+        $sectors = Sector::orderBy('name')->get();
+        
+        // Get sectors with their departments that have open public job listings (grouped)
+        $sectorsWithDepartments = Sector::with(['departments' => function ($query) {
+                $query->whereHas('jobListings', function ($q) {
+                    $q->where('visibility', 'public')
+                        ->where(function ($subQ) {
+                            $subQ->whereNull('closing_date')
+                                ->orWhere('closing_date', '>=', now());
+                        });
+                })
+                ->orderBy('name');
+            }])
+            ->orderBy('name')
+            ->get()
+            ->filter(function ($sector) {
+                return $sector->departments->isNotEmpty();
+            });
+
         // Query job listings
         $jobListings = JobListing::query()
             ->where('visibility', 'public')
-            ->with('department')
+            ->with(['department.sector'])
             ->where(function ($query) {
                 $query->whereNull('closing_date') // No closing date
                     ->orWhere('closing_date', '>=', now()); // Still open
             })
-            ->paginate(15);
-        return view('job-listings-guest.index', compact('jobListings'));
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $searchTerm = $request->input('search');
+                $query->where(function ($q) use ($searchTerm) {
+                    $q->where('position_title', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('description', 'like', '%' . $searchTerm . '%');
+                });
+            })
+            ->when($request->filled('sector'), function ($query) use ($request) {
+                // Filter by sector
+                $query->whereHas('department', function ($q) use ($request) {
+                    $q->where('sector_id', $request->input('sector'));
+                });
+            })
+            ->when($request->filled('department'), function ($query) use ($request) {
+                // Filter by department
+                $query->where('department_id', $request->input('department'));
+            })
+            ->orderBy('position_title', 'asc')
+            ->paginate(15)
+            ->appends($request->query()); // Preserve query parameters in pagination links
+
+        return view('job-listings-guest.index', compact('jobListings', 'sectors', 'sectorsWithDepartments'));
     }
 
     /**
