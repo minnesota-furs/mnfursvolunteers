@@ -34,4 +34,19 @@ class VolunteerGuestController extends Controller
         
         return view('vol-listings-guest.show', compact('event', 'shifts'));
     }
+
+    public function guestShowShift(Event $event, Shift $shift)
+    {
+        // Ensure the shift belongs to the event
+        if ($shift->event_id !== $event->id) {
+            abort(404);
+        }
+
+        // Calculate openings and signup status
+        $openings = $shift->max_volunteers - $shift->users->count();
+        $isFull = $openings <= 0;
+        $isPast = $shift->start_time->isPast();
+
+        return view('vol-listings-guest.shift-show', compact('event', 'shift', 'openings', 'isFull', 'isPast'));
+    }
 }

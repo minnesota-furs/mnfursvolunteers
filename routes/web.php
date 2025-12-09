@@ -44,6 +44,7 @@ Route::prefix('openings')->name('job-listings-public.')->group(function () {
 Route::prefix('volunteering')->name('vol-listings-public.')->group(function () {
     Route::get('/', [VolunteerGuestController::class, 'guestIndex'])->name('index');
     Route::get('/{event}', [VolunteerGuestController::class, 'guestShow'])->name('show');
+    Route::get('/{event}/shift/{shift}', [VolunteerGuestController::class, 'guestShowShift'])->name('shift.show');
 });
 
 // Public elections

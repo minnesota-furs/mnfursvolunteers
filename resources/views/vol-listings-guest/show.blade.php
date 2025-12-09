@@ -62,17 +62,18 @@
                       $openings = $shift->max_volunteers - $shift->users->count();
                       $isFull = $openings <= 0;
                     @endphp
-                      <li class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-nowrap">
-                        <div>
+                      <li class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-nowrap hover:bg-gray-50 p-2 rounded">
+                        <div class="flex-grow">
                           <p class="text-sm/6 mt-4">
                             @if($isFull)
                               <x-heroicon-o-check class="w-4 mb-1 inline text-gray-400"/>
                             @else
                               <x-heroicon-s-users class="w-4 mb-1 inline"/>
                             @endif
-                            <span class="font-semibold {{ $isFull ? 'text-gray-400' : 'text-gray-900' }}">
+                            <a href="{{ route('vol-listings-public.shift.show', [$event, $shift]) }}" 
+                               class="font-semibold no-underline hover:underline {{ $isFull ? 'text-gray-400 hover:text-gray-500' : 'text-blue-700 hover:text-blue-800' }}">
                               {{$shift->name}}
-                            </span>
+                            </a>
                             <span class="font-light {{ $isFull ? 'text-gray-300' : 'text-gray-500' }}"> - 
                               @if($event->isMultiDay())
                                 {{ $shift->start_time->format('l') }}
@@ -87,7 +88,8 @@
                             </div>
                             @endif
                             <p>
-                              {{$shift->description ?? 'No description given'}} (Slot ID {{$shift->id}})
+                              {{$shift->description ?? 'No description given'}}
+
                             </p>
                           </div>
                         </div>
@@ -114,7 +116,4 @@
         </div>
     </div>
 </div>
-
-        
-
 </x-guestv2-layout>
