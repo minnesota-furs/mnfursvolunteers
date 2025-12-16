@@ -197,4 +197,125 @@ class VolunteerHoursController extends Controller
     {
         //
     }
+
+    /**
+     * Generate a unique token for public hour submission.
+     */
+    public function generateSubmissionToken(Request $request, $userId)
+    {
+        $user = User::findOrFail($userId);
+
+        // Only admins or the user themselves can generate tokens
+        if (!Auth::user()->isAdmin() && Auth::id() != $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $token = $user->generateHourSubmissionToken();
+        $url = $user->getHourSubmissionUrl();
+
+        return redirect()->route('users.show', $user->id)
+            ->with('success', [
+                'message' => "Hour submission link generated successfully for <span class=\"text-brand-green\">{$user->name}</span>. This link will expire on <span class=\"text-brand-green\">{$user->token_expires_at->format('F j, Y')}</span>.",
+                'action_text' => 'Copy Link',
+                'action_url' => $url,
+            ]);
+    }
+
+    /**
+     * Show the public hour submission form.
+     */
+    public function showPublicForm($token)
+    {
+        $user = User::where('hour_submission_token', $token)->firstOrFail();
+
+        if (!$user->hasValidHourSubmissionToken()) {
+            abort(403, 'This hour submission link has expired or is invalid.');
+        }
+
+        $sectors = Sector::with('departments')->get();
+        
+        // Fetch the last 5 departments the user has used
+        $recentDepartments = Department::whereIn('id',
+            $user->volunteerHours()
+                ->select('primary_dept_id', 'created_at')
+                ->distinct()
+                ->latest('created_at')
+                ->limit(5)
+                ->pluck('primary_dept_id')
+        )->get();
+
+        // Get current fiscal year hours
+        $currentFiscalYearHours = $user->totalHoursForCurrentFiscalLedger();
+        
+        // Get current fiscal ledger
+        $currentDate = now();
+        $currentFiscalLedger = FiscalLedger::where('start_date', '<=', $currentDate)
+                                            ->where('end_date', '>=', $currentDate)
+                                            ->first();
+
+        // Get recent hour submissions for current fiscal year
+        $recentHours = collect();
+        if ($currentFiscalLedger) {
+            $recentHours = $user->volunteerHours()
+                ->where('fiscal_ledger_id', $currentFiscalLedger->id)
+                ->with('department')
+                ->latest('volunteer_date')
+                ->latest('created_at')
+                ->limit(10)
+                ->get();
+        }
+
+        return view('hours.public-create', compact('user', 'token', 'sectors', 'recentDepartments', 'currentFiscalYearHours', 'currentFiscalLedger', 'recentHours'));
+    }
+
+    /**
+     * Store publicly submitted volunteer hours.
+     */
+    public function storePublicHours(Request $request, $token)
+    {
+        $user = User::where('hour_submission_token', $token)->firstOrFail();
+
+        if (!$user->hasValidHourSubmissionToken()) {
+            abort(403, 'This hour submission link has expired or is invalid.');
+        }
+
+        // Validate the incoming request
+        $validated = $request->validate([
+            'hours'         => 'required|numeric|min:0',
+            'description'   => 'nullable|string',
+            'notes'         => 'nullable|string',
+            'volunteer_date' => 'required|date',
+            'primary_dept_id' => 'required|integer|exists:departments,id',
+        ]);
+
+        // Get the volunteer date
+        $volunteerDate = \Carbon\Carbon::parse($validated['volunteer_date']);
+
+        // Find the fiscal ledger that covers the volunteer date
+        $fiscalLedger = FiscalLedger::where('start_date', '<=', $volunteerDate)
+                                    ->where('end_date', '>=', $volunteerDate)
+                                    ->first();
+
+        if (!$fiscalLedger) {
+            return back()->withErrors([
+                'volunteer_date' => 'No fiscal ledger is active for the given date.'
+            ])->withInput();
+        }
+
+        // Create the volunteer hour entry
+        VolunteerHours::create([
+            'user_id'   => $user->id,
+            'hours'     => $validated['hours'],
+            'notes'     => $validated['notes'],
+            'volunteer_date' => $validated['volunteer_date'],
+            'description' => $validated['description'] ?? null,
+            'primary_dept_id' => $validated['primary_dept_id'],
+            'fiscal_ledger_id' => $fiscalLedger->id,
+        ]);
+
+        return redirect()->route('hours.public.show', ['token' => $token])
+            ->with('success', [
+                'message' => "<span class=\"text-brand-green\">{$validated['hours']}</span> volunteer " . ($validated['hours'] == 1 ? 'hour' : 'hours') . " logged successfully!",
+            ]);
+    }
 }

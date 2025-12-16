@@ -36,6 +36,8 @@ class User extends Authenticatable
         'email_shift_reminders',
         'email_event_updates',
         'email_hour_approvals',
+        'hour_submission_token',
+        'token_expires_at',
     ];
 
     /**
@@ -60,6 +62,7 @@ class User extends Authenticatable
         'email_shift_reminders' => 'boolean',
         'email_event_updates' => 'boolean',
         'email_hour_approvals' => 'boolean',
+        'token_expires_at' => 'datetime',
     ];
 
     public function volunteerHours()
@@ -221,5 +224,59 @@ class User extends Authenticatable
     public function getHoursForFiscalLedger($fiscalLedgerId)
     {
         return $this->totalVolunteerHoursForFiscalPeriod($fiscalLedgerId);
+    }
+
+    /**
+     * Generate a unique UUID token for hour submission.
+     * Token expires after 90 days by default.
+     *
+     * @param int $expirationDays
+     * @return string
+     */
+    public function generateHourSubmissionToken($expirationDays = 90)
+    {
+        $this->hour_submission_token = \Illuminate\Support\Str::uuid()->toString();
+        $this->token_expires_at = now()->addDays($expirationDays);
+        $this->save();
+
+        return $this->hour_submission_token;
+    }
+
+    /**
+     * Check if the user has a valid hour submission token.
+     *
+     * @return bool
+     */
+    public function hasValidHourSubmissionToken()
+    {
+        return $this->hour_submission_token !== null 
+            && $this->token_expires_at !== null 
+            && $this->token_expires_at->isFuture();
+    }
+
+    /**
+     * Clear the hour submission token.
+     *
+     * @return void
+     */
+    public function clearHourSubmissionToken()
+    {
+        $this->hour_submission_token = null;
+        $this->token_expires_at = null;
+        $this->save();
+    }
+
+    /**
+     * Get the public hour submission URL.
+     *
+     * @return string|null
+     */
+    public function getHourSubmissionUrl()
+    {
+        if (!$this->hasValidHourSubmissionToken()) {
+            return null;
+        }
+
+        return route('hours.public.show', ['token' => $this->hour_submission_token]);
     }
 }

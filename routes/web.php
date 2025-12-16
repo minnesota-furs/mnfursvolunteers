@@ -47,6 +47,12 @@ Route::prefix('volunteering')->name('vol-listings-public.')->group(function () {
     Route::get('/{event}/shift/{shift}', [VolunteerGuestController::class, 'guestShowShift'])->name('shift.show');
 });
 
+// Public hour submission (no auth required)
+Route::prefix('submit-hours')->name('hours.public.')->group(function () {
+    Route::get('/{token}', [VolunteerHoursController::class, 'showPublicForm'])->name('show');
+    Route::post('/{token}', [VolunteerHoursController::class, 'storePublicHours'])->name('store');
+});
+
 // Public elections
 Route::prefix('pub-elections')->name('elections-public.')->group(function () {
     Route::get('/', [ElectionController::class, 'guestIndex'])->name('index');
@@ -144,6 +150,7 @@ Route::middleware('auth')->group(function () {
 
     // Volunteer Hours
     Route::get('/hours/create/{user?}', [VolunteerHoursController::class, 'create'])->name('hours.create');
+    Route::post('/hours/generate-token/{user}', [VolunteerHoursController::class, 'generateSubmissionToken'])->name('hours.generate-token');
     Route::resource('hours', VolunteerHoursController::class)->except(['create']);
 
     // Joblistings

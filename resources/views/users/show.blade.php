@@ -236,12 +236,35 @@
                         <p class="mt-2 text-sm text-gray-700 dark:text-white">Transactional log of recently logged hours for
                             this volunteer/user.</p>
                     </div>
-                    <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                    <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-2">
                         @if (Auth::user()->isAdmin() || Auth::user()->id == $user->id)
                             <a href="{{ route('hours.create', ['user' => $user->id]) }}"
                                 class="block rounded-md bg-brand-green px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                                 <x-heroicon-m-clock class="w-4 inline" /> New Hour Log
                             </a>
+                        @endif
+                            
+                        @if(Auth::user()->isAdmin())
+                            @if($user->hasValidHourSubmissionToken())
+                                <button 
+                                    onclick="copyToClipboard('{{ $user->getHourSubmissionUrl() }}')"
+                                    class="block rounded-md bg-indigo-600 px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                                    title="Copy hour submission link to clipboard"
+                                >
+                                    <x-heroicon-m-link class="w-4 inline" /> Copy Hour Link
+                                </button>
+                            @else
+                                <form action="{{ route('hours.generate-token', ['user' => $user->id]) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button 
+                                        type="submit"
+                                        class="block rounded-md bg-indigo-600 px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                                        title="Generate a unique link for hour submission"
+                                    >
+                                        <x-heroicon-m-link class="w-4 inline" /> Generate Hour Link
+                                    </button>
+                                </form>
+                            @endif
                         @endif
                     </div>
                 </div>
@@ -422,4 +445,15 @@
         </div>
     @endauth
     
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show success feedback
+                alert('Hour submission link copied to clipboard!');
+            }, function(err) {
+                console.error('Could not copy text: ', err);
+                alert('Failed to copy link. Please try again.');
+            });
+        }
+    </script>
 </x-app-layout>
