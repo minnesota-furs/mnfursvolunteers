@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class Election extends Model
 {
@@ -130,11 +131,28 @@ class Election extends Model
 
         // If fiscal ledger is specified, check hours for that specific period
         if ($this->fiscal_ledger_id) {
-            return $user->getHoursForFiscalLedger($this->fiscal_ledger_id) >= $this->min_voter_hours;
+            $userHours = $user->getHoursForFiscalLedger($this->fiscal_ledger_id);
+            Log::info('Election userCanVote check', [
+                'election_id' => $this->id,
+                'fiscal_ledger_id' => $this->fiscal_ledger_id,
+                'user_id' => $user->id,
+                'user_hours' => $userHours,
+                'min_required' => $this->min_voter_hours,
+                'can_vote' => $userHours >= $this->min_voter_hours
+            ]);
+            return $userHours >= $this->min_voter_hours;
         }
 
         // Otherwise, default to current fiscal year
-        return $user->getCurrentFiscalYearHours() >= $this->min_voter_hours;
+        $userHours = $user->getCurrentFiscalYearHours();
+        Log::info('Election userCanVote check (current year)', [
+            'election_id' => $this->id,
+            'user_id' => $user->id,
+            'user_hours' => $userHours,
+            'min_required' => $this->min_voter_hours,
+            'can_vote' => $userHours >= $this->min_voter_hours
+        ]);
+        return $userHours >= $this->min_voter_hours;
     }
 
     public function userCanBeCandidate(User $user)

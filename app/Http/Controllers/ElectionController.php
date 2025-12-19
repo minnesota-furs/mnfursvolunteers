@@ -28,7 +28,7 @@ class ElectionController extends Controller
             })
             ->with(['candidates' => function($query) {
                 $query->where('approved', true)->where('withdrawn', false);
-            }])
+            }, 'fiscalLedger'])
             ->orderBy('start_date', 'asc')
             ->get();
 
@@ -51,6 +51,9 @@ class ElectionController extends Controller
             return redirect()->route('elections.index')
                 ->with('error', 'This election is not currently active.');
         }
+
+        // Load fiscal ledger relationship if not already loaded
+        $election->load('fiscalLedger');
 
         $candidates = $election->candidates()
             ->where('approved', true)
@@ -155,6 +158,9 @@ class ElectionController extends Controller
             return redirect()->route('elections.show', $election)
                 ->with('error', 'Self-nomination is not allowed for this election.');
         }
+
+        // Load fiscal ledger relationship
+        $election->load('fiscalLedger');
 
         if (!$election->isNominationPeriod()) {
             $status = $election->getNominationStatus();
