@@ -106,9 +106,6 @@ class User extends Authenticatable
 
     public function totalVolunteerHoursForFiscalPeriod($fiscalLedgerId)
     {
-        if (!$this->relationLoaded('volunteerHours')) {
-            $this->load('volunteerHours');
-        }
         return $this->volunteerHours()
             ->where('fiscal_ledger_id', $fiscalLedgerId)
             ->sum('hours');

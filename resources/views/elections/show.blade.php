@@ -104,9 +104,17 @@
                                                 @if($election->min_voter_hours > 0)
                                                     <div>• {{ $election->min_voter_hours }} hours required to vote</div>
                                                 @endif
+                                                @php
+                                                    $userHours = $election->fiscal_ledger_id 
+                                                        ? Auth::user()->getHoursForFiscalLedger($election->fiscal_ledger_id)
+                                                        : Auth::user()->getCurrentFiscalYearHours();
+                                                    $fiscalPeriodName = $election->fiscal_ledger_id 
+                                                        ? $election->fiscalLedger->name 
+                                                        : 'current fiscal year';
+                                                @endphp
                                                 <div class="mt-1 text-xs">
-                                                    Hours must be completed in the current fiscal year. 
-                                                    You currently have {{ Auth::user()->getCurrentFiscalYearHours() }} hours.
+                                                    Hours must be completed in the {{ $fiscalPeriodName }}. 
+                                                    You currently have {{ number_format($userHours, 1) }} hours.
                                                 </div>
                                             </div>
                                         </div>
@@ -326,9 +334,17 @@
                                 <div class="inline-flex items-center rounded-md bg-red-50 px-4 py-2 text-sm font-medium text-red-700 ring-1 ring-inset ring-red-700/10 mb-4">
                                     <x-heroicon-s-exclamation-triangle class="w-5 h-5 mr-2"/> Insufficient Volunteer Hours
                                 </div>
+                                @php
+                                    $userHours = $election->fiscal_ledger_id 
+                                        ? Auth::user()->getHoursForFiscalLedger($election->fiscal_ledger_id)
+                                        : Auth::user()->getCurrentFiscalYearHours();
+                                    $fiscalPeriodName = $election->fiscal_ledger_id 
+                                        ? $election->fiscalLedger->name 
+                                        : 'current fiscal year';
+                                @endphp
                                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    You need at least {{ $election->min_voter_hours }} volunteer hours in the current fiscal year to vote in this election.<br>
-                                    You currently have {{ Auth::user()->getCurrentFiscalYearHours() }} hours.
+                                    You need at least {{ $election->min_voter_hours }} volunteer hours in the {{ $fiscalPeriodName }} to vote in this election.<br>
+                                    You currently have {{ number_format($userHours, 1) }} hours.
                                 </p>
                             </div>
                             

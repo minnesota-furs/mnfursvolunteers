@@ -63,7 +63,12 @@
                                                             @if($election->min_voter_hours > 0)
                                                                 <div>• {{ $election->min_voter_hours }} hours required to vote</div>
                                                             @endif
-                                                            <div class="mt-1 text-xs">Hours must be completed in the current fiscal year</div>
+                                                            @php
+                                                                $fiscalPeriodName = $election->fiscal_ledger_id 
+                                                                    ? $election->fiscalLedger->name 
+                                                                    : 'current fiscal year';
+                                                            @endphp
+                                                            <div class="mt-1 text-xs">Hours must be completed in the {{ $fiscalPeriodName }}</div>
                                                         </div>
                                                     </div>
                                                 </div>

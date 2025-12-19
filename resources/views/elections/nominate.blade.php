@@ -36,7 +36,15 @@
                                 <strong>Positions Available:</strong> {{ $election->max_positions }}<br>
                                 <strong>Voting Period:</strong> {{ $election->start_date->format('M j, Y g:i A') }} - {{ $election->end_date->format('M j, Y g:i A') }}
                                 @if($election->min_candidate_hours > 0)
-                                    <br><strong>Hours Requirement:</strong> {{ $election->min_candidate_hours }} hours (you have {{ Auth::user()->getCurrentFiscalYearHours() }} hours)
+                                    @php
+                                        $userHours = $election->fiscal_ledger_id 
+                                            ? Auth::user()->getHoursForFiscalLedger($election->fiscal_ledger_id)
+                                            : Auth::user()->getCurrentFiscalYearHours();
+                                        $fiscalPeriodName = $election->fiscal_ledger_id 
+                                            ? $election->fiscalLedger->name 
+                                            : 'current fiscal year';
+                                    @endphp
+                                    <br><strong>Hours Requirement:</strong> {{ $election->min_candidate_hours }} hours in {{ $fiscalPeriodName }} (you have {{ number_format($userHours, 1) }} hours)
                                 @endif
                             </div>
                         </div>
