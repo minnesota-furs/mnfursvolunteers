@@ -205,6 +205,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('elections/{election}/candidates/{candidate}', [\App\Http\Controllers\Admin\ElectionController::class, 'removeCandidate'])->name('elections.candidates.destroy');
         Route::get('elections/{election}/voters', [\App\Http\Controllers\Admin\ElectionController::class, 'voters'])->name('elections.voters');
         Route::get('elections/{election}/results', [\App\Http\Controllers\Admin\ElectionController::class, 'results'])->name('elections.results');
+        Route::get('elections/{election}/export-voter-turnout', [\App\Http\Controllers\Admin\ElectionController::class, 'exportVoterTurnout'])->name('elections.export-voter-turnout');
     });
 
     // Board Elections - Public Voting

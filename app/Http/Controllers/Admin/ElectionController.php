@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\FiscalLedger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Parsedown;
 
 class ElectionController extends Controller
@@ -327,5 +328,58 @@ class ElectionController extends Controller
             ->with('success', [
                 'message' => "Candidate updated successfully",
             ]);
+    }
+
+    public function exportVoterTurnout(Election $election)
+    {
+        // Load fiscal ledger if configured
+        $election->load('fiscalLedger');
+        
+        // Get unique voter IDs from votes
+        $voterIds = Vote::where('election_id', $election->id)
+            ->distinct('user_id')
+            ->pluck('user_id');
+
+        // Get unique voters with their basic information
+        $voters = User::whereIn('id', $voterIds)
+            ->with('department.sector')
+            ->orderBy('name')
+            ->get();
+
+        // Determine fiscal period name for CSV header
+        $fiscalPeriodName = $election->fiscal_ledger_id && $election->fiscalLedger
+            ? $election->fiscalLedger->fiscal_year_name
+            : 'Current Fiscal Year';
+
+        // Create CSV content with volunteer hours column
+        $csv = "Name,Department,Sector,Volunteer Code,Volunteer Hours ($fiscalPeriodName),Vote Count\n";
+        
+        foreach ($voters as $voter) {
+            $voteCount = Vote::where('election_id', $election->id)
+                ->where('user_id', $voter->id)
+                ->count();
+            
+            // Get volunteer hours for the relevant fiscal period
+            $volunteerHours = $election->fiscal_ledger_id
+                ? $voter->totalVolunteerHoursForFiscalPeriod($election->fiscal_ledger_id)
+                : $voter->totalHoursForCurrentFiscalLedger();
+            
+            $csv .= sprintf(
+                '"%s","%s","%s","%s",%.2f,%d' . "\n",
+                $voter->name,
+                $voter->department ? $voter->department->name : 'N/A',
+                $voter->department && $voter->department->sector ? $voter->department->sector->name : 'N/A',
+                $voter->vol_code ?? 'N/A',
+                $volunteerHours,
+                $voteCount
+            );
+        }
+
+        $filename = 'voter-turnout-' . Str::slug($election->title) . '-' . now()->format('Y-m-d') . '.csv';
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 }
