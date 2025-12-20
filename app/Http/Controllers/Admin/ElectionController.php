@@ -382,4 +382,92 @@ class ElectionController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
+
+    public function exportResultsImage(Election $election)
+    {
+        if (!$election->resultsAreVisible()) {
+            return redirect()->route('admin.elections.show', $election)
+                ->with('error', 'Results will be available after the voting period ends.');
+        }
+
+        $candidates = $election->candidates()
+            ->with('user')
+            ->withCount('votes')
+            ->orderBy('votes_count', 'desc')
+            ->get();
+
+        // Create image
+        $width = 800;
+        $height = 500;
+        $image = imagecreatetruecolor($width, $height);
+
+        // Define colors
+        $white = imagecolorallocate($image, 255, 255, 255);
+        $black = imagecolorallocate($image, 0, 0, 0);
+        $green = imagecolorallocate($image, 34, 197, 94); // green-500
+        $gray = imagecolorallocate($image, 156, 163, 175); // gray-400
+        $lightGray = imagecolorallocate($image, 243, 244, 246); // gray-100
+        $darkText = imagecolorallocate($image, 31, 41, 55); // gray-800
+
+        // Fill background
+        imagefilledrectangle($image, 0, 0, $width, $height, $white);
+
+        // Add title using GD built-in fonts (more reliable in Docker)
+        $title = $election->title . ' - Results';
+        imagestring($image, 5, 40, 30, $title, $darkText);
+
+        // Draw separator line
+        imagefilledrectangle($image, 40, 70, $width - 40, 72, $lightGray);
+
+        // Display results
+        $y = 110;
+        $maxDisplay = min(5, $candidates->count()); // Show top 5 candidates
+        
+        foreach ($candidates->take($maxDisplay) as $index => $candidate) {
+            $isElected = $index < $election->max_positions;
+            $barColor = $isElected ? $green : $gray;
+            
+            // Calculate bar width based on votes
+            $totalVotes = $election->votes()->count();
+            $percentage = $totalVotes > 0 ? ($candidate->votes_count / $totalVotes) * 100 : 0;
+            $barWidth = (int)(($width - 160) * ($percentage / 100));
+            
+            // Draw position number
+            $positionText = '#' . ($index + 1);
+            imagestring($image, 5, 40, $y - 10, $positionText, $darkText);
+            
+            // Draw candidate name
+            $nameText = $candidate->user->name;
+            if (strlen($nameText) > 30) {
+                $nameText = substr($nameText, 0, 27) . '...';
+            }
+            imagestring($image, 4, 80, $y - 8, $nameText, $darkText);
+            
+            // Draw vote bar
+            imagefilledrectangle($image, 280, $y - 15, 280 + $barWidth, $y + 10, $barColor);
+            
+            // Draw vote count
+            $voteText = $candidate->votes_count . ' votes (' . number_format($percentage, 1) . '%)';
+            imagestring($image, 3, 290 + $barWidth, $y - 8, $voteText, $darkText);
+            
+            $y += 70;
+        }
+
+        // Add footer with date
+        $footerText = 'Results as of ' . now()->format('M j, Y g:i A');
+        imagestring($image, 3, 40, $height - 30, $footerText, $gray);
+
+        // Output image
+        ob_start();
+        imagepng($image);
+        $imageData = ob_get_clean();
+        imagedestroy($image);
+
+        $filename = 'election-results-' . Str::slug($election->title) . '-' . now()->format('Y-m-d') . '.png';
+
+        return response($imageData, 200, [
+            'Content-Type' => 'image/png',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
 }

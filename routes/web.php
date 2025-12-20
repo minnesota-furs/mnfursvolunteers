@@ -206,6 +206,7 @@ Route::middleware('auth')->group(function () {
         Route::get('elections/{election}/voters', [\App\Http\Controllers\Admin\ElectionController::class, 'voters'])->name('elections.voters');
         Route::get('elections/{election}/results', [\App\Http\Controllers\Admin\ElectionController::class, 'results'])->name('elections.results');
         Route::get('elections/{election}/export-voter-turnout', [\App\Http\Controllers\Admin\ElectionController::class, 'exportVoterTurnout'])->name('elections.export-voter-turnout');
+        Route::get('elections/{election}/export-results-image', [\App\Http\Controllers\Admin\ElectionController::class, 'exportResultsImage'])->name('elections.export-results-image');
     });
 
     // Board Elections - Public Voting
