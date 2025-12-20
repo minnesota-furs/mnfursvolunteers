@@ -49,6 +49,9 @@ class DashboardController extends Controller
             $firstParagraph = explode("\n\n", $election->description)[0];
             $firstLine = explode("\n", $firstParagraph)[0];
             $election->parsedDescription = $parsedown->text($firstLine);
+            
+            // Check if user has already voted in this election
+            $election->userHasVoted = $election->votes()->where('user_id', $user->id)->exists();
         }
 
         return view('dashboard', compact('upcomingEvents', 'upcomingShifts', 'activeElections'));

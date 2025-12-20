@@ -7,6 +7,7 @@ use App\Models\Candidate;
 use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Parsedown;
 
 class ElectionController extends Controller
@@ -260,13 +261,17 @@ class ElectionController extends Controller
             ->orderBy('votes_count', 'desc')
             ->get();
 
+        // Count unique voters
+        $uniqueVoters = $election->votes()->distinct('user_id')->count('user_id');
+        
+        // Count total votes for percentage calculations
         $totalVotes = $election->votes()->count();
 
                 // Convert markdown to HTML using Parsedown
         $parsedown = new Parsedown();
         $election->parsedDescription = $parsedown->text($election->description);
 
-        return view('elections.results', compact('election', 'candidates', 'totalVotes'));
+        return view('elections.results', compact('election', 'candidates', 'uniqueVoters', 'totalVotes'));
     }
 
     /**
@@ -293,9 +298,15 @@ class ElectionController extends Controller
             })
             ->with(['candidates' => function($query) {
                 $query->where('approved', true)->where('withdrawn', false);
-            }])
+            }, 'fiscalLedger'])
             ->orderBy('start_date', 'desc')
             ->get();
+
+        // Log for debugging
+        Log::info('Public elections found: ' . $elections->count());
+        foreach ($elections as $election) {
+            Log::info("Election: {$election->title}, Active: {$election->active}, Start: {$election->start_date}, End: {$election->end_date}");
+        }
 
         // Convert markdown to HTML using Parsedown for all elections
         // For index, only show content until first line break
@@ -323,6 +334,9 @@ class ElectionController extends Controller
         if (!$election->isVotingPeriod() && !$election->isNominationPeriod() && !$election->isCompleted()) {
             abort(404);
         }
+
+        // Load fiscal ledger relationship
+        $election->load('fiscalLedger');
 
         // Get approved candidates
         $candidates = $election->candidates()

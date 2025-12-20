@@ -58,11 +58,11 @@
                         <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:p-6 rounded-lg">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Voter Turnout</dt>
                             <dd class="mt-1 text-3xl font-semibold text-gray-900 dark:text-gray-100">
-                                {{ $totalVotes }} / {{ $eligibleVoters }}
+                                {{ $uniqueVoters }} / {{ $eligibleVoters }}
                             </dd>
                             <dd class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                 @if($eligibleVoters > 0)
-                                    {{ number_format(($totalVotes / $eligibleVoters) * 100, 1) }}% turnout
+                                    {{ number_format(($uniqueVoters / $eligibleVoters) * 100, 1) }}% turnout
                                 @else
                                     N/A
                                 @endif

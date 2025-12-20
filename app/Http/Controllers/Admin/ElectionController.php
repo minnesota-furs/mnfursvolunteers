@@ -74,6 +74,10 @@ class ElectionController extends Controller
             ->orderBy('votes_count', 'desc')
             ->get();
 
+        // Count unique voters instead of total votes for turnout
+        $uniqueVoters = $election->votes()->distinct('user_id')->count('user_id');
+        
+        // Also get total votes for display
         $totalVotes = $election->votes()->count();
 
         // Calculate eligible voters based on fiscal period and hours requirements
@@ -94,7 +98,7 @@ class ElectionController extends Controller
         $parsedown = new Parsedown();
         $election->parsedDescription = $parsedown->text($election->description);
 
-        return view('admin.elections.show', compact('election', 'candidates', 'totalVotes', 'eligibleVoters'));
+        return view('admin.elections.show', compact('election', 'candidates', 'uniqueVoters', 'totalVotes', 'eligibleVoters'));
     }
 
     public function edit(Election $election)
@@ -183,10 +187,15 @@ class ElectionController extends Controller
             ->orderBy('votes_count', 'desc')
             ->get();
 
+        // Count unique voters
+        $uniqueVoters = $election->votes()->distinct('user_id')->count('user_id');
+        
+        // Count total votes for percentage calculations
         $totalVotes = $election->votes()->count();
+        
         $eligibleVoters = User::where('active', true)->count();
 
-        return view('admin.elections.results', compact('election', 'candidates', 'totalVotes', 'eligibleVoters'));
+        return view('admin.elections.results', compact('election', 'candidates', 'uniqueVoters', 'totalVotes', 'eligibleVoters'));
     }
 
     public function createCandidate(Election $election)

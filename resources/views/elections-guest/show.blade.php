@@ -1,11 +1,7 @@
 <x-guestv2-layout
   title="{{ $election->title }} - Board Elections - MNFurs"
   ogTitle="{{ $election->title }} - MNFurs Board Elections"
-  ogDes            <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg border border-gray-200 dark:border-gray-700">
-            <div class="px-6 py-6">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Nominations</h2>     <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg border border-gray-200 dark:border-gray-700">
-            <div class="px-6 py-6">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Candidates</h2>ption="{{ strip_tags($election->parsedDescription) }}"
+  ogDescription="{{ strip_tags($election->parsedDescription) }}"
   ogImage="{{URL('/images/dashboard/image2.jpg')}}"
   ogUrl="{{ url()->current() }}"
   ogType="article"

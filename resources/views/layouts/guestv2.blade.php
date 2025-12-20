@@ -43,6 +43,27 @@
                 <div class="hidden lg:flex lg:gap-x-12">
                   <a href="{{route('job-listings-public.index')}}" class="text-sm/6 font-semibold text-gray-900">Staff Opportunities</a>
                   <a href="{{route('vol-listings-public.index')}}" class="text-sm/6 font-semibold text-gray-900">Volunteering</a>
+                  @php
+                    // Check if there are any active elections
+                    $hasActiveElections = \App\Models\Election::where('active', true)
+                        ->where(function($query) {
+                            $query->where(function($q) {
+                                $q->where('start_date', '<=', now())
+                                  ->where('end_date', '>=', now());
+                            })
+                            ->orWhere(function($q) {
+                                $q->where('nomination_start_date', '<=', now())
+                                  ->where('nomination_end_date', '>=', now());
+                            })
+                            ->orWhere(function($q) {
+                                $q->where('end_date', '<', now());
+                            });
+                        })
+                        ->exists();
+                  @endphp
+                  @if($hasActiveElections)
+                    <a href="{{route('elections-public.index')}}" class="text-sm/6 font-semibold text-gray-900">Elections</a>
+                  @endif
                   <a href="https://www.mnfurs.org/about/" class="text-sm/6 font-semibold text-gray-900">About MNFurs</a>
                   {{-- <a href="#" class="text-sm/6 font-semibold text-gray-900">Marketplace</a>
                   <a href="#" class="text-sm/6 font-semibold text-gray-900">Company</a> --}}

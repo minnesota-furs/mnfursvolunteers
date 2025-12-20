@@ -24,10 +24,14 @@
                         Election Results Overview
                     </h3>
                     
-                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-4">
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-5">
                         <div class="bg-blue-50 dark:bg-blue-900/20 px-4 py-5 sm:p-6 rounded-lg">
-                            <dt class="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">Total Votes Cast</dt>
-                            <dd class="mt-1 text-3xl font-semibold text-blue-900 dark:text-blue-100">{{ $totalVotes }}</dd>
+                            <dt class="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">Unique Voters</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-blue-900 dark:text-blue-100">{{ $uniqueVoters }}</dd>
+                        </div>
+                        <div class="bg-indigo-50 dark:bg-indigo-900/20 px-4 py-5 sm:p-6 rounded-lg">
+                            <dt class="text-sm font-medium text-indigo-600 dark:text-indigo-400 truncate">Total Votes Cast</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-indigo-900 dark:text-indigo-100">{{ $totalVotes }}</dd>
                         </div>
                         <div class="bg-green-50 dark:bg-green-900/20 px-4 py-5 sm:p-6 rounded-lg">
                             <dt class="text-sm font-medium text-green-600 dark:text-green-400 truncate">Eligible Voters</dt>
@@ -37,7 +41,7 @@
                             <dt class="text-sm font-medium text-purple-600 dark:text-purple-400 truncate">Turnout Rate</dt>
                             <dd class="mt-1 text-3xl font-semibold text-purple-900 dark:text-purple-100">
                                 @if($eligibleVoters > 0)
-                                    {{ round(($totalVotes / $eligibleVoters) * 100, 1) }}%
+                                    {{ round(($uniqueVoters / $eligibleVoters) * 100, 1) }}%
                                 @else
                                     0%
                                 @endif
