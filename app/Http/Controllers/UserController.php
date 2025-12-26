@@ -20,6 +20,7 @@ use Illuminate\Validation\Rules;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use App\Mail\TestEmail;
+use App\Models\CommunicationLog;
 
 class UserController extends Controller
 {
@@ -471,11 +472,15 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         
-        // TODO: In the future, this could query a communications log table
-        // For now, we'll just show a placeholder for the communications interface
+        // Get communication logs for this user, ordered by most recent first
+        $communications = $user->communicationLogs()
+            ->with('sender')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
         
         return view('users.communications', [
             'user' => $user,
+            'communications' => $communications,
         ]);
     }
 
@@ -489,11 +494,40 @@ class UserController extends Controller
         try {
             Mail::to($user->email)->send(new TestEmail($user));
             
+            // Log the communication
+            CommunicationLog::create([
+                'user_id' => $user->id,
+                'type' => 'email',
+                'subject' => 'Test Email from MNFursVolunteers',
+                'message' => 'This is a test email from the MNFursVolunteers system.',
+                'recipient_email' => $user->email,
+                'status' => 'sent',
+                'sent_by' => auth()->id(),
+                'metadata' => [
+                    'email_type' => 'test_email',
+                ],
+            ]);
+            
             return redirect()->route('users.communications', $user->id)
                 ->with('success', [
                     'message' => "Test email sent successfully to {$user->email}"
                 ]);
         } catch (\Exception $e) {
+            // Log the failed communication
+            CommunicationLog::create([
+                'user_id' => $user->id,
+                'type' => 'email',
+                'subject' => 'Test Email from MNFursVolunteers',
+                'message' => 'This is a test email from the MNFursVolunteers system.',
+                'recipient_email' => $user->email,
+                'status' => 'failed',
+                'sent_by' => auth()->id(),
+                'metadata' => [
+                    'email_type' => 'test_email',
+                    'error' => $e->getMessage(),
+                ],
+            ]);
+            
             Log::error('Failed to send test email', [
                 'user_id' => $user->id,
                 'email' => $user->email,

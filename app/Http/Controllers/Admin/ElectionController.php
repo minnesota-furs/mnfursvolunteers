@@ -11,7 +11,11 @@ use App\Models\FiscalLedger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Parsedown;
+use App\Mail\VotingReminder;
+use App\Models\CommunicationLog;
 
 class ElectionController extends Controller
 {
@@ -469,5 +473,125 @@ class ElectionController extends Controller
             'Content-Type' => 'image/png',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
+    }
+
+    /**
+     * Show eligible voters who haven't voted yet
+     */
+    public function eligibleVoters(Election $election)
+    {
+        // Get all eligible non-voters
+        $eligibleNonVoters = $election->getEligibleNonVoters();
+        
+        // Get fiscal ledger info for context
+        $fiscalLedger = $election->fiscalLedger;
+        
+        // Add hours info to each user
+        foreach ($eligibleNonVoters as $user) {
+            if ($election->fiscal_ledger_id) {
+                $user->hours_for_period = $user->getHoursForFiscalLedger($election->fiscal_ledger_id);
+            } else {
+                $user->hours_for_period = $user->getCurrentFiscalYearHours();
+            }
+        }
+        
+        return view('admin.elections.eligible-voters', compact('election', 'eligibleNonVoters', 'fiscalLedger'));
+    }
+
+    /**
+     * Send voting reminder emails to eligible non-voters
+     */
+    public function sendVotingReminders(Request $request, Election $election)
+    {
+        $userIds = $request->input('user_ids', []);
+        
+        if (empty($userIds)) {
+            return redirect()->route('admin.elections.eligible-voters', $election)
+                ->with('error', 'Please select at least one user to send reminders to.');
+        }
+        
+        $eligibleNonVoters = $election->getEligibleNonVoters();
+        $sentCount = 0;
+        $failedCount = 0;
+        $errors = [];
+        
+        foreach ($userIds as $userId) {
+            $user = $eligibleNonVoters->firstWhere('id', $userId);
+            
+            if (!$user) {
+                $failedCount++;
+                continue;
+            }
+            
+            try {
+                Mail::to($user->email)->send(new VotingReminder($user, $election));
+                $sentCount++;
+                
+                // Log successful communication
+                CommunicationLog::create([
+                    'user_id' => $user->id,
+                    'type' => 'email',
+                    'subject' => "Reminder: Vote in {$election->title}",
+                    'message' => "Voting reminder for election: {$election->title}",
+                    'recipient_email' => $user->email,
+                    'status' => 'sent',
+                    'sent_by' => auth()->id(),
+                    'metadata' => [
+                        'email_type' => 'voting_reminder',
+                        'election_id' => $election->id,
+                        'election_title' => $election->title,
+                    ],
+                ]);
+                
+                Log::info('Voting reminder sent', [
+                    'election_id' => $election->id,
+                    'election_title' => $election->title,
+                    'user_id' => $user->id,
+                    'user_email' => $user->email,
+                ]);
+            } catch (\Exception $e) {
+                $failedCount++;
+                $errors[] = "Failed to send to {$user->name} ({$user->email})";
+                
+                // Log failed communication
+                CommunicationLog::create([
+                    'user_id' => $user->id,
+                    'type' => 'email',
+                    'subject' => "Reminder: Vote in {$election->title}",
+                    'message' => "Voting reminder for election: {$election->title}",
+                    'recipient_email' => $user->email,
+                    'status' => 'failed',
+                    'sent_by' => auth()->id(),
+                    'metadata' => [
+                        'email_type' => 'voting_reminder',
+                        'election_id' => $election->id,
+                        'election_title' => $election->title,
+                        'error' => $e->getMessage(),
+                    ],
+                ]);
+                
+                Log::error('Failed to send voting reminder', [
+                    'election_id' => $election->id,
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+        
+        $message = "Successfully sent {$sentCount} voting reminder" . ($sentCount !== 1 ? 's' : '');
+        
+        if ($failedCount > 0) {
+            $message .= ". Failed to send {$failedCount} email" . ($failedCount !== 1 ? 's' : '');
+            if (!empty($errors)) {
+                $message .= ': ' . implode(', ', array_slice($errors, 0, 3));
+                if (count($errors) > 3) {
+                    $message .= ' and ' . (count($errors) - 3) . ' more';
+                }
+            }
+        }
+        
+        return redirect()->route('admin.elections.eligible-voters', $election)
+            ->with($failedCount > 0 ? 'warning' : 'success', ['message' => $message]);
     }
 }

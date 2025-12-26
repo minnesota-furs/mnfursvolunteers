@@ -206,6 +206,8 @@ Route::middleware('auth')->group(function () {
         Route::post('elections/{election}/candidates/{candidate}/reject', [\App\Http\Controllers\Admin\ElectionController::class, 'rejectCandidate'])->name('elections.candidates.reject');
         Route::delete('elections/{election}/candidates/{candidate}', [\App\Http\Controllers\Admin\ElectionController::class, 'removeCandidate'])->name('elections.candidates.destroy');
         Route::get('elections/{election}/voters', [\App\Http\Controllers\Admin\ElectionController::class, 'voters'])->name('elections.voters');
+        Route::get('elections/{election}/eligible-voters', [\App\Http\Controllers\Admin\ElectionController::class, 'eligibleVoters'])->name('elections.eligible-voters');
+        Route::post('elections/{election}/send-reminders', [\App\Http\Controllers\Admin\ElectionController::class, 'sendVotingReminders'])->name('elections.send-reminders');
         Route::get('elections/{election}/results', [\App\Http\Controllers\Admin\ElectionController::class, 'results'])->name('elections.results');
         Route::get('elections/{election}/export-voter-turnout', [\App\Http\Controllers\Admin\ElectionController::class, 'exportVoterTurnout'])->name('elections.export-voter-turnout');
         Route::get('elections/{election}/export-results-image', [\App\Http\Controllers\Admin\ElectionController::class, 'exportResultsImage'])->name('elections.export-results-image');

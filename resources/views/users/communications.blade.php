@@ -88,18 +88,103 @@
                             <p>View all emails and communications sent to this user.</p>
                         </div>
                         <div class="mt-6">
-                            <!-- Placeholder for future communications log -->
-                            <div class="text-center py-12">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                                </svg>
-                                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No communications yet</h3>
-                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                    Communications sent to this user will appear here in the future.
-                                </p>
-                            </div>
+                            @if($communications->isEmpty())
+                                <!-- Placeholder for no communications -->
+                                <div class="text-center py-12">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                    </svg>
+                                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No communications yet</h3>
+                                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                        Communications sent to this user will appear here.
+                                    </p>
+                                </div>
+                            @else
+                                <!-- Communications List -->
+                                <div class="overflow-hidden">
+                                    <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+                                        @foreach($communications as $communication)
+                                            <li class="py-4">
+                                                <div class="flex space-x-3">
+                                                    <div class="flex-shrink-0">
+                                                        @if($communication->type === 'email')
+                                                            <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                            </svg>
+                                                        @else
+                                                            <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                                            </svg>
+                                                        @endif
+                                                    </div>
+                                                    <div class="flex-1 space-y-1">
+                                                        <div class="flex items-center justify-between">
+                                                            <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+                                                                {{ $communication->subject }}
+                                                            </h3>
+                                                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                                {{ $communication->created_at->diffForHumans() }}
+                                                            </p>
+                                                        </div>
+                                                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                            {{ $communication->message }}
+                                                        </p>
+                                                        <div class="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                                                            <span class="inline-flex items-center">
+                                                                <svg class="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                                </svg>
+                                                                {{ $communication->recipient_email }}
+                                                            </span>
+                                                            <span class="inline-flex items-center">
+                                                                @if($communication->status === 'sent')
+                                                                    <span class="inline-flex items-center rounded-md bg-green-50 dark:bg-green-900/20 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-600/20">
+                                                                        ✓ Sent
+                                                                    </span>
+                                                                @elseif($communication->status === 'failed')
+                                                                    <span class="inline-flex items-center rounded-md bg-red-50 dark:bg-red-900/20 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-400 ring-1 ring-inset ring-red-600/20">
+                                                                        ✗ Failed
+                                                                    </span>
+                                                                @else
+                                                                    <span class="inline-flex items-center rounded-md bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 text-xs font-medium text-yellow-700 dark:text-yellow-400 ring-1 ring-inset ring-yellow-600/20">
+                                                                        ⏱ {{ ucfirst($communication->status) }}
+                                                                    </span>
+                                                                @endif
+                                                            </span>
+                                                            @if($communication->sender)
+                                                                <span class="inline-flex items-center">
+                                                                    <svg class="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                                    </svg>
+                                                                    Sent by {{ $communication->sender->name }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                        @if($communication->metadata && isset($communication->metadata['election_title']))
+                                                            <div class="mt-2">
+                                                                <span class="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-400 ring-1 ring-inset ring-blue-600/20">
+                                                                    Election: {{ $communication->metadata['election_title'] }}
+                                                                </span>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                                
+                                <!-- Pagination -->
+                                <div class="mt-6">
+                                    {{ $communications->links() }}
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>

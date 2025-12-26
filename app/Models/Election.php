@@ -174,4 +174,22 @@ class Election extends Model
     {
         return $this->min_voter_hours > 0 || $this->min_candidate_hours > 0;
     }
+
+    /**
+     * Get all users eligible to vote who haven't voted yet
+     */
+    public function getEligibleNonVoters()
+    {
+        $allUsers = User::where('active', true)->get();
+        $eligibleNonVoters = [];
+
+        foreach ($allUsers as $user) {
+            // Check if user can vote (meets hour requirements)
+            if ($this->userCanVote($user) && !$this->userHasVoted($user)) {
+                $eligibleNonVoters[] = $user;
+            }
+        }
+
+        return collect($eligibleNonVoters);
+    }
 }

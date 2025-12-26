@@ -90,6 +90,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Shift::class, 'shift_signups')->withTimestamps();
     }
 
+    public function communicationLogs()
+    {
+        return $this->hasMany(CommunicationLog::class);
+    }
+
     public function shiftsForEvent($eventId)
     {
         return $this->shifts->filter(fn ($shift) => $shift->event_id == $eventId);
