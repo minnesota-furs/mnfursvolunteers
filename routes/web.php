@@ -106,6 +106,8 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('users', UserController::class)->only(['create', 'edit', 'store', 'destroy', 'update'])->middleware(['can:manage-users']);
     Route::resource('users', UserController::class)->only(['index', 'show']);
+    Route::get('/users/{user}/communications', [UserController::class, 'communications'])->name('users.communications');
+    Route::post('/users/{user}/send-test-email', [UserController::class, 'sendTestEmail'])->name('users.send-test-email');
     Route::get('/users/{user}/permissions', [UserPermissionController::class, 'edit'])->middleware('isAdmin')->name('users.permissions.edit');
     Route::post('/users/{user}/permissions', [UserPermissionController::class, 'update'])->middleware('isAdmin')->name('users.permissions.update');
 

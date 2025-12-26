@@ -15,9 +15,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use App\Mail\TestEmail;
 
 class UserController extends Controller
 {
@@ -460,6 +462,47 @@ class UserController extends Controller
             ->with('success', [
                 'message' => "User Restored Successfully"
             ]);
+    }
+
+    /**
+     * Display communications sent to a user
+     */
+    public function communications(string $id): View
+    {
+        $user = User::findOrFail($id);
+        
+        // TODO: In the future, this could query a communications log table
+        // For now, we'll just show a placeholder for the communications interface
+        
+        return view('users.communications', [
+            'user' => $user,
+        ]);
+    }
+
+    /**
+     * Send a test email to the user
+     */
+    public function sendTestEmail(string $id): RedirectResponse
+    {
+        $user = User::findOrFail($id);
+        
+        try {
+            Mail::to($user->email)->send(new TestEmail($user));
+            
+            return redirect()->route('users.communications', $user->id)
+                ->with('success', [
+                    'message' => "Test email sent successfully to {$user->email}"
+                ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send test email', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage()
+            ]);
+            
+            return redirect()->route('users.communications', $user->id)
+                ->with('error', 'Failed to send test email: ' . $e->getMessage());
+        }
     }
 
 }
