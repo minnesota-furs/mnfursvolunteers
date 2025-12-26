@@ -106,7 +106,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🗳️ Voting Reminder</h1>
+            <h1>{{ app_setting('organization_name', 'MNFursVolunteers') }} - Voting Reminder</h1>
         </div>
         
         <div class="content">
@@ -152,7 +152,7 @@
             </p>
             
             <p style="font-size: 14px; color: #6b7280;">
-                If you have any questions about the election or need assistance voting, please contact your administrator.
+                If you have any questions about the election or need assistance voting, please contact the elections team.
             </p>
         </div>
         

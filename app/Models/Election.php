@@ -184,8 +184,8 @@ class Election extends Model
         $eligibleNonVoters = [];
 
         foreach ($allUsers as $user) {
-            // Check if user can vote (meets hour requirements)
-            if ($this->userCanVote($user) && !$this->userHasVoted($user)) {
+            // Check if user can vote (meets hour requirements) and hasn't cast any votes yet
+            if ($this->userCanVote($user) && $this->userVoteCount($user) === 0) {
                 $eligibleNonVoters[] = $user;
             }
         }

@@ -459,5 +459,17 @@
                 alert('Failed to copy link. Please try again.');
             });
         }
+
+        @if(session('copy_to_clipboard'))
+            // Automatically copy to clipboard on page load if we have a URL to copy
+            document.addEventListener('DOMContentLoaded', function() {
+                const urlToCopy = @json(session('copy_to_clipboard'));
+                navigator.clipboard.writeText(urlToCopy).then(function() {
+                    console.log('Hour submission link automatically copied to clipboard!');
+                }, function(err) {
+                    console.error('Could not automatically copy text: ', err);
+                });
+            });
+        @endif
     </script>
 </x-app-layout>

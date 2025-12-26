@@ -126,6 +126,21 @@
                                 There are no eligible users who haven't voted yet.
                             </p>
                         </div>
+                    @elseif($election->end_date < now())
+                        <div class="text-center py-12">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Voting period has ended</h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                The voting period ended on {{ $election->end_date->format('F j, Y g:i A') }}. Reminders can no longer be sent.
+                            </p>
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                {{ $eligibleNonVoters->count() }} eligible user{{ $eligibleNonVoters->count() !== 1 ? 's' : '' }} did not vote.
+                            </p>
+                        </div>
                     @else
                         <form action="{{ route('admin.elections.send-reminders', $election) }}" method="POST" id="reminderForm">
                             @csrf

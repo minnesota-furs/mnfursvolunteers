@@ -218,7 +218,8 @@ class VolunteerHoursController extends Controller
                 'message' => "Hour submission link generated successfully for <span class=\"text-brand-green\">{$user->name}</span>. This link will expire on <span class=\"text-brand-green\">{$user->token_expires_at->format('F j, Y')}</span>.",
                 'action_text' => 'Copy Link',
                 'action_url' => $url,
-            ]);
+            ])
+            ->with('copy_to_clipboard', $url);
     }
 
     /**
