@@ -161,6 +161,10 @@
             <p>
                 <a href="{{ route('elections.show', $election->id) }}">View Election Details</a>
             </p>
+            <p style="margin-top: 10px;">
+                Don't want to receive election reminders? 
+                <a href="{{ $unsubscribeUrl }}">Unsubscribe from election emails</a>
+            </p>
         </div>
     </div>
 </body>

@@ -53,6 +53,10 @@ Route::prefix('submit-hours')->name('hours.public.')->group(function () {
     Route::post('/{token}', [VolunteerHoursController::class, 'storePublicHours'])->name('store');
 });
 
+// Public unsubscribe from election emails
+Route::get('/unsubscribe-elections/{user}/{token}', [ProfileController::class, 'unsubscribeElections'])
+    ->name('unsubscribe.elections');
+
 // Public elections
 Route::prefix('pub-elections')->name('elections-public.')->group(function () {
     Route::get('/', [ElectionController::class, 'guestIndex'])->name('index');

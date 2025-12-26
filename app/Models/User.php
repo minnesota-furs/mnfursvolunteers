@@ -36,6 +36,7 @@ class User extends Authenticatable
         'email_shift_reminders',
         'email_event_updates',
         'email_hour_approvals',
+        'email_election_reminders',
         'hour_submission_token',
         'token_expires_at',
     ];
@@ -62,6 +63,7 @@ class User extends Authenticatable
         'email_shift_reminders' => 'boolean',
         'email_event_updates' => 'boolean',
         'email_hour_approvals' => 'boolean',
+        'email_election_reminders' => 'boolean',
         'token_expires_at' => 'datetime',
     ];
 

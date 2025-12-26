@@ -480,8 +480,10 @@ class ElectionController extends Controller
      */
     public function eligibleVoters(Election $election)
     {
-        // Get all eligible non-voters
-        $eligibleNonVoters = $election->getEligibleNonVoters();
+        // Get all eligible non-voters (returns array with 'eligible' and 'opted_out' keys)
+        $voterData = $election->getEligibleNonVoters();
+        $eligibleNonVoters = $voterData['eligible'];
+        $optedOutUsers = $voterData['opted_out'];
         
         // Get fiscal ledger info for context
         $fiscalLedger = $election->fiscalLedger;
@@ -495,7 +497,16 @@ class ElectionController extends Controller
             }
         }
         
-        return view('admin.elections.eligible-voters', compact('election', 'eligibleNonVoters', 'fiscalLedger'));
+        // Add hours info to opted-out users too
+        foreach ($optedOutUsers as $user) {
+            if ($election->fiscal_ledger_id) {
+                $user->hours_for_period = $user->getHoursForFiscalLedger($election->fiscal_ledger_id);
+            } else {
+                $user->hours_for_period = $user->getCurrentFiscalYearHours();
+            }
+        }
+        
+        return view('admin.elections.eligible-voters', compact('election', 'eligibleNonVoters', 'optedOutUsers', 'fiscalLedger'));
     }
 
     /**
@@ -510,7 +521,10 @@ class ElectionController extends Controller
                 ->with('error', 'Please select at least one user to send reminders to.');
         }
         
-        $eligibleNonVoters = $election->getEligibleNonVoters();
+        // Get eligible non-voters (returns array with 'eligible' and 'opted_out' keys)
+        $voterData = $election->getEligibleNonVoters();
+        $eligibleNonVoters = $voterData['eligible'];
+        
         $sentCount = 0;
         $failedCount = 0;
         $errors = [];

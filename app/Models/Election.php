@@ -182,14 +182,22 @@ class Election extends Model
     {
         $allUsers = User::where('active', true)->get();
         $eligibleNonVoters = [];
+        $optedOutUsers = [];
 
         foreach ($allUsers as $user) {
             // Check if user can vote (meets hour requirements) and hasn't cast any votes yet
             if ($this->userCanVote($user) && $this->userVoteCount($user) === 0) {
-                $eligibleNonVoters[] = $user;
+                if ($user->email_election_reminders) {
+                    $eligibleNonVoters[] = $user;
+                } else {
+                    $optedOutUsers[] = $user;
+                }
             }
         }
 
-        return collect($eligibleNonVoters);
+        return [
+            'eligible' => collect($eligibleNonVoters),
+            'opted_out' => collect($optedOutUsers),
+        ];
     }
 }

@@ -73,6 +73,26 @@
                     </p>
                 </div>
             </div>
+
+            <!-- Election Reminders -->
+            <div class="flex items-start">
+                <div class="flex items-center h-5">
+                    <input id="email_election_reminders" 
+                           name="email_election_reminders" 
+                           type="checkbox" 
+                           value="1"
+                           {{ old('email_election_reminders', $user->email_election_reminders) ? 'checked' : '' }}
+                           class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-brand-green dark:ring-offset-gray-800">
+                </div>
+                <div class="ml-3 text-sm">
+                    <label for="email_election_reminders" class="font-medium text-gray-900 dark:text-gray-100">
+                        Election Updates & Reminders
+                    </label>
+                    <p class="text-gray-600 dark:text-gray-400">
+                        Get notified about upcoming elections and reminders to vote if you're eligible.
+                    </p>
+                </div>
+            </div>
         </div>
 
         <div class="flex items-center gap-4">

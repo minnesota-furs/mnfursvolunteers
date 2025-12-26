@@ -41,8 +41,18 @@ class VotingReminder extends Mailable
      */
     public function content(): Content
     {
+        // Generate unsubscribe token
+        $unsubscribeToken = md5($this->user->email . config('app.key'));
+        $unsubscribeUrl = route('unsubscribe.elections', [
+            'user' => $this->user->id,
+            'token' => $unsubscribeToken,
+        ]);
+
         return new Content(
             view: 'emails.voting-reminder',
+            with: [
+                'unsubscribeUrl' => $unsubscribeUrl,
+            ],
         );
     }
 

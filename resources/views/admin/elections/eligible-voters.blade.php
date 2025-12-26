@@ -219,6 +219,65 @@
                     @endif
                 </div>
             </div>
+
+            <!-- Opted-Out Users Section -->
+            @if($optedOutUsers->isNotEmpty())
+            <div class="mt-6 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="sm:flex sm:items-center sm:justify-between mb-6">
+                        <div>
+                            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
+                                Opted-Out Users ({{ $optedOutUsers->count() }})
+                            </h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                These users are eligible to vote but have disabled election reminder emails in their preferences.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 pl-6">
+                                        Name
+                                    </th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                        Email
+                                    </th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                        Hours
+                                    </th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                        Vol Code
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                                @foreach($optedOutUsers as $user)
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900 dark:text-gray-100 pl-6">
+                                            <a href="{{ route('users.show', $user->id) }}" class="hover:text-brand-green">
+                                                {{ $user->name }}
+                                            </a>
+                                        </td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                            {{ $user->email }}
+                                        </td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                            {{ format_hours($user->hours_for_period) }} hrs
+                                        </td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                            {{ $user->vol_code ?? '-' }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 

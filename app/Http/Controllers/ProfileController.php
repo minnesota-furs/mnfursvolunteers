@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -109,6 +110,7 @@ class ProfileController extends Controller
             'email_shift_reminders' => 'nullable|boolean',
             'email_event_updates' => 'nullable|boolean',
             'email_hour_approvals' => 'nullable|boolean',
+            'email_election_reminders' => 'nullable|boolean',
         ]);
 
         $user = $request->user();
@@ -118,8 +120,32 @@ class ProfileController extends Controller
             'email_shift_reminders' => $request->has('email_shift_reminders'),
             'email_event_updates' => $request->has('email_event_updates'),
             'email_hour_approvals' => $request->has('email_hour_approvals'),
+            'email_election_reminders' => $request->has('email_election_reminders'),
         ]);
 
         return Redirect::route('profile.edit')->with('email-preferences-status', 'preferences-updated');
+    }
+
+    /**
+     * Unsubscribe a user from election reminder emails
+     */
+    public function unsubscribeElections(User $user, string $token)
+    {
+        // Verify the token matches the user's email (simple security measure)
+        $expectedToken = md5($user->email . config('app.key'));
+        
+        if ($token !== $expectedToken) {
+            abort(403, 'Invalid unsubscribe link');
+        }
+
+        // Update the user's preferences
+        $user->update([
+            'email_election_reminders' => false,
+        ]);
+
+        return view('profile.unsubscribed', [
+            'user' => $user,
+            'preferenceType' => 'election reminders',
+        ]);
     }
 }
