@@ -140,14 +140,56 @@ class UserController extends Controller
     public function show(string $id)
     {
 
-        $user = User::findOrFail($id);
+        $user = User::with([
+            'volunteerHours.department.sector',
+            'shifts.event',
+            'auditLogs.user',
+            'departments.sector',
+            'sector'
+        ])->findOrFail($id);
+        
         $volunteerHours = $user->volunteerHours()
             ->orderByRaw('COALESCE(volunteer_date, created_at) DESC')
             ->paginate(15);
 
+        // Get timeline events for the sidebar (limited to 12)
+        $timelineEvents = $user->getTimelineEvents()->take(12);
+
         return view('users.show', [
             'user' => $user,
             'volunteerHours' => $volunteerHours,
+            'timelineEvents' => $timelineEvents,
+        ]);
+    }
+
+    /**
+     * Display the full timeline for a user with pagination.
+     */
+    public function timeline(Request $request, string $id): View
+    {
+        $user = User::with([
+            'volunteerHours.department.sector',
+            'shifts.event',
+            'auditLogs.user',
+        ])->findOrFail($id);
+
+        // Get all timeline events
+        $allEvents = $user->getTimelineEvents();
+        
+        // Manually paginate the collection
+        $perPage = 20;
+        $currentPage = $request->input('page', 1);
+        $timelineEvents = new \Illuminate\Pagination\LengthAwarePaginator(
+            $allEvents->forPage($currentPage, $perPage),
+            $allEvents->count(),
+            $perPage,
+            $currentPage,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('users.timeline', [
+            'user' => $user,
+            'timelineEvents' => $timelineEvents,
         ]);
     }
 
@@ -157,11 +199,15 @@ class UserController extends Controller
     public function edit(Request $request, string $id = ''): View
     {
         if (Auth::check() && Auth::user()->isAdmin()) {
-            $user = User::find($id);
-            // $sectors = Sector::all();
+            $user = User::with([
+                'volunteerHours.department.sector',
+                'shifts.event',
+                'auditLogs.user',
+                'departments.sector',
+                'sector'
+            ])->findOrFail($id);
+            
             $departments = [];
-
-            // $departments = Department::orderBy('name')->get(); 
 
             // Retrieve sectors with their departments, ordered by name
             $sectors = Sector::with(['departments' => function ($query) {
@@ -169,14 +215,14 @@ class UserController extends Controller
             }])->orderBy('name') // Sort sectors alphabetically
             ->get();
 
-            // if ($user->sector) {
-            //     $departments = Department::where('sector_id', $user->sector->id)->get();
-            // }
+            // Get timeline events for the sidebar
+            $timelineEvents = $user->getTimelineEvents()->take(20);
 
             return view('users.edit', [
                 'user'      => $user,
                 'sectors'   => $sectors,
-                'departments' => $departments
+                'departments' => $departments,
+                'timelineEvents' => $timelineEvents,
             ]);
         } else {
             abort(401);

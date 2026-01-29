@@ -102,6 +102,16 @@ class User extends Authenticatable
         return $this->shifts->filter(fn ($shift) => $shift->event_id == $eventId);
     }
 
+    public function auditLogs()
+    {
+        return $this->morphMany(AuditLog::class, 'auditable');
+    }
+
+    public function performedAudits()
+    {
+        return $this->hasMany(AuditLog::class, 'user_id');
+    }
+
     public function totalVolunteerHours()
     {
         if (!$this->relationLoaded('volunteerHours')) {
@@ -228,6 +238,59 @@ class User extends Authenticatable
     public function getHoursForFiscalLedger($fiscalLedgerId)
     {
         return $this->totalVolunteerHoursForFiscalPeriod($fiscalLedgerId);
+    }
+
+    /**
+     * Get timeline events for this user combining volunteer hours, shifts, and audit logs
+     * 
+     * @return \Illuminate\Support\Collection
+     */
+    public function getTimelineEvents()
+    {
+        $events = collect();
+
+        // Add volunteer hours entries
+        $this->volunteerHours->each(function ($hour) use ($events) {
+            $events->push([
+                'type' => 'volunteer_hours',
+                'date' => $hour->volunteer_date ?? $hour->created_at,
+                'title' => 'Logged ' . format_hours($hour->hours) . ' hours',
+                'description' => $hour->description ?? 'Hour entry',
+                'department' => $hour->department->name ?? null,
+                'sector' => $hour->department->sector->name ?? null,
+                'model' => $hour,
+            ]);
+        });
+
+        // Add shift signups
+        $this->shifts->each(function ($shift) use ($events) {
+            $events->push([
+                'type' => 'shift_signup',
+                'date' => $shift->pivot->created_at ?? $shift->start_time,
+                'title' => 'Signed up for shift',
+                'description' => $shift->name ?? 'Unnamed shift',
+                'event_name' => $shift->event->name ?? null,
+                'start_time' => $shift->start_time,
+                'end_time' => $shift->end_time,
+                'model' => $shift,
+            ]);
+        });
+
+        // Add audit log entries
+        $this->auditLogs->each(function ($log) use ($events) {
+            $events->push([
+                'type' => 'audit_log',
+                'date' => $log->created_at,
+                'title' => ucfirst($log->action ?? 'Activity'),
+                'description' => $log->comment ?? 'User record ' . $log->action,
+                'changes' => $log->changes,
+                'performed_by' => $log->user->name ?? 'System',
+                'model' => $log,
+            ]);
+        });
+
+        // Sort by date descending
+        return $events->sortByDesc('date');
     }
 
     /**

@@ -15,6 +15,10 @@
                 class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                 Edit
             </a>
+            <a href="{{ route('users.timeline', $user->id) }}"
+                class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                Activity Timeline
+            </a>
             <a href="{{ route('users.communications', $user->id) }}"
                 class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                 Communications
@@ -30,16 +34,15 @@
 
         <div class="py-4">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="grid grid-cols-4 gap-4">
-                    <div class="col-span-4 md:col-span-2">
-                        {{-- Start Left Column --}}
-                        <div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {{-- User Information Section --}}
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                             <div class="px-4 sm:px-0">
                                 <h3 class="text-base font-semibold leading-7 text-gray-900 dark:text-white">Volunteer / User
                                     Information</h3>
                             </div>
-                            <div class="mt-6 border-t border-gray-100">
-                                <dl class="divide-y divide-gray-100">
+                            <div class="mt-6 border-t border-gray-100 dark:border-gray-700">
+                                <dl class="divide-y divide-gray-100 dark:divide-gray-700">
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Name / Alias
                                         </dt>
@@ -95,7 +98,7 @@
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Notes</dt>
                                         @if ($user->hasNotes())
-                                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                            <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
                                                 {{ $user->notes }}
                                             @else
                                             <dd
@@ -108,17 +111,15 @@
                                 </dl>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-span-4 md:col-span-2">
-                        {{-- Start Right Column --}}
-                        <div>
+
+                        {{-- Role Information Section --}}
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                             <div class="px-4 sm:px-0">
                                 <h3 class="text-base font-semibold leading-7 text-gray-900 dark:text-white">Role Information
                                 </h3>
-                                {{-- <p class="mt-1 max-w-2xl text-sm leading-6 text-gray-500">Information involving their staff involvement with the group</p> --}}
                             </div>
-                            <div class="mt-6 border-t border-gray-100">
-                                <dl class="divide-y divide-gray-100">
+                            <div class="mt-6 border-t border-gray-100 dark:border-gray-700">
+                                <dl class="divide-y divide-gray-100 dark:divide-gray-700">
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">App
                                             Permissions</dt>
@@ -134,7 +135,7 @@
                                                     @endforeach
                                                 </div>
                                             @else
-                                                <p class="text-gray-500 italic">This user has no permissions assigned.</p>
+                                                <p class="text-gray-500 dark:text-gray-400 italic">This user has no permissions assigned.</p>
                                             @endif
                                         </dd>
                                     </div>
@@ -152,62 +153,36 @@
                                             {{ $user->sector->name ?? '-' }}</dd>
                                     </div>
 
-                                    {{-- <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Primary Dept</dt>
-                                        <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
-                                            @if ($user->department)
-                                                <a href="{{ route('departments.show', $user->department->id) }}" class="text-blue-600">{{$user->department->name}}</a>
-                                            @else
-                                                -
-                                            @endif
-                                        </dd>
-                                    </div> --}}
-
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Departments
                                             ({{ $user->departments->count() }})</dt>
                                         <dd
                                             class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
 
-
-
-
-                                            <ul role="list" class="divide-y divide-gray-200">
+                                            <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
                                                 @forelse ($user->departments as $department)
                                                     <li
-                                                        class="relative bg-white px-1 py-1 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 hover:bg-gray-50">
+                                                        class="relative bg-white dark:bg-gray-800 px-1 py-1 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 hover:bg-gray-50 dark:hover:bg-gray-700">
                                                         <div class="flex justify-between space-x-3">
                                                             <div class="min-w-0 flex-1">
                                                                 <a href="{{ route('departments.show', $department->id) }}"
                                                                     class="block focus:outline-none">
                                                                     <span class="absolute inset-0"
                                                                         aria-hidden="true"></span>
-                                                                    <p class="truncate text-sm font-medium text-gray-900">
+                                                                    <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $department->name }}</p>
-                                                                    <p class="truncate text-sm text-gray-500">
+                                                                    <p class="truncate text-sm text-gray-500 dark:text-gray-400">
                                                                         {{ $department->sector->name }}</p>
                                                                 </a>
                                                             </div>
-                                                            {{-- <time datetime="2021-01-27T16:35" class="shrink-0 whitespace-nowrap text-sm text-gray-500">{{$department->created_at}}</time> --}}
                                                         </div>
-                                                        {{-- <div class="mt-1">
-                                                        <p class="line-clamp-2 text-sm text-gray-600">Doloremque dolorem maiores assumenda dolorem facilis. Velit vel in a rerum natus facere. Enim rerum eaque qui facilis. Numquam laudantium sed id dolores omnis in. Eos reiciendis deserunt maiores et accusamus quod dolor.</p>
-                                                    </div> --}}
                                                     </li>
                                                 @empty
-                                                    No Departments Assigned
+                                                    <li class="text-gray-500 dark:text-gray-400">No Departments Assigned</li>
                                                 @endforelse
-                                                <!-- More messages... -->
                                             </ul>
                                         </dd>
                                     </div>
-
-
-
-
-
-
-
 
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">This Fiscal
@@ -230,17 +205,19 @@
                             </div>
                         </div>
                     </div>
-                </div>
 
             </div>
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 border-t pt-6">
-                <div class="sm:flex sm:items-center">
-                    <div class="sm:flex-auto">
-                        <h1 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">Hour Log</h1>
-                        <p class="mt-2 text-sm text-gray-700 dark:text-white">Transactional log of recently logged hours for
-                            this volunteer/user.</p>
-                    </div>
-                    <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-2">
+            
+            <!-- Hour Log Section -->
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-6">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+                        <div class="sm:flex sm:items-center sm:justify-between">
+                            <div class="sm:flex-auto">
+                                <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">Hour Log</h3>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Recent volunteer hours logged for this user</p>
+                            </div>
+                            <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-2">
                         @if (Auth::user()->isAdmin() || Auth::user()->id == $user->id)
                             <a href="{{ route('hours.create', ['user' => $user->id]) }}"
                                 class="block rounded-md bg-brand-green px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
@@ -271,11 +248,11 @@
                             @endif
                         @endif
                     </div>
-                </div>
-                <div class="mt-8 flow-root">
-                    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                            <table class="min-w-full divide-y divide-gray-300">
+                        </div>
+                    </div>
+                    <div class="px-4 py-4 sm:px-6">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
                                 <thead>
                                     <tr>
                                         <th scope="col"
@@ -362,25 +339,25 @@
                                     @endforelse
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
                             {{ $volunteerHours->links('components.compact-pagination') }}
-                            {{-- {{ $volunteerHours->links() }} --}}
                         </div>
                     </div>
                 </div>
-
             </div>
-            <!-- Volunteer Shift Signups -->
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 border-t pt-6 mt-6">
-                <div class="sm:flex sm:items-center">
-                    <div class="sm:flex-auto">
-                        <h1 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">Volunteer Signup Log</h1>
-                        <p class="mt-2 text-sm text-gray-700 dark:text-white">Transactional log volunteer slots for this user/volunteer.</p>
+
+            <!-- Volunteer Signup Log Section -->
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-6">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+                        <div class="sm:flex-auto">
+                            <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">Volunteer Signup Log</h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Shift signups and volunteer slots for this user</p>
+                        </div>
                     </div>
-                </div>
-                <div class="mt-8 flow-root">
-                    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                            <table class="min-w-full divide-y divide-gray-300">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
                                 <thead>
                                     <tr>
                                         <th scope="col"
@@ -439,12 +416,8 @@
                                     @endforelse
                                 </tbody>
                             </table>
-                            {{ $volunteerHours->links('components.compact-pagination') }}
-                            {{-- {{ $volunteerHours->links() }} --}}
                         </div>
-                    </div>
                 </div>
-
             </div>
         </div>
     @endauth

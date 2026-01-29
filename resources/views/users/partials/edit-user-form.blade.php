@@ -4,18 +4,15 @@
         @csrf
         @method('patch')
         <div class="py-4">
-            <div class="max-w-7xl mx-auto">
-                <div class="">
-                    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                        <div class="grid grid-cols-4 gap-4">
-                            <div class="col-span-4 md:col-span-2">
-                                {{-- Start Left Column --}}
-                                <div>
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {{-- User Information Section --}}
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                                     <div class="px-4 sm:px-0">
                                         <h3 class="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">Volunteer / User Information</h3>
                                     </div>
-                                    <div class="mt-6 border-t border-gray-100">
-                                        <dl class="divide-y divide-gray-100">
+                                    <div class="mt-6 border-t border-gray-100 dark:border-gray-700">
+                                        <dl class="divide-y divide-gray-100 dark:divide-gray-700">
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                 <dt class="form-label">Full name</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
@@ -85,16 +82,14 @@
                                         </dl>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-span-4 md:col-span-2">
-                                {{-- Start Right Column --}}
-                                <div>
+
+                                {{-- Role Information Section --}}
+                                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                                     <div class="px-4 sm:px-0">
                                         <h3 class="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">Role Information</h3>
-                                        {{-- <p class="mt-1 max-w-2xl text-sm leading-6 text-gray-500">Information involving their staff involvement with the group</p> --}}
                                     </div>
-                                    <div class="mt-6 border-t border-gray-100">
-                                        <dl class="divide-y divide-gray-100">
+                                    <div class="mt-6 border-t border-gray-100 dark:border-gray-700">
+                                        <dl class="divide-y divide-gray-100 dark:divide-gray-700">
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                 <dt class="form-label">App Permissions</dt>
                                                 <dd class="mt-1 text-xs leading-6 text-gray-500 sm:col-span-2 sm:mt-0">
@@ -161,16 +156,16 @@
                                     </div>
                                 </div>
                             </div>
+
+                            {{-- Form Actions --}}
+                            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-6">
+                                <div class="flex justify-end space-x-2">
+                                    <a type="submit" href="{{ url()->previous() }}" class="block rounded-md bg-gray-400 dark:bg-gray-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-500 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400">Cancel</a>
+                                    <button type="submit" class="block rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">Save</button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="py-6 flex justify-end space-x-2">
-                            <a type="submit" href="{{ url()->previous() }}" class="block rounded-md bg-gray-400 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400">Cancel</a>
-                            <button type="submit" class="block rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">Save</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <input type="hidden" name="user_id" id="user_id" value="{{$user->id}}">
+                        <input type="hidden" name="user_id" id="user_id" value="{{$user->id}}">
     </form>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 

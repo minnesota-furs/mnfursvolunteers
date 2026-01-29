@@ -46,6 +46,11 @@ Just copy ".env.example" to ".env", change "DB_HOST" (`DB_HOST=mysql`). Once tha
 
 If you run into permission issues with appending laravel.log; run `sudo chmod -R ugo+rw storage`.
 
+## Seeders and Factories
+Popualte your development environment with some test data. The following can be ran via `tinker`:
+
+- Volunteer Events and Shifts: ``
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
