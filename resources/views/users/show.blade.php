@@ -17,18 +17,27 @@
             </a>
             <a href="{{ route('users.timeline', $user->id) }}"
                 class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                Activity Timeline
-            </a>
-            <a href="{{ route('users.communications', $user->id) }}"
-                class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                Communications
+                <x-heroicon-s-list-bullet class="w-4 inline"/> Activity Timeline
             </a>
             @endcan
-            @if (Auth::user()->isAdmin())
-                <a href="{{ route('users.permissions.edit', $user->id) }}"
-                    class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                    Permissions
-                </a>
+
+            @if(Auth::user()->can('manage-users') || Auth::id() === $user->id)
+            <x-tailwind-dropdown label="More" id=1>
+                <div class="py-1" role="none">
+                    @can('manage-users')
+                    <x-tailwind-dropdown-item href="{{ route('users.communications', $user->id) }}" title="Communication History"><x-heroicon-o-envelope class="w-4 inline"/> Communication History</x-tailwind-dropdown-item>
+                    @endcan
+                    @if(Auth::user()->can('manage-users') || Auth::id() === $user->id)
+                    <x-tailwind-dropdown-item href="{{ route('users.notes.index', $user->id) }}" title="Notes"><x-heroicon-o-pencil-square class="w-4 inline"/> Notes</x-tailwind-dropdown-item>
+                    @endif
+                    @if (Auth::user()->isAdmin())
+                    <x-tailwind-dropdown-item href="{{ route('users.permissions.edit', $user->id) }}" title="App Permissions"><x-heroicon-o-shield-check class="w-4 inline"/> App Permissions</x-tailwind-dropdown-item>
+                    @endif
+                </div>
+                {{-- <div class="py-1" role="none">
+                    <x-tailwind-dropdown-item title="Delete" href="#" class="hover:bg-red-50 text-red-900" />
+                </div> --}}
+            </x-tailwind-dropdown>
             @endif
         </x-slot>
 
@@ -96,7 +105,7 @@
                                         </dd>
                                     </div>
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Notes</dt>
+                                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">User Comment</dt>
                                         @if ($user->hasNotes())
                                             <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
                                                 {{ $user->notes }}
@@ -108,6 +117,19 @@
 
                                         </dd>
                                     </div>
+                                    @if (Auth::user()->isAdmin())
+                                        <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                            <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">User Notes Count</dt>
+                                            <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
+                                                <span class="font-medium">{{ $totalNotes }}</span> total note{{ $totalNotes !== 1 ? 's' : '' }}
+                                                @if($writeupCount > 0)
+                                                    <span class="text-red-600 dark:text-red-400">
+                                                        (<span class="font-semibold">{{ $writeupCount }}</span> writeup{{ $writeupCount !== 1 ? 's' : '' }})
+                                                    </span>
+                                                @endif
+                                            </dd>
+                                        </div>
+                                    @endif
                                 </dl>
                             </div>
                         </div>

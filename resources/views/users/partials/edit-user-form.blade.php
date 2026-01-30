@@ -69,13 +69,13 @@
                                                 </dd>
                                             </div>
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                <dt class="form-label">Notes</dt>
+                                                <dt class="form-label">User Comment</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-textarea-input id="notes" rows="8" name="notes" class="block w-full text-sm">{{ old('notes', $user->notes ?? '') }}</x-textarea-input>
                                                     <x-form-validation for="notes" />
                                                     <x-input-error class="mt-2" :messages="$errors->get('notes')" />
                                                     <p class="mt-2 text-xs text-gray-500">
-                                                        Careful what you write. Notes are public and can be seen by other users.
+                                                        Careful what you write. User comments are public and can be seen by other users.
                                                     </p>
                                                 </dd>
                                             </div>

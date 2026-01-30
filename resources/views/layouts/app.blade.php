@@ -123,8 +123,10 @@
                 </div>
                 <div class="ml-3 w-0 flex-1 pt-0.5">
                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Operation Complete!</p>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-300">{!! session('success')['message'] !!}</p>
-                @if(isset(session('success')['action_text']) && isset(session('success')['action_url']))
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-300">
+                    {!! is_array(session('success')) ? session('success')['message'] : session('success') !!}
+                </p>
+                @if(is_array(session('success')) && isset(session('success')['action_text']) && isset(session('success')['action_url']))
                     <a href="{{ session('success')['action_url'] }}" class="mt-1 text-sm text-blue-500 dark:text-blue-400">
                         {{ session('success')['action_text'] }}
                     </a>

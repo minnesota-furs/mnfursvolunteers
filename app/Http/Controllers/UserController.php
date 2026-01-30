@@ -145,7 +145,8 @@ class UserController extends Controller
             'shifts.event',
             'auditLogs.user',
             'departments.sector',
-            'sector'
+            'sector',
+            'userNotes.creator'
         ])->findOrFail($id);
         
         $volunteerHours = $user->volunteerHours()
@@ -155,10 +156,16 @@ class UserController extends Controller
         // Get timeline events for the sidebar (limited to 12)
         $timelineEvents = $user->getTimelineEvents()->take(12);
 
+        // Get note counts for admins
+        $totalNotes = $user->userNotes()->count();
+        $writeupCount = $user->userNotes()->where('type', 'Writeup')->count();
+
         return view('users.show', [
             'user' => $user,
             'volunteerHours' => $volunteerHours,
             'timelineEvents' => $timelineEvents,
+            'totalNotes' => $totalNotes,
+            'writeupCount' => $writeupCount,
         ]);
     }
 
@@ -167,10 +174,16 @@ class UserController extends Controller
      */
     public function timeline(Request $request, string $id): View
     {
+        // Only users with manage-users permission or admins can view timelines
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('manage-users')) {
+            abort(403, 'Unauthorized to view user timelines.');
+        }
+
         $user = User::with([
             'volunteerHours.department.sector',
             'shifts.event',
             'auditLogs.user',
+            'userNotes.creator'
         ])->findOrFail($id);
 
         // Get all timeline events

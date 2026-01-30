@@ -116,6 +116,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/{user}/permissions', [UserPermissionController::class, 'edit'])->middleware('isAdmin')->name('users.permissions.edit');
     Route::post('/users/{user}/permissions', [UserPermissionController::class, 'update'])->middleware('isAdmin')->name('users.permissions.update');
 
+    // User Notes
+    Route::prefix('users/{user}/notes')->name('users.notes.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\NoteController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\NoteController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\NoteController::class, 'store'])->name('store');
+        Route::put('/{note}', [\App\Http\Controllers\NoteController::class, 'update'])->name('update');
+        Route::delete('/{note}', [\App\Http\Controllers\NoteController::class, 'destroy'])->name('destroy');
+        Route::post('/{note}/comments', [\App\Http\Controllers\NoteController::class, 'storeComment'])->name('comments.store');
+        Route::delete('/{note}/comments/{comment}', [\App\Http\Controllers\NoteController::class, 'destroyComment'])->name('comments.destroy');
+    });
+
     // Admin User Management
     Route::middleware(['can:manage-users'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/users/search', [UserController::class, 'search'])->name('users.search');

@@ -97,6 +97,16 @@ class User extends Authenticatable
         return $this->hasMany(CommunicationLog::class);
     }
 
+    public function userNotes()
+    {
+        return $this->hasMany(Note::class);
+    }
+
+    public function createdNotes()
+    {
+        return $this->hasMany(Note::class, 'created_by');
+    }
+
     public function shiftsForEvent($eventId)
     {
         return $this->shifts->filter(fn ($shift) => $shift->event_id == $eventId);
@@ -250,35 +260,56 @@ class User extends Authenticatable
         $events = collect();
 
         // Add volunteer hours entries
-        $this->volunteerHours->each(function ($hour) use ($events) {
-            $events->push([
-                'type' => 'volunteer_hours',
-                'date' => $hour->volunteer_date ?? $hour->created_at,
-                'title' => 'Logged ' . format_hours($hour->hours) . ' hours',
-                'description' => $hour->description ?? 'Hour entry',
-                'department' => $hour->department->name ?? null,
-                'sector' => $hour->department->sector->name ?? null,
-                'model' => $hour,
-            ]);
-        });
+        if ($this->volunteerHours) {
+            $this->volunteerHours->each(function ($hour) use ($events) {
+                $events->push([
+                    'type' => 'volunteer_hours',
+                    'date' => $hour->volunteer_date ?? $hour->created_at,
+                    'title' => 'Logged ' . format_hours($hour->hours) . ' hours',
+                    'description' => $hour->description ?? 'Hour entry',
+                    'department' => $hour->department->name ?? null,
+                    'sector' => $hour->department->sector->name ?? null,
+                    'model' => $hour,
+                ]);
+            });
+        }
 
         // Add shift signups
-        $this->shifts->each(function ($shift) use ($events) {
-            $events->push([
-                'type' => 'shift_signup',
-                'date' => $shift->pivot->created_at ?? $shift->start_time,
-                'title' => 'Signed up for shift',
-                'description' => $shift->name ?? 'Unnamed shift',
-                'event_name' => $shift->event->name ?? null,
-                'start_time' => $shift->start_time,
-                'end_time' => $shift->end_time,
-                'model' => $shift,
-            ]);
-        });
+        if ($this->shifts) {
+            $this->shifts->each(function ($shift) use ($events) {
+                $events->push([
+                    'type' => 'shift_signup',
+                    'date' => $shift->pivot->created_at ?? $shift->start_time,
+                    'title' => 'Signed up for shift',
+                    'description' => $shift->name ?? 'Unnamed shift',
+                    'event_name' => $shift->event->name ?? null,
+                    'start_time' => $shift->start_time,
+                    'end_time' => $shift->end_time,
+                    'model' => $shift,
+                ]);
+            });
+        }
+
+        // Add notes
+        if ($this->userNotes) {
+            $this->userNotes->each(function ($note) use ($events) {
+                $events->push([
+                    'type' => 'note',
+                    'date' => $note->created_at,
+                    'title' => $note->title ?: 'Note added',
+                    'description' => \Illuminate\Support\Str::limit($note->content, 100),
+                    'note_type' => $note->type,
+                    'is_private' => $note->private,
+                    'created_by' => $note->creator->name ?? 'Unknown',
+                    'model' => $note,
+                ]);
+            });
+        }
 
         // Add audit log entries
-        $this->auditLogs->each(function ($log) use ($events) {
-            $events->push([
+        if ($this->auditLogs) {
+            $this->auditLogs->each(function ($log) use ($events) {
+                $events->push([
                 'type' => 'audit_log',
                 'date' => $log->created_at,
                 'title' => ucfirst($log->action ?? 'Activity'),
@@ -287,7 +318,8 @@ class User extends Authenticatable
                 'performed_by' => $log->user->name ?? 'System',
                 'model' => $log,
             ]);
-        });
+            });
+        }
 
         // Sort by date descending
         return $events->sortByDesc('date');

@@ -47,6 +47,8 @@
                                                             bg-green-500
                                                         @elseif($event['type'] === 'shift_signup')
                                                             bg-blue-500
+                                                        @elseif($event['type'] === 'note')
+                                                            {{ $event['note_type'] === 'Writeup' ? 'bg-red-500' : 'bg-yellow-500' }}
                                                         @elseif($event['type'] === 'audit_log')
                                                             bg-gray-500
                                                         @else
@@ -59,6 +61,10 @@
                                                         @elseif($event['type'] === 'shift_signup')
                                                             <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                                                            </svg>
+                                                        @elseif($event['type'] === 'note')
+                                                            <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                                                             </svg>
                                                         @elseif($event['type'] === 'audit_log')
                                                             <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -95,6 +101,28 @@
                                                                     @endif
                                                                 </p>
                                                             @endif
+                                                        @elseif($event['type'] === 'note')
+                                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                                <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset
+                                                                    @if($event['note_type'] === 'Writeup')
+                                                                        bg-red-50 dark:bg-red-900/50 text-red-700 dark:text-red-300 ring-red-600/20 dark:ring-red-400/30
+                                                                    @else
+                                                                        bg-yellow-50 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 ring-yellow-600/20 dark:ring-yellow-400/30
+                                                                    @endif">
+                                                                    {{ $event['note_type'] }}
+                                                                </span>
+                                                                @if($event['is_private'])
+                                                                    <span class="inline-flex items-center rounded-md bg-gray-50 dark:bg-gray-900/50 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-500/10 dark:ring-gray-400/20 ml-1">
+                                                                        <svg class="h-3 w-3 mr-0.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                                                        </svg>
+                                                                        Private
+                                                                    </span>
+                                                                @endif
+                                                            </p>
+                                                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                                By: {{ $event['created_by'] }}
+                                                            </p>
                                                         @elseif($event['type'] === 'shift_signup')
                                                             @if(isset($event['event_name']))
                                                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
