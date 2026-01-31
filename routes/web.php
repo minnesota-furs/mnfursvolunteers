@@ -18,6 +18,7 @@ use App\Http\Controllers\Volunteer\ShiftSignupController;
 use App\Http\Controllers\Admin\ShiftController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\ElectionController;
+use App\Http\Controllers\SetupWizardController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +34,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::view('/', 'welcome');
+
+// Setup wizard (only accessible if no users exist)
+Route::get('/setup', [SetupWizardController::class, 'index'])->name('setup.index');
+Route::post('/setup', [SetupWizardController::class, 'store'])->name('setup.store');
 
 // Public job listings
 Route::prefix('openings')->name('job-listings-public.')->group(function () {
