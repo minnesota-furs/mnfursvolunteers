@@ -41,8 +41,12 @@
                   </button> --}}
                 </div>
                 <div class="hidden lg:flex lg:gap-x-12">
+                  @feature('job_listings')
                   <a href="{{route('job-listings-public.index')}}" class="text-sm/6 font-semibold text-gray-900">Staff Opportunities</a>
+                  @endfeature
+                  @feature('volunteer_events')
                   <a href="{{route('vol-listings-public.index')}}" class="text-sm/6 font-semibold text-gray-900">Volunteering</a>
+                  @endfeature
                   @php
                     // Check if there are any active elections
                     $hasActiveElections = \App\Models\Election::where('active', true)

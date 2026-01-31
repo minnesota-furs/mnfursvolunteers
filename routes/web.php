@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\ShiftController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\ElectionController;
 use App\Http\Controllers\SetupWizardController;
+use App\Http\Controllers\FeatureController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -67,11 +68,6 @@ Route::prefix('pub-elections')->name('elections-public.')->group(function () {
     Route::get('/', [ElectionController::class, 'guestIndex'])->name('index');
     Route::get('/{election}', [ElectionController::class, 'guestShow'])->name('show');
 });
-
-// TEST ROUTE - Remove this in production!
-Route::get('/test-500-error', function () {
-    throw new Exception('This is a test 500 error to verify the error page works correctly.');
-})->name('test.500');
 
 // Dashboard (requires auth & verified)
 Route::get('/dashboard', DashboardController::class)

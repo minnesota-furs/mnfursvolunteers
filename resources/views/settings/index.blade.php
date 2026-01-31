@@ -168,57 +168,35 @@
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Enable or disable specific features of the application.</p>
 
                         <div class="space-y-4">
-                            <!-- Elections -->
-                            <div class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
-                                <div class="flex-1">
-                                    <label for="feature_elections" class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        Elections
-                                    </label>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Board elections and voting system</p>
-                                </div>
-                                <input type="checkbox" name="feature_elections" id="feature_elections" value="1"
-                                    {{ old('feature_elections', app_setting('feature_elections', true)) ? 'checked' : '' }}
-                                    class="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green">
-                            </div>
+                            <x-feature-toggle 
+                                feature="elections" 
+                                label="Elections" 
+                                description="Board elections and voting system"
+                                :beta="feature_is_beta('elections')" />
 
-                            <!-- Job Listings -->
-                            <div class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
-                                <div class="flex-1">
-                                    <label for="feature_job_listings" class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        Job Listings
-                                    </label>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Job postings and applications</p>
-                                </div>
-                                <input type="checkbox" name="feature_job_listings" id="feature_job_listings" value="1"
-                                    {{ old('feature_job_listings', app_setting('feature_job_listings', true)) ? 'checked' : '' }}
-                                    class="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green">
-                            </div>
+                            <x-feature-toggle 
+                                feature="job_listings" 
+                                label="Job Listings" 
+                                description="Job postings and applications"
+                                :beta="feature_is_beta('job_listings')" />
 
-                            <!-- One-Off Events -->
-                            <div class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
-                                <div class="flex-1">
-                                    <label for="feature_one_off_events" class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        One-Off Events
-                                    </label>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Simple event check-ins without shifts</p>
-                                </div>
-                                <input type="checkbox" name="feature_one_off_events" id="feature_one_off_events" value="1"
-                                    {{ old('feature_one_off_events', app_setting('feature_one_off_events', true)) ? 'checked' : '' }}
-                                    class="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green">
-                            </div>
+                            <x-feature-toggle 
+                                feature="one_off_events" 
+                                label="One-Off Events" 
+                                description="Simple event check-ins without shifts with fixed volunteer hours."
+                                :beta="feature_is_beta('one_off_events')" />
 
-                            <!-- Volunteer Events -->
-                            <div class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
-                                <div class="flex-1">
-                                    <label for="feature_volunteer_events" class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        Volunteer Events
-                                    </label>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Full event management with shifts and signups</p>
-                                </div>
-                                <input type="checkbox" name="feature_volunteer_events" id="feature_volunteer_events" value="1"
-                                    {{ old('feature_volunteer_events', app_setting('feature_volunteer_events', true)) ? 'checked' : '' }}
-                                    class="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green">
-                            </div>
+                            <x-feature-toggle 
+                                feature="volunteer_events" 
+                                label="Volunteer Events" 
+                                description="Full event management with shifts and signups"
+                                :beta="feature_is_beta('volunteer_events')" />
+
+                            <x-feature-toggle 
+                                feature="wordpress_integration" 
+                                label="WordPress Integration" 
+                                description="WordPress user authentication and linking"
+                                :beta="feature_is_beta('wordpress_integration')" />
                         </div>
                     </div>
 

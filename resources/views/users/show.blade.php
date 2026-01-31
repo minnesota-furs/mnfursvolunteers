@@ -370,6 +370,7 @@
             </div>
 
             <!-- Volunteer Signup Log Section -->
+            @feature('volunteer_events')
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-6">
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
@@ -441,6 +442,7 @@
                         </div>
                 </div>
             </div>
+            @endfeature
         </div>
     @endauth
     

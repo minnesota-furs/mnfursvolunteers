@@ -81,3 +81,16 @@ if (!function_exists('feature_enabled')) {
         return (bool) app_setting("feature_{$feature}", true);
     }
 }
+
+if (!function_exists('feature_is_beta')) {
+    /**
+     * Check if a feature is in beta.
+     *
+     * @param  string  $feature
+     * @return bool
+     */
+    function feature_is_beta(string $feature)
+    {
+        return app(\App\Services\FeatureService::class)->isBeta($feature);
+    }
+}

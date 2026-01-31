@@ -35,6 +35,7 @@ class SettingsController extends Controller
             'feature_job_listings' => 'boolean',
             'feature_one_off_events' => 'boolean',
             'feature_volunteer_events' => 'boolean',
+            'feature_wordpress_integration' => 'boolean',
             'contact_email' => 'nullable|email',
             'contact_phone' => 'nullable|string|max:20',
         ]);
@@ -85,10 +86,11 @@ class SettingsController extends Controller
         }
 
         // Feature toggles
-        ApplicationSetting::set('feature_elections', $request->boolean('feature_elections'), 'boolean', 'Enable/disable elections feature', 'features');
-        ApplicationSetting::set('feature_job_listings', $request->boolean('feature_job_listings'), 'boolean', 'Enable/disable job listings feature', 'features');
-        ApplicationSetting::set('feature_one_off_events', $request->boolean('feature_one_off_events'), 'boolean', 'Enable/disable one-off events feature', 'features');
-        ApplicationSetting::set('feature_volunteer_events', $request->boolean('feature_volunteer_events'), 'boolean', 'Enable/disable volunteer events feature', 'features');
+        ApplicationSetting::set('feature_elections', $request->boolean('feature_elections'), 'boolean', 'Enable/disable elections feature', 'feature_flags');
+        ApplicationSetting::set('feature_job_listings', $request->boolean('feature_job_listings'), 'boolean', 'Enable/disable job listings feature', 'feature_flags');
+        ApplicationSetting::set('feature_one_off_events', $request->boolean('feature_one_off_events'), 'boolean', 'Enable/disable one-off events feature', 'feature_flags');
+        ApplicationSetting::set('feature_volunteer_events', $request->boolean('feature_volunteer_events'), 'boolean', 'Enable/disable volunteer events feature', 'feature_flags');
+        ApplicationSetting::set('feature_wordpress_integration', $request->boolean('feature_wordpress_integration'), 'boolean', 'Enable/disable WordPress integration feature', 'feature_flags');
 
         // Contact information
         if ($request->filled('contact_email')) {

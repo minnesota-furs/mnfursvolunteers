@@ -18,15 +18,21 @@
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                         {{ __('Users') }}
                     </x-nav-link>
+                    @feature('job_listings')
                     <x-nav-link :href="route('job-listings.index')" :active="request()->routeIs('job-listings.*')">
                         {{ __('Open Positons') }}
                     </x-nav-link>
-                    {{-- <x-nav-link :href="route('one-off-events.index')" :active="request()->routeIs('one-off-events.*')">
+                    @endfeature
+                    @feature('one_off_events')
+                    <x-nav-link :href="route('one-off-events.index')" :active="request()->routeIs('one-off-events.*')">
                         {{ __('One-Off Event') }}
-                    </x-nav-link> --}}
+                    </x-nav-link>
+                    @endfeature
+                    @feature('volunteer_events')
                     <x-nav-link :href="route('volunteer.events.index')" :active="request()->routeIs('volunteer.events.*')">
                         {{ __('Events') }}
                     </x-nav-link>
+                    @endfeature
 
                     @php
                         $activeElections = \App\Models\Election::where('active', true)
@@ -91,22 +97,28 @@
                             <div class="border-t border-gray-200 dark:border-gray-600"></div>
                             @endif
                             
+                            @feature('volunteer_events')
                             @can('manage-volunteer-events')
                             <x-dropdown-link :href="route('admin.events.index')">
                                 {{ __('Volunteer Events') }}
                             </x-dropdown-link>
                             @endcan
+                            @endfeature
 
+                            @feature('elections')
                             @can('manage-elections')
                             <x-dropdown-link :href="route('admin.elections.index')">
                                 {{ __('Elections') }}
                             </x-dropdown-link>
                             @endcan
+                            @endfeature
 
+                            @feature('one_off_events')
                             <x-dropdown-link :href="route('one-off-events.index')">
                                 {{ __('One Off Events') }}
                             </x-dropdown-link>
-                            
+                            @endfeature
+
                             @if( Auth::check() && Auth::user()->isAdmin() )
                             <x-dropdown-link :href="route('ledger.index')">
                                 {{ __('Ledgers') }}
