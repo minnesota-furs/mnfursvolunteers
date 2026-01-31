@@ -77,4 +77,20 @@ return [
             'beta' => false,
         ],
     ],
+    'security' => [
+        'blacklist_emails' => [
+            'value' => '',
+            'type' => 'string',
+            'group' => 'security',
+            'label' => 'Blacklisted Emails',
+            'description' => 'Comma-separated list of emails that cannot create accounts (e.g., spam@example.com, abuse@test.com)',
+        ],
+        'blacklist_names' => [
+            'value' => '',
+            'type' => 'string',
+            'group' => 'security',
+            'label' => 'Blacklisted Full Names',
+            'description' => 'Comma-separated list of full names (First Last) that cannot be used (e.g., John Smith, Admin User, Test Account)',
+        ],
+    ],
 ];

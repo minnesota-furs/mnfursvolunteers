@@ -21,7 +21,6 @@
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-text-input id="name" name="name" placeholder="Mocha Kangaroo" type="text" class="block w-64 text-sm" :value="old('name')" required autofocus autocomplete="name" />
                                                     <x-form-validation for="name" />
-                                                    <x-input-error class="mt-2" :messages="$errors->get('name')" />
                                                 </dd>
                                             </div>
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -57,7 +56,6 @@
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-text-input id="email" name="email" type="email" placeholder="mocharoo@gmail.com" class="block w-64 text-sm" :value="old('email')" required autocomplete="email" />
                                                     <x-form-validation for="email" />
-                                                    <x-input-error class="mt-2" :messages="$errors->get('email')" />
                                                 </dd>
                                             </div>
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -67,7 +65,6 @@
                                                         <option value="1" selected>Active</option>
                                                     </x-select-input>
                                                     <x-form-validation for="active" />
-                                                    <x-input-error class="mt-2" :messages="$errors->get('active')" />
                                                 </dd>
                                             </div>
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">

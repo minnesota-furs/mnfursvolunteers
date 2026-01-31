@@ -235,6 +235,49 @@
                         </div>
                     </div>
 
+                    <!-- Security Settings Section -->
+                    <div class="mb-8 border-t border-gray-200 dark:border-gray-700 pt-8">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Security & Blacklists</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Prevent specific emails or full names from creating accounts. Use comma-separated values.</p>
+
+                        <div class="space-y-6">
+                            <!-- Blacklisted Emails -->
+                            <div>
+                                <label for="blacklist_emails" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Blacklisted Email Addresses
+                                </label>
+                                <textarea name="blacklist_emails" id="blacklist_emails" rows="3"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="spam@example.com, abuse@test.com, blocked@domain.com">{{ old('blacklist_emails', app_setting('blacklist_emails')) }}</textarea>
+                                <p class="mt-1 text-xs text-gray-500">Comma-separated list of email addresses that cannot create accounts</p>
+                                @error('blacklist_emails')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Blacklisted Full Names -->
+                            <div>
+                                <label for="blacklist_names" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Blacklisted Full Names (First Last)
+                                </label>
+                                <textarea name="blacklist_names" id="blacklist_names" rows="3"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="John Smith, Admin User, Test Account, System Administrator">{{ old('blacklist_names', app_setting('blacklist_names')) }}</textarea>
+                                <p class="mt-1 text-xs text-gray-500">Comma-separated list of full names (First Last) that cannot be used (case-insensitive)</p>
+                                @error('blacklist_names')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                                <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                                    <strong>Note:</strong> When a blacklisted value is detected during user creation, the system will display: 
+                                    "This [field] is not allowed. Please contact a staff administrator if you believe this is an error."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Actions -->
                     <div class="flex items-center justify-end gap-4 border-t border-gray-200 dark:border-gray-700 pt-6">
                         <button type="submit" class="rounded-md bg-brand-green px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-green-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">

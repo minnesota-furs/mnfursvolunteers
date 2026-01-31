@@ -6,6 +6,7 @@ use App\Models\Sector;
 use App\Models\User;
 use App\Models\Department;
 use App\Models\FiscalLedger;
+use App\Rules\NotBlacklisted;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -98,9 +99,9 @@ class UserController extends Controller
             // Validate the incoming request data
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
-                'first_name' => ['nullable', 'string', 'max:255'],
+                'first_name' => ['nullable', 'string', 'max:255', new NotBlacklisted('name', $request->first_name, $request->last_name)],
                 'last_name' => ['nullable', 'string', 'max:255'],
-                'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->withoutTrashed()],
+                'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->withoutTrashed(), new NotBlacklisted('email')],
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
                 'active' => ['required', 'boolean'], // Ensures 'active' is either 0 or 1 (boolean)
                 'notes' => ['nullable', 'string', 'max:255'], // 'notes' can be a string, maximum 255 characters, or null

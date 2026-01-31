@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Rules\NotBlacklisted;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
@@ -36,9 +37,9 @@ class SetupWizardController extends Controller
         }
 
         $validated = $request->validate([
-            'first_name' => ['required', 'string', 'max:255'],
+            'first_name' => ['required', 'string', 'max:255', new NotBlacklisted('name', $request->first_name, $request->last_name)],
             'last_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users', new NotBlacklisted('email')],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 

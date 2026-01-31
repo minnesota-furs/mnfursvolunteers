@@ -38,6 +38,8 @@ class SettingsController extends Controller
             'feature_wordpress_integration' => 'boolean',
             'contact_email' => 'nullable|email',
             'contact_phone' => 'nullable|string|max:20',
+            'blacklist_emails' => 'nullable|string',
+            'blacklist_names' => 'nullable|string',
         ]);
 
         // Handle logo upload
@@ -100,6 +102,10 @@ class SettingsController extends Controller
         if ($request->filled('contact_phone')) {
             ApplicationSetting::set('contact_phone', $request->contact_phone, 'string', 'Contact phone number', 'contact');
         }
+
+        // Security settings
+        ApplicationSetting::set('blacklist_emails', $request->input('blacklist_emails', ''), 'string', 'Blacklisted email addresses', 'security');
+        ApplicationSetting::set('blacklist_names', $request->input('blacklist_names', ''), 'string', 'Blacklisted full names', 'security');
 
         // Clear cache
         ApplicationSetting::clearCache();
