@@ -16,6 +16,13 @@ return [
             'label' => 'Application Logo',
             'description' => 'The logo of your application, shown in the header and emails.',
         ],
+        'footer_text' => [
+            'value' => '© 2001-2025 Minnesota Furs a 501c3 Minnesota Non-Profit • Built and maintained by local furs.',
+            'type' => 'string',
+            'group' => 'general',
+            'label' => 'Footer Text',
+            'description' => 'The text displayed in the footer of the application.',
+        ],
     ],
     'department_settings' => [
         'enable_department_head' => [

@@ -50,6 +50,13 @@ class ApplicationSettingsSeeder extends Seeder
                 'description' => 'Secondary brand color (hex)',
                 'group' => 'branding',
             ],
+            [
+                'key' => 'footer_text',
+                'value' => '© 2001-2025 Minnesota Furs a 501c3 Minnesota Non-Profit • Built and maintained by local furs.',
+                'type' => 'string',
+                'description' => 'Footer text displayed at the bottom of all pages',
+                'group' => 'branding',
+            ],
 
             // Features
             [

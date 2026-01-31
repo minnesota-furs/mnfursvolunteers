@@ -65,6 +65,12 @@
                 <div class="flow-root">
                     <div class="-mx-4 -my-2 sm:-mx-6 lg:-mx-8">
                         <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                            @if($event->requiredTags->isNotEmpty())
+                                <div class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+                                    <x-heroicon-s-tag class="w-4 h-4 inline text-gray-400" />
+                                    This event requires volunteers to have specific tags ({{ $event->requiredTags->pluck('name')->join(', ') }}), which may limit who can sign up for shifts.
+                                </div>
+                            @endif
                             {{-- {{ $shifts->links() }} --}}
                             <table class="min-w-full divide-y divide-gray-300">
                                 <thead>

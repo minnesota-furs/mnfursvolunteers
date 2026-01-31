@@ -23,15 +23,42 @@
         @method('DELETE')
     </form>
 
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8" x-data="settingsForm()">
+        <!-- Tabs Navigation -->
+        <div class="border-b border-gray-200 dark:border-gray-700">
+            <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+                <button @click="activeTab = 'branding'" type="button"
+                    :class="activeTab === 'branding' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    Branding
+                </button>
+                <button @click="activeTab = 'features'" type="button"
+                    :class="activeTab === 'features' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    Features
+                </button>
+                <button @click="activeTab = 'contact'" type="button"
+                    :class="activeTab === 'contact' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    Contact
+                </button>
+                <button @click="activeTab = 'security'" type="button"
+                    :class="activeTab === 'security' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    Security
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="">
             <div class="p-6">
-                <form method="POST" action="{{ route('settings.update') }}" enctype="multipart/form-data" x-data="settingsForm()">
+                <form method="POST" action="{{ route('settings.update') }}" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
 
-                    <!-- Branding Section -->
-                    <div class="mb-8">
+                    <!-- Branding Tab -->
+                    <div x-show="activeTab === 'branding'" x-cloak>
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Branding</h3>
                         
                         <!-- Application Name -->
@@ -169,10 +196,25 @@
                                 @enderror
                             </div>
                         </div>
+
+                        <!-- Footer Text -->
+                        <div class="mb-6">
+                            <label for="footer_text" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Footer Text
+                            </label>
+                            <input type="text" name="footer_text" id="footer_text"
+                                value="{{ old('footer_text', app_setting('footer_text', '© 2001-2025 Minnesota Furs a 501c3 Minnesota Non-Profit • Built and maintained by local furs.')) }}"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                placeholder="Footer text displayed at the bottom of all pages">
+                            <p class="mt-1 text-xs text-gray-500">Text displayed in the footer of all pages.</p>
+                            @error('footer_text')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
-                    <!-- Feature Toggles Section -->
-                    <div class="mb-8 border-t border-gray-200 dark:border-gray-700 pt-8">
+                    <!-- Feature Toggles Tab -->
+                    <div x-show="activeTab === 'features'" x-cloak>
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Feature Toggles</h3>
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Enable or disable specific features of the application.</p>
 
@@ -215,8 +257,8 @@
                         </div>
                     </div>
 
-                    <!-- Contact Information Section -->
-                    <div class="mb-8 border-t border-gray-200 dark:border-gray-700 pt-8">
+                    <!-- Contact Information Tab -->
+                    <div x-show="activeTab === 'contact'" x-cloak>
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Contact Information</h3>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -250,8 +292,8 @@
                         </div>
                     </div>
 
-                    <!-- Security Settings Section -->
-                    <div class="mb-8 border-t border-gray-200 dark:border-gray-700 pt-8">
+                    <!-- Security Settings Tab -->
+                    <div x-show="activeTab === 'security'" x-cloak>
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Security & Blacklists</h3>
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Prevent specific emails or full names from creating accounts. Use comma-separated values.</p>
 
@@ -293,8 +335,8 @@
                         </div>
                     </div>
 
-                    <!-- Actions -->
-                    <div class="flex items-center justify-end gap-4 border-t border-gray-200 dark:border-gray-700 pt-6">
+                    <!-- Actions (visible on all tabs) -->
+                    <div class="flex items-center justify-end gap-4 border-t border-gray-200 dark:border-gray-700 pt-6 mt-8">
                         <button type="submit" class="rounded-md bg-brand-green px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-green-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">
                             Save Settings
                         </button>
@@ -304,10 +346,10 @@
         </div>
     </div>
 
-    @push('scripts')
     <script>
-        function settingsForm() {
-            return {
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('settingsForm', () => ({
+                activeTab: 'branding',
                 logoPreview: null,
                 faviconPreview: null,
                 
@@ -321,8 +363,13 @@
                         reader.readAsDataURL(file);
                     }
                 }
-            }
-        }
+            }))
+        })
     </script>
+
+    @push('styles')
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
     @endpush
 </x-app-layout>

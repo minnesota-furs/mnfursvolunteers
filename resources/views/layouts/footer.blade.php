@@ -42,8 +42,7 @@
             </a>
         </div>
         <div class="mt-10 text-center text-xs leading-5 text-gray-500">
-            <span class="block sm:inline">&copy; 2001-2025 Minnesota Furs a 501c3 Minnesota Non-Profit</span>
-            <span class="block sm:inline">• Built and maintained by local furs.</span>
+            {{ \App\Models\ApplicationSetting::get('footer_text', '© 2001-2025 Minnesota Furs a 501c3 Minnesota Non-Profit • Built and maintained by local furs.') }}
         </div>
     </div>
 </footer>

@@ -82,7 +82,11 @@
                                     @forelse ($events as $event)
                                     <tr>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            <span class="font-extrabold {{ $event->hasPast() ? 'text-gray-400' : '' }}" href="{{route('admin.events.edit', $event->id)}}">{{$event->name}}
+                                            <span class="font-extrabold {{ $event->hasPast() ? 'text-gray-400' : '' }}" href="{{route('admin.events.edit', $event->id)}}">
+                                                {{$event->name}}
+                                                @if($event->requiredTags->isNotEmpty())
+                                                    <x-heroicon-s-tag class="w-4 h-4 inline text-red-500" title="Has tag requirements ({{ $event->requiredTags->count() }} tag{{ $event->requiredTags->count() > 1 ? 's' : '' }})"/>
+                                                @endif
                                                 <!-- If event past -->
                                                 @if ($event->hasPast())
                                                     <span>(Past Event)</span>

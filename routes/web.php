@@ -90,6 +90,7 @@ Route::middleware('auth')->group(function () {
     // One Off Events
     Route::prefix('one-off-events')->name('one-off-events.')->group(function () {
         Route::get('/', [OneOffEventController::class, 'index'])->name('index');
+        Route::get('/archived', [OneOffEventController::class, 'archived'])->middleware('can:manage-events')->name('archived');
         Route::get('/create', [OneOffEventController::class, 'create'])->middleware('can:manage-events')->name('create');
         Route::post('/', [OneOffEventController::class, 'store'])->middleware('can:manage-events')->name('store');
         Route::get('/{oneOffEvent}', [OneOffEventController::class, 'show'])->name('show');

@@ -27,6 +27,7 @@ class SettingsController extends Controller
             'app_name' => 'nullable|string|max:255',
             'app_tagline' => 'nullable|string|max:500',
             'app_description' => 'nullable|string',
+            'footer_text' => 'nullable|string|max:500',
             'primary_color' => 'nullable|string|max:7',
             'secondary_color' => 'nullable|string|max:7',
             'app_logo' => 'nullable|image|max:2048',
@@ -78,6 +79,10 @@ class SettingsController extends Controller
 
         if ($request->filled('app_description')) {
             ApplicationSetting::set('app_description', $request->app_description, 'string', 'Application description', 'branding');
+        }
+
+        if ($request->filled('footer_text')) {
+            ApplicationSetting::set('footer_text', $request->footer_text, 'string', 'Footer text', 'branding');
         }
 
         if ($request->filled('primary_color')) {

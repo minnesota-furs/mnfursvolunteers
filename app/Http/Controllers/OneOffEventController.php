@@ -16,6 +16,15 @@ class OneOffEventController extends Controller
         return view('one_off_events.index', compact('events'));
     }
 
+    // Show list of archived/past events (admin only)
+    public function archived()
+    {
+        $events = OneOffEvent::where('end_time', '<', now())
+            ->orderBy('end_time', 'desc')
+            ->paginate(20);
+        return view('one_off_events.archived', compact('events'));
+    }
+
     // Show a single event
     public function show(OneOffEvent $oneOffEvent)
     {
