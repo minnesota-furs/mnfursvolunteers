@@ -23,6 +23,50 @@ class ShiftSignupController extends Controller
             return back()->with('error', 'This shift is full.');
         }
 
+        // Check if event has required tags
+        $event = $shift->event()->with('requiredTags')->first();
+        if ($event->requiredTags->isNotEmpty()) {
+            $userTagIds = $user->tags()->pluck('tags.id')->toArray();
+            $requiredTagIds = $event->requiredTags->pluck('id')->toArray();
+            
+            // Check if user has ALL required tags
+            $missingTags = array_diff($requiredTagIds, $userTagIds);
+            if (!empty($missingTags)) {
+                $missingTagNames = $event->requiredTags->whereIn('id', $missingTags)->pluck('name')->toArray();
+                return back()->with('error', 'You must have the following tag(s) to sign up for this event: ' . implode(', ', $missingTagNames));
+            }
+        }
+
+        // Check for conflicting shifts
+        $conflictingShifts = $user->shifts()
+            ->where(function($query) use ($shift) {
+                // Check if any of user's shifts overlap with the new shift
+                $query->where(function($q) use ($shift) {
+                    // New shift starts during an existing shift
+                    $q->where('start_time', '<=', $shift->start_time)
+                      ->where('end_time', '>', $shift->start_time);
+                })
+                ->orWhere(function($q) use ($shift) {
+                    // New shift ends during an existing shift
+                    $q->where('start_time', '<', $shift->end_time)
+                      ->where('end_time', '>=', $shift->end_time);
+                })
+                ->orWhere(function($q) use ($shift) {
+                    // New shift completely contains an existing shift
+                    $q->where('start_time', '>=', $shift->start_time)
+                      ->where('end_time', '<=', $shift->end_time);
+                });
+            })
+            ->get();
+
+        if ($conflictingShifts->isNotEmpty()) {
+            $conflictDetails = $conflictingShifts->map(function($s) {
+                return "{$s->event->name} - {$s->name} ({$s->start_time->format('M j, g:i A')} - {$s->end_time->format('g:i A')})";
+            })->join(', ');
+            
+            return back()->with('error', "You cannot sign up for this shift because it conflicts with: {$conflictDetails}");
+        }
+
         $shift->users()->attach($user->id, ['signed_up_at' => now()]);
 
         AuditLog::create([

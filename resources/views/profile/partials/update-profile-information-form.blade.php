@@ -36,6 +36,12 @@
         </div>
 
         <div>
+            <x-input-label for="pronouns" :value="__('Pronouns')" />
+            <x-text-input id="pronouns" name="pronouns" type="text" class="mt-1 block w-full" :value="old('pronouns', $user->pronouns)" placeholder="e.g., she/her, he/him, they/them" autocomplete="pronouns" />
+            <x-input-error class="mt-2" :messages="$errors->get('pronouns')" />
+        </div>
+
+        <div>
             <x-input-label for="email" :value="__('Email')" />
             <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
             <x-input-error class="mt-2" :messages="$errors->get('email')" />

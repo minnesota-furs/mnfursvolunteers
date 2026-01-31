@@ -46,6 +46,11 @@ class Event extends Model
                     ->withTimestamps();
     }
 
+    public function requiredTags()
+    {
+        return $this->belongsToMany(Tag::class)->withTimestamps();
+    }
+
     public function getRemainingVolunteerSpotsAttribute()
     {
         return $this->shifts->sum(function ($shift) {

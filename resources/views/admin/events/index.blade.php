@@ -186,7 +186,7 @@
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center" colspan="4">
+                                        <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center" colspan="9">
                                             <p class="">No events found</p>
                                         </td>
                                     </tr>

@@ -38,7 +38,8 @@ class EventController extends Controller
      */
     public function create()
     {
-        return view('admin.events.create');
+        $tags = \App\Models\Tag::orderBy('name')->get();
+        return view('admin.events.create', compact('tags'));
     }
     
     public function log(Event $event)
@@ -67,16 +68,21 @@ class EventController extends Controller
             'visibility' => 'required|in:public,unlisted,draft',
             'hide_past_shifts' => 'nullable|boolean',
             'auto_credit_hours' => 'nullable|boolean',
+            'required_tags' => 'nullable|array',
+            'required_tags.*' => 'exists:tags,id',
         ]);
 
         // Normalize checkbox (unchecked checkboxes don't get sent)
         $validated['hide_past_shifts'] = $request->has('hide_past_shifts');
         $validated['auto_credit_hours'] = $request->has('auto_credit_hours');
 
-        Event::create([
+        $event = Event::create([
             ...$request->only(['name', 'description', 'start_date', 'end_date', 'signup_open_date', 'location', 'visibility', 'hide_past_shifts', 'auto_credit_hours']),
             'created_by' => auth()->id(),
         ]);
+
+        // Sync required tags
+        $event->requiredTags()->sync($request->input('required_tags', []));
 
         return redirect()->route('admin.events.index')
             ->with('success', [
@@ -99,7 +105,9 @@ class EventController extends Controller
     {
         $this->authorize('update', $event);
         
-        return view('admin.events.create', compact('event'));
+        $event->load('requiredTags');
+        $tags = \App\Models\Tag::orderBy('name')->get();
+        return view('admin.events.create', compact('event', 'tags'));
     }
 
     /**
@@ -120,6 +128,8 @@ class EventController extends Controller
             'hide_past_shifts' => 'nullable|boolean',
             'auto_credit_hours' => 'nullable|boolean',
             'created_by' => 'nullable|exists:users,id',
+            'required_tags' => 'nullable|array',
+            'required_tags.*' => 'exists:tags,id',
         ]);
 
         // Build update data
@@ -135,6 +145,9 @@ class EventController extends Controller
         }
         
         $event->update($updateData);
+
+        // Sync required tags
+        $event->requiredTags()->sync($request->input('required_tags', []));
 
         return redirect()->route('admin.events.index')
             ->with('success', [

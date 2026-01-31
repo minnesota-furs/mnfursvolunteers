@@ -36,6 +36,7 @@ class SettingsController extends Controller
             'feature_one_off_events' => 'boolean',
             'feature_volunteer_events' => 'boolean',
             'feature_wordpress_integration' => 'boolean',
+            'feature_user_tags' => 'boolean',
             'contact_email' => 'nullable|email',
             'contact_phone' => 'nullable|string|max:20',
             'blacklist_emails' => 'nullable|string',
@@ -93,6 +94,7 @@ class SettingsController extends Controller
         ApplicationSetting::set('feature_one_off_events', $request->boolean('feature_one_off_events'), 'boolean', 'Enable/disable one-off events feature', 'feature_flags');
         ApplicationSetting::set('feature_volunteer_events', $request->boolean('feature_volunteer_events'), 'boolean', 'Enable/disable volunteer events feature', 'feature_flags');
         ApplicationSetting::set('feature_wordpress_integration', $request->boolean('feature_wordpress_integration'), 'boolean', 'Enable/disable WordPress integration feature', 'feature_flags');
+        ApplicationSetting::set('feature_user_tags', $request->boolean('feature_user_tags'), 'boolean', 'Enable/disable user tags feature', 'feature_flags');
 
         // Contact information
         if ($request->filled('contact_email')) {

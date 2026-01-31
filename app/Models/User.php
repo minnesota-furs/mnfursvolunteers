@@ -24,6 +24,7 @@ class User extends Authenticatable
         'name',
         'first_name',
         'last_name',
+        'pronouns',
         'email',
         'password',
         'active',
@@ -120,6 +121,11 @@ class User extends Authenticatable
     public function performedAudits()
     {
         return $this->hasMany(AuditLog::class, 'user_id');
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class)->withTimestamps();
     }
 
     public function totalVolunteerHours()

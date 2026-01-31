@@ -57,7 +57,7 @@
                                                 <x-sortable-column column="sector_id" label="Sector" :sort="$sort" :direction="$direction" route="departments.index" /></th>
                                             <th scope="col"
                                                 class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                                Dept Head</th>
+                                                Department Heads</th>
                                             <th scope="col"
                                                 class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
                                                 Staff Count</th>
@@ -92,8 +92,19 @@
                                                 <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                     <p>{{ $sectors->where('id', $department->sector_id)->first()->name }}</p>
                                                 </td>
-                                                <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                                    {{$department->head->name ?? ''}}
+                                                <td class="py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                    @if($department->heads->count() > 0)
+                                                        <div class="flex flex-wrap gap-1">
+                                                            @foreach($department->heads as $head)
+                                                                <a href="{{ route('users.show', $head->id) }}" 
+                                                                   class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 hover:bg-blue-100">
+                                                                    {{ $head->name }}
+                                                                </a>
+                                                            @endforeach
+                                                        </div>
+                                                    @else
+                                                        <span class="text-gray-400">-</span>
+                                                    @endif
                                                 </td>
                                                 <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                     {{$department->userCount() ?? '-'}}

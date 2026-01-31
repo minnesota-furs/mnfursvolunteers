@@ -19,6 +19,41 @@
         {{-- <p class="text-sm text-gray-700 mb-1">{{ $event->start_date->format('M j, Y \@ g:i A') }} — {{ $event->end_date->format('M j, Y \@ g:i A') }}</p> --}}
         <p class="text-gray-600 mb-4">{{ $event->description ?? 'No description...' }}</p>
 
+        @if($event->requiredTags->isNotEmpty())
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+                <div class="flex items-start">
+                    <x-heroicon-s-exclamation-triangle class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2 flex-shrink-0 mt-0.5"/>
+                    <div>
+                        <h3 class="text-sm font-semibold text-yellow-800 dark:text-yellow-200 mb-2">Tag Requirements</h3>
+                        <p class="text-sm text-yellow-700 dark:text-yellow-300 mb-2">
+                            This event requires volunteers to have the following tag(s) to sign up for shifts:
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($event->requiredTags as $tag)
+                                <span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset"
+                                    style="background-color: {{ $tag->color }}22; color: {{ $tag->color }}; border-color: {{ $tag->color }}44;">
+                                    @if($tag->color)
+                                        <span class="inline-block w-2 h-2 rounded-full mr-1" style="background-color: {{ $tag->color }}"></span>
+                                    @endif
+                                    {{ $tag->name }}
+                                </span>
+                            @endforeach
+                        </div>
+                        @php
+                            $userTagIds = auth()->user()->tags()->pluck('tags.id')->toArray();
+                            $requiredTagIds = $event->requiredTags->pluck('id')->toArray();
+                            $hasAllTags = empty(array_diff($requiredTagIds, $userTagIds));
+                        @endphp
+                        @if(!$hasAllTags)
+                            <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-3 font-medium">
+                                ⚠️ You do not currently have all required tags and cannot sign up for shifts in this event.
+                            </p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
+
         @if ($userShifts->isNotEmpty())
             <h2 class="text-xl font-semibold mt-8 mb-3">Your Volunteer Slots</h2>
             <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6">
@@ -73,11 +108,18 @@
 
         <h2 class="text-xl font-semibold mt-8 mb-3">Openings</h2>
         <div class="space-y-4">
+            @php
+                $userTagIds = auth()->user()->tags()->pluck('tags.id')->toArray();
+                $requiredTagIds = $event->requiredTags->pluck('id')->toArray();
+                $hasAllTags = empty(array_diff($requiredTagIds, $userTagIds));
+            @endphp
             @forelse ($shifts as $shift)
             @php
                 $openings = $shift->max_volunteers - $shift->users->count();
                 $isFull = $openings <= 0;
                 $signedUp = $shift->users->contains(auth()->id());
+                $hasConflict = isset($shiftConflicts[$shift->id]);
+                $conflictingShift = $hasConflict ? $shiftConflicts[$shift->id]->first() : null;
             @endphp
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border {{ $signedUp ? 'border-blue-200 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-900/10' : 'border-gray-200 dark:border-gray-700' }} p-4 sm:p-6">
                     <!-- Header with title and status -->
@@ -151,15 +193,29 @@
                                     </form>
                                 @elseif($shift->users->count() < $shift->max_volunteers)
                                     @if (!$event->signup_open_date || $event->signup_open_date->isPast())
-                                        <form action="{{ route('shifts.signup', $shift) }}" method="POST">
-                                            @csrf
-                                            <button type="submit"
-                                                class="inline-flex items-center rounded-md bg-brand-green hover:bg-green-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-200"
-                                                onclick="return confirm('Are you sure you want to pickup the volunteer slot for {{$shift->name}}?')">
-                                                <x-heroicon-s-plus class="w-4 h-4 mr-1"/>
-                                                Sign Up
-                                            </button>
-                                        </form>
+                                        @if($hasConflict)
+                                            <div class="text-right">
+                                                <button type="button"
+                                                    class="inline-flex items-center rounded-md bg-gray-400 cursor-not-allowed px-4 py-2 text-sm font-medium text-white shadow-sm"
+                                                    disabled>
+                                                    <x-heroicon-s-x-circle class="w-4 h-4 mr-1"/>
+                                                    Conflicts
+                                                </button>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                    Conflicts with: {{ $conflictingShift->event->name }} - {{ $conflictingShift->name }}
+                                                </p>
+                                            </div>
+                                        @else
+                                            <form action="{{ route('shifts.signup', $shift) }}" method="POST">
+                                                @csrf
+                                                <button type="submit"
+                                                    class="inline-flex items-center rounded-md {{ $hasAllTags ? 'bg-brand-green hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed' }} px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-200"
+                                                    {{ $hasAllTags ? '' : 'disabled' }}>
+                                                    <x-heroicon-s-plus class="w-4 h-4 mr-1"/>
+                                                    Sign Up
+                                                </button>
+                                            </form>
+                                        @endif
                                     @else
                                         <div class="text-gray-500 dark:text-gray-400 text-sm bg-gray-100 dark:bg-gray-700 rounded-md px-3 py-2">
                                             <div class="font-medium">Signups open</div>
@@ -204,15 +260,31 @@
                                 </form>
                             @elseif($shift->users->count() < $shift->max_volunteers)
                                 @if (!$event->signup_open_date || $event->signup_open_date->isPast())
-                                    <form action="{{ route('shifts.signup', $shift) }}" method="POST">
-                                        @csrf
-                                        <button type="submit"
-                                            class="w-full inline-flex items-center justify-center rounded-md bg-brand-green hover:bg-green-700 px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors duration-200"
-                                            onclick="return confirm('Are you sure you want to pickup the volunteer slot for {{$shift->name}}?')">
-                                            <x-heroicon-s-plus class="w-5 h-5 mr-2"/>
-                                            Sign Up for This Slot
-                                        </button>
-                                    </form>
+                                    @if($hasConflict)
+                                        <div class="w-full">
+                                            <button type="button"
+                                                class="w-full inline-flex items-center justify-center rounded-md bg-gray-400 cursor-not-allowed px-4 py-3 text-sm font-medium text-white shadow-sm"
+                                                disabled>
+                                                <x-heroicon-s-x-circle class="w-5 h-5 mr-2"/>
+                                                Schedule Conflict
+                                            </button>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+                                                This shift conflicts with:<br>
+                                                <span class="font-medium">{{ $conflictingShift->event->name }} - {{ $conflictingShift->name }}</span><br>
+                                                ({{ $conflictingShift->start_time->format('M j, g:i A') }} - {{ $conflictingShift->end_time->format('g:i A') }})
+                                            </p>
+                                        </div>
+                                    @else
+                                        <form action="{{ route('shifts.signup', $shift) }}" method="POST">
+                                            @csrf
+                                            <button type="submit"
+                                                class="w-full inline-flex items-center justify-center rounded-md {{ $hasAllTags ? 'bg-brand-green hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed' }} px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors duration-200"
+                                                {{ $hasAllTags ? '' : 'disabled' }}>
+                                                <x-heroicon-s-plus class="w-5 h-5 mr-2"/>
+                                                Sign Up for This Slot
+                                            </button>
+                                        </form>
+                                    @endif
                                 @else
                                     <div class="w-full text-center py-3 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-md">
                                         <div class="font-medium">Signups open {{ $event->signup_open_date->diffForHumans() }}</div>

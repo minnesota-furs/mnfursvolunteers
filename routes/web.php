@@ -146,6 +146,12 @@ Route::middleware('auth')->group(function () {
         Route::delete('/reset-favicon', [\App\Http\Controllers\SettingsController::class, 'resetFavicon'])->name('reset-favicon');
     });
 
+    // Tag Management (nested under settings)
+    Route::middleware(['isAdmin', 'feature:user_tags'])->prefix('settings')->name('admin.')->group(function () {
+        Route::resource('tags', \App\Http\Controllers\Admin\TagController::class);
+        Route::get('tags/{tag}/emails', [\App\Http\Controllers\Admin\TagController::class, 'emails'])->name('tags.emails');
+    });
+
     // Reports
     Route::prefix('report')->name('report.')->middleware('can:view-reports')->group(function () {
         Route::get('/users-without-departments', [ReportsController::class, 'usersWithoutDepartments'])->name('usersWithoutDepartments');

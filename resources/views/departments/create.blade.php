@@ -40,18 +40,46 @@
                     </dd>
                 </div>
 
-                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="text-sm font-medium leading-6 text-gray-900">Department Head</dt>
+                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0" x-data="{ 
+                    search: '', 
+                    users: {{ $users->map(fn($u) => ['id' => $u->id, 'name' => $u->name, 'email' => $u->email, 'checked' => false])->toJson() }},
+                    get filteredUsers() {
+                        if (!this.search) return this.users;
+                        const searchLower = this.search.toLowerCase();
+                        return this.users.filter(user => 
+                            user.name.toLowerCase().includes(searchLower) || 
+                            user.email.toLowerCase().includes(searchLower)
+                        );
+                    },
+                    get selectedCount() {
+                        return this.users.filter(u => u.checked).length;
+                    }
+                }">
+                    <dt class="text-sm font-medium leading-6 text-gray-900">Department Heads</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                        <x-select-input name="department_head_id" id="department_head_id" class="block w-64 text-sm" :value="old('sector_id')">
-                            <option value="">Select a Department Head</option>
-                            @foreach ($users as $user)
-                            <option value="{{ $user->id }}" >
-                                {{ $user->name }} ({{ $user->email }})
-                            </option>
-                        @endforeach
-                        </x-select-input>
-                        <x-form-validation for="department_head_id" />
+                        <div class="mb-3">
+                            <input type="text" 
+                                x-model="search" 
+                                placeholder="Search users by name or email..."
+                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green text-sm">
+                            <p class="mt-1 text-xs text-gray-500" x-text="`${selectedCount} head(s) selected • Showing ${filteredUsers.length} of ${users.length} users`"></p>
+                        </div>
+                        <div class="space-y-2 max-h-64 overflow-y-auto border border-gray-300 rounded-md p-3">
+                            <template x-for="user in filteredUsers" :key="user.id">
+                                <label class="flex items-center">
+                                    <input type="checkbox" 
+                                        name="department_heads[]" 
+                                        :value="user.id" 
+                                        x-model="user.checked"
+                                        class="rounded border-gray-300 text-brand-green shadow-sm focus:ring-brand-green">
+                                    <span class="ml-2 text-sm" x-text="`${user.name} (${user.email})`"></span>
+                                </label>
+                            </template>
+                            <div x-show="filteredUsers.length === 0" class="text-sm text-gray-400 py-2">
+                                No users found matching your search.
+                            </div>
+                        </div>
+                        <x-form-validation for="department_heads" />
                     </dd>
                 </div>
 

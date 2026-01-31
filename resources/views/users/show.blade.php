@@ -75,6 +75,14 @@
                                                 {{ $user->last_name ?? '-' }}</dd>
                                         </div>
                                     @endif
+                                    @if($user->pronouns)
+                                        <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                            <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Pronouns</dt>
+                                            <dd
+                                                class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
+                                                {{ $user->pronouns }}</dd>
+                                        </div>
+                                    @endif
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Email
                                             address</dt>
@@ -205,6 +213,28 @@
                                             </ul>
                                         </dd>
                                     </div>
+
+                                    @if(app_setting('feature_user_tags', false))
+                                        <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                            <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Tags
+                                                ({{ $user->tags->count() }})</dt>
+                                            <dd
+                                                class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
+                                                @if($user->tags->isNotEmpty())
+                                                    <div class="flex flex-wrap gap-2">
+                                                        @foreach($user->tags as $tag)
+                                                            <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset"
+                                                                style="background-color: {{ $tag->color }}22; color: {{ $tag->color }}; border-color: {{ $tag->color }}44;">
+                                                                {{ $tag->name }}
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                @else
+                                                    <p class="text-gray-500 dark:text-gray-400 italic">No tags assigned</p>
+                                                @endif
+                                            </dd>
+                                        </div>
+                                    @endif
 
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">This Fiscal

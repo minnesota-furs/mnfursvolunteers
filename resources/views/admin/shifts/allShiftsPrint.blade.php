@@ -33,7 +33,7 @@
                                 @else
                                     <ul class="list-disc ml-6 text-sm text-gray-700 dark:text-gray-300">
                                         @foreach ($shift->users as $user)
-                                            <li>{{ $user->name }} ({{ $user->email }})</li>
+                                            <li>{{ $user->name }}@if($user->pronouns) ({{ $user->pronouns }})@endif - {{ $user->email }}</li>
                                         @endforeach
                                     </ul>
                                 @endif

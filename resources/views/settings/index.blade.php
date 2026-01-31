@@ -4,6 +4,15 @@
         {{ __('Application Settings') }}
     </x-slot>
 
+    @if(app_setting('feature_user_tags', false))
+        <x-slot name="actions">
+            <a href="{{ route('admin.tags.index') }}"
+                class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                <x-heroicon-s-tag class="w-4 inline"/> Manage Tags
+            </a>
+        </x-slot>
+    @endif
+
     <!-- Hidden forms for reset actions (outside main form to avoid nesting) -->
     <form id="reset-logo-form" action="{{ route('settings.reset-logo') }}" method="POST" style="display: none;">
         @csrf
@@ -197,6 +206,12 @@
                                 label="WordPress Integration" 
                                 description="WordPress user authentication and linking"
                                 :beta="feature_is_beta('wordpress_integration')" />
+
+                            <x-feature-toggle 
+                                feature="user_tags" 
+                                label="User Tags" 
+                                description="Tagging system for organizing and categorizing users"
+                                :beta="feature_is_beta('user_tags')" />
                         </div>
                     </div>
 

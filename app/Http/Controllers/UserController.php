@@ -101,6 +101,7 @@ class UserController extends Controller
                 'name' => ['required', 'string', 'max:255'],
                 'first_name' => ['nullable', 'string', 'max:255', new NotBlacklisted('name', $request->first_name, $request->last_name)],
                 'last_name' => ['nullable', 'string', 'max:255'],
+                'pronouns' => ['nullable', 'string', 'max:50'],
                 'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->withoutTrashed(), new NotBlacklisted('email')],
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
                 'active' => ['required', 'boolean'], // Ensures 'active' is either 0 or 1 (boolean)
@@ -147,7 +148,8 @@ class UserController extends Controller
             'auditLogs.user',
             'departments.sector',
             'sector',
-            'userNotes.creator'
+            'userNotes.creator',
+            'tags'
         ])->findOrFail($id);
         
         $volunteerHours = $user->volunteerHours()
@@ -218,7 +220,8 @@ class UserController extends Controller
                 'shifts.event',
                 'auditLogs.user',
                 'departments.sector',
-                'sector'
+                'sector',
+                'tags'
             ])->findOrFail($id);
             
             $departments = [];
@@ -229,6 +232,9 @@ class UserController extends Controller
             }])->orderBy('name') // Sort sectors alphabetically
             ->get();
 
+            // Get all tags
+            $tags = \App\Models\Tag::orderBy('name')->get();
+
             // Get timeline events for the sidebar
             $timelineEvents = $user->getTimelineEvents()->take(20);
 
@@ -236,6 +242,7 @@ class UserController extends Controller
                 'user'      => $user,
                 'sectors'   => $sectors,
                 'departments' => $departments,
+                'tags'      => $tags,
                 'timelineEvents' => $timelineEvents,
             ]);
         } else {
@@ -253,6 +260,7 @@ class UserController extends Controller
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'first_name' => ['nullable', 'string', 'max:255'],
+                'pronouns' => ['nullable', 'string', 'max:50'],
                 'last_name' => ['nullable', 'string', 'max:255'],
                 'email' => ['required', 'email', 'unique:users,email,' . $id],  // Ensure unique email except for this user
                 'active' => ['required', 'boolean'],                     // Ensures 'active' is either 0 or 1 (boolean)
@@ -262,6 +270,8 @@ class UserController extends Controller
                 'admin' => ['boolean'], // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
                 'departments' => 'nullable|array',
                 'departments.*' => 'exists:departments,id',
+                'tags' => 'nullable|array',
+                'tags.*' => 'exists:tags,id',
             ]);
 
             // Find the user by ID
@@ -272,6 +282,9 @@ class UserController extends Controller
 
             // Sync departments
             $user->departments()->sync($validated['departments'] ?? []);
+
+            // Sync tags
+            $user->tags()->sync($validated['tags'] ?? []);
 
             // Optionally, flash a success message to the session
             return redirect()->route('users.show', $user->id)

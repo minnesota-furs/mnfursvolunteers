@@ -86,10 +86,17 @@ class DepartmentController extends Controller
                 'description' => ['nullable','string','max:255'],  // optional string, max len 255
                 'sector_id' => ['required','integer','exists:sectors,id'],     // Ensure 'sector' is a valid integer and exists in the sectors table
                 'department_head_id' => ['nullable','exists:users,id'],
+                'department_heads' => ['nullable','array'],
+                'department_heads.*' => ['exists:users,id'],
             ]);
 
             // Create the department
             $department = Department::create($validated);
+            
+            // Sync department heads if provided
+            if ($request->has('department_heads')) {
+                $department->heads()->sync($request->department_heads);
+            }
 
             // Redirect user to departments list
             // Optionally, flash a success message to the session
@@ -150,6 +157,8 @@ class DepartmentController extends Controller
                 'description' => ['nullable','string','max:255'],  // optional string, max len 255
                 'sector_id' => ['required','integer','exists:sectors,id'],     // Ensure 'sector' is a valid integer and exists in the sectors table
                 'department_head_id' => 'nullable|exists:users,id',
+                'department_heads' => ['nullable','array'],
+                'department_heads.*' => ['exists:users,id'],
             ]);
 
             // Find the department by ID
@@ -157,6 +166,13 @@ class DepartmentController extends Controller
 
             // Update the department profile with the validated data
             $department->update($validated);
+            
+            // Sync department heads if provided
+            if ($request->has('department_heads')) {
+                $department->heads()->sync($request->department_heads);
+            } else {
+                $department->heads()->sync([]);
+            }
 
             // Optionally, flash a success message to the session
             return redirect()->route('departments.index')

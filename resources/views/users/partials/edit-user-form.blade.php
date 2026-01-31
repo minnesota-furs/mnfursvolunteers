@@ -36,6 +36,13 @@
                                                 </dd>
                                             </div>
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                                <dt class="form-label">Pronouns</dt>
+                                                <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                                    <x-text-input id="pronouns" name="pronouns" type="text" class="block w-64 text-sm" :value="old('pronouns', $user->pronouns)" placeholder="e.g., she/her, he/him, they/them" autocomplete="pronouns" />
+                                                    <x-form-validation for="pronouns" />
+                                                </dd>
+                                            </div>
+                                            <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                 <dt class="form-label">Email address</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-text-input id="email" name="email" type="email" class="block w-64 text-sm" :value="old('email', $user->email)" required autocomplete="email" />
@@ -152,6 +159,36 @@
                                                 <x-form-validation for="primary_dept_id" />
                                                 <x-input-error class="mt-2" :messages="$errors->get('primary_dept_id')" />
                                             </div>
+                                            
+                                            @if(app_setting('feature_user_tags', false))
+                                                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                                    <dt class="form-label">Tags</dt>
+                                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                                                        <div class="space-y-2">
+                                                            @foreach ($tags as $tag)
+                                                                <label class="flex items-center space-x-2">
+                                                                    <input 
+                                                                        type="checkbox" 
+                                                                        name="tags[]" 
+                                                                        value="{{ $tag->id }}"
+                                                                        {{ isset($user) && $user->tags->contains($tag->id) ? 'checked' : '' }}
+                                                                        class="rounded border-gray-300 text-brand-green shadow-sm focus:border-brand-green focus:ring focus:ring-green-200 focus:ring-opacity-50">
+                                                                    <span class="inline-flex items-center">
+                                                                        @if($tag->color)
+                                                                            <span class="inline-block w-3 h-3 rounded mr-1" style="background-color: {{ $tag->color }}"></span>
+                                                                        @endif
+                                                                        <span class="text-sm text-gray-900 dark:text-gray-100">{{ $tag->name }}</span>
+                                                                    </span>
+                                                                </label>
+                                                            @endforeach
+                                                        </div>
+                                                        @if($tags->isEmpty())
+                                                            <p class="text-xs text-gray-500 italic">No tags available. <a href="{{ route('admin.tags.create') }}" class="text-brand-green hover:underline">Create tags</a> to assign them to users.</p>
+                                                        @endif
+                                                        <x-input-error class="mt-2" :messages="$errors->get('tags')" />
+                                                    </dd>
+                                                </div>
+                                            @endif
                                         </dl>
                                     </div>
                                 </div>

@@ -164,6 +164,40 @@
                     </dd>
                 </div>
 
+                @if(app_setting('feature_user_tags', false))
+                    <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                        <div>
+                            <dt class="text-sm font-medium leading-6 text-gray-900">Required Tags</dt>
+                            <p class="text-gray-500 text-sm mt-1">Select tags that volunteers must have to sign up for shifts in this event. Leave empty to allow anyone to sign up.</p>
+                        </div>
+                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                            @if(isset($tags) && $tags->isNotEmpty())
+                                <div class="space-y-2">
+                                    @foreach ($tags as $tag)
+                                        <label class="flex items-center space-x-2">
+                                            <input 
+                                                type="checkbox" 
+                                                name="required_tags[]" 
+                                                value="{{ $tag->id }}"
+                                                {{ (isset($event) && $event->requiredTags->contains($tag->id)) || (is_array(old('required_tags')) && in_array($tag->id, old('required_tags'))) ? 'checked' : '' }}
+                                                class="rounded border-gray-300 text-brand-green shadow-sm focus:border-brand-green focus:ring focus:ring-green-200 focus:ring-opacity-50">
+                                            <span class="inline-flex items-center">
+                                                @if($tag->color)
+                                                    <span class="inline-block w-3 h-3 rounded mr-1" style="background-color: {{ $tag->color }}"></span>
+                                                @endif
+                                                <span class="text-sm text-gray-900">{{ $tag->name }}</span>
+                                            </span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            @else
+                                <p class="text-xs text-gray-500 italic">No tags available. <a href="{{ route('admin.tags.create') }}" class="text-brand-green hover:underline">Create tags</a> to use this feature.</p>
+                            @endif
+                            <x-form-validation for="required_tags" />
+                        </dd>
+                    </div>
+                @endif
+
                 <div class="py-6 flex justify-end space-x-2">
                     <a type="submit" id="submit" href="{{ url()->previous() }}"
                         class="block rounded-md bg-gray-400 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400">Cancel</a>

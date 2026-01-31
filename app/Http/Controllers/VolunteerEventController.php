@@ -29,8 +29,8 @@ class VolunteerEventController extends Controller
 
     public function show(Event $event)
     {
-        // Load users for use in shift->users
-        $event->load('shifts.users');
+        // Load users for use in shift->users and required tags
+        $event->load('shifts.users', 'requiredTags');
 
         $shifts = $event->shifts
             ->when($event->hide_past_shifts, fn ($shifts) =>
@@ -41,10 +41,36 @@ class VolunteerEventController extends Controller
 
         $userShifts = auth()->user()->shiftsForEvent($event->id)->sortBy('start_time');
 
+        // Get all user's shifts (not just for this event) to check for conflicts
+        $allUserShifts = auth()->user()->shifts()->with('event')->get();
+
+        // Build a map of shift conflicts
+        $shiftConflicts = [];
+        foreach ($shifts as $shift) {
+            $conflictingShifts = $allUserShifts->filter(function($userShift) use ($shift) {
+                // Skip if it's the same shift (already signed up)
+                if ($userShift->id === $shift->id) {
+                    return false;
+                }
+                
+                // Check for time overlap
+                return (
+                    ($userShift->start_time <= $shift->start_time && $userShift->end_time > $shift->start_time) ||
+                    ($userShift->start_time < $shift->end_time && $userShift->end_time >= $shift->end_time) ||
+                    ($userShift->start_time >= $shift->start_time && $userShift->end_time <= $shift->end_time)
+                );
+            });
+            
+            if ($conflictingShifts->isNotEmpty()) {
+                $shiftConflicts[$shift->id] = $conflictingShifts;
+            }
+        }
+
         return view('events.show', [
             'event' => $event,
             'shifts' => $shifts,
             'userShifts' => $userShifts,
+            'shiftConflicts' => $shiftConflicts,
         ]);
     }
 

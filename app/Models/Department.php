@@ -51,6 +51,11 @@ class Department extends Model
         return $this->belongsTo(User::class, 'department_head_id');
     }
 
+    public function heads()
+    {
+        return $this->belongsToMany(User::class, 'department_head')->withTimestamps();
+    }
+
     public function jobListings()
     {
         return $this->hasMany(JobListing::class);
