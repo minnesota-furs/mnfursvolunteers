@@ -198,7 +198,20 @@ class User extends Authenticatable
 
     public function hasPermission(string $permission): bool
     {
-        return in_array($permission, $this->permissions ?? []);
+        $permissions = $this->permissions ?? [];
+        
+        // Check if permission exists by key (e.g., 'manage-users')
+        if (in_array($permission, $permissions)) {
+            return true;
+        }
+        
+        // Check if permission exists by label from config (e.g., 'Manage Users')
+        $permissionConfig = config('permissions.' . $permission);
+        if ($permissionConfig && isset($permissionConfig['label'])) {
+            return in_array($permissionConfig['label'], $permissions);
+        }
+        
+        return false;
     }
 
     public function givePermission(string $permission): void
@@ -258,6 +271,7 @@ class User extends Authenticatable
     public function getTimelineEvents()
     {
         $events = collect();
+        $canManageNotes = auth()->check() && auth()->user()->hasPermission('manage-user-notes');
 
         // Add volunteer hours entries
         if ($this->volunteerHours) {
@@ -290,8 +304,8 @@ class User extends Authenticatable
             });
         }
 
-        // Add notes
-        if ($this->userNotes) {
+        // Add notes (only if user has permission)
+        if ($canManageNotes && $this->userNotes) {
             $this->userNotes->each(function ($note) use ($events) {
                 $events->push([
                     'type' => 'note',

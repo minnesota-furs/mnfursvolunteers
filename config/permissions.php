@@ -25,6 +25,10 @@ return [
         'label' => 'Manage Elections',
         'description' => 'Create, edit, and manage board elections and view results.',
     ],
+    'manage-user-notes' => [
+        'label' => 'Manage User Notes',
+        'description' => 'Create, view, edit, and delete notes on user profiles.',
+    ],
 ];
 
 

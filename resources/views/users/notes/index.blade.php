@@ -48,7 +48,7 @@
                                     All Notes ({{ $notes->count() }})
                                 </h3>
                             </div>
-                            @if(Auth::user()->isAdmin() || Auth::user()->hasPermission('manage-users'))
+                            @if(Auth::user()->hasPermission('manage-user-notes'))
                             <div class="flex flex-col sm:flex-row gap-3">
                                 <a href="{{ route('users.notes.create', $user) }}"
                                     class="inline-flex items-center justify-center rounded-md bg-brand-green px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-green-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">
@@ -113,7 +113,7 @@
                                                     </span>
                                                 @endif
                                             </div>
-                                            @if($note->created_by === auth()->id() || auth()->user()->isAdmin())
+                                            @if($note->created_by === auth()->id() || auth()->user()->hasPermission('manage-user-notes'))
                                                 <div class="flex space-x-2" x-data="{ showEdit: false, showDelete: false }">
                                                     <button @click="showEdit = !showEdit" type="button"
                                                         class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
@@ -203,7 +203,7 @@
                                                                 <span class="font-medium text-gray-900 dark:text-white">{{ $comment->user->name }}</span>
                                                                 - {{ $comment->created_at->format('M j, Y g:i A') }}
                                                             </div>
-                                                            @if($comment->user_id === auth()->id() || auth()->user()->isAdmin())
+                                                            @if($comment->user_id === auth()->id() || auth()->user()->hasPermission('manage-user-notes'))
                                                                 <form action="{{ route('users.notes.comments.destroy', [$user, $note, $comment]) }}" method="POST" class="inline">
                                                                     @csrf
                                                                     @method('DELETE')

@@ -15,16 +15,16 @@ class NoteController extends Controller
     public function index(User $user)
     {
         $currentUser = auth()->user();
-        $canManageUsers = $currentUser->isAdmin() || $currentUser->hasPermission('manage-users');
+        $canManageNotes = $currentUser->hasPermission('manage-user-notes');
         
         $notes = $user->userNotes()
             ->with(['creator', 'comments.user'])
-            ->when(!$canManageUsers, function ($query) use ($user) {
+            ->when(!$canManageNotes, function ($query) use ($user) {
                 // If user is viewing their own profile, only show public notes
                 if (auth()->id() === $user->id) {
                     $query->where('private', false);
                 } else {
-                    // If user doesn't have manage-users permission and viewing someone else, show no notes
+                    // If user doesn't have manage-user-notes permission and viewing someone else, show no notes
                     $query->whereRaw('1 = 0');
                 }
             })
@@ -39,11 +39,7 @@ class NoteController extends Controller
      */
     public function create(User $user)
     {
-        // Only users with manage-users permission can create notes
-        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('manage-users')) {
-            abort(403, 'Unauthorized to create notes.');
-        }
-        
+        // Permission check handled by middleware
         return view('users.notes.create', compact('user'));
     }
 
@@ -52,11 +48,7 @@ class NoteController extends Controller
      */
     public function store(Request $request, User $user)
     {
-        // Only users with manage-users permission can create notes
-        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('manage-users')) {
-            abort(403, 'Unauthorized to create notes.');
-        }
-        
+        // Permission check handled by middleware
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
             'type' => 'required|in:Standard,Writeup',
@@ -81,8 +73,8 @@ class NoteController extends Controller
      */
     public function update(Request $request, User $user, Note $note)
     {
-        // Only the creator or admins can update
-        if ($note->created_by !== auth()->id() && !auth()->user()->isAdmin()) {
+        // Only the creator or users with manage-user-notes permission can update
+        if ($note->created_by !== auth()->id() && !auth()->user()->hasPermission('manage-user-notes')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -109,8 +101,8 @@ class NoteController extends Controller
      */
     public function destroy(User $user, Note $note)
     {
-        // Only the creator or admins can delete
-        if ($note->created_by !== auth()->id() && !auth()->user()->isAdmin()) {
+        // Only the creator or users with manage-user-notes permission can delete
+        if ($note->created_by !== auth()->id() && !auth()->user()->hasPermission('manage-user-notes')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -126,7 +118,7 @@ class NoteController extends Controller
     public function storeComment(Request $request, User $user, Note $note)
     {
         // Check if user can view this note
-        if ($note->private && $note->created_by !== auth()->id() && !auth()->user()->isAdmin()) {
+        if ($note->private && $note->created_by !== auth()->id() && !auth()->user()->hasPermission('manage-user-notes')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -148,8 +140,8 @@ class NoteController extends Controller
      */
     public function destroyComment(User $user, Note $note, NoteComment $comment)
     {
-        // Only the comment creator or admins can delete
-        if ($comment->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+        // Only the comment creator or users with manage-user-notes permission can delete
+        if ($comment->user_id !== auth()->id() && !auth()->user()->hasPermission('manage-user-notes')) {
             abort(403, 'Unauthorized action.');
         }
 

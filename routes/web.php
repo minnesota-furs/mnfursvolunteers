@@ -119,8 +119,10 @@ Route::middleware('auth')->group(function () {
     // User Notes
     Route::prefix('users/{user}/notes')->name('users.notes.')->group(function () {
         Route::get('/', [\App\Http\Controllers\NoteController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\NoteController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\NoteController::class, 'store'])->name('store');
+        Route::middleware(['can:manage-user-notes'])->group(function () {
+            Route::get('/create', [\App\Http\Controllers\NoteController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\NoteController::class, 'store'])->name('store');
+        });
         Route::put('/{note}', [\App\Http\Controllers\NoteController::class, 'update'])->name('update');
         Route::delete('/{note}', [\App\Http\Controllers\NoteController::class, 'destroy'])->name('destroy');
         Route::post('/{note}/comments', [\App\Http\Controllers\NoteController::class, 'storeComment'])->name('comments.store');
