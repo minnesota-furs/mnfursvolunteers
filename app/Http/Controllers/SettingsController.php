@@ -32,6 +32,13 @@ class SettingsController extends Controller
             'secondary_color' => 'nullable|string|max:7',
             'app_logo' => 'nullable|image|max:2048',
             'app_favicon' => 'nullable|image|max:512',
+            'social_facebook_url' => 'nullable|url|max:500',
+            'social_twitter_url' => 'nullable|url|max:500',
+            'social_github_url' => 'nullable|url|max:500',
+            'social_youtube_url' => 'nullable|url|max:500',
+            'social_website_url' => 'nullable|url|max:500',
+            'social_twitch_url' => 'nullable|url|max:500',
+            'social_discord_url' => 'nullable|url|max:500',
             'feature_elections' => 'boolean',
             'feature_job_listings' => 'boolean',
             'feature_one_off_events' => 'boolean',
@@ -92,6 +99,15 @@ class SettingsController extends Controller
         if ($request->filled('secondary_color')) {
             ApplicationSetting::set('secondary_color', $request->secondary_color, 'string', 'Secondary brand color', 'branding');
         }
+
+        // Social media links
+        ApplicationSetting::set('social_facebook_url', $request->input('social_facebook_url', ''), 'string', 'Facebook page URL', 'branding');
+        ApplicationSetting::set('social_twitter_url', $request->input('social_twitter_url', ''), 'string', 'X/Twitter profile URL', 'branding');
+        ApplicationSetting::set('social_github_url', $request->input('social_github_url', ''), 'string', 'GitHub organization URL', 'branding');
+        ApplicationSetting::set('social_youtube_url', $request->input('social_youtube_url', ''), 'string', 'YouTube channel URL', 'branding');
+        ApplicationSetting::set('social_website_url', $request->input('social_website_url', ''), 'string', 'Website URL', 'branding');
+        ApplicationSetting::set('social_twitch_url', $request->input('social_twitch_url', ''), 'string', 'Twitch channel URL', 'branding');
+        ApplicationSetting::set('social_discord_url', $request->input('social_discord_url', ''), 'string', 'Discord server URL', 'branding');
 
         // Feature toggles
         ApplicationSetting::set('feature_elections', $request->boolean('feature_elections'), 'boolean', 'Enable/disable elections feature', 'feature_flags');

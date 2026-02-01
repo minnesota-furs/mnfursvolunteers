@@ -211,6 +211,110 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <!-- Social Media Links -->
+                        <div class="mb-6 border-t border-gray-200 dark:border-gray-700 pt-6">
+                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-4">Social Media Links</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Configure social media links that appear in the footer. Leave empty to hide the icon.</p>
+
+                            <!-- Facebook URL -->
+                            <div class="mb-4">
+                                <label for="social_facebook_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Facebook URL
+                                </label>
+                                <input type="url" name="social_facebook_url" id="social_facebook_url"
+                                    value="{{ old('social_facebook_url', app_setting('social_facebook_url', '')) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="https://www.facebook.com/yourpage">
+                                @error('social_facebook_url')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Twitter/X URL -->
+                            <div class="mb-4">
+                                <label for="social_twitter_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    X (Twitter) URL
+                                </label>
+                                <input type="url" name="social_twitter_url" id="social_twitter_url"
+                                    value="{{ old('social_twitter_url', app_setting('social_twitter_url', '')) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="https://www.twitter.com/yourprofile">
+                                @error('social_twitter_url')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- GitHub URL -->
+                            <div class="mb-4">
+                                <label for="social_github_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    GitHub URL
+                                </label>
+                                <input type="url" name="social_github_url" id="social_github_url"
+                                    value="{{ old('social_github_url', app_setting('social_github_url', '')) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="https://github.com/yourorg">
+                                @error('social_github_url')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- YouTube URL -->
+                            <div class="mb-4">
+                                <label for="social_youtube_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    YouTube URL
+                                </label>
+                                <input type="url" name="social_youtube_url" id="social_youtube_url"
+                                    value="{{ old('social_youtube_url', app_setting('social_youtube_url', '')) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="https://www.youtube.com/@yourchannel">
+                                @error('social_youtube_url')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Website URL -->
+                            <div class="mb-4">
+                                <label for="social_website_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Website URL
+                                </label>
+                                <input type="url" name="social_website_url" id="social_website_url"
+                                    value="{{ old('social_website_url', app_setting('social_website_url', '')) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="https://www.yourwebsite.com">
+                                @error('social_website_url')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Twitch URL -->
+                            <div class="mb-4">
+                                <label for="social_twitch_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Twitch URL
+                                </label>
+                                <input type="url" name="social_twitch_url" id="social_twitch_url"
+                                    value="{{ old('social_twitch_url', app_setting('social_twitch_url', '')) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="https://www.twitch.tv/yourchannel">
+                                @error('social_twitch_url')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Discord URL -->
+                            <div class="mb-4">
+                                <label for="social_discord_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Discord URL
+                                </label>
+                                <input type="url" name="social_discord_url" id="social_discord_url"
+                                    value="{{ old('social_discord_url', app_setting('social_discord_url', '')) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="https://discord.gg/yourinvite">
+                                @error('social_discord_url')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Feature Toggles Tab -->

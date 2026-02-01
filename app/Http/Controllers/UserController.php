@@ -35,6 +35,12 @@ class UserController extends Controller
         $sort = $request->input('sort', 'name'); // Default sort column
         $direction = $request->input('direction', 'asc'); // Default sort direction
 
+        // Filter inputs
+        $departmentFilter = $request->input('departments', []);
+        $tagFilter = $request->input('tags', []);
+        $statusFilter = $request->input('status');
+        $departmentStatus = $request->input('department_status');
+
         // Get the current fiscal ledger
         $currentLedger = FiscalLedger::where('start_date', '<=', now())
             ->where('end_date', '>=', now())
@@ -54,6 +60,28 @@ class UserController extends Controller
                     ->orWhere('email', 'like', '%' . $search . '%') // Search by email
                     ->orWhere('vol_code', $search); // Search by volunteer code
             })
+            ->when(!empty($departmentFilter), function (Builder $query) use ($departmentFilter) {
+                $query->whereHas('departments', function ($q) use ($departmentFilter) {
+                    $q->whereIn('departments.id', $departmentFilter);
+                });
+            })
+            ->when($departmentStatus === 'no_department', function (Builder $query) {
+                $query->doesntHave('departments');
+            })
+            ->when($departmentStatus === 'has_department', function (Builder $query) {
+                $query->has('departments');
+            })
+            ->when(!empty($tagFilter), function (Builder $query) use ($tagFilter) {
+                $query->whereHas('tags', function ($q) use ($tagFilter) {
+                    $q->whereIn('tags.id', $tagFilter);
+                });
+            })
+            ->when($statusFilter === 'active', function (Builder $query) {
+                $query->where('active', true);
+            })
+            ->when($statusFilter === 'inactive', function (Builder $query) {
+                $query->where('active', false);
+            })
             ->when($sort === 'hours', function (Builder $query) use ($currentLedger, $direction) {
                 $query->withSum(['volunteerHours' => function ($q) use ($currentLedger) {
                     $q->where('fiscal_ledger_id', $currentLedger->id);
@@ -64,12 +92,16 @@ class UserController extends Controller
             })
             ->paginate(15);
 
-        // Append the search term to pagination links
-        $users->appends(['search' => $search]);
+        // Append the search term and filters to pagination links
+        $users->appends($request->except('page'));
 
         $trashedUsers = User::onlyTrashed()->get();
+        
+        // Get departments and tags for filter dropdowns
+        $departments = Department::orderBy('name')->get();
+        $tags = \App\Models\Tag::orderBy('name')->get();
 
-        return view('users.index', compact('users', 'sort', 'direction', 'trashedUsers'));
+        return view('users.index', compact('users', 'sort', 'direction', 'trashedUsers', 'departments', 'tags'));
     }
 
     /**

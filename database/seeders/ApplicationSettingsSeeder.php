@@ -57,6 +57,55 @@ class ApplicationSettingsSeeder extends Seeder
                 'description' => 'Footer text displayed at the bottom of all pages',
                 'group' => 'branding',
             ],
+            [
+                'key' => 'social_facebook_url',
+                'value' => 'https://www.facebook.com/pages/MNFurs/252250438145155',
+                'type' => 'string',
+                'description' => 'Facebook page URL. Leave empty to hide the icon.',
+                'group' => 'branding',
+            ],
+            [
+                'key' => 'social_twitter_url',
+                'value' => 'https://www.twitter.com/MNFurs',
+                'type' => 'string',
+                'description' => 'X/Twitter profile URL. Leave empty to hide the icon.',
+                'group' => 'branding',
+            ],
+            [
+                'key' => 'social_github_url',
+                'value' => 'https://github.com/orgs/minnesota-furs/',
+                'type' => 'string',
+                'description' => 'GitHub organization URL. Leave empty to hide the icon.',
+                'group' => 'branding',
+            ],
+            [
+                'key' => 'social_youtube_url',
+                'value' => 'https://www.youtube.com/@MNFurs',
+                'type' => 'string',
+                'description' => 'YouTube channel URL. Leave empty to hide the icon.',
+                'group' => 'branding',
+            ],
+            [
+                'key' => 'social_website_url',
+                'value' => '',
+                'type' => 'string',
+                'description' => 'Organization website URL. Leave empty to hide the icon.',
+                'group' => 'branding',
+            ],
+            [
+                'key' => 'social_twitch_url',
+                'value' => '',
+                'type' => 'string',
+                'description' => 'Twitch channel URL. Leave empty to hide the icon.',
+                'group' => 'branding',
+            ],
+            [
+                'key' => 'social_discord_url',
+                'value' => '',
+                'type' => 'string',
+                'description' => 'Discord server invite URL. Leave empty to hide the icon.',
+                'group' => 'branding',
+            ],
 
             // Features
             [

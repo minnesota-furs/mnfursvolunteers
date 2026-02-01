@@ -36,8 +36,6 @@
                 <div class="px-4 sm:px-6 lg:px-8">
                     <div class="sm:flex sm:items-center">
                         <div class="sm:flex-auto">
-                            <h1 class="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100">Users/Volunteers</h1>
-                            <p class="mt-2 text-sm text-gray-700 dark:text-gray-400">Listing of all users/volunteers within the organzation including their email, sector/dept, status, and hours.</p>
                             @if(null !==request('page'))
                                 <p class="mt-2 text-sm text-orange-700"><x-heroicon-s-magnifying-glass class="w-4 inline"/> Currently showing <span class="underline">Page #{{$users->currentPage()}}</span> of {{$users->lastPage()}}.
                             @endif
@@ -45,13 +43,177 @@
                                 <p class="mt-2 text-sm text-orange-700"><x-heroicon-s-magnifying-glass class="w-4 inline"/> Currently showing {{count($users)}} result(s) for search term: <span class="underline">{{request('search')}}</span>.
                                 <a class="text-blue-600" href="{{route('users.index')}}">Clear Search</a>
                             @endif
+                            @if(request()->hasAny(['departments', 'tags', 'status', 'department_status']))
+                                <p class="mt-2 text-sm text-blue-600 dark:text-blue-400">
+                                    <x-heroicon-s-funnel class="w-4 inline"/> Filters active. 
+                                    <a class="underline hover:text-blue-800" href="{{route('users.index')}}">Clear all filters</a>
+                                </p>
+                            @endif
                         </div>
-                        {{-- @if( Auth::user()->isAdmin() )
-                            <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                                <a href="{{route('users.create')}}" type="button" class="block rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add user</a>
-                            </div>
-                        @endif --}}
                     </div>
+
+                    <!-- Filter Controls -->
+                    <div class="mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm" x-data="{
+                        departmentSearch: '',
+                        tagSearch: '',
+                        expanded: {{ request()->hasAny(['departments', 'tags', 'status', 'department_status']) ? 'true' : 'false' }}
+                    }">
+                        <div class="flex items-center justify-between px-4 py-1">
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white flex items-center">
+                                <x-heroicon-o-funnel class="w-4 h-4 mr-2 text-brand-green" />
+                                Filter Users
+                                @if(request()->hasAny(['departments', 'tags', 'status', 'department_status']))
+                                    <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                        Active
+                                    </span>
+                                @endif
+                            </h3>
+                            <button @click="expanded = !expanded" 
+                                    type="button"
+                                    class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors">
+                                <span x-text="expanded ? 'Hide' : 'Show'"></span>
+                                <x-heroicon-o-chevron-down class="w-4 h-4 transition-transform duration-200" 
+                                                           ::class="expanded ? 'rotate-180' : ''" />
+                            </button>
+                        </div>
+
+                        <form method="GET" action="{{ route('users.index') }}" id="filterForm" 
+                              x-show="expanded" 
+                              x-transition:enter="transition ease-out duration-200"
+                              x-transition:enter-start="opacity-0 -translate-y-1"
+                              x-transition:enter-end="opacity-100 translate-y-0"
+                              x-transition:leave="transition ease-in duration-150"
+                              x-transition:leave-start="opacity-100 translate-y-0"
+                              x-transition:leave-end="opacity-0 -translate-y-1">
+                            <div class="px-4 pb-4 space-y-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <div class="flex items-center justify-end gap-2 mb-4">
+                                    @if(request()->hasAny(['departments', 'tags', 'status', 'department_status']))
+                                        <a href="{{route('users.index')}}" class="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                            Clear all filters
+                                        </a>
+                                    @endif
+                                    <button type="submit" class="px-4 py-2 text-sm font-medium rounded-md bg-brand-green text-white hover:bg-emerald-600">
+                                        Apply Filters
+                                    </button>
+                                </div>
+
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <!-- Departments Filter -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Departments
+                                    </label>
+                                    <div class="space-y-2">
+                                        <input type="text" 
+                                               x-model="departmentSearch" 
+                                               placeholder="Search departments..." 
+                                               class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-brand-green focus:ring-brand-green text-sm">
+                                        <div class="max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-md p-2 space-y-1">
+                                            @foreach($departments as $dept)
+                                                <label class="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer"
+                                                       x-show="departmentSearch === '' || '{{ strtolower($dept->name . ' ' . $dept->sector->name) }}'.includes(departmentSearch.toLowerCase())">
+                                                    <input type="checkbox" 
+                                                           name="departments[]" 
+                                                           value="{{ $dept->id }}"
+                                                           {{ in_array($dept->id, (array)request('departments', [])) ? 'checked' : '' }}
+                                                           class="rounded border-gray-300 text-brand-green focus:ring-brand-green dark:border-gray-600 dark:bg-gray-700">
+                                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                                                        {{ $dept->name }} <span class="text-gray-500">({{ $dept->sector->name }})</span>
+                                                    </span>
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                        @if(count((array)request('departments', [])) > 0)
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                {{ count((array)request('departments', [])) }} department(s) selected
+                                            </p>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Tags Filter -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Tags
+                                    </label>
+                                    <div class="space-y-2">
+                                        <input type="text" 
+                                               x-model="tagSearch" 
+                                               placeholder="Search tags..." 
+                                               class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-brand-green focus:ring-brand-green text-sm">
+                                        <div class="max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-md p-2 space-y-1">
+                                            @foreach($tags as $tag)
+                                                <label class="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer"
+                                                       x-show="tagSearch === '' || '{{ strtolower($tag->name) }}'.includes(tagSearch.toLowerCase())">
+                                                    <input type="checkbox" 
+                                                           name="tags[]" 
+                                                           value="{{ $tag->id }}"
+                                                           {{ in_array($tag->id, (array)request('tags', [])) ? 'checked' : '' }}
+                                                           class="rounded border-gray-300 text-brand-green focus:ring-brand-green dark:border-gray-600 dark:bg-gray-700">
+                                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ $tag->name }}</span>
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                        @if(count((array)request('tags', [])) > 0)
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                {{ count((array)request('tags', [])) }} tag(s) selected
+                                            </p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Additional Filters Row -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <!-- Department Status Filter -->
+                                <div>
+                                    <label for="department_status" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Department Status
+                                    </label>
+                                    <select name="department_status" id="department_status" 
+                                            class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-brand-green focus:ring-brand-green text-sm">
+                                        <option value="">Any</option>
+                                        <option value="has_department" {{ request('department_status') === 'has_department' ? 'selected' : '' }}>
+                                            Has Department
+                                        </option>
+                                        <option value="no_department" {{ request('department_status') === 'no_department' ? 'selected' : '' }}>
+                                            No Department
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- Status Filter -->
+                                <div>
+                                    <label for="status" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Status
+                                    </label>
+                                    <select name="status" id="status" 
+                                            class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-brand-green focus:ring-brand-green text-sm">
+                                        <option value="">All Statuses</option>
+                                        <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>
+                                            Active
+                                        </option>
+                                        <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>
+                                            Inactive
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Preserve sort parameters -->
+                            @if(request('sort'))
+                                <input type="hidden" name="sort" value="{{ request('sort') }}">
+                            @endif
+                            @if(request('direction'))
+                                <input type="hidden" name="direction" value="{{ request('direction') }}">
+                            @endif
+                            @if(request('search'))
+                                <input type="hidden" name="search" value="{{ request('search') }}">
+                            @endif
+                            </div>
+                        </form>
+                    </div>
+
                     <div class="mt-8 flow-root">
                     <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
