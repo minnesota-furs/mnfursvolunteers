@@ -147,6 +147,7 @@
     </div>
     @endif
 
+    @stack('scripts')
     <script>
         function closeToastNow() {
             hideToast(100); // Close immediately
