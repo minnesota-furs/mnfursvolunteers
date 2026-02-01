@@ -17,12 +17,16 @@ class OneOffEvent extends Model
         'start_time',
         'end_time',
         'auto_credit_hours',
+        'checkin_hours_before',
+        'checkin_hours_after',
     ];
 
     protected $casts = [
         'start_time' => 'datetime',
         'end_time' => 'datetime',
         'auto_credit_hours' => 'boolean',
+        'checkin_hours_before' => 'integer',
+        'checkin_hours_after' => 'integer',
     ];
 
     protected static function booted()

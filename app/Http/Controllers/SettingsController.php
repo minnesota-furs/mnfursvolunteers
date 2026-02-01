@@ -47,6 +47,8 @@ class SettingsController extends Controller
             'feature_user_tags' => 'boolean',
             'contact_email' => 'nullable|email',
             'contact_phone' => 'nullable|string|max:20',
+            'checkin_hours_before' => 'nullable|numeric|min:0|max:48',
+            'checkin_hours_after' => 'nullable|numeric|min:0|max:72',
             'blacklist_emails' => 'nullable|string',
             'blacklist_names' => 'nullable|string',
         ]);
@@ -124,6 +126,14 @@ class SettingsController extends Controller
 
         if ($request->filled('contact_phone')) {
             ApplicationSetting::set('contact_phone', $request->contact_phone, 'string', 'Contact phone number', 'contact');
+        }
+
+        // Event settings
+        if ($request->filled('checkin_hours_before')) {
+            ApplicationSetting::set('checkin_hours_before', $request->checkin_hours_before, 'number', 'Check-in hours before event', 'event_settings');
+        }
+        if ($request->filled('checkin_hours_after')) {
+            ApplicationSetting::set('checkin_hours_after', $request->checkin_hours_after, 'number', 'Check-in hours after event', 'event_settings');
         }
 
         // Security settings

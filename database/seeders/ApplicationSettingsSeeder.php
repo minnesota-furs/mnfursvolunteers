@@ -145,7 +145,21 @@ class ApplicationSettingsSeeder extends Seeder
                 'description' => 'Contact email address',
                 'group' => 'contact',
             ],
+            // Event Settings
             [
+                'key' => 'checkin_hours_before',
+                'value' => '1',
+                'type' => 'number',
+                'description' => 'How many hours before an event starts can users check in',
+                'group' => 'event_settings',
+            ],
+            [
+                'key' => 'checkin_hours_after',
+                'value' => '12',
+                'type' => 'number',
+                'description' => 'How many hours after an event ends can users check in',
+                'group' => 'event_settings',
+            ],            [
                 'key' => 'contact_phone',
                 'value' => '',
                 'type' => 'string',

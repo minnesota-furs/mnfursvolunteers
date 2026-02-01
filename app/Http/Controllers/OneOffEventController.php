@@ -52,9 +52,13 @@ class OneOffEventController extends Controller
             'description' => 'nullable|string',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
+            'checkin_hours_before' => 'nullable|integer|min:0|max:48',
+            'checkin_hours_after' => 'nullable|integer|min:0|max:72',
         ]);
 
         $validated['auto_credit_hours'] = $request->has('auto_credit_hours');
+        $validated['checkin_hours_before'] = $validated['checkin_hours_before'] ?? 1;
+        $validated['checkin_hours_after'] = $validated['checkin_hours_after'] ?? 12;
 
         OneOffEvent::create($validated);
 
@@ -77,9 +81,13 @@ class OneOffEventController extends Controller
             'description' => 'nullable|string',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
+            'checkin_hours_before' => 'nullable|integer|min:0|max:48',
+            'checkin_hours_after' => 'nullable|integer|min:0|max:72',
         ]);
 
         $validated['auto_credit_hours'] = $request->has('auto_credit_hours');
+        $validated['checkin_hours_before'] = $validated['checkin_hours_before'] ?? 1;
+        $validated['checkin_hours_after'] = $validated['checkin_hours_after'] ?? 12;
 
         $oneOffEvent->update($validated);
 
@@ -165,12 +173,15 @@ class OneOffEventController extends Controller
 
         // Only allow check-in if now is within the event timeframe
         $now = now();
-        $checkInStart = $oneOffEvent->start_time->copy()->subHours(1);
-        $checkInEnd = $oneOffEvent->end_time->copy()->addHours(12);
+        $hoursBeforeStart = $oneOffEvent->checkin_hours_before ?? 1;
+        $hoursAfterEnd = $oneOffEvent->checkin_hours_after ?? 12;
         
-        if ($now->lt($checkInStart) || $now->gt($checkInEnd)) {
+        $checkInStart = $oneOffEvent->start_time->copy()->subHours($hoursBeforeStart);
+        $checkInEnd = $oneOffEvent->end_time->copy()->addHours($hoursAfterEnd);
+        
+        if ($now->isBefore($checkInStart) || $now->isAfter($checkInEnd)) {
             return back()->with('error', [
-                'message' => 'Check-in is only available 1 hour before the event starts until 12 hours after it ends.'
+                'message' => "Check-in is only available {$hoursBeforeStart} hour(s) before the event starts until {$hoursAfterEnd} hour(s) after it ends."
             ]);
         }
 

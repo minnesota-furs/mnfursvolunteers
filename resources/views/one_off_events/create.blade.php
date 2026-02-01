@@ -59,7 +59,23 @@
                             </span>
                         </label>
                     </div>
-            
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label for="checkin_hours_before" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Check-in Opens (Hours Before Start)</label>
+                    <input type="number" name="checkin_hours_before" id="checkin_hours_before" min="0" max="48" step="1" value="{{ old('checkin_hours_before', 1) }}"
+                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Volunteers can check in this many hours before the event starts</p>
+                </div>
+
+                <div>
+                    <label for="checkin_hours_after" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Check-in Closes (Hours After End)</label>
+                    <input type="number" name="checkin_hours_after" id="checkin_hours_after" min="0" max="72" step="1" value="{{ old('checkin_hours_after', 12) }}"
+                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Volunteers can check in this many hours after the event ends</p>
+                </div>
+            </div>
+    
                     <div class="flex justify-end">
                         <a href="{{ route('one-off-events.index') }}"
                            class="mr-4 inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">

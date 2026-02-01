@@ -61,19 +61,55 @@
                                 </div>
                             </div>
                         @else
-                            <div class="space-y-4">
-                                <p class="text-gray-600 dark:text-gray-400 text-sm">
-                                    Check in to record your attendance and earn volunteer hours for this event.
-                                </p>
-                                <form method="POST" action="{{ route('one-off-events.check-in', $oneOffEvent) }}">
-                                    @csrf
-                                    <button type="submit"
-                                        class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-brand-green hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-green transition-colors shadow-sm">
-                                        <x-heroicon-s-check-circle class="w-5 h-5 mr-2" />
-                                        Check In Now
-                                    </button>
-                                </form>
-                            </div>
+                            @php
+                                $now = now();
+                                $hoursBeforeStart = $oneOffEvent->checkin_hours_before ?? 1;
+                                $hoursAfterEnd = $oneOffEvent->checkin_hours_after ?? 12;
+                                $checkInStart = $oneOffEvent->start_time->copy()->subHours($hoursBeforeStart);
+                                $checkInEnd = $oneOffEvent->end_time->copy()->addHours($hoursAfterEnd);
+                                $canCheckIn = $now->isBetween($checkInStart, $checkInEnd);
+                            @endphp
+                            
+                            @if ($canCheckIn)
+                                <div class="space-y-4">
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                        Check in to record your attendance and earn volunteer hours for this event.
+                                    </p>
+                                    <form method="POST" action="{{ route('one-off-events.check-in', $oneOffEvent) }}">
+                                        @csrf
+                                        <button type="submit"
+                                            class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-brand-green hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-green transition-colors shadow-sm">
+                                            <x-heroicon-s-check-circle class="w-5 h-5 mr-2" />
+                                            Check In Now
+                                        </button>
+                                    </form>
+                                </div>
+                            @else
+                                <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <x-heroicon-s-exclamation-triangle class="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                                                Check-in Not Available
+                                            </h3>
+                                            <p class="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
+                                                Check-in is only available {{ $hoursBeforeStart }} hour(s) before the event starts until {{ $hoursAfterEnd }} hour(s) after it ends.
+                                            </p>
+                                            @if ($now->isBefore($checkInStart))
+                                                <p class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                                                    Check-in opens at {{ $checkInStart->format('F j, Y \a\t g:i A') }}
+                                                </p>
+                                            @else
+                                                <p class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                                                    Check-in closed at {{ $checkInEnd->format('F j, Y \a\t g:i A') }}
+                                                </p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                         @endif
                     </div>
                 </div>
