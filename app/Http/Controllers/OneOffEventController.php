@@ -98,6 +98,18 @@ class OneOffEventController extends Controller
             ]);
     }
 
+    // Duplicate event (admin)
+    public function duplicate(OneOffEvent $oneOffEvent)
+    {
+        $newEvent = $oneOffEvent->replicate();
+        $newEvent->name = $oneOffEvent->name . ' (Copy)';
+        $newEvent->save();
+
+        return redirect()->route('one-off-events.edit', $newEvent)->with('success', [
+            'message' => "Event <span class=\"text-brand-green\">Duplicated Successfully</span> - Update the details below"
+        ]);
+    }
+
     // View all check-ins for an event (admin)
     public function checkIns(OneOffEvent $oneOffEvent)
     {

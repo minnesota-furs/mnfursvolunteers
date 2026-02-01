@@ -102,13 +102,21 @@
                                     </div>
 
                                     @can('manage-events')
-                                        <div class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 flex justify-between text-xs">
+                                        <div class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center text-xs">
                                             <a href="{{ route('one-off-events.check-ins', $event) }}" class="text-blue-600 dark:text-blue-400 hover:underline">
                                                 <x-heroicon-m-user-group class="w-4 h-4 inline"/> {{ $event->checkIns()->count() }} check-ins
                                             </a>
-                                            <a href="{{ route('one-off-events.edit', $event) }}" class="text-gray-600 dark:text-gray-400 hover:underline">
-                                                <x-heroicon-m-pencil class="w-4 h-4 inline"/> Edit
-                                            </a>
+                                            <div class="flex gap-3">
+                                                <form action="{{ route('one-off-events.duplicate', $event) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="text-gray-600 dark:text-gray-400 hover:underline">
+                                                        <x-heroicon-m-document-duplicate class="w-4 h-4 inline"/> Duplicate
+                                                    </button>
+                                                </form>
+                                                <a href="{{ route('one-off-events.edit', $event) }}" class="text-gray-600 dark:text-gray-400 hover:underline">
+                                                    <x-heroicon-m-pencil class="w-4 h-4 inline"/> Edit
+                                                </a>
+                                            </div>
                                         </div>
                                     @endcan
                                 </div>

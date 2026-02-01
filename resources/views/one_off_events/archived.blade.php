@@ -94,19 +94,27 @@
                                             </div>
                                         </div>
 
-                                        <div class="flex items-center space-x-2 ml-4">
+                                        <div class="grid grid-cols-2 gap-2 ml-4">
                                             <a href="{{ route('one-off-events.show', $event) }}"
-                                               class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                                               class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
                                                 <x-heroicon-o-eye class="w-4 h-4 mr-1"/>
                                                 View
                                             </a>
                                             <a href="{{ route('one-off-events.check-ins', $event) }}"
-                                               class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                                               class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
                                                 <x-heroicon-o-user-group class="w-4 h-4 mr-1"/>
                                                 Check-ins
                                             </a>
+                                            <form action="{{ route('one-off-events.duplicate', $event) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit"
+                                                        class="w-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                                                    <x-heroicon-o-document-duplicate class="w-4 h-4 mr-1"/>
+                                                    Duplicate
+                                                </button>
+                                            </form>
                                             <a href="{{ route('one-off-events.edit', $event) }}"
-                                               class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                                               class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
                                                 <x-heroicon-o-pencil class="w-4 h-4 mr-1"/>
                                                 Edit
                                             </a>

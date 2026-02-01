@@ -96,6 +96,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{oneOffEvent}', [OneOffEventController::class, 'show'])->name('show');
         Route::get('/{oneOffEvent}/edit', [OneOffEventController::class, 'edit'])->middleware('can:manage-events')->name('edit');
         Route::put('/{oneOffEvent}', [OneOffEventController::class, 'update'])->middleware('can:manage-events')->name('update');
+        Route::post('/{oneOffEvent}/duplicate', [OneOffEventController::class, 'duplicate'])->middleware('can:manage-events')->name('duplicate');
         Route::delete('/{oneOffEvent}', [OneOffEventController::class, 'destroy'])->middleware('can:manage-events')->name('destroy');
         Route::get('/{oneOffEvent}/check-ins', [OneOffEventController::class, 'checkIns'])->middleware('can:manage-events')->name('check-ins');
         Route::post('/{oneOffEvent}/check-ins/{checkIn}/credit', [OneOffEventController::class, 'manualCreditHours'])->middleware('can:manage-events')->name('check-ins.credit');
