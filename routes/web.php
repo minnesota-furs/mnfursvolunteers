@@ -135,6 +135,12 @@ Route::middleware('auth')->group(function () {
     // Admin User Management
     Route::middleware(['can:manage-users'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/users/search', [UserController::class, 'search'])->name('users.search');
+        
+        // Bulk operations
+        Route::post('/users/bulk-log-hours', [\App\Http\Controllers\Admin\UserController::class, 'bulkLogHours'])->name('users.bulk-log-hours');
+        Route::post('/users/bulk-add-tags', [\App\Http\Controllers\Admin\UserController::class, 'bulkAddTags'])->name('users.bulk-add-tags');
+        Route::post('/users/bulk-remove-tags', [\App\Http\Controllers\Admin\UserController::class, 'bulkRemoveTags'])->name('users.bulk-remove-tags');
+        Route::post('/users/bulk-assign-department', [\App\Http\Controllers\Admin\UserController::class, 'bulkAssignDepartment'])->name('users.bulk-assign-department');
     });
 
     // Org chart view

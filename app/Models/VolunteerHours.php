@@ -16,7 +16,6 @@ class VolunteerHours extends Model
         'hours',
         'description',
         'notes',
-        'date',
         'fiscal_ledger_id'
     ];
 
