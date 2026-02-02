@@ -249,15 +249,30 @@
                         <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                             {{ $users->appends(request()->except('page'))->links('vendor.pagination.custom') }}
                             <table class="min-w-full divide-y divide-gray-300" 
-                                x-data="bulkUserSelection" 
-                                x-init="init">
+                                x-data="{
+                                    selectAll: false,
+                                    toggleAll() {
+                                        const checkboxes = $el.querySelectorAll('tbody input[type=checkbox]');
+                                        checkboxes.forEach(cb => {
+                                            const userId = parseInt(cb.value);
+                                            $store.bulkUsers.selectedIds = $store.bulkUsers.selectedIds || [];
+                                            if (this.selectAll) {
+                                                if (!$store.bulkUsers.selectedIds.includes(userId)) {
+                                                    $store.bulkUsers.selectedIds.push(userId);
+                                                }
+                                            } else {
+                                                $store.bulkUsers.selectedIds = $store.bulkUsers.selectedIds.filter(id => id !== userId);
+                                            }
+                                        });
+                                    }
+                                }">
                                 <thead>
                                 <tr>
                                     @can('manage-users')
                                     <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white w-12">
                                         <input type="checkbox" 
                                             x-model="selectAll"
-                                            @change="toggleAll"
+                                            @change="toggleAll()"
                                             class="rounded border-gray-300 text-brand-green focus:ring-brand-green dark:border-gray-600 dark:bg-gray-700"
                                             title="Select all users on this page">
                                     </th>
@@ -269,9 +284,11 @@
                                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32 hidden md:table-cell">
                                         <x-sortable-column column="created_at" label="Created" :sort="$sort" :direction="$direction" route="users.index" />
                                     </th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32 hidden md:table-cell">
-                                        <x-sortable-column column="active" label="Status" :sort="$sort" :direction="$direction" route="users.index" />
+                                    @if(app_setting('feature_user_tags', false))
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white w-32 hidden md:table-cell">
+                                        Tags
                                     </th>
+                                    @endif
                                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-16">
                                         <x-sortable-column column="hours" label="Hours" :sort="$sort" :direction="$direction" route="users.index" />
                                     </th>
@@ -287,7 +304,8 @@
                                     @can('manage-users')
                                     <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm w-12">
                                         <input type="checkbox" 
-                                            x-model="$store.bulkUsers.selectedUsers[{{ $user->id }}]"
+                                            :checked="$store.bulkUsers.selectedIds.includes({{ $user->id }})"
+                                            @change="$store.bulkUsers.toggle({{ $user->id }})"
                                             value="{{ $user->id }}"
                                             class="rounded border-gray-300 text-brand-green focus:ring-brand-green dark:border-gray-600 dark:bg-gray-700"
                                             title="Select {{ $user->name }}">
@@ -301,7 +319,14 @@
                                         <img class="h-11 w-11 rounded-full" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
                                         </div> --}}
                                         <div class="ml-4">
-                                        <div class="font-medium text-gray-900 dark:text-gray-100">{{$user->name}}</div>
+                                        <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                                            {{$user->name}}
+                                            @if($user->active)
+                                                <span class="inline-block w-2 h-2 rounded-full bg-green-500" title="Active"></span>
+                                            @else
+                                                <span class="inline-block w-2 h-2 rounded-full bg-red-500" title="Inactive"></span>
+                                            @endif
+                                        </div>
                                         </a>
                                         @if(Auth::user()->isAdmin())
                                             <div class="mt-1 text-xs text-gray-500">{{$user->first_name}} {{$user->last_name}}</div>
@@ -326,13 +351,17 @@
                                     <td class="whitespace-nowrap px-3 py-5 text-xs text-gray-500 hidden md:table-cell">
                                         {{$user->created_at->diffForHumans()}}
                                     </td>
-                                    <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 hidden md:table-cell">
-                                        @if($user->active)
-                                        <span class="active-badge">Active</span>
-                                        @else
-                                        <span class="inactive-badge">Inactive</span>
-                                        @endif
+                                    @if(app_setting('feature_user_tags', false))
+                                    <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
+                                        <div class="flex flex-wrap gap-1">
+                                        @forelse($user->tags as $tag)
+                                            <span class="inline-flex items-center px-1 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">{{$tag->name}}</span>
+                                        @empty
+                                            <span class="text-xs text-gray-400">—</span>
+                                        @endforelse
+                                        </div>
                                     </td>
+                                    @endif
                                     <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
                                         @if( Auth::user()->isAdmin() || Auth::user()->id == $user->id)
                                             <div class="text-gray-900 dark:text-gray-100 font-black">{{format_hours($user->totalHoursForCurrentFiscalLedger())}}</div>
@@ -606,64 +635,29 @@
 
 <script>
 document.addEventListener('alpine:init', () => {
-    // Create a global store for bulk user selection with reactive data
     Alpine.store('bulkUsers', {
-        selectedUsers: {},
+        selectedIds: [],
         
         get count() {
-            return Object.values(this.selectedUsers).filter(Boolean).length;
-        },
-        
-        get ids() {
-            return Object.keys(this.selectedUsers).filter(id => this.selectedUsers[id]);
+            return this.selectedIds.length;
         },
         
         get idsString() {
-            return this.ids.join(',');
+            return this.selectedIds.join(',');
         },
         
         toggle(userId) {
-            this.selectedUsers[userId] = !this.selectedUsers[userId];
-        },
-        
-        select(userId) {
-            this.selectedUsers[userId] = true;
-        },
-        
-        deselect(userId) {
-            this.selectedUsers[userId] = false;
+            const index = this.selectedIds.indexOf(userId);
+            if (index > -1) {
+                this.selectedIds.splice(index, 1);
+            } else {
+                this.selectedIds.push(userId);
+            }
         },
         
         clear() {
-            Object.keys(this.selectedUsers).forEach(key => {
-                delete this.selectedUsers[key];
-            });
+            this.selectedIds = [];
         }
     });
-    
-    Alpine.data('bulkUserSelection', () => ({
-        selectAll: false,
-        
-        init() {
-            // Make store accessible globally for modal access (backward compatibility)
-            window.bulkUserSelection = {
-                selectedUsers: Alpine.store('bulkUsers').selectedUsers
-            };
-        },
-        
-        toggleAll() {
-            const checkboxes = this.$root.querySelectorAll('tbody input[type="checkbox"]');
-            const store = Alpine.store('bulkUsers');
-            
-            checkboxes.forEach(checkbox => {
-                const userId = parseInt(checkbox.value);
-                if (this.selectAll) {
-                    store.select(userId);
-                } else {
-                    store.deselect(userId);
-                }
-            });
-        }
-    }));
 });
 </script>
