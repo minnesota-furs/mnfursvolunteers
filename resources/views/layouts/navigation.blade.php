@@ -130,6 +130,11 @@
                             <x-dropdown-link :href="route('departments.index')">
                                 {{ __('Departments') }}
                             </x-dropdown-link>
+                            @can('manage-custom-fields')
+                            <x-dropdown-link :href="route('admin.custom-fields.index')">
+                                {{ __('User Custom Fields') }}
+                            </x-dropdown-link>
+                            @endcan
                         </x-slot>
                     </x-dropdown>
                 </div>
@@ -307,7 +312,7 @@
                         {{ __('One Off Events') }}
                     </x-responsive-nav-link>
                     
-                    @if( Auth::check() && Auth::user()->isAdmin() )
+                    @if( Auth::user()->isAdmin() )
                     <x-responsive-nav-link :href="route('ledger.index')">
                         {{ __('Ledgers') }}
                     </x-responsive-nav-link>
@@ -318,6 +323,11 @@
                     <x-responsive-nav-link :href="route('departments.index')">
                         {{ __('Departments') }}
                     </x-responsive-nav-link>
+                    @if( Auth::user()->isAdmin() )
+                    <x-responsive-nav-link :href="route('admin.custom-fields.index')">
+                        {{ __('User Custom Fields') }}
+                    </x-responsive-nav-link>
+                    @endif
                 </div>
             </div>
         </div>
