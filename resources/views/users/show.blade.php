@@ -338,6 +338,61 @@
                     </div>
                         </div>
                     </div>
+                    
+                    <!-- Filter Controls -->
+                    <div class="px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+                        <form method="GET" action="{{ route('users.show', $user->id) }}" class="flex flex-wrap gap-3 items-center" id="hourFilterForm">
+                            <div class="flex items-center gap-2">
+                                <label for="period-filter" class="text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Filter by Period:</label>
+                                <select id="period-filter" name="period" 
+                                    onchange="saveScrollAndSubmit(this.form)"
+                                    class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 text-sm py-1 px-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="all" {{ $periodFilter === 'all' ? 'selected' : '' }}>All Periods</option>
+                                    <option value="current" {{ $periodFilter === 'current' ? 'selected' : '' }}>Current Period</option>
+                                    @foreach($fiscalLedgers as $ledger)
+                                        <option value="{{ $ledger->id }}" {{ $periodFilter == $ledger->id ? 'selected' : '' }}>
+                                            {{ $ledger->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                <label for="date-filter" class="text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Date Range:</label>
+                                <select id="date-filter" name="date" 
+                                    onchange="saveScrollAndSubmit(this.form)"
+                                    class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 text-sm py-1 px-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="all" {{ $dateFilter === 'all' ? 'selected' : '' }}>All Time</option>
+                                    <option value="14days" {{ $dateFilter === '14days' ? 'selected' : '' }}>Last 14 Days</option>
+                                    <option value="30days" {{ $dateFilter === '30days' ? 'selected' : '' }}>Last 30 Days</option>
+                                </select>
+                            </div>
+                            
+                            @if($periodFilter !== 'all' || $dateFilter !== 'all')
+                                <a href="{{ route('users.show', $user->id) }}" 
+                                   class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
+                                    Clear Filters
+                                </a>
+                            @endif
+                        </form>
+                    </div>
+                    
+                    <script>
+                        function saveScrollAndSubmit(form) {
+                            sessionStorage.setItem('userShowScrollPos', window.scrollY);
+                            form.submit();
+                        }
+                        
+                        // Restore scroll position after page load
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const scrollPos = sessionStorage.getItem('userShowScrollPos');
+                            if (scrollPos) {
+                                window.scrollTo(0, parseInt(scrollPos));
+                                sessionStorage.removeItem('userShowScrollPos');
+                            }
+                        });
+                    </script>
+                    
                     <div class="px-4 py-4 sm:px-6">
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">

@@ -171,7 +171,7 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
 
         $user = User::with([
@@ -184,9 +184,53 @@ class UserController extends Controller
             'tags'
         ])->findOrFail($id);
         
-        $volunteerHours = $user->volunteerHours()
+        // Get filter parameters
+        $periodFilter = $request->input('period', 'all');
+        $dateFilter = $request->input('date', 'all');
+        
+        // Build the query
+        $query = $user->volunteerHours()
+            ->with(['department.sector']);
+        
+        // Apply fiscal period filter
+        if ($periodFilter !== 'all') {
+            if ($periodFilter === 'current') {
+                // Current fiscal period
+                $currentLedger = FiscalLedger::where('start_date', '<=', now())
+                    ->where('end_date', '>=', now())
+                    ->first();
+                if ($currentLedger) {
+                    $query->where('fiscal_ledger_id', $currentLedger->id);
+                }
+            } else {
+                // Specific fiscal ledger
+                $query->where('fiscal_ledger_id', $periodFilter);
+            }
+        }
+        
+        // Apply date range filter
+        if ($dateFilter === '14days') {
+            $query->where(function($q) {
+                $q->where('volunteer_date', '>=', now()->subDays(14))
+                  ->orWhere(function($q2) {
+                      $q2->whereNull('volunteer_date')
+                         ->where('created_at', '>=', now()->subDays(14));
+                  });
+            });
+        } elseif ($dateFilter === '30days') {
+            $query->where(function($q) {
+                $q->where('volunteer_date', '>=', now()->subDays(30))
+                  ->orWhere(function($q2) {
+                      $q2->whereNull('volunteer_date')
+                         ->where('created_at', '>=', now()->subDays(30));
+                  });
+            });
+        }
+        
+        $volunteerHours = $query
             ->orderByRaw('COALESCE(volunteer_date, created_at) DESC')
-            ->paginate(15);
+            ->paginate(15)
+            ->appends($request->query());
 
         // Get timeline events for the sidebar (limited to 12)
         $timelineEvents = $user->getTimelineEvents()->take(12);
@@ -194,6 +238,14 @@ class UserController extends Controller
         // Get note counts for admins
         $totalNotes = $user->userNotes()->count();
         $writeupCount = $user->userNotes()->where('type', 'Writeup')->count();
+        
+        // Get all fiscal ledgers for filter dropdown
+        $fiscalLedgers = FiscalLedger::orderBy('start_date', 'desc')->get();
+        
+        // Get current fiscal ledger info
+        $currentLedger = FiscalLedger::where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
 
         return view('users.show', [
             'user' => $user,
@@ -201,6 +253,10 @@ class UserController extends Controller
             'timelineEvents' => $timelineEvents,
             'totalNotes' => $totalNotes,
             'writeupCount' => $writeupCount,
+            'fiscalLedgers' => $fiscalLedgers,
+            'currentLedger' => $currentLedger,
+            'periodFilter' => $periodFilter,
+            'dateFilter' => $dateFilter,
         ]);
     }
 
