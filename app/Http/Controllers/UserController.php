@@ -318,6 +318,37 @@ class UserController extends Controller
             // Sync tags
             $user->tags()->sync($validated['tags'] ?? []);
 
+            // Handle custom fields
+            $customFields = \App\Models\CustomField::active()->get();
+            foreach ($customFields as $field) {
+                $fieldKey = 'custom_field_' . $field->id;
+                
+                if ($request->has($fieldKey)) {
+                    $value = $request->input($fieldKey);
+                    
+                    // Handle checkbox fields (convert array to comma-separated string)
+                    if ($field->field_type === 'checkbox' && is_array($value)) {
+                        $value = implode(',', $value);
+                    }
+                    
+                    // Update or create the custom field value
+                    \App\Models\CustomFieldValue::updateOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'custom_field_id' => $field->id,
+                        ],
+                        [
+                            'value' => $value,
+                        ]
+                    );
+                } else {
+                    // If field is not in request (e.g., unchecked checkboxes), delete the value
+                    \App\Models\CustomFieldValue::where('user_id', $user->id)
+                        ->where('custom_field_id', $field->id)
+                        ->delete();
+                }
+            }
+
             // Optionally, flash a success message to the session
             return redirect()->route('users.show', $user->id)
                 ->with('success', [
@@ -364,9 +395,67 @@ class UserController extends Controller
         return view('users.import', []);
     }
 
-    public function export() {
-        // Fetch all users
-        $users = User::all();
+    public function export(Request $request) {
+        $search = $request->input('search');
+        $sort = $request->input('sort', 'name');
+        $direction = $request->input('direction', 'asc');
+
+        // Filter inputs - same as index method
+        $departmentFilter = $request->input('departments', []);
+        $tagFilter = $request->input('tags', []);
+        $statusFilter = $request->input('status');
+        $departmentStatus = $request->input('department_status');
+
+        // Get the current fiscal ledger
+        $currentLedger = FiscalLedger::where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+
+        // Ensure we have a ledger to work with
+        if (!$currentLedger) {
+            abort(500, 'Current fiscal ledger not found.');
+        }
+
+        // Apply the same filters as index method
+        $users = User::query()
+            ->when($search, function (Builder $query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('first_name', 'like', '%' . $search . '%')
+                    ->orWhere('last_name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('vol_code', $search);
+            })
+            ->when(!empty($departmentFilter), function (Builder $query) use ($departmentFilter) {
+                $query->whereHas('departments', function ($q) use ($departmentFilter) {
+                    $q->whereIn('departments.id', $departmentFilter);
+                });
+            })
+            ->when($departmentStatus === 'no_department', function (Builder $query) {
+                $query->doesntHave('departments');
+            })
+            ->when($departmentStatus === 'has_department', function (Builder $query) {
+                $query->has('departments');
+            })
+            ->when(!empty($tagFilter), function (Builder $query) use ($tagFilter) {
+                $query->whereHas('tags', function ($q) use ($tagFilter) {
+                    $q->whereIn('tags.id', $tagFilter);
+                });
+            })
+            ->when($statusFilter === 'active', function (Builder $query) {
+                $query->where('active', true);
+            })
+            ->when($statusFilter === 'inactive', function (Builder $query) {
+                $query->where('active', false);
+            })
+            ->when($sort === 'hours', function (Builder $query) use ($currentLedger, $direction) {
+                $query->withSum(['volunteerHours' => function ($q) use ($currentLedger) {
+                    $q->where('fiscal_ledger_id', $currentLedger->id);
+                }], 'hours')
+                ->orderBy('volunteer_hours_sum_hours', $direction);
+            }, function (Builder $query) use ($sort, $direction) {
+                $query->orderBy($sort, $direction);
+            })
+            ->get(); // Get all matching users (no pagination for export)
 
         // Define the CSV headers
         $headers = [

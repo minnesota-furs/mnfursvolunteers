@@ -128,6 +128,25 @@ class User extends Authenticatable
         return $this->belongsToMany(Tag::class)->withTimestamps();
     }
 
+    public function customFieldValues()
+    {
+        return $this->hasMany(CustomFieldValue::class);
+    }
+
+    public function getCustomFieldValue($fieldKey)
+    {
+        $customField = CustomField::where('field_key', $fieldKey)->first();
+        if (!$customField) {
+            return null;
+        }
+
+        $customFieldValue = $this->customFieldValues()
+            ->where('custom_field_id', $customField->id)
+            ->first();
+
+        return $customFieldValue ? $customFieldValue->value : null;
+    }
+
     public function totalVolunteerHours()
     {
         if (!$this->relationLoaded('volunteerHours')) {

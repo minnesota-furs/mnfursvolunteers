@@ -29,6 +29,10 @@ return [
         'label' => 'Manage User Notes',
         'description' => 'Create, view, edit, and delete notes on user profiles.',
     ],
+    'manage-custom-fields' => [
+        'label' => 'Manage Custom Fields',
+        'description' => 'Create, edit, and delete custom field definitions for users.',
+    ],
 ];
 
 

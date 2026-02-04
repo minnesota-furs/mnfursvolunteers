@@ -160,6 +160,12 @@ Route::middleware('auth')->group(function () {
         Route::get('tags/{tag}/emails', [\App\Http\Controllers\Admin\TagController::class, 'emails'])->name('tags.emails');
     });
 
+    // Custom Fields Management (nested under settings)
+    Route::middleware('isAdmin')->prefix('settings')->name('admin.')->group(function () {
+        Route::resource('custom-fields', \App\Http\Controllers\Admin\CustomFieldController::class);
+        Route::post('custom-fields/reorder', [\App\Http\Controllers\Admin\CustomFieldController::class, 'reorder'])->name('custom-fields.reorder');
+    });
+
     // Reports
     Route::prefix('report')->name('report.')->middleware('can:view-reports')->group(function () {
         Route::get('/users-without-departments', [ReportsController::class, 'usersWithoutDepartments'])->name('usersWithoutDepartments');

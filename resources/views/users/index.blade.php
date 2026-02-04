@@ -46,7 +46,7 @@
                     x-data=""
                     x-on:click.prevent="$dispatch('open-modal', 'show-trashed')">
                 <x-heroicon-o-trash class="w-4 inline"/> Show Trash</button>
-                <a href="{{route('users.export')}}"
+                <a href="{{route('users.export', request()->query())}}"
                     class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                     <x-heroicon-s-arrow-down-on-square-stack class="w-4 inline"/> Export CSV
                 </a>

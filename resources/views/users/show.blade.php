@@ -138,6 +138,42 @@
                                             </dd>
                                         </div>
                                     @endif
+
+                                    {{-- Custom Fields --}}
+                                    @php
+                                        $customFields = \App\Models\CustomField::active()->ordered()->get();
+                                    @endphp
+                                    @if($customFields->isNotEmpty())
+                                        @foreach($customFields as $field)
+                                            @php
+                                                $customFieldValue = $user->customFieldValues->where('custom_field_id', $field->id)->first();
+                                            @endphp
+                                            @if($customFieldValue && $customFieldValue->value)
+                                                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                                    <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">
+                                                        {{ $field->name }}
+                                                    </dt>
+                                                    <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
+                                                        @if($field->field_type === 'checkbox')
+                                                            <div class="flex flex-wrap gap-2">
+                                                                @foreach(explode(',', $customFieldValue->value) as $value)
+                                                                    <span class="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-100 ring-1 ring-inset ring-blue-600/20">
+                                                                        {{ $value }}
+                                                                    </span>
+                                                                @endforeach
+                                                            </div>
+                                                        @elseif($field->field_type === 'date')
+                                                            {{ \Carbon\Carbon::parse($customFieldValue->value)->format('F j, Y') }}
+                                                        @elseif($field->field_type === 'textarea')
+                                                            <div class="whitespace-pre-wrap">{{ $customFieldValue->value }}</div>
+                                                        @else
+                                                            {{ $customFieldValue->value }}
+                                                        @endif
+                                                    </dd>
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    @endif
                                 </dl>
                             </div>
                         </div>
