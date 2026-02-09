@@ -50,11 +50,14 @@
                             })
                             ->exists();
                     @endphp
+
+                    @feature('elections')
                     @if($activeElections)
                         <x-nav-link :href="route('elections.index')" :active="request()->routeIs('elections.*')">
                             {{ __('Elections') }}
                         </x-nav-link>
                     @endif
+                    @endfeature
                     
                     {{-- <x-nav-link :href="route('orgchart')" :active="request()->routeIs('orgchart')">
                         {{ __('Org Chart') }} (Test)
