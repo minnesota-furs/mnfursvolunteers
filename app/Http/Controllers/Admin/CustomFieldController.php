@@ -56,6 +56,7 @@ class CustomFieldController extends Controller
         // Handle boolean fields (checkboxes that aren't checked don't send a value)
         $validated['is_required'] = $request->has('is_required') ? 1 : 0;
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
+        $validated['user_editable'] = $request->has('user_editable') ? 1 : 0;
 
         // Convert options array to proper format for select/checkbox fields
         if (in_array($validated['field_type'], ['select', 'checkbox']) && !empty($validated['options'])) {
@@ -103,7 +104,7 @@ class CustomFieldController extends Controller
             'field_key' => 'required|string|max:255|regex:/^[a-z0-9_]+$/|unique:custom_fields,field_key,' . $customField->id,
             'field_type' => 'required|in:text,textarea,select,checkbox,date,number',
             'options' => 'nullable|array',
-            'options.*' => 'string',
+            'options.*' => 'nullable|string',
             'sort_order' => 'nullable|integer',
             'description' => 'nullable|string',
         ]);
@@ -111,6 +112,7 @@ class CustomFieldController extends Controller
         // Handle boolean fields (checkboxes that aren't checked don't send a value)
         $validated['is_required'] = $request->has('is_required') ? 1 : 0;
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
+        $validated['user_editable'] = $request->has('user_editable') ? 1 : 0;
 
         // Convert options array to proper format for select/checkbox fields
         if (in_array($validated['field_type'], ['select', 'checkbox']) && !empty($validated['options'])) {

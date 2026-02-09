@@ -41,6 +41,9 @@
                                             Required
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            User Editable
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             Status
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -67,6 +70,13 @@
                                                     <span class="text-red-600 dark:text-red-400">Yes</span>
                                                 @else
                                                     <span class="text-gray-400">No</span>
+                                                @endif
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                                @if($field->user_editable)
+                                                    <span class="text-green-600 dark:text-green-400">Yes</span>
+                                                @else
+                                                    <span class="text-gray-400">Admin Only</span>
                                                 @endif
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">

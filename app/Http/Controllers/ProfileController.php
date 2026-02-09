@@ -19,9 +19,10 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        // dd($request->user());
+        $user = $request->user()->load('customFieldValues');
+        
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
         ]);
     }
 
@@ -30,13 +31,47 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        
+        // Update basic profile fields
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $user->save();
+
+        // Handle user-editable custom fields
+        $customFields = \App\Models\CustomField::active()->userEditable()->get();
+        
+        foreach ($customFields as $field) {
+            $fieldKey = 'custom_field_' . $field->id;
+            $value = $request->input($fieldKey);
+            
+            // Handle checkbox fields (convert array to comma-separated string)
+            if ($field->field_type === 'checkbox' && is_array($value)) {
+                $value = implode(',', $value);
+            }
+            
+            // If value is empty or null, delete the custom field value
+            if (is_null($value) || $value === '' || (is_array($value) && empty($value))) {
+                \App\Models\CustomFieldValue::where('user_id', $user->id)
+                    ->where('custom_field_id', $field->id)
+                    ->delete();
+            } else {
+                // Otherwise, update or create the custom field value
+                \App\Models\CustomFieldValue::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'custom_field_id' => $field->id,
+                    ],
+                    [
+                        'value' => $value,
+                    ]
+                );
+            }
+        }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

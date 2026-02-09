@@ -139,6 +139,16 @@
                             </label>
                         </div>
 
+                        <!-- User Editable -->
+                        <div class="mb-6">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="user_editable" value="1" {{ old('user_editable', $customField->user_editable) ? 'checked' : '' }}
+                                    class="rounded border-gray-300 text-brand-green shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600">
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">User Editable (users can edit this field on their own profile)</span>
+                            </label>
+                            <p class="mt-1 ml-6 text-xs text-gray-500 dark:text-gray-400">If checked, users can modify this field on their profile page. If unchecked, only admins can edit it.</p>
+                        </div>
+
                         <!-- Sort Order -->
                         <div class="mb-6">
                             <label for="sort_order" class="block text-sm font-medium text-gray-700 dark:text-gray-300">

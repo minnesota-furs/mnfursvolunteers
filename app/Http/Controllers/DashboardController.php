@@ -56,4 +56,12 @@ class DashboardController extends Controller
 
         return view('dashboard', compact('upcomingEvents', 'upcomingShifts', 'activeElections'));
     }
+
+    public function dismissProfileNotice()
+    {
+        // Store the dismissal in session for 14 days
+        session(['profile_completion_dismissed_until' => now()->addDays(14)]);
+        
+        return response()->json(['success' => true]);
+    }
 }

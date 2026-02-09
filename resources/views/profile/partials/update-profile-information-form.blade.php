@@ -65,6 +65,9 @@
             @endif
         </div>
 
+        {{-- User-editable Custom Fields --}}
+        <x-custom-fields-input :user="$user" :userEditableOnly="true" />
+
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 

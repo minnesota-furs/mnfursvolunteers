@@ -16,6 +16,7 @@ class CustomField extends Model
         'options',
         'is_required',
         'is_active',
+        'user_editable',
         'sort_order',
         'description',
     ];
@@ -24,6 +25,7 @@ class CustomField extends Model
         'options' => 'array',
         'is_required' => 'boolean',
         'is_active' => 'boolean',
+        'user_editable' => 'boolean',
     ];
 
     /**
@@ -48,5 +50,13 @@ class CustomField extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order');
+    }
+
+    /**
+     * Scope to get only user-editable custom fields
+     */
+    public function scopeUserEditable($query)
+    {
+        return $query->where('user_editable', true);
     }
 }

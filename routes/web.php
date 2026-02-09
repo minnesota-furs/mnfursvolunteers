@@ -74,6 +74,11 @@ Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+// Dashboard actions
+Route::post('/dashboard/dismiss-profile-notice', [DashboardController::class, 'dismissProfileNotice'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.dismiss-profile-notice');
+
 // Authenticated routes
 Route::middleware('auth')->group(function () {
 
