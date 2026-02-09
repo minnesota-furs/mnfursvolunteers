@@ -51,6 +51,14 @@ class JobListing extends Model
     }
 
     /**
+     * Get the applications for this job listing.
+     */
+    public function applications()
+    {
+        return $this->hasMany(JobApplication::class);
+    }
+
+    /**
      * Generate the full permalink for the job listing.
      */
     public function getPublicPermalinkAttribute()

@@ -116,6 +116,22 @@ return [
             'description' => 'Enable or disable the job listings feature.',
             'beta' => false,
         ],
+        'feature_job_applications' => [
+            'value' => true,
+            'type' => 'boolean',
+            'group' => 'feature_flags',
+            'label' => 'Job Applications',
+            'description' => 'Enable or disable public job applications for guests. When disabled, the application form will not appear on public job listings.',
+            'beta' => false,
+        ],
+        'feature_staff_applications' => [
+            'value' => true,
+            'type' => 'boolean',
+            'group' => 'feature_flags',
+            'label' => 'Staff Applications',
+            'description' => 'Enable or disable the staff applications management system for admins. Controls the applications dashboard, claiming, and internal review features.',
+            'beta' => false,
+        ],
         'feature_one_off_events' => [
             'value' => true,
             'type' => 'boolean',

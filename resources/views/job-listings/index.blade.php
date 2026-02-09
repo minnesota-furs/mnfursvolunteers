@@ -5,6 +5,14 @@
     </x-slot>
 
     <x-slot name="actions">
+      @can('manage-staff-applications')
+        @feature('job_applications')
+        <a href="{{ route('job-listings.applicants') }}"
+            class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <x-heroicon-o-inbox class="w-4 inline"/> View Applications
+        </a>
+        @endfeature
+      @endcan
       @can('manage-job-listings')
         <button
           class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"

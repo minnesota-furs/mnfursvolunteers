@@ -61,6 +61,11 @@
 
             <x-elections-dashboard-notice :activeElections="$activeElections" />
 
+            <x-applications-dashboard-notice 
+                :unclaimedPendingCount="$unclaimedPendingCount" 
+                :claimedApplications="$claimedApplications" 
+            />
+
             <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
                     <dt class="text-xl font-bold mb-3 text-gray-500">Upcoming Volunteer Events

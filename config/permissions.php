@@ -10,8 +10,12 @@ return [
         'description' => 'Grants access to create and manage volunteer events and shifts.',
     ],
     'manage-job-listings' => [
-        'label' => 'Manage Job Listings',
-        'description' => 'Permits posting, editing, and removing job opportunities.',
+        'label' => 'Manage Staff Listings',
+        'description' => 'Permits posting, editing, and removing staff opportunities.',
+    ],
+    'manage-staff-applications' => [
+        'label' => 'Manage Staff Applications',
+        'description' => 'Allows viewing and managing staff applications from candidates.',
     ],
     'view-reports' => [
         'label' => 'View Reports',

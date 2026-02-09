@@ -336,6 +336,12 @@
                                 :beta="feature_is_beta('job_listings')" />
 
                             <x-feature-toggle 
+                                feature="job_applications" 
+                                label="Job Applications" 
+                                description="Public application forms and admin management for job applications"
+                                :beta="feature_is_beta('job_applications')" />
+
+                            <x-feature-toggle 
                                 feature="one_off_events" 
                                 label="One-Off Events" 
                                 description="Simple event check-ins without shifts with fixed volunteer hours."

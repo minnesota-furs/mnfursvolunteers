@@ -44,6 +44,7 @@ Route::post('/setup', [SetupWizardController::class, 'store'])->name('setup.stor
 Route::prefix('openings')->name('job-listings-public.')->group(function () {
     Route::get('/', [JobListingController::class, 'guestIndex'])->name('index');
     Route::get('/{id}', [JobListingController::class, 'guestShow'])->name('show');
+    Route::post('/{id}/apply', [JobListingController::class, 'submitApplication'])->name('apply');
 });
 
 // Public volunteer listings
@@ -205,6 +206,25 @@ Route::middleware('auth')->group(function () {
         Route::post('/job-listings/{id}/restore', [JobListingController::class, 'restore'])->name('job-listings.restore');
     });
     Route::resource('job-listings', JobListingController::class)->only(['index', 'show']);
+    
+    // Authenticated User Applications
+    Route::middleware('auth')->group(function () {
+        Route::get('/job-listings/{jobListing}/apply', [JobListingController::class, 'showApplyForm'])->name('job-listings.apply');
+        Route::post('/job-listings/{jobListing}/apply', [JobListingController::class, 'submitAuthenticatedApplication'])->name('job-listings.apply.submit');
+    });
+
+    // Job Applications
+    Route::middleware('can:manage-staff-applications')->prefix('job-listings/applicants')->group(function () {
+        Route::get('/all', [JobListingController::class, 'applicantsList'])->name('job-listings.applicants');
+        Route::get('/create', [JobListingController::class, 'createApplication'])->name('job-listings.applicants.create');
+        Route::post('/', [JobListingController::class, 'storeManualApplication'])->name('job-listings.applicants.store');
+        Route::get('/{application}', [JobListingController::class, 'showApplication'])->name('job-listings.applicants.show');
+        Route::patch('/{application}', [JobListingController::class, 'updateApplicationStatus'])->name('job-listings.applicants.update');
+        Route::post('/{application}/claim', [JobListingController::class, 'claimApplication'])->name('job-listings.applicants.claim');
+        Route::delete('/{application}/unclaim', [JobListingController::class, 'unclaimApplication'])->name('job-listings.applicants.unclaim');
+        Route::post('/{application}/comments', [JobListingController::class, 'storeComment'])->name('job-listings.applicants.comments.store');
+        Route::delete('/{application}', [JobListingController::class, 'deleteApplication'])->name('job-listings.applicants.delete');
+    });
 
     // Volunteer Events
     Route::middleware('can:manage-volunteer-events')->prefix('admin')->name('admin.')->group(function () {

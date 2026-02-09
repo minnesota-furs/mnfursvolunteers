@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\Election;
+use App\Models\JobApplication;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -54,7 +55,23 @@ class DashboardController extends Controller
             $election->userHasVoted = $election->votes()->where('user_id', $user->id)->exists();
         }
 
-        return view('dashboard', compact('upcomingEvents', 'upcomingShifts', 'activeElections'));
+        // Get user's claimed applications (if they have permission)
+        $claimedApplications = collect();
+        $unclaimedPendingCount = 0;
+        if ($user->can('manage-staff-applications')) {
+            $claimedApplications = JobApplication::with(['jobListing.department'])
+                ->where('claimed_by', $user->id)
+                ->whereNotIn('status', ['accepted', 'rejected'])
+                ->orderBy('created_at', 'desc')
+                ->take(10)
+                ->get();
+            
+            $unclaimedPendingCount = JobApplication::where('status', 'pending')
+                ->whereNull('claimed_by')
+                ->count();
+        }
+
+        return view('dashboard', compact('upcomingEvents', 'upcomingShifts', 'activeElections', 'claimedApplications', 'unclaimedPendingCount'));
     }
 
     public function dismissProfileNotice()
