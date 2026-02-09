@@ -18,29 +18,69 @@
         <div class="">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="px-4 sm:px-6 lg:px-8">
-                    <div class="sm:flex sm:items-center">
+                    <div class="sm:flex sm:items-center sm:justify-between">
                         <div class="sm:flex-auto">
                             <h1 class="text-base font-semibold leading-6 text-gray-900">Departments</h1>
                         </div>
-                        <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                            <form method="GET" action="{{ route('departments.index') }}" class="mb-4">
-                                <div class="flex items-center gap-2">
-                                    <label for="sector" class="text-sm font-medium text-gray-700">Filter by Sector:</label>
-                                    <select name="sector" id="sector" class="border rounded-md px-3 py-2 text-xs">
-                                        <option value="">All Sectors</option>
-                                        @foreach ($sectors as $sector)
-                                            <option value="{{ $sector->id }}" {{ $selectedSector == $sector->id ? 'selected' : '' }}>
-                                                {{ $sector->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <button type="submit" class="bg-blue-500 text-white px-4 py-1 rounded-md hover:bg-blue-600">
-                                        Filter
-                                    </button>
-                                    <a href="{{ route('departments.index') }}" class="text-gray-500 hover:underline">Reset</a>
-                                </div>
-                            </form>
-                        </div>
+                    </div>
+                    
+                    <!-- Filter Section -->
+                    <div class="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+                        <form method="GET" action="{{ route('departments.index') }}" class="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+                            <!-- Search Input -->
+                            <div class="flex-1 w-full sm:w-auto">
+                                <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <x-heroicon-o-magnifying-glass class="w-4 h-4 inline mb-0.5" /> Search
+                                </label>
+                                <input 
+                                    type="text" 
+                                    name="search" 
+                                    id="search" 
+                                    value="{{ request('search') }}"
+                                    placeholder="Search departments..."
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                />
+                            </div>
+                            
+                            <!-- Sector Filter -->
+                            <div class="flex-1 w-full sm:w-auto">
+                                <label for="sector" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <x-heroicon-o-funnel class="w-4 h-4 inline mb-0.5" /> Sector
+                                </label>
+                                <select 
+                                    name="sector" 
+                                    id="sector" 
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                >
+                                    <option value="">All Sectors</option>
+                                    @foreach ($sectors as $sector)
+                                        <option value="{{ $sector->id }}" {{ $selectedSector == $sector->id ? 'selected' : '' }}>
+                                            {{ $sector->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="flex gap-2">
+                                <button 
+                                    type="submit" 
+                                    class="inline-flex items-center px-4 py-2 bg-brand-green text-white text-sm font-medium rounded-md hover:bg-brand-green/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-green"
+                                >
+                                    <x-heroicon-o-magnifying-glass class="w-4 h-4 mr-1.5" />
+                                    Apply
+                                </button>
+                                @if(request()->hasAny(['search', 'sector']))
+                                    <a 
+                                        href="{{ route('departments.index') }}" 
+                                        class="inline-flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
+                                    >
+                                        <x-heroicon-o-x-mark class="w-4 h-4 mr-1.5" />
+                                        Reset
+                                    </a>
+                                @endif
+                            </div>
+                        </form>
                     </div>
                     <div class="mt-8 flow-root">
                         <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">

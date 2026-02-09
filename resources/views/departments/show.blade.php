@@ -105,8 +105,15 @@
                                         <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6">
                                           <div class="flex w-0 flex-1 items-center">
                                             <x-heroicon-o-briefcase class="w-4 inline"/>
-                                            <div class="ml-4 flex min-w-0 flex-1 gap-2">
+                                            <div class="ml-4 flex min-w-0 flex-1 gap-2 items-center">
                                               <span class="truncate font-medium">{{$listing->position_title}}</span>
+                                              @if($listing->visibility == 'draft')
+                                                <span class="whitespace-nowrap rounded-md bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-600/20">Draft</span>
+                                              @elseif($listing->visibility == 'public')
+                                                <span class="whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Public</span>
+                                              @else
+                                                <span class="whitespace-nowrap rounded-md bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">Internal</span>
+                                              @endif
                                             </div>
                                           </div>
                                           <div class="ml-4 flex-shrink-0">

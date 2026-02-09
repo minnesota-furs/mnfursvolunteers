@@ -35,10 +35,14 @@ class DepartmentController extends Controller
         // Get the selected sector ID from the request
         $selectedSector = $request->input('sector');
 
-        // Query departments, optionally filter by sector
+        // Query departments, optionally filter by sector and search
         $departments = Department::when($selectedSector, function ($query, $selectedSector) {
             $query->where('sector_id', $selectedSector);
-        })->with('sector')->orderBy($sort, $direction)->paginate(30);
+        })
+        ->when($search, function ($query, $search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        })
+        ->with('sector')->orderBy($sort, $direction)->paginate(30)->appends($request->except('page'));
 
         return view('departments.index', compact('departments', 'sectors', 'selectedSector',  'sort', 'direction'));
         
