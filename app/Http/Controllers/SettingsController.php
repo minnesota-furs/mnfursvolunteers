@@ -14,8 +14,9 @@ class SettingsController extends Controller
     public function index()
     {
         $settings = ApplicationSetting::getAllGrouped();
+        $pages = \App\Models\Page::orderBy('slug')->get();
         
-        return view('settings.index', compact('settings'));
+        return view('settings.index', compact('settings', 'pages'));
     }
 
     /**

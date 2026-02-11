@@ -24,8 +24,8 @@ class PageController extends Controller
         return $this->show_gjs_editor($request, $page);
     }
 
-    /**
-     * Show the form for creating a new resource.
+    /**Handle image uploads for GrapesJS
+     *Show the form for creating a new resource.
      */
     public function create()
     {
@@ -37,7 +37,30 @@ class PageController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'slug' => 'required|string|max:255|unique:pages,slug',
+        ]);
+
+        $page = Page::create([
+            'slug' => $validated['slug'],
+            'gjs_data' => json_encode([
+                'assets' => [],
+                'styles' => [],
+                'pages' => [[
+                    'id' => $validated['slug'],
+                    'frames' => [[
+                        'component' => [
+                            'type' => 'wrapper',
+                            'stylable' => true,
+                            'components' => []
+                        ],
+                        'styles' => ''
+                    ]]
+                ]]
+            ])
+        ]);
+
+        return redirect()->route('settings.index')->with(['success' => 'Page created successfully!', 'activeTab' => 'pages']);
     }
 
     /**
@@ -53,7 +76,7 @@ class PageController extends Controller
      */
     public function edit(Page $page)
     {
-        //
+        return view('pages.edit', compact('page'));
     }
 
     /**
@@ -61,7 +84,15 @@ class PageController extends Controller
      */
     public function update(Request $request, Page $page)
     {
-        //
+        $validated = $request->validate([
+            'slug' => 'required|string|max:255|unique:pages,slug,' . $page->id,
+        ]);
+
+        $page->update([
+            'slug' => $validated['slug'],
+        ]);
+
+        return redirect()->route('settings.index')->with(['success' => 'Page updated successfully!', 'activeTab' => 'pages']);
     }
 
     /**
@@ -69,6 +100,13 @@ class PageController extends Controller
      */
     public function destroy(Page $page)
     {
-        //
+        // Don't allow deletion of home page
+        if ($page->slug === 'home') {
+            return redirect()->route('settings.index')->with(['error' => 'Cannot delete the home page.', 'activeTab' => 'pages']);
+        }
+
+        $page->delete();
+
+        return redirect()->route('settings.index')->with(['success' => 'Page deleted successfully!', 'activeTab' => 'pages']);
     }
 }

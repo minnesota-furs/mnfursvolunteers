@@ -47,6 +47,11 @@
                     class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
                     Security
                 </button>
+                <button @click="activeTab = 'pages'" type="button"
+                    :class="activeTab === 'pages' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    Pages
+                </button>
             </nav>
         </div>
 
@@ -445,13 +450,98 @@
                         </div>
                     </div>
 
-                    <!-- Actions (visible on all tabs) -->
-                    <div class="flex items-center justify-end gap-4 border-t border-gray-200 dark:border-gray-700 pt-6 mt-8">
+                    <!-- Actions (visible on all tabs except Pages) -->
+                    <div x-show="activeTab !== 'pages'" class="flex items-center justify-end gap-4 border-t border-gray-200 dark:border-gray-700 pt-6 mt-8">
                         <button type="submit" class="rounded-md bg-brand-green px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-green-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">
                             Save Settings
                         </button>
                     </div>
                 </form>
+
+                <!-- Pages Management Tab (Outside Form) -->
+                <div x-show="activeTab === 'pages'" x-cloak>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Pages Management</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Manage website pages using the page builder. This is a incomplete feature and only 'home' is functional.</p>
+
+                    <!-- Create New Page Form -->
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
+                        <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Create New Page</h4>
+                        <form action="{{ route('pages.store') }}" method="POST" class="flex gap-2">
+                            @csrf
+                            <div class="flex-1">
+                                <input type="text" name="slug" id="page_slug" required
+                                    pattern="[a-z0-9-]+"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+                                    placeholder="page-slug (lowercase, hyphens only)">
+                                <p class="mt-1 text-xs text-gray-500">Use lowercase letters, numbers, and hyphens only</p>
+                            </div>
+                            <button type="submit" class="px-4 py-2 bg-brand-green text-white rounded-md hover:bg-brand-green-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-green text-sm font-medium">
+                                Create Page
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Existing Pages List -->
+                    <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-800">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Slug
+                                    </th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        URL
+                                    </th>
+                                    <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                                @forelse($pages as $page)
+                                    <tr>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            {{ $page->slug }}
+                                            @if($page->slug === 'home')
+                                                <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                    Home
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            <a href="{{ url($page->slug === 'home' ? '/' : '/' . $page->slug) }}" target="_blank" class="text-brand-green hover:text-brand-green-dark">
+                                                {{ $page->slug === 'home' ? '/' : '/' . $page->slug }}
+                                            </a>
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                                            <a href="{{ route('pages.edit', $page) }}" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300 mr-3">
+                                                Edit
+                                            </a>
+                                            <a href="{{ route('page.editor', $page) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-3">
+                                                Editor
+                                            </a>
+                                            @if($page->slug !== 'home')
+                                                <form action="{{ route('pages.destroy', $page) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" onclick="return confirm('Are you sure you want to delete this page?')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
+                                                        Delete
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="3" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                                            No pages found. Create your first page above.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -459,7 +549,7 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('settingsForm', () => ({
-                activeTab: 'branding',
+                activeTab: @json(session('activeTab', 'branding')),
                 logoPreview: null,
                 faviconPreview: null,
                 

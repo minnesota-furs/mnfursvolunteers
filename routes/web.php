@@ -298,9 +298,12 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-
-Route::get('/pages/{page}/editor', [PageController::class, 'editor'])->name('page.editor');
-
-Route::get('/pages/{page}/editor', [PageController::class, 'editor'])->name('page.editor');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pages/{page}/editor', [PageController::class, 'editor'])->name('page.editor');
+    Route::get('/pages/{page}/edit', [PageController::class, 'edit'])->name('pages.edit');
+    Route::put('/pages/{page}', [PageController::class, 'update'])->name('pages.update');
+    Route::post('/pages', [PageController::class, 'store'])->name('pages.store');
+    Route::delete('/pages/{page}', [PageController::class, 'destroy'])->name('pages.destroy');
+});
 
 require __DIR__.'/auth.php';

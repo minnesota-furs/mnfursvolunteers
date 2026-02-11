@@ -92,7 +92,7 @@ return [
 
     'assets' => [
         'disk' => 'public', //Default: local
-        'path' => null, //Default: 'laravel-grapesjs/media',
+        'path' => 'grapesjs', //Default: 'laravel-grapesjs/media',
         'upload_url' => null,
     ],
 
