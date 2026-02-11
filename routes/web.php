@@ -41,6 +41,9 @@ Route::get('/', function () {
     $page = Page::where('slug', 'home')->firstOrFail();
     return view('welcome', compact('page'));
     // return view('welcome');
+    $page = Page::where('slug', 'home')->firstOrFail();
+    return view('welcome', compact('page'));
+    // return view('welcome');
 });
 
 // Setup wizard (only accessible if no users exist)
@@ -295,6 +298,8 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+
+Route::get('/pages/{page}/editor', [PageController::class, 'editor'])->name('page.editor');
 
 Route::get('/pages/{page}/editor', [PageController::class, 'editor'])->name('page.editor');
 
