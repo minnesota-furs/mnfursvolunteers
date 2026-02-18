@@ -45,6 +45,7 @@ class SettingsController extends Controller
             'feature_volunteer_events' => 'boolean',
             'feature_wordpress_integration' => 'boolean',
             'feature_user_tags' => 'boolean',
+            'feature_recognition' => 'boolean',
             'contact_email' => 'nullable|email',
             'contact_phone' => 'nullable|string|max:20',
             'checkin_hours_before' => 'nullable|numeric|min:0|max:48',
@@ -119,6 +120,7 @@ class SettingsController extends Controller
         ApplicationSetting::set('feature_volunteer_events', $request->boolean('feature_volunteer_events'), 'boolean', 'Enable/disable volunteer events feature', 'feature_flags');
         ApplicationSetting::set('feature_wordpress_integration', $request->boolean('feature_wordpress_integration'), 'boolean', 'Enable/disable WordPress integration feature', 'feature_flags');
         ApplicationSetting::set('feature_user_tags', $request->boolean('feature_user_tags'), 'boolean', 'Enable/disable user tags feature', 'feature_flags');
+        ApplicationSetting::set('feature_recognition', $request->boolean('feature_recognition'), 'boolean', 'Enable/disable recognition and awards module', 'feature_flags');
 
         // Contact information
         if ($request->filled('contact_email')) {

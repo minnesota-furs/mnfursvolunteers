@@ -30,6 +30,11 @@
                     @if(Auth::user()->can('manage-users') || Auth::id() === $user->id)
                     <x-tailwind-dropdown-item href="{{ route('users.notes.index', $user->id) }}" title="Notes"><x-heroicon-o-pencil-square class="w-4 inline"/> Notes</x-tailwind-dropdown-item>
                     @endif
+                    @feature('recognition')
+                    @if(Auth::user()->hasPermission('manage-recognition'))
+                    <x-tailwind-dropdown-item href="{{ route('admin.recognitions.index', ['user_id' => $user->id]) }}" title="Manage Recognition"><x-heroicon-o-star class="w-4 inline"/> Manage Recognition</x-tailwind-dropdown-item>
+                    @endif
+                    @endfeature
                     @if (Auth::user()->isAdmin())
                     <x-tailwind-dropdown-item href="{{ route('users.permissions.edit', $user->id) }}" title="App Permissions"><x-heroicon-o-shield-check class="w-4 inline"/> App Permissions</x-tailwind-dropdown-item>
                     @endif

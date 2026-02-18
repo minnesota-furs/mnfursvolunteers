@@ -159,12 +159,22 @@ class ApplicationSettingsSeeder extends Seeder
                 'type' => 'number',
                 'description' => 'How many hours after an event ends can users check in',
                 'group' => 'event_settings',
-            ],            [
+            ],
+            [
                 'key' => 'contact_phone',
                 'value' => '',
                 'type' => 'string',
                 'description' => 'Contact phone number',
                 'group' => 'contact',
+            ],
+
+            // Feature Flags
+            [
+                'key' => 'feature_recognition',
+                'value' => '1',
+                'type' => 'boolean',
+                'description' => 'Enable/disable recognition and awards module',
+                'group' => 'features',
             ],
         ];
 

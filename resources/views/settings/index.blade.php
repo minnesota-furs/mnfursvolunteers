@@ -364,6 +364,12 @@
                                 label="User Tags" 
                                 description="Tagging system for organizing and categorizing users"
                                 :beta="feature_is_beta('user_tags')" />
+
+                            <x-feature-toggle 
+                                feature="recognition" 
+                                label="Recognition & Awards" 
+                                description="User recognition and awards management system with privacy controls"
+                                :beta="feature_is_beta('recognition')" />
                         </div>
                     </div>
 

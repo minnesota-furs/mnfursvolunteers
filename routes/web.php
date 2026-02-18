@@ -20,6 +20,8 @@ use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\ElectionController;
 use App\Http\Controllers\SetupWizardController;
 use App\Http\Controllers\FeatureController;
+use App\Http\Controllers\RecognitionController;
+use App\Http\Controllers\Admin\RecognitionController as AdminRecognitionController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -91,6 +93,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/link-wordpress', [ProfileController::class, 'linkWordPress'])->name('link-wordpress');
         Route::delete('/unlink-wordpress', [ProfileController::class, 'unlinkWordPress'])->name('unlink-wordpress');
         Route::patch('/email-preferences', [ProfileController::class, 'updateEmailPreferences'])->name('email-preferences');
+    });
+
+    // Recognition & Awards
+    Route::prefix('recognition')->name('recognition.')->group(function () {
+        Route::get('/my-recognitions', [RecognitionController::class, 'myRecognitions'])->name('my-recognitions');
+        Route::get('/user/{user}', [RecognitionController::class, 'showUserRecognitions'])->name('user-recognitions');
     });
 
     // One Off Events
@@ -224,6 +232,11 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{application}/unclaim', [JobListingController::class, 'unclaimApplication'])->name('job-listings.applicants.unclaim');
         Route::post('/{application}/comments', [JobListingController::class, 'storeComment'])->name('job-listings.applicants.comments.store');
         Route::delete('/{application}', [JobListingController::class, 'deleteApplication'])->name('job-listings.applicants.delete');
+    });
+
+    // Recognition & Awards - Admin Management
+    Route::middleware('can:manage-recognition')->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('recognitions', AdminRecognitionController::class);
     });
 
     // Volunteer Events

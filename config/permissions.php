@@ -37,6 +37,10 @@ return [
         'label' => 'Manage Custom Fields',
         'description' => 'Create, edit, and delete custom field definitions for users.',
     ],
+    'manage-recognition' => [
+        'label' => 'Manage Recognition',
+        'description' => 'Create, edit, and delete user recognition and awards. Can view private recognition.',
+    ],
 ];
 
 

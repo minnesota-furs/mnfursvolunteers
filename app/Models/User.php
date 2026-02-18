@@ -133,6 +133,16 @@ class User extends Authenticatable
         return $this->hasMany(CustomFieldValue::class);
     }
 
+    public function recognitions()
+    {
+        return $this->hasMany(Recognition::class);
+    }
+
+    public function grantedRecognitions()
+    {
+        return $this->hasMany(Recognition::class, 'granted_by_user_id');
+    }
+
     public function getCustomFieldValue($fieldKey)
     {
         $customField = CustomField::where('field_key', $fieldKey)->first();
