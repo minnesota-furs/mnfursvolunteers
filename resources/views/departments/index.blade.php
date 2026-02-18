@@ -16,7 +16,7 @@
         </x-slot>
 
         <div class="">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto sm:px-2">
                 <div class="px-4 sm:px-6 lg:px-8">
                     <div class="sm:flex sm:items-center sm:justify-between">
                         <div class="sm:flex-auto">
