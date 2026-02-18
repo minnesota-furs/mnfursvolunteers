@@ -26,6 +26,13 @@
 </head>
 
 <body class="min-h-full">
+    @if (filter_var(env('DEMO', false), FILTER_VALIDATE_BOOLEAN))
+        <div class="pointer-events-none fixed left-0 top-0 z-50 h-24 w-24 overflow-hidden">
+            <a href="{{ route('demo') }}" class="pointer-events-auto absolute left-[-38px] top-[14px] w-40 -rotate-45 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 text-center text-xs font-bold tracking-widest text-white shadow-lg" aria-label="Demo information">
+                <span class="block py-1">DEMO</span>
+            </a>
+        </div>
+    @endif
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
         <div class="pt-2 pb-32 shadow-lg dark:bg-gray-800" style="background-color: {{ app_setting('primary_color', '#10b981') }};">
             @include('layouts.navigation')

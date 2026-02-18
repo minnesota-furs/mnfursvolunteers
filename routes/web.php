@@ -37,6 +37,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::view('/', 'welcome');
+Route::view('/demo', 'demo')->name('demo');
 
 // Setup wizard (only accessible if no users exist)
 Route::get('/setup', [SetupWizardController::class, 'index'])->name('setup.index');
