@@ -146,7 +146,7 @@
                                                         </button>
                                                     </form>
                                                     <button type="button" 
-                                                        onclick="window.dispatchEvent(new CustomEvent('open-duplicate-modal', { detail: { id: {{ $shift->id }}, name: '{{ addslashes($shift->name) }}' } }))"
+                                                        onclick="window.dispatchEvent(new CustomEvent('open-duplicate-modal', { detail: { id: {{ $shift->id }}, name: '{{ addslashes($shift->name) }}', startTime: '{{ $shift->start_time->format('Y-m-d H:i:s') }}' } }))"
                                                         class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
                                                         title="Advanced duplicate with multiple options">
                                                         <x-heroicon-o-squares-plus class="w-4 inline"/> Advanced Duplicate

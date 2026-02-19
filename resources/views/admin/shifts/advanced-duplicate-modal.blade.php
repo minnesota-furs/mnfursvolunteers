@@ -90,12 +90,14 @@
                                             <input type="number" 
                                                    name="interval" 
                                                    x-model.number="interval"
+                                                   @input="generatePreview"
                                                    min="1" 
                                                    max="365"
                                                    required
                                                    class="block w-20 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                                             <select name="interval_unit" 
                                                     x-model="intervalUnit"
+                                                    @change="generatePreview"
                                                     class="block flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                                                 <option value="days">Day(s)</option>
                                                 <option value="weeks">Week(s)</option>
@@ -122,6 +124,7 @@
                                             @change="generatePreview"
                                             class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                                         <option value="sequence">Original Name + (Number)</option>
+                                        <option value="start_time">Original Name + Start Time</option>
                                         <option value="prefix">Prefix + Original Name</option>
                                         <option value="suffix">Original Name + Suffix</option>
                                         <option value="prefix_sequence">Prefix + Original Name + (Number)</option>
@@ -158,8 +161,9 @@
 
                                     <div x-show="namingPattern === 'custom'" x-transition>
                                         <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                                            Use <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">{n}</code> for sequence number and 
-                                            <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">{name}</code> for original name
+                                            Use <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">{n}</code> for sequence number, 
+                                            <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">{name}</code> for original name, and 
+                                            <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">{t}</code> for start time
                                         </p>
                                     </div>
                                 </div>
@@ -259,6 +263,7 @@ function advancedDuplicateModal() {
         open: false,
         shiftId: null,
         shiftName: '',
+        shiftStartTime: null,
         recurrence: 1,
         interval: 1,
         intervalUnit: 'days',
@@ -273,18 +278,53 @@ function advancedDuplicateModal() {
             console.log('Opening modal for shift:', shift);
             this.shiftId = shift.id;
             this.shiftName = shift.name;
+            this.shiftStartTime = shift.startTime ? new Date(shift.startTime) : null;
             this.open = true;
             this.generatePreview();
+        },
+        
+        formatTime(date) {
+            // Format time like "2pm", "3pm", etc.
+            let hours = date.getHours();
+            let ampm = hours >= 12 ? 'pm' : 'am';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // 0 should be 12
+            return hours + ampm;
+        },
+        
+        calculateStartTime(iteration) {
+            if (!this.shiftStartTime) return '';
+            
+            let newTime = new Date(this.shiftStartTime);
+            let offset = this.interval * iteration;
+            
+            switch(this.intervalUnit) {
+                case 'hours':
+                    newTime.setHours(newTime.getHours() + offset);
+                    break;
+                case 'days':
+                    newTime.setDate(newTime.getDate() + offset);
+                    break;
+                case 'weeks':
+                    newTime.setDate(newTime.getDate() + (offset * 7));
+                    break;
+            }
+            
+            return this.formatTime(newTime);
         },
         
         generatePreview() {
             this.previewShifts = [];
             for (let i = 1; i <= Math.min(this.recurrence, 10); i++) {
                 let name = this.shiftName;
+                let timeStr = this.calculateStartTime(i);
                 
                 switch(this.namingPattern) {
                     case 'sequence':
                         name = this.shiftName + ' (' + i + ')';
+                        break;
+                    case 'start_time':
+                        name = this.shiftName + ' (' + timeStr + ')';
                         break;
                     case 'prefix':
                         name = this.customPrefix + ' ' + this.shiftName;
@@ -299,7 +339,10 @@ function advancedDuplicateModal() {
                         name = this.shiftName + ' (' + i + ') ' + this.customSuffix;
                         break;
                     case 'custom':
-                        name = this.customPrefix.replace('{n}', i).replace('{name}', this.shiftName);
+                        name = this.customPrefix
+                            .replace('{n}', i)
+                            .replace('{name}', this.shiftName)
+                            .replace('{t}', timeStr);
                         break;
                 }
                 

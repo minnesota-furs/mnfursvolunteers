@@ -26,7 +26,7 @@ class AdvancedDuplicateShiftRequest extends FormRequest
             'recurrence' => 'required|integer|min:1|max:100',
             'interval' => 'required|integer|min:1|max:365',
             'interval_unit' => 'required|in:hours,days,weeks',
-            'naming_pattern' => 'required|in:sequence,prefix,suffix,prefix_sequence,suffix_sequence,custom,none',
+            'naming_pattern' => 'required|in:sequence,start_time,prefix,suffix,prefix_sequence,suffix_sequence,custom,none',
             'custom_prefix' => 'nullable|string|max:100',
             'custom_suffix' => 'nullable|string|max:100',
             'copy_volunteers' => 'nullable|boolean',

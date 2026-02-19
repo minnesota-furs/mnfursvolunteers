@@ -262,7 +262,7 @@ class ShiftController extends Controller
             }
 
             // Generate new name based on pattern
-            $newName = $this->generateShiftName($shift->name, $namingPattern, $i, $customPrefix, $customSuffix);
+            $newName = $this->generateShiftName($shift->name, $namingPattern, $i, $customPrefix, $customSuffix, $newStartTime);
 
             // Create the new shift
             $newShift = $shift->replicate();
@@ -309,11 +309,17 @@ class ShiftController extends Controller
     /**
      * Generate shift name based on naming pattern
      */
-    private function generateShiftName(string $originalName, string $pattern, int $sequence, string $prefix = '', string $suffix = ''): string
+    private function generateShiftName(string $originalName, string $pattern, int $sequence, string $prefix = '', string $suffix = '', $startTime = null): string
     {
+        // Format start time for display (e.g., "2pm", "3pm")
+        $formattedTime = $startTime ? $startTime->format('ga') : '';
+        
         switch ($pattern) {
             case 'sequence':
                 return "{$originalName} ({$sequence})";
+            
+            case 'start_time':
+                return "{$originalName} ({$formattedTime})";
             
             case 'prefix':
                 return "{$prefix} {$originalName}";
@@ -328,7 +334,7 @@ class ShiftController extends Controller
                 return "{$originalName} ({$sequence}) {$suffix}";
             
             case 'custom':
-                return str_replace(['{n}', '{name}'], [$sequence, $originalName], $prefix);
+                return str_replace(['{n}', '{name}', '{t}'], [$sequence, $originalName, $formattedTime], $prefix);
             
             case 'none':
             default:
