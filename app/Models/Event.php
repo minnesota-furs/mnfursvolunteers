@@ -73,9 +73,19 @@ class Event extends Model
         return $this->visibility === 'draft';
     }
 
+    public function isInternal()
+    {
+        return $this->visibility === 'internal';
+    }
+
     public function scopeVisibleToPublic($query)
     {
         return $query->where('visibility', 'public');
+    }
+
+    public function scopeVisibleToAuthUsers($query)
+    {
+        return $query->whereIn('visibility', ['public', 'unlisted', 'internal']);
     }
 
     public function scopeNotDraft($query)

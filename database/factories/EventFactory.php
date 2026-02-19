@@ -35,7 +35,7 @@ class EventFactory extends Factory
                 'Hotel Ballroom',
             ]),
             'created_by' => User::factory(),
-            'visibility' => fake()->randomElement(['public', 'unlisted', 'draft']),
+            'visibility' => fake()->randomElement(['public', 'unlisted', 'internal', 'draft']),
             'hide_past_shifts' => fake()->boolean(30), // 30% chance to hide past shifts
             'signup_open_date' => fake()->optional(0.7)->dateTimeBetween('-1 month', $startDate),
         ];

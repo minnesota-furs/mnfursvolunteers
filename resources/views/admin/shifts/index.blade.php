@@ -19,7 +19,7 @@
                 <x-tailwind-dropdown-item href="{{ route('admin.events.allShifts', $event) }}" title="View all the shifts and their associated volunteers">View Shift Overview</x-tailwind-dropdown-item>
                 <x-tailwind-dropdown-item href="{{ route('admin.events.agenda', $event) }}" title="View calendar-style agenda with shift coverage visualization"><x-heroicon-o-calendar class="w-4 inline"/> View Agenda</x-tailwind-dropdown-item>
             </div>
-            @if ($event->visibility === 'public' || $event->visibility === 'unlisted' )
+            @if ($event->visibility === 'public' || $event->visibility === 'unlisted' || $event->visibility === 'internal' )
             <div class="py-1" role="none">
                 <x-tailwind-dropdown-item href="#" title="Link to the logged in user signup sheet" onclick="copyToClipboard('{{ route('volunteer.events.show', $event) }}')">
                     <x-heroicon-s-link class="w-4 inline"/> Copy Internal Signup URL

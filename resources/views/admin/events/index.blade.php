@@ -119,6 +119,13 @@
                                                     </svg>
                                                     Unlisted
                                                 </span>
+                                            @elseif($event->visibility === 'internal')
+                                                <span class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-200 px-1.5 py-0.5 text-xs font-medium text-blue-800">
+                                                    <svg class="size-1.5 fill-blue-800" viewBox="0 0 6 6" aria-hidden="true">
+                                                    <circle cx="3" cy="3" r="3" />
+                                                    </svg>
+                                                    Internal
+                                                </span>
                                             @else
                                                 <span class="inline-flex items-center gap-x-1.5 rounded-md bg-green-200 px-1.5 py-0.5 text-xs font-medium text-green-800">
                                                     <svg class="size-1.5 fill-green-800" viewBox="0 0 6 6" aria-hidden="true">
@@ -162,7 +169,7 @@
                                                         <x-tailwind-dropdown-item href="{{ route('admin.events.allShifts', $event) }}" title="View all the shifts and their associated volunteers">View Shift Overview</x-tailwind-dropdown-item>
                                                         {{-- <x-tailwind-dropdown-item href="{{ route('admin.events.agenda', $event) }}" title="View the shifts in a day agenda view">View Agenda (BETA)</x-tailwind-dropdown-item> --}}
                                                     </div>
-                                                    @if ($event->visibility === 'public' || $event->visibility === 'unlisted' )
+                                                    @if ($event->visibility === 'public' || $event->visibility === 'unlisted' || $event->visibility === 'internal' )
                                                     <div class="py-1" role="none">
                                                         <x-tailwind-dropdown-item href="#" title="Link to the logged in user signup sheet" onclick="copyToClipboard('{{ route('volunteer.events.show', $event) }}')">
                                                             <x-heroicon-s-link class="w-4 inline"/> Copy Internal Signup URL

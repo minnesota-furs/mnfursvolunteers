@@ -14,12 +14,12 @@ class VolunteerEventController extends Controller
         $now = Carbon::now();
         $threeMonthsAgo = $now->copy()->subMonths(3);
 
-        $upcomingEvents = Event::visibleToPublic()
+        $upcomingEvents = Event::visibleToAuthUsers()
             ->where('start_date', '>=', $now)
             ->orderBy('start_date')
             ->get();
 
-        $recentPastEvents = Event::visibleToPublic()
+        $recentPastEvents = Event::visibleToAuthUsers()
             ->whereBetween('start_date', [$threeMonthsAgo, $now])  
             ->orderByDesc('start_date')
             ->get();

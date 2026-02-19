@@ -110,12 +110,14 @@
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-select-input name="visibility" id="visibility" class="block w-64 text-sm">
                             <option value="draft" {{ old('visibility', $event->visibility ?? '') == 'draft' ? 'selected' : '' }}>Draft</option>
+                            <option value="internal" {{ old('visibility', $event->visibility ?? '') == 'internal' ? 'selected' : '' }}>Internal</option>
                             <option value="unlisted" {{ old('visibility', $event->visibility ?? '') == 'unlisted' ? 'selected' : '' }}>Unlisted</option>
                             <option value="public" {{ old('visibility', $event->visibility ?? '') == 'public' ? 'selected' : '' }}>Public</option>
                         </x-select-input>
                         <x-form-validation for="visibility" />
                         <p class="text-gray-500 text-sm mt-1">Public will show up on to everyone, including guests.</p>
                         <p class="text-gray-500 text-sm mt-1">Unlisted lets you link it to people, but isn't organically discoverable.</p>
+                        <p class="text-gray-500 text-sm mt-1">Internal is visible to signed-in users but won't appear on the public site.</p>
                         <p class="text-gray-500 text-sm mt-1">Draft is just when you are working on it and don't want to publish it yet.</p>
                     </dd>
                 </div>
