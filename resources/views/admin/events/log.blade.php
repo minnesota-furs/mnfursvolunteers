@@ -45,7 +45,7 @@
                                         </td>
                                         <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900 dark:text-white">{{ $log->user->name }}</td>
                                         <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900 dark:text-white">{{ $log->action }}</td>
-                                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-400">
+                                        <td class="px-2 py-2 text-sm text-gray-500 dark:text-gray-400 break-words">
                                             {{-- <pre>{{ json_encode($log->changes, JSON_PRETTY_PRINT) }}</pre> --}}
                                             @if($log->comment)
                                                 <em>{{ $log->comment }}</em>

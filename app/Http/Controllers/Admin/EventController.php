@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Requests\AdvancedDuplicateEventRequest;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Event;
@@ -405,5 +406,138 @@ class EventController extends Controller
         return redirect()->back()->with('success', [
             'message' => "Removed <span class=\"text-brand-green\">{$user->name}</span> as an editor for this event."
         ]);
+    }
+
+    /**
+     * Show the advanced duplicate modal for an event
+     */
+    public function showDuplicateModal(Event $event)
+    {
+        $this->authorize('update', $event);
+        return response()->json([
+            'event' => $event,
+            'shifts_count' => $event->shifts()->count(),
+        ]);
+    }
+
+    /**
+     * Process advanced duplicate request to create event copy with all shifts (no volunteers)
+     */
+    public function advancedDuplicate(AdvancedDuplicateEventRequest $request, Event $event)
+    {
+        $this->authorize('update', $event);
+        
+        $validated = $request->validated();
+
+        try {
+            // Create new event
+            $newEvent = $event->replicate();
+            $newEvent->name = $validated['event_name'];
+            $newEvent->created_by = auth()->id();
+
+            // Handle event date adjustment
+            $eventDateOffset = null;
+            if ($validated['adjust_event_dates'] ?? false) {
+                $offsetValue = $validated['event_date_offset_value'] ?? 1;
+                $offsetUnit = $validated['event_date_offset_unit'] ?? 'days';
+                
+                $eventDateOffset = [
+                    'value' => $offsetValue,
+                    'unit' => $offsetUnit,
+                ];
+
+                $newStartDate = clone $event->start_date;
+                $newEndDate = clone $event->end_date;
+
+                match ($offsetUnit) {
+                    'days' => [
+                        $newStartDate->addDays($offsetValue),
+                        $newEndDate->addDays($offsetValue),
+                    ],
+                    'weeks' => [
+                        $newStartDate->addWeeks($offsetValue),
+                        $newEndDate->addWeeks($offsetValue),
+                    ],
+                    'months' => [
+                        $newStartDate->addMonths($offsetValue),
+                        $newEndDate->addMonths($offsetValue),
+                    ],
+                    'years' => [
+                        $newStartDate->addYears($offsetValue),
+                        $newEndDate->addYears($offsetValue),
+                    ],
+                };
+
+                $newEvent->start_date = $newStartDate;
+                $newEvent->end_date = $newEndDate;
+            }
+
+            $newEvent->save();
+
+            // Copy required tags if requested
+            if ($validated['copy_required_tags'] ?? false) {
+                $tagIds = $event->requiredTags()->pluck('tags.id')->toArray();
+                $newEvent->requiredTags()->sync($tagIds);
+            }
+
+            // Duplicate shifts without volunteers
+            $shiftMapping = []; // Map old shift IDs to new shift IDs
+
+            foreach ($event->shifts as $shift) {
+                $newShift = $shift->replicate();
+                $newShift->event_id = $newEvent->id;
+
+                // Adjust shift dates if event dates are being adjusted
+                if ($eventDateOffset) {
+                    $newStartTime = clone $shift->start_time;
+                    $newEndTime = clone $shift->end_time;
+
+                    match ($eventDateOffset['unit']) {
+                        'days' => [
+                            $newStartTime->addDays($eventDateOffset['value']),
+                            $newEndTime->addDays($eventDateOffset['value']),
+                        ],
+                        'weeks' => [
+                            $newStartTime->addWeeks($eventDateOffset['value']),
+                            $newEndTime->addWeeks($eventDateOffset['value']),
+                        ],
+                        'months' => [
+                            $newStartTime->addMonths($eventDateOffset['value']),
+                            $newEndTime->addMonths($eventDateOffset['value']),
+                        ],
+                        'years' => [
+                            $newStartTime->addYears($eventDateOffset['value']),
+                            $newEndTime->addYears($eventDateOffset['value']),
+                        ],
+                    };
+
+                    $newShift->start_time = $newStartTime;
+                    $newShift->end_time = $newEndTime;
+                }
+
+                $newShift->original_shift_id = $shift->id;
+                $newShift->save();
+
+                $shiftMapping[$shift->id] = $newShift->id;
+            }
+
+            // Log the action
+            AuditLog::create([
+                'action'         => 'event_advanced_duplicate',
+                'auditable_type' => Event::class,
+                'auditable_id'   => $newEvent->id,
+                'comment'        => "User " . auth()->user()->name . " duplicated event '{$event->name}' (ID: {$event->id}) as '{$newEvent->name}' with " . count($shiftMapping) . " shifts (no volunteers copied)",
+                'user_id'        => auth()->id(),
+            ]);
+
+            return redirect()->route('admin.events.index')
+                ->with('success', [
+                    'message' => "Event <span class=\"text-brand-green\">{$validated['event_name']}</span> created with " . count($shiftMapping) . " shifts",
+                ]);
+        } catch (\Exception $e) {
+            return back()->with('error', [
+                'message' => 'Failed to duplicate event: ' . $e->getMessage(),
+            ]);
+        }
     }
 }

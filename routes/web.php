@@ -249,6 +249,7 @@ Route::middleware('auth')->group(function () {
         Route::post('events/{event}/shifts/import', [ShiftController::class, 'importCsv'])->name('events.shifts.import');
         Route::delete('events/{event}/shifts/{shift}/remove-volunteer/{user}', [ShiftController::class, 'removeVolunteer'])->name('events.shifts.remove-volunteer');
         Route::post('events/{event}/shifts/{shift}/add-volunteer/{user}', [ShiftController::class, 'addVolunteer'])->name('events.shifts.add-volunteer');
+        Route::post('events/{event}/advanced-duplicate', [EventController::class, 'advancedDuplicate'])->name('events.advanced-duplicate');
         Route::get('/events/{event}/volunteers', [EventController::class, 'volunteerList'])->name('events.volunteers');
         Route::get('/events/{event}/allShifts', [EventController::class, 'indexWithShifts'])->name('events.allShifts');
         Route::get('/events/{event}/allShifts/print', [EventController::class, 'indexWithShiftsPrint'])->name('events.allShifts.print');
