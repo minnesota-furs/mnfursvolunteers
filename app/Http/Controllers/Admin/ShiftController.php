@@ -216,6 +216,50 @@ class ShiftController extends Controller
         ]);
     }
 
+    public function setNoShow(Request $request, Event $event, Shift $shift, User $user)
+    {
+        $request->validate([
+            'no_show' => 'required|boolean',
+        ]);
+
+        $signup = $shift->users()->where('user_id', $user->id)->first();
+
+        if (! $signup) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Volunteer is not assigned to this shift.',
+            ], 404);
+        }
+
+        $noShow = $request->boolean('no_show');
+
+        if ($noShow && $signup->pivot->hours_logged_at) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hours have already been credited for this volunteer. Remove hours before marking a no show.',
+            ], 422);
+        }
+
+        $shift->users()->updateExistingPivot($user->id, [
+            'no_show' => $noShow,
+            'no_show_marked_at' => $noShow ? now() : null,
+        ]);
+
+        AuditLog::create([
+            'action'         => $noShow ? 'shift_volunteer_no_show_marked' : 'shift_volunteer_no_show_cleared',
+            'auditable_type' => Event::class,
+            'auditable_id'   => $shift->event->id,
+            'comment'        => "User {$user->name} " . ($noShow ? 'marked as no show' : 'unmarked as no show') . " for {$shift->name} (ID: {$shift->id}) by " . auth()->user()->name,
+            'user_id'        => auth()->id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'no_show' => $noShow,
+            'message' => $noShow ? "{$user->name} marked as a no show." : "{$user->name} is no longer marked as a no show.",
+        ]);
+    }
+
     /**
      * Process advanced duplicate request to create multiple shift copies
      */

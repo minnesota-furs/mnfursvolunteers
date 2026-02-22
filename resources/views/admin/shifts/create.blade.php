@@ -137,17 +137,28 @@
                                 <x-heroicon-m-check-badge title="Hours Credited" class="w-5 mr-2 text-green-600"/> 
                             @endif
                             <div>
-                                <div class="font-medium">{{ $user->name }}</div>
-                                <div class="text-sm text-gray-500">{{ $user->email }}</div>
+                                @if($user->pivot->no_show)
+                                    <span class="no-show-badge inline-flex items-center rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-xs font-medium mb-1">No Show</span>
+                                @else
+                                    <span class="no-show-badge hidden inline-flex items-center rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-xs font-medium mb-1">No Show</span>
+                                @endif
+                                <div class="font-medium">
+                                    <a href="{{ route('users.show', $user->id) }}" class="text-blue-600 hover:underline">{{ $user->name }}</a>
+                                </div>
+                                <div class="text-xs text-gray-500">{{ $user->email }}</div>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <a href="{{ route('users.show', $user->id) }}" 
-                               class="text-blue-600 hover:underline text-sm">
-                                View Profile
-                            </a>
+                        <div class="flex flex-col items-start gap-1">
+                            <button type="button"
+                                    class="no-show-toggle-btn text-amber-700 hover:bg-amber-50 px-2 py-1 rounded text-xs"
+                                    data-user-id="{{ $user->id }}"
+                                    data-user-name="{{ $user->name }}"
+                                    data-no-show="{{ $user->pivot->no_show ? 1 : 0 }}">
+                                <x-heroicon-m-exclamation-triangle class="w-4 inline mr-1"/>
+                                {{ $user->pivot->no_show ? 'Unmark No Show' : 'Mark No Show' }}
+                            </button>
                             <button type="button" 
-                                    class="remove-volunteer-btn text-red-600 hover:bg-red-50 px-2 py-1 rounded text-sm"
+                                    class="remove-volunteer-btn text-red-600 hover:bg-red-50 px-2 py-1 rounded text-xs"
                                     data-user-id="{{ $user->id }}"
                                     data-user-name="{{ $user->name }}">
                                 <x-heroicon-m-trash class="w-4 inline mr-1"/> Remove
@@ -374,6 +385,20 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Handle no-show toggle buttons
+    document.querySelectorAll('.no-show-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            const userName = this.dataset.userName;
+            const isNoShow = this.dataset.noShow === '1';
+            const actionLabel = isNoShow ? 'unmark' : 'mark';
+
+            if (confirm(`Are you sure you want to ${actionLabel} ${userName} as a no show?`)) {
+                toggleNoShow(userId, this);
+            }
+        });
+    });
+
     function removeVolunteerFromShift(userId, button) {
         const volunteerItem = button.closest('.volunteer-item');
         button.disabled = true;
@@ -412,6 +437,56 @@ document.addEventListener('DOMContentLoaded', function () {
             showNotification('An error occurred while removing the volunteer', 'error');
             button.disabled = false;
             button.innerHTML = '<span class="w-4 inline mr-1">🗑</span> Remove';
+        });
+    }
+
+    function toggleNoShow(userId, button) {
+        const volunteerItem = button.closest('.volunteer-item');
+        const badge = volunteerItem.querySelector('.no-show-badge');
+        const isNoShow = button.dataset.noShow === '1';
+        const nextNoShow = !isNoShow;
+
+        button.disabled = true;
+        button.innerHTML = '<span class="inline-block w-4 h-4 mr-1 animate-spin">⟳</span> Updating...';
+
+        fetch(`{{ route('admin.events.shifts.no-show', [$event, $shift, '']) }}/${userId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ no_show: nextNoShow ? 1 : 0 })
+        })
+        .then(response => response.json().then(data => ({ ok: response.ok, data })))
+        .then(({ ok, data }) => {
+            if (!ok || !data.success) {
+                throw new Error(data.message || 'Failed to update no show status');
+            }
+
+            showNotification(data.message, 'success');
+            button.dataset.noShow = data.no_show ? '1' : '0';
+            button.innerHTML = data.no_show
+                ? '<svg class="w-4 inline mr-1" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5v6h-2V7h2zm0 8v2h-2v-2h2z"/></svg> Unmark No Show'
+                : '<svg class="w-4 inline mr-1" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5v6h-2V7h2zm0 8v2h-2v-2h2z"/></svg> Mark No Show';
+
+            if (badge) {
+                if (data.no_show) {
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+
+            button.disabled = false;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification(error.message || 'An error occurred while updating no show status', 'error');
+            button.disabled = false;
+            button.innerHTML = isNoShow
+                ? '<svg class="w-4 inline mr-1" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5v6h-2V7h2zm0 8v2h-2v-2h2z"/></svg> Unmark No Show'
+                : '<svg class="w-4 inline mr-1" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5v6h-2V7h2zm0 8v2h-2v-2h2z"/></svg> Mark No Show';
         });
     }
 

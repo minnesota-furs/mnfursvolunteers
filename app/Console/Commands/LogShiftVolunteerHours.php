@@ -51,6 +51,11 @@ class LogShiftVolunteerHours extends Command
                     foreach ($shift->users as $user) {
                         $pivot = $user->pivot; // Access pivot data
                         
+                        if ($pivot->no_show) {
+                            $this->line('    └── User: '.$user->name.' (No Show, Skipping)');
+                            continue;
+                        }
+
                         if ($pivot->hours_logged_at) {
                             $this->line('    └── User: '.$user->name.' (Already logged, Skipping)');
                             continue; // already logged for this user/shift

@@ -90,7 +90,9 @@ class User extends Authenticatable
 
     public function shifts()
     {
-        return $this->belongsToMany(Shift::class, 'shift_signups')->withTimestamps();
+        return $this->belongsToMany(Shift::class, 'shift_signups')
+            ->withPivot(['hours_logged_at', 'no_show', 'no_show_marked_at'])
+            ->withTimestamps();
     }
 
     public function communicationLogs()
