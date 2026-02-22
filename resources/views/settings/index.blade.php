@@ -325,7 +325,7 @@
                                         Disable Public Site
                                     </label>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        When enabled, all public routes (job listings, volunteer opportunities, etc.) will redirect to the dashboard. Users must be logged in to access any pages.
+                                        When toggled on to disabled, all public routes (job listings, volunteer opportunities, etc.) will redirect to the dashboard. Users must be logged in to access any pages.
                                     </p>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
