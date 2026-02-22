@@ -39,6 +39,7 @@ class SettingsController extends Controller
             'social_website_url' => 'nullable|url|max:500',
             'social_twitch_url' => 'nullable|url|max:500',
             'social_discord_url' => 'nullable|url|max:500',
+            'disable_public_site' => 'boolean',
             'feature_elections' => 'boolean',
             'feature_job_listings' => 'boolean',
             'feature_one_off_events' => 'boolean',
@@ -111,6 +112,9 @@ class SettingsController extends Controller
         ApplicationSetting::set('social_website_url', $request->input('social_website_url', ''), 'string', 'Website URL', 'branding');
         ApplicationSetting::set('social_twitch_url', $request->input('social_twitch_url', ''), 'string', 'Twitch channel URL', 'branding');
         ApplicationSetting::set('social_discord_url', $request->input('social_discord_url', ''), 'string', 'Discord server URL', 'branding');
+
+        // Public site toggle
+        ApplicationSetting::set('disable_public_site', $request->boolean('disable_public_site'), 'boolean', 'Disable public pages and redirect to dashboard', 'branding');
 
         // Feature toggles
         ApplicationSetting::set('feature_elections', $request->boolean('feature_elections'), 'boolean', 'Enable/disable elections feature', 'feature_flags');

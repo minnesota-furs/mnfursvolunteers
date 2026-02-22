@@ -36,7 +36,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::view('/', 'welcome');
+Route::view('/', 'welcome')->middleware('public.site');
 Route::view('/demo', 'demo')->name('demo');
 
 // Setup wizard (only accessible if no users exist)
@@ -44,14 +44,14 @@ Route::get('/setup', [SetupWizardController::class, 'index'])->name('setup.index
 Route::post('/setup', [SetupWizardController::class, 'store'])->name('setup.store');
 
 // Public job listings
-Route::prefix('openings')->name('job-listings-public.')->group(function () {
+Route::prefix('openings')->name('job-listings-public.')->middleware('public.site')->group(function () {
     Route::get('/', [JobListingController::class, 'guestIndex'])->name('index');
     Route::get('/{id}', [JobListingController::class, 'guestShow'])->name('show');
     Route::post('/{id}/apply', [JobListingController::class, 'submitApplication'])->name('apply');
 });
 
 // Public volunteer listings
-Route::prefix('volunteering')->name('vol-listings-public.')->group(function () {
+Route::prefix('volunteering')->name('vol-listings-public.')->middleware('public.site')->group(function () {
     Route::get('/', [VolunteerGuestController::class, 'guestIndex'])->name('index');
     Route::get('/{event}', [VolunteerGuestController::class, 'guestShow'])->name('show');
     Route::get('/{event}/shift/{shift}', [VolunteerGuestController::class, 'guestShowShift'])->name('shift.show');
@@ -68,7 +68,7 @@ Route::get('/unsubscribe-elections/{user}/{token}', [ProfileController::class, '
     ->name('unsubscribe.elections');
 
 // Public elections
-Route::prefix('pub-elections')->name('elections-public.')->group(function () {
+Route::prefix('pub-elections')->name('elections-public.')->middleware('public.site')->group(function () {
     Route::get('/', [ElectionController::class, 'guestIndex'])->name('index');
     Route::get('/{election}', [ElectionController::class, 'guestShow'])->name('show');
 });

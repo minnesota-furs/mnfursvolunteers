@@ -106,6 +106,13 @@ class ApplicationSettingsSeeder extends Seeder
                 'description' => 'Discord server invite URL. Leave empty to hide the icon.',
                 'group' => 'branding',
             ],
+            [
+                'key' => 'disable_public_site',
+                'value' => '0',
+                'type' => 'boolean',
+                'description' => 'Disable public pages and redirect to dashboard',
+                'group' => 'branding',
+            ],
 
             // Features
             [

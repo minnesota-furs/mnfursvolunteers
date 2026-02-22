@@ -315,6 +315,31 @@
                                 @enderror
                             </div>
                         </div>
+
+                        <!-- Public Site Toggle -->
+                        <div class="mb-6 border-t border-gray-200 dark:border-gray-700 pt-6">
+                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-4">Public Site Access</h4>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label for="disable_public_site" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Disable Public Site
+                                    </label>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        When enabled, all public routes (job listings, volunteer opportunities, etc.) will redirect to the dashboard. Users must be logged in to access any pages.
+                                    </p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="disable_public_site" id="disable_public_site" 
+                                        value="1"
+                                        {{ old('disable_public_site', app_setting('disable_public_site', false)) ? 'checked' : '' }}
+                                        class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-green/20 dark:peer-focus:ring-brand-green/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-brand-green"></div>
+                                </label>
+                            </div>
+                            @error('disable_public_site')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     <!-- Feature Toggles Tab -->
