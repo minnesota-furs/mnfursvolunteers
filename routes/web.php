@@ -13,6 +13,7 @@ use App\Http\Controllers\VolunteerEventController;
 use App\Http\Controllers\VolunteerGuestController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\UserPermissionController;
+use App\Http\Controllers\UserImportWizardController;
 use App\Http\Controllers\OneOffEventController;
 use App\Http\Controllers\Volunteer\ShiftSignupController;
 use App\Http\Controllers\Volunteer\CalendarController;
@@ -126,8 +127,13 @@ Route::middleware('auth')->group(function () {
     
     // Users
     Route::middleware(['can:manage-users'])->group(function () {
-        Route::get('/users/import', [UserController::class, 'import_view'])->name('users.import');
-        Route::post('/users/import', [UserController::class, 'import'])->name('users.import_post');
+        // Import wizard
+        Route::get('/users/import',          [UserImportWizardController::class, 'step1'])->name('users.import');
+        Route::post('/users/import/upload',  [UserImportWizardController::class, 'upload'])->name('users.import.upload');
+        Route::get('/users/import/map',      [UserImportWizardController::class, 'map'])->name('users.import.map');
+        Route::post('/users/import/map',     [UserImportWizardController::class, 'storeMapping'])->name('users.import.store-mapping');
+        Route::get('/users/import/confirm',  [UserImportWizardController::class, 'confirm'])->name('users.import.confirm');
+        Route::post('/users/import/execute', [UserImportWizardController::class, 'execute'])->name('users.import.execute');
         Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
         Route::post('/users/{id}/restore', [UserController::class, 'restore'])->middleware('isAdmin')->name('users.restore');
     });

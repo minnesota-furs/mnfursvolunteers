@@ -55,6 +55,11 @@
                     class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
                     Security
                 </button>
+                <button @click="activeTab = 'import-export'" type="button"
+                    :class="activeTab === 'import-export' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    Import/Export
+                </button>
             </nav>
         </div>
 
@@ -481,6 +486,19 @@
                                     "This [field] is not allowed. Please contact a staff administrator if you believe this is an error."
                                 </p>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Import/Export Tab -->
+                    <div x-show="activeTab === 'import-export'" x-cloak>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Import</h3>
+
+                        <div class="space-y-3">
+                            <a href="{{ route('users.import') }}"
+                                class="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                                <x-heroicon-o-user-group class="w-5 h-5 text-brand-green" />
+                                Import Users
+                            </a>
                         </div>
                     </div>
 
