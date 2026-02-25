@@ -40,6 +40,7 @@ class User extends Authenticatable
         'email_election_reminders',
         'hour_submission_token',
         'token_expires_at',
+        'calendar_token',
     ];
 
     /**
@@ -66,6 +67,7 @@ class User extends Authenticatable
         'email_hour_approvals' => 'boolean',
         'email_election_reminders' => 'boolean',
         'token_expires_at' => 'datetime',
+        'calendar_token' => 'string',
     ];
 
     public function volunteerHours()
@@ -271,6 +273,18 @@ class User extends Authenticatable
     public function getVolCodeAttribute($value)
     {
         return strtoupper($value);
+    }
+
+    /**
+     * Generate (or regenerate) this user's iCal calendar subscription token.
+     */
+    public function generateCalendarToken(): string
+    {
+        $token = (string) \Illuminate\Support\Str::uuid();
+        $this->calendar_token = $token;
+        $this->save();
+
+        return $token;
     }
 
     // Attribute to get if user is volunteer or staff based on having any departments or not

@@ -5,6 +5,21 @@
     </x-slot>
 
     <x-slot name="actions">
+        @if(Auth::user()->calendar_token)
+            <a href="{{ route('calendar.shifts', Auth::user()->calendar_token) }}"
+               title="Subscribe to your shifts in your calendar app"
+               class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-gray-700 shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                <x-heroicon-s-calendar class="w-4 h-4 inline -mt-0.5 mr-1" />
+                Subscribe via iCal
+            </a>
+        @else
+            <a href="{{ route('profile.edit') }}#calendar"
+               title="Generate your personal iCal feed on your profile page"
+               class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-gray-700 shadow-md hover:bg-gray-100">
+                <x-heroicon-s-calendar class="w-4 h-4 inline -mt-0.5 mr-1" />
+                Set up Calendar Sync
+            </a>
+        @endif
         @if( Auth::user()->isAdmin() )
             <a href="{{route('volunteer.events.index')}}"
                 class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">

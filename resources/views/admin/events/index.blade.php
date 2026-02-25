@@ -5,6 +5,12 @@
     </x-slot>
 
     <x-slot name="actions">
+        @can('manage-volunteer-events')
+        <a href="{{route('admin.manager-dashboard')}}"
+            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <x-heroicon-s-signal class="w-4 inline"/> Manager Overview
+        </a>
+        @endcan
         <a href="{{route('admin.events.create')}}"
             class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-s-plus class="w-4 inline"/> Create New Event

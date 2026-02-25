@@ -15,6 +15,7 @@ use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\UserPermissionController;
 use App\Http\Controllers\OneOffEventController;
 use App\Http\Controllers\Volunteer\ShiftSignupController;
+use App\Http\Controllers\Volunteer\CalendarController;
 use App\Http\Controllers\Admin\ShiftController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\ElectionController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\SetupWizardController;
 use App\Http\Controllers\FeatureController;
 use App\Http\Controllers\RecognitionController;
 use App\Http\Controllers\Admin\RecognitionController as AdminRecognitionController;
+use App\Http\Controllers\Admin\ManagerDashboardController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -63,6 +65,9 @@ Route::prefix('submit-hours')->name('hours.public.')->group(function () {
     Route::post('/{token}', [VolunteerHoursController::class, 'storePublicHours'])->name('store');
 });
 
+// Public iCal calendar feed for volunteer shifts (token-protected, no auth required)
+Route::get('/calendar/shifts/{token}', [CalendarController::class, 'feed'])->name('calendar.shifts');
+
 // Public unsubscribe from election emails
 Route::get('/unsubscribe-elections/{user}/{token}', [ProfileController::class, 'unsubscribeElections'])
     ->name('unsubscribe.elections');
@@ -94,6 +99,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/link-wordpress', [ProfileController::class, 'linkWordPress'])->name('link-wordpress');
         Route::delete('/unlink-wordpress', [ProfileController::class, 'unlinkWordPress'])->name('unlink-wordpress');
         Route::patch('/email-preferences', [ProfileController::class, 'updateEmailPreferences'])->name('email-preferences');
+        Route::post('/calendar-token', [CalendarController::class, 'regenerateToken'])->name('calendar-token');
     });
 
     // Recognition & Awards
@@ -175,6 +181,12 @@ Route::middleware('auth')->group(function () {
         Route::get('tags/{tag}/emails', [\App\Http\Controllers\Admin\TagController::class, 'emails'])->name('tags.emails');
     });
 
+    // Invite Codes Management (nested under settings)
+    Route::middleware('isAdmin')->prefix('settings')->name('admin.')->group(function () {
+        Route::resource('invite-codes', \App\Http\Controllers\Admin\InviteCodeController::class);
+        Route::post('invite-codes/{inviteCode}/regenerate', [\App\Http\Controllers\Admin\InviteCodeController::class, 'regenerate'])->name('invite-codes.regenerate');
+    });
+
     // Custom Fields Management (nested under settings)
     Route::middleware('isAdmin')->prefix('settings')->name('admin.')->group(function () {
         Route::resource('custom-fields', \App\Http\Controllers\Admin\CustomFieldController::class);
@@ -242,6 +254,7 @@ Route::middleware('auth')->group(function () {
 
     // Volunteer Events
     Route::middleware('can:manage-volunteer-events')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/manager-dashboard', [ManagerDashboardController::class, 'index'])->name('manager-dashboard');
         Route::resource('events', EventController::class);
         Route::resource('events.shifts', ShiftController::class)->except(['show']);
         Route::post('events/{event}/shifts/{shift}/duplicate', [ShiftController::class, 'duplicate'])->name('events.shifts.duplicate');
@@ -254,6 +267,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/events/{event}/volunteers', [EventController::class, 'volunteerList'])->name('events.volunteers');
         Route::get('/events/{event}/allShifts', [EventController::class, 'indexWithShifts'])->name('events.allShifts');
         Route::get('/events/{event}/allShifts/print', [EventController::class, 'indexWithShiftsPrint'])->name('events.allShifts.print');
+        Route::get('/events/{event}/manager-dashboard', [EventController::class, 'managerDashboard'])->name('events.manager-dashboard');
         Route::get('/events/{event}/agenda', [EventController::class, 'agenda'])->name('events.agenda');
         Route::get('/events/{event}/log', [EventController::class, 'log'])->name('events.log');
         Route::get('/events/{event}/editors', [EventController::class, 'editors'])->name('events.editors');

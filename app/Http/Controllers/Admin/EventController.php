@@ -220,6 +220,48 @@ class EventController extends Controller
         }
 
     /**
+     * Display the live manager dashboard for a single event.
+     */
+    public function managerDashboard(Event $event)
+    {
+        $this->authorize('update', $event);
+
+        $now            = \Carbon\Carbon::now();
+        $upcomingWindow = $now->copy()->addHours(3);
+        $recentWindow   = $now->copy()->subHours(2);
+
+        $allShifts = $event->shifts()
+            ->with(['users', 'event'])
+            ->orderBy('start_time')
+            ->get();
+
+        $activeShifts   = $allShifts->filter(fn ($s) => $s->start_time->lte($now) && $s->end_time->gte($now));
+        $upcomingShifts = $allShifts->filter(fn ($s) => $s->start_time->gt($now) && $s->start_time->lte($upcomingWindow));
+        $recentShifts   = $allShifts->filter(fn ($s) => $s->end_time->lt($now) && $s->end_time->gte($recentWindow))
+                                    ->sortByDesc('end_time');
+        $laterShifts    = $allShifts->filter(fn ($s) => $s->start_time->gt($upcomingWindow))
+                                    ->sortBy('start_time');
+
+        $totalSlots  = $allShifts->sum('max_volunteers');
+        $filledSlots = $allShifts->sum(fn ($s) => $s->users->count());
+        $coveragePct = $totalSlots > 0 ? round(($filledSlots / $totalSlots) * 100) : 0;
+        $emptyShifts = $allShifts->filter(fn ($s) => $s->users->isEmpty())->count();
+
+        return view('admin.events.manager-dashboard', compact(
+            'event',
+            'activeShifts',
+            'upcomingShifts',
+            'recentShifts',
+            'laterShifts',
+            'totalSlots',
+            'filledSlots',
+            'coveragePct',
+            'emptyShifts',
+            'now',
+        ));
+    }
+
+    /**
      * Display the agenda/calendar view for an event
      */
     public function agenda(Event $event)

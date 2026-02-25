@@ -4,14 +4,22 @@
         {{ __('Application Settings') }}
     </x-slot>
 
-    @if(app_setting('feature_user_tags', false))
-        <x-slot name="actions">
-            <a href="{{ route('admin.tags.index') }}"
+    
+
+    <x-slot name="actions">
+        @can('manage-custom-fields')
+            <a href="{{ route('admin.custom-fields.index') }}"
                 class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                <x-heroicon-s-tag class="w-4 inline"/> Manage Tags
+                <x-heroicon-s-bars-3-bottom-left class="w-4 inline"/> Manage Custom Fields
             </a>
-        </x-slot>
-    @endif
+        @endif
+        @if(app_setting('feature_user_tags', false))
+        <a href="{{ route('admin.tags.index') }}"
+            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <x-heroicon-s-tag class="w-4 inline"/> Manage Tags
+        </a>
+        @endif
+    </x-slot>
 
     <!-- Hidden forms for reset actions (outside main form to avoid nesting) -->
     <form id="reset-logo-form" action="{{ route('settings.reset-logo') }}" method="POST" style="display: none;">

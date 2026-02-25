@@ -97,11 +97,17 @@
                             <x-dropdown-link :href="route('settings.index')">
                                 {{ __('Application Settings') }}
                             </x-dropdown-link>
+                            <x-dropdown-link :href="route('admin.invite-codes.index')">
+                                {{ __('Invite Codes') }}
+                            </x-dropdown-link>
                             <div class="border-t border-gray-200 dark:border-gray-600"></div>
                             @endif
                             
                             @feature('volunteer_events')
                             @can('manage-volunteer-events')
+                            {{-- <x-dropdown-link :href="route('admin.manager-dashboard')">
+                                <x-heroicon-s-signal class="w-3.5 h-3.5 inline text-green-500 mr-1"/>{{ __('Manager Dashboard') }}
+                            </x-dropdown-link> --}}
                             <x-dropdown-link :href="route('admin.events.index')">
                                 {{ __('Volunteer Events') }}
                             </x-dropdown-link>
@@ -133,11 +139,6 @@
                             <x-dropdown-link :href="route('departments.index')">
                                 {{ __('Departments') }}
                             </x-dropdown-link>
-                            @can('manage-custom-fields')
-                            <x-dropdown-link :href="route('admin.custom-fields.index')">
-                                {{ __('User Custom Fields') }}
-                            </x-dropdown-link>
-                            @endcan
                         </x-slot>
                     </x-dropdown>
                 </div>
