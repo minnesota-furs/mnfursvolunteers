@@ -81,6 +81,9 @@
                             <x-dropdown-link :href="route('report.usersWithoutHoursThisPeriod')">
                                 {{ __('Users With Zero Hours') }}
                             </x-dropdown-link>
+                            <x-dropdown-link :href="route('report.eventShiftHours')">
+                                {{ __('Event Shift Hours') }}
+                            </x-dropdown-link>
                         </x-slot>
                     </x-dropdown>
                     @endcan
@@ -283,6 +286,9 @@
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('report.usersWithoutHoursThisPeriod')">
                         {{ __('Users With Zero Hours') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('report.eventShiftHours')">
+                        {{ __('Event Shift Hours') }}
                     </x-responsive-nav-link>
                 </div>
             </div>

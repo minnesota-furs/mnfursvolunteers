@@ -208,6 +208,8 @@ Route::middleware('auth')->group(function () {
     Route::prefix('report')->name('report.')->middleware('can:view-reports')->group(function () {
         Route::get('/users-without-departments', [ReportsController::class, 'usersWithoutDepartments'])->name('usersWithoutDepartments');
         Route::get('/users-without-hours', [ReportsController::class, 'usersWithoutHoursThisPeriod'])->name('usersWithoutHoursThisPeriod');
+        Route::get('/event-shift-hours', [ReportsController::class, 'eventShiftHoursReport'])->name('eventShiftHours');
+        Route::get('/event-shift-hours/export', [ReportsController::class, 'eventShiftHoursExportCsv'])->name('eventShiftHours.export');
     });
 
     // Departments
