@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Spatie\IcalendarGenerator\Components\Calendar;
+use Spatie\IcalendarGenerator\Components\Event;
+use Spatie\IcalendarGenerator\Enums\EventStatus;
 
 class CalendarController extends Controller
 {
@@ -33,95 +36,36 @@ class CalendarController extends Controller
             ->orderBy('start_time')
             ->get();
 
-        $lines = [];
-        $lines[] = 'BEGIN:VCALENDAR';
-        $lines[] = 'VERSION:2.0';
-        $lines[] = 'PRODID:-//MNFurs Volunteers//Shift Calendar//EN';
-        $lines[] = 'CALSCALE:GREGORIAN';
-        $lines[] = 'METHOD:PUBLISH';
-        $lines[] = 'X-WR-CALNAME:My Volunteer Shifts';
-        $lines[] = 'X-WR-CALDESC:Your MNFurs volunteer shift schedule';
-        $lines[] = 'X-WR-TIMEZONE:America/Chicago';
+        $calendar = Calendar::create('My Volunteer Shifts')
+            ->productIdentifier('-//MNFurs Volunteers//Shift Calendar//EN')
+            ->description('Your MNFurs volunteer shift schedule')
+            ->withoutAutoTimezoneComponents();
 
         foreach ($shifts as $shift) {
-            $uid        = 'shift-' . $shift->id . '@mnfurs-volunteers';
-            $dtstart    = $shift->start_time->utc()->format('Ymd\THis\Z');
-            $dtend      = $shift->end_time->utc()->format('Ymd\THis\Z');
-            $dtstamp    = now()->utc()->format('Ymd\THis\Z');
-            $summary    = $this->escapeIcalText($shift->event->name . ' – ' . $shift->name);
-            $location   = $this->escapeIcalText($shift->event->location ?? '');
             $description = $this->buildDescription($shift);
 
-            $lines[] = 'BEGIN:VEVENT';
-            $lines[] = $this->foldLine('UID:' . $uid);
-            $lines[] = 'DTSTAMP:' . $dtstamp;
-            $lines[] = 'DTSTART:' . $dtstart;
-            $lines[] = 'DTEND:' . $dtend;
-            $lines[] = $this->foldLine('SUMMARY:' . $summary);
-            if ($location) {
-                $lines[] = $this->foldLine('LOCATION:' . $location);
+            $event = Event::create($shift->event->name . ' – ' . $shift->name)
+                ->uniqueIdentifier('shift-' . $shift->id . '@mnfurs-volunteers')
+                ->startsAt($shift->start_time->toDateTime())
+                ->endsAt($shift->end_time->toDateTime())
+                ->status(EventStatus::Confirmed);
+
+            if ($shift->event->location) {
+                $event->address($shift->event->location);
             }
-            $lines[] = $this->foldLine('DESCRIPTION:' . $description);
-            $lines[] = 'STATUS:CONFIRMED';
-            $lines[] = 'END:VEVENT';
+
+            if ($description) {
+                $event->description($description);
+            }
+
+            $calendar->event($event);
         }
 
-        $lines[] = 'END:VCALENDAR';
-
-        $ical = implode("\r\n", $lines) . "\r\n";
-
-        return response($ical, 200, [
+        return response($calendar->get(), 200, [
             'Content-Type'        => 'text/calendar; charset=utf-8',
             'Content-Disposition' => 'inline; filename="my-volunteer-shifts.ics"',
             'Cache-Control'       => 'no-cache, no-store, must-revalidate',
         ]);
-    }
-
-    /**
-     * Escape special characters for iCal text values.
-     */
-    private function escapeIcalText(?string $text): string
-    {
-        if ($text === null) {
-            return '';
-        }
-
-        $text = str_replace('\\', '\\\\', $text);
-        $text = str_replace(';', '\;', $text);
-        $text = str_replace(',', '\,', $text);
-        $text = str_replace("\n", '\n', $text);
-
-        return $text;
-    }
-
-    /**
-     * Fold long iCal lines at 75 octets per RFC 5545 §3.1.
-     *
-     * The first physical line may contain up to 75 octets (no leading space).
-     * Each continuation line is prefixed with a single SPACE (1 octet), so
-     * its content must be at most 74 octets — giving 75 octets total.
-     */
-    private function foldLine(string $line): string
-    {
-        // Quick exit — nothing to fold
-        if (strlen($line) <= 75) {
-            return $line;
-        }
-
-        // First segment: up to 75 octets (no leading space)
-        $result = substr($line, 0, 75) . "\r\n ";
-        $line   = substr($line, 75);
-
-        // Continuation segments: up to 74 octets of content
-        // (1 octet leading space + 74 octets content = 75 octets per line)
-        while (strlen($line) > 74) {
-            $result .= substr($line, 0, 74) . "\r\n ";
-            $line    = substr($line, 74);
-        }
-
-        $result .= $line;
-
-        return $result;
     }
 
     /**
@@ -146,6 +90,6 @@ class CalendarController extends Controller
             $parts[] = 'Volunteers: ' . $shift->users->count() . '/' . $shift->max_volunteers;
         }
 
-        return $this->escapeIcalText(implode('\n', $parts));
+        return implode("\n", $parts);
     }
 }
