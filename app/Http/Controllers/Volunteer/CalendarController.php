@@ -53,7 +53,7 @@ class CalendarController extends Controller
             $description = $this->buildDescription($shift);
 
             $lines[] = 'BEGIN:VEVENT';
-            $lines[] = 'UID:' . $uid;
+            $lines[] = $this->foldLine('UID:' . $uid);
             $lines[] = 'DTSTAMP:' . $dtstamp;
             $lines[] = 'DTSTART:' . $dtstart;
             $lines[] = 'DTEND:' . $dtend;
@@ -95,15 +95,30 @@ class CalendarController extends Controller
     }
 
     /**
-     * Fold long iCal lines at 75 octets per RFC 5545.
+     * Fold long iCal lines at 75 octets per RFC 5545 §3.1.
+     *
+     * The first physical line may contain up to 75 octets (no leading space).
+     * Each continuation line is prefixed with a single SPACE (1 octet), so
+     * its content must be at most 74 octets — giving 75 octets total.
      */
     private function foldLine(string $line): string
     {
-        $result = '';
-        while (strlen($line) > 75) {
-            $result .= substr($line, 0, 75) . "\r\n ";
-            $line = substr($line, 75);
+        // Quick exit — nothing to fold
+        if (strlen($line) <= 75) {
+            return $line;
         }
+
+        // First segment: up to 75 octets (no leading space)
+        $result = substr($line, 0, 75) . "\r\n ";
+        $line   = substr($line, 75);
+
+        // Continuation segments: up to 74 octets of content
+        // (1 octet leading space + 74 octets content = 75 octets per line)
+        while (strlen($line) > 74) {
+            $result .= substr($line, 0, 74) . "\r\n ";
+            $line    = substr($line, 74);
+        }
+
         $result .= $line;
 
         return $result;
