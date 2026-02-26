@@ -124,7 +124,7 @@
                         </a>
                         <button type="submit"
                                 class="inline-flex items-center gap-2 rounded-md bg-brand-green px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-green-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">
-                            Next: Review &amp; Confirm
+                            Next: Hours Config
                             <x-heroicon-s-arrow-right class="w-4 h-4" />
                         </button>
                     </div>

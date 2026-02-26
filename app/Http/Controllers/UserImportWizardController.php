@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\CustomField;
 use App\Models\CustomFieldValue;
 use App\Models\Department;
+use App\Models\FiscalLedger;
 use App\Models\User;
+use App\Models\VolunteerHours;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -26,6 +29,8 @@ class UserImportWizardController extends Controller
             'wizard_import_preview',
             'wizard_import_mapping',
             'wizard_import_total',
+            'wizard_import_hours_config',
+            'wizard_import_results',
         ]);
 
         return view('users.import.step1');
@@ -125,17 +130,61 @@ class UserImportWizardController extends Controller
 
         session(['wizard_import_mapping' => $mapping]);
 
-        return redirect()->route('users.import.confirm');
+        return redirect()->route('users.import.hours');
     }
 
     // ─── Step 3 ──────────────────────────────────────────────────────────────
 
     /**
-     * Show the import confirmation / preview (Step 3).
+     * Show the hours configuration form (Step 3).
+     */
+    public function hoursConfig()
+    {
+        if (!session('wizard_import_headers') || !session('wizard_import_mapping')) {
+            return redirect()->route('users.import');
+        }
+
+        $headers       = session('wizard_import_headers');
+        $ledgers       = FiscalLedger::orderBy('start_date', 'desc')->get();
+        $currentConfig = session('wizard_import_hours_config', []);
+
+        return view('users.import.step3_hours', compact('headers', 'ledgers', 'currentConfig'));
+    }
+
+    /**
+     * Store the hours configuration and redirect to the confirmation step.
+     */
+    public function storeHoursConfig(Request $request)
+    {
+        $skip = $request->boolean('skip_hours');
+
+        if (!$skip) {
+            $request->validate([
+                'hours_column'  => 'required|string',
+                'hours_description' => 'nullable|string|max:255',
+            ]);
+        }
+
+        $config = [
+            'skip'         => $skip,
+            'hours_column' => $skip ? null : $request->input('hours_column'),
+            'description'  => $request->input('hours_description', 'Imported volunteer hours'),
+            'ledger_id'    => $request->input('ledger_id') ?: null,
+        ];
+
+        session(['wizard_import_hours_config' => $config]);
+
+        return redirect()->route('users.import.confirm');
+    }
+
+    // ─── Step 4 ──────────────────────────────────────────────────────────────
+
+    /**
+     * Show the import confirmation / preview (Step 4).
      */
     public function confirm()
     {
-        if (!session('wizard_import_headers') || !session('wizard_import_mapping')) {
+        if (!session('wizard_import_headers') || !session('wizard_import_mapping') || !session()->has('wizard_import_hours_config')) {
             return redirect()->route('users.import');
         }
 
@@ -145,6 +194,14 @@ class UserImportWizardController extends Controller
         $total        = session('wizard_import_total', 0);
         $customFields = CustomField::active()->ordered()->get();
         $appFields    = $this->buildAppFields($customFields);
+        $hoursConfig  = session('wizard_import_hours_config', []);
+
+        // Resolve ledger name for display
+        $ledgerName = null;
+        if (!empty($hoursConfig['ledger_id'])) {
+            $ledger = FiscalLedger::find($hoursConfig['ledger_id']);
+            $ledgerName = $ledger?->name;
+        }
 
         // Build a preview of the first 10 resolved rows
         $fullPath = Storage::disk('local')->path($path);
@@ -165,6 +222,11 @@ class UserImportWizardController extends Controller
                 $resolved[$field] = $raw[$col] ?? '';
             }
 
+            // Append hours preview value if configured
+            if (!empty($hoursConfig['hours_column'])) {
+                $resolved['_hours_import'] = $raw[$hoursConfig['hours_column']] ?? '';
+            }
+
             $previewRows[] = $resolved;
             $count++;
         }
@@ -178,7 +240,8 @@ class UserImportWizardController extends Controller
             ->all();
 
         return view('users.import.step3', compact(
-            'mapping', 'appFields', 'usedFields', 'previewRows', 'total'
+            'mapping', 'appFields', 'usedFields', 'previewRows', 'total',
+            'hoursConfig', 'ledgerName'
         ));
     }
 
@@ -189,9 +252,10 @@ class UserImportWizardController extends Controller
      */
     public function execute(Request $request)
     {
-        $mapping = session('wizard_import_mapping', []);
-        $path    = session('wizard_import_path');
-        $headers = session('wizard_import_headers');
+        $mapping     = session('wizard_import_mapping', []);
+        $path        = session('wizard_import_path');
+        $headers     = session('wizard_import_headers');
+        $hoursConfig = session('wizard_import_hours_config', []);
 
         if (!$path || !$headers) {
             return redirect()->route('users.import');
@@ -200,15 +264,21 @@ class UserImportWizardController extends Controller
         $customFields = CustomField::active()->ordered()->get()->keyBy('field_key');
         $departments  = Department::all()->keyBy(fn($d) => strtolower($d->name));
 
+        $importHours   = !empty($hoursConfig) && !($hoursConfig['skip'] ?? true) && !empty($hoursConfig['hours_column']);
+        $hoursLedgerId = $hoursConfig['ledger_id'] ?? null;
+        $hoursDesc     = $hoursConfig['description'] ?? 'Imported volunteer hours';
+        $hoursColumn   = $hoursConfig['hours_column'] ?? null;
+
         $fullPath = Storage::disk('local')->path($path);
         $handle   = fopen($fullPath, 'r');
         fgetcsv($handle); // skip the header row
 
-        $created = 0;
-        $skipped = 0;
-        $failed  = 0;
-        $errors  = [];
-        $rowNum  = 1;
+        $created     = 0;
+        $skipped     = 0;
+        $failed      = 0;
+        $failedRows  = [];
+        $skippedRows = [];
+        $rowNum      = 1;
 
         while (($row = fgetcsv($handle)) !== false) {
             $rowNum++;
@@ -233,6 +303,22 @@ class UserImportWizardController extends Controller
                     if ($deptName && isset($departments[$deptName])) {
                         $userData['_department_id'] = $departments[$deptName]->id;
                     }
+                } elseif ($field === 'created_at') {
+                    // Parse date — support MM-DD-YYYY as well as standard formats
+                    $parsed = null;
+                    if ($value !== '') {
+                        try {
+                            // Try MM-DD-YYYY first (e.g. 04-03-2025)
+                            $parsed = Carbon::createFromFormat('m-d-Y', $value);
+                        } catch (\Exception $e) {
+                            try {
+                                $parsed = Carbon::parse($value);
+                            } catch (\Exception $e2) {
+                                // Leave null — will fall back to creation timestamp
+                            }
+                        }
+                    }
+                    $userData['_created_at'] = $parsed;
                 } else {
                     $userData[$field] = $value;
                 }
@@ -240,13 +326,24 @@ class UserImportWizardController extends Controller
 
             // Email is required
             if (empty($userData['email']) || !filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
-                $errors[] = "Row {$rowNum}: Invalid or missing email — skipped.";
+                $failedRows[] = [
+                    'row'    => $rowNum,
+                    'email'  => $userData['email'] ?? '',
+                    'name'   => $this->resolveNameFromData($userData),
+                    'reason' => 'Invalid or missing email address',
+                    'raw'    => $raw,
+                ];
                 $failed++;
                 continue;
             }
 
             // Skip users that already exist
             if (User::where('email', $userData['email'])->exists()) {
+                $skippedRows[] = [
+                    'row'   => $rowNum,
+                    'email' => $userData['email'],
+                    'name'  => $this->resolveNameFromData($userData),
+                ];
                 $skipped++;
                 continue;
             }
@@ -259,11 +356,20 @@ class UserImportWizardController extends Controller
             }
             $userData['password'] = Hash::make($userData['password']);
 
-            $deptId = $userData['_department_id'] ?? null;
-            unset($userData['_department_id']);
+            $deptId    = $userData['_department_id'] ?? null;
+            $createdAt = $userData['_created_at'] ?? null;
+            unset($userData['_department_id'], $userData['_created_at']);
 
             try {
                 $user = User::create($userData);
+
+                // Backdate created_at if a value was mapped
+                if ($createdAt instanceof Carbon) {
+                    $user->timestamps = false;
+                    $user->created_at = $createdAt;
+                    $user->save();
+                    $user->timestamps = true;
+                }
 
                 if ($deptId) {
                     $user->departments()->attach($deptId);
@@ -273,15 +379,55 @@ class UserImportWizardController extends Controller
                     if (!$customFields->has($fieldKey)) {
                         continue;
                     }
+
+                    // Normalize date-type custom fields to Y-m-d so Carbon::parse() can read them
+                    if ($customFields[$fieldKey]->field_type === 'date' && $value !== '') {
+                        $normalizedDate = null;
+                        try {
+                            // Try MM-DD-YYYY (e.g. 01-31-1979) first
+                            $normalizedDate = Carbon::createFromFormat('m-d-Y', $value)->format('Y-m-d');
+                        } catch (\Exception $e) {
+                            try {
+                                $normalizedDate = Carbon::parse($value)->format('Y-m-d');
+                            } catch (\Exception $e2) {
+                                // Leave the original value if it can't be parsed
+                                $normalizedDate = $value;
+                            }
+                        }
+                        $value = $normalizedDate;
+                    }
+
                     CustomFieldValue::updateOrCreate(
                         ['user_id' => $user->id, 'custom_field_id' => $customFields[$fieldKey]->id],
                         ['value' => $value]
                     );
                 }
 
+                // Create a VolunteerHours record if hours import is configured
+                if ($importHours && $hoursColumn !== null) {
+                    $hoursValue = $raw[$hoursColumn] ?? '';
+                    $hoursValue = is_numeric(trim($hoursValue)) ? (float) trim($hoursValue) : null;
+
+                    if ($hoursValue !== null && $hoursValue > 0) {
+                        VolunteerHours::create([
+                            'user_id'          => $user->id,
+                            'hours'            => $hoursValue,
+                            'description'      => $hoursDesc,
+                            'fiscal_ledger_id' => $hoursLedgerId,
+                            'volunteer_date'   => now()->toDateString(),
+                        ]);
+                    }
+                }
+
                 $created++;
             } catch (\Exception $e) {
-                $errors[] = "Row {$rowNum}: " . $e->getMessage();
+                $failedRows[] = [
+                    'row'    => $rowNum,
+                    'email'  => $userData['email'] ?? '',
+                    'name'   => $this->resolveNameFromData($userData),
+                    'reason' => $e->getMessage(),
+                    'raw'    => $raw,
+                ];
                 $failed++;
             }
         }
@@ -295,20 +441,75 @@ class UserImportWizardController extends Controller
             'wizard_import_preview',
             'wizard_import_mapping',
             'wizard_import_total',
+            'wizard_import_hours_config',
         ]);
 
-        $message = "Import complete: {$created} " . str('user')->plural($created) . " created";
-        if ($skipped) {
-            $message .= ", {$skipped} already existed (skipped)";
-        }
-        if ($failed) {
-            $message .= ", {$failed} failed";
-        }
-        $message .= '.';
+        session(['wizard_import_results' => [
+            'created'      => $created,
+            'skipped'      => $skipped,
+            'failed'       => $failed,
+            'total'        => $rowNum - 1,
+            'failed_rows'  => $failedRows,
+            'skipped_rows' => $skippedRows,
+            'headers'      => $headers,
+            'imported_at'  => now()->toDateTimeString(),
+        ]]);
 
-        return redirect()->route('users.index')
-            ->with('success', ['message' => $message])
-            ->with('import_errors', $errors);
+        return redirect()->route('users.import.results');
+    }
+
+    // ─── Results ─────────────────────────────────────────────────────────────
+
+    /**
+     * Show the import results page.
+     */
+    public function results()
+    {
+        $results = session('wizard_import_results');
+
+        if (!$results) {
+            return redirect()->route('users.import');
+        }
+
+        return view('users.import.results', compact('results'));
+    }
+
+    /**
+     * Download failed rows as a CSV.
+     */
+    public function downloadFailed()
+    {
+        $results = session('wizard_import_results');
+
+        if (!$results || empty($results['failed_rows'])) {
+            return redirect()->route('users.import.results');
+        }
+
+        $headers     = $results['headers'] ?? [];
+        $failedRows  = $results['failed_rows'];
+        $filename    = 'import-failed-' . now()->format('Y-m-d-His') . '.csv';
+
+        $callback = function () use ($headers, $failedRows) {
+            $handle = fopen('php://output', 'w');
+
+            // Header row: original columns + a "Failure Reason" column
+            fputcsv($handle, array_merge(['Row #'], $headers, ['Failure Reason']));
+
+            foreach ($failedRows as $failure) {
+                $rowData = [];
+                foreach ($headers as $header) {
+                    $rowData[] = $failure['raw'][$header] ?? '';
+                }
+                fputcsv($handle, array_merge([$failure['row']], $rowData, [$failure['reason']]));
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
@@ -329,6 +530,7 @@ class UserImportWizardController extends Controller
             'notes'      => 'Notes',
             'active'     => 'Active Status (1 or 0)',
             'department' => 'Department (matched by name)',
+            'created_at' => 'Created At (MM-DD-YYYY or YYYY-MM-DD)',
         ];
 
         foreach ($customFields as $cf) {
@@ -353,6 +555,7 @@ class UserImportWizardController extends Controller
             'notes'      => ['notes', 'note', 'comments', 'comment'],
             'active'     => ['active', 'enabled', 'status'],
             'department' => ['department', 'dept', 'team', 'division'],
+            'created_at' => ['created_at', 'created', 'joined', 'joined_at', 'join_date', 'registration_date', 'date joined', 'signup_date', 'signup date', 'date'],
         ];
 
         $map = [];
@@ -372,5 +575,22 @@ class UserImportWizardController extends Controller
         }
 
         return $map;
+    }
+
+    /**
+     * Resolve a display name from partially-parsed user data.
+     */
+    protected function resolveNameFromData(array $userData): string
+    {
+        if (!empty($userData['name'])) {
+            return $userData['name'];
+        }
+
+        $parts = array_filter([
+            $userData['first_name'] ?? '',
+            $userData['last_name']  ?? '',
+        ]);
+
+        return implode(' ', $parts);
     }
 }

@@ -129,12 +129,16 @@ Route::middleware('auth')->group(function () {
     // Users
     Route::middleware(['can:manage-users'])->group(function () {
         // Import wizard
-        Route::get('/users/import',          [UserImportWizardController::class, 'step1'])->name('users.import');
-        Route::post('/users/import/upload',  [UserImportWizardController::class, 'upload'])->name('users.import.upload');
-        Route::get('/users/import/map',      [UserImportWizardController::class, 'map'])->name('users.import.map');
-        Route::post('/users/import/map',     [UserImportWizardController::class, 'storeMapping'])->name('users.import.store-mapping');
-        Route::get('/users/import/confirm',  [UserImportWizardController::class, 'confirm'])->name('users.import.confirm');
-        Route::post('/users/import/execute', [UserImportWizardController::class, 'execute'])->name('users.import.execute');
+        Route::get('/users/import',                  [UserImportWizardController::class, 'step1'])->name('users.import');
+        Route::post('/users/import/upload',          [UserImportWizardController::class, 'upload'])->name('users.import.upload');
+        Route::get('/users/import/map',              [UserImportWizardController::class, 'map'])->name('users.import.map');
+        Route::post('/users/import/map',             [UserImportWizardController::class, 'storeMapping'])->name('users.import.store-mapping');
+        Route::get('/users/import/hours',            [UserImportWizardController::class, 'hoursConfig'])->name('users.import.hours');
+        Route::post('/users/import/hours',           [UserImportWizardController::class, 'storeHoursConfig'])->name('users.import.store-hours');
+        Route::get('/users/import/confirm',          [UserImportWizardController::class, 'confirm'])->name('users.import.confirm');
+        Route::post('/users/import/execute',         [UserImportWizardController::class, 'execute'])->name('users.import.execute');
+        Route::get('/users/import/results',          [UserImportWizardController::class, 'results'])->name('users.import.results');
+        Route::get('/users/import/results/download', [UserImportWizardController::class, 'downloadFailed'])->name('users.import.results.download');
         Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
         Route::post('/users/{id}/restore', [UserController::class, 'restore'])->middleware('isAdmin')->name('users.restore');
     });

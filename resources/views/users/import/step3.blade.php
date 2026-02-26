@@ -7,12 +7,12 @@
     <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
         {{-- Wizard step indicator --}}
-        @include('users.import._steps', ['current' => 3])
+        @include('users.import._steps', ['current' => 4])
 
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
 
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Step 3: Confirm &amp; Import</h2>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Step 4: Confirm &amp; Import</h2>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
                     Review the mapping and preview rows below, then click <strong>Run Import</strong> to create the users.
                     Users whose email address already exists in the system will be skipped.
@@ -72,6 +72,11 @@
                                                 {{ $appFields[$field] ?? $field }}
                                             </th>
                                         @endforeach
+                                        @if (!empty($hoursConfig['hours_column']))
+                                            <th class="px-3 py-2 text-left font-semibold text-blue-500 dark:text-blue-400 uppercase tracking-wider whitespace-nowrap">
+                                                Hours (import)
+                                            </th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -88,11 +93,52 @@
                                                     @endif
                                                 </td>
                                             @endforeach
+                                            @if (!empty($hoursConfig['hours_column']))
+                                                <td class="px-3 py-2 text-blue-600 dark:text-blue-400 whitespace-nowrap font-mono">
+                                                    {{ $row['_hours_import'] ?? '—' }}
+                                                </td>
+                                            @endif
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                @endif
+
+                {{-- Hours config summary --}}
+                @if (!empty($hoursConfig))
+                    <div class="mb-8">
+                        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Hours Import</h3>
+                        @if ($hoursConfig['skip'] ?? true)
+                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <x-heroicon-s-x-mark class="w-4 h-4 text-gray-400" />
+                                No volunteer hours will be created during this import.
+                            </div>
+                        @else
+                            <div class="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 p-4 text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                                <div>
+                                    <x-heroicon-s-clock class="w-4 h-4 inline text-blue-500" />
+                                    <strong>Hours column:</strong>
+                                    <code class="font-mono text-xs bg-blue-100 dark:bg-blue-800/40 px-1 py-0.5 rounded">{{ $hoursConfig['hours_column'] }}</code>
+                                </div>
+                                <div>
+                                    <x-heroicon-s-tag class="w-4 h-4 inline text-blue-500" />
+                                    <strong>Description:</strong> {{ $hoursConfig['description'] ?? '—' }}
+                                </div>
+                                <div>
+                                    <x-heroicon-s-book-open class="w-4 h-4 inline text-blue-500" />
+                                    <strong>Fiscal ledger:</strong>
+                                    {{ $ledgerName ?? 'None (unassigned)' }}
+                                </div>
+                                @if (!empty($previewRows))
+                                    <div class="mt-2 pt-2 border-t border-blue-200 dark:border-blue-700">
+                                        <span class="font-semibold">Sample hours values:</span>
+                                        {{ collect($previewRows)->pluck('_hours_import')->filter()->take(5)->join(', ') ?: '—' }}
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 @endif
 
@@ -111,9 +157,9 @@
                 </div>
 
                 <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <a href="{{ route('users.import.map') }}"
+                    <a href="{{ route('users.import.hours') }}"
                        class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                        ← Back: Adjust mapping
+                        ← Back: Adjust hours config
                     </a>
 
                     <form method="POST" action="{{ route('users.import.execute') }}">

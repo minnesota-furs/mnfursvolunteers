@@ -5,7 +5,8 @@
 $steps = [
     1 => 'Upload CSV',
     2 => 'Map Columns',
-    3 => 'Confirm & Import',
+    3 => 'Hours Config',
+    4 => 'Confirm & Import',
 ];
 @endphp
 
