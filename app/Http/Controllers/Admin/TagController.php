@@ -37,6 +37,7 @@ class TagController extends Controller
             'slug' => 'nullable|string|max:255|unique:tags,slug',
             'color' => 'nullable|string|max:7',
             'description' => 'nullable|string',
+            'type' => 'nullable|in:user,shift',
         ]);
 
         // Generate slug if not provided
@@ -80,6 +81,7 @@ class TagController extends Controller
             'slug' => 'nullable|string|max:255|unique:tags,slug,' . $tag->id,
             'color' => 'nullable|string|max:7',
             'description' => 'nullable|string',
+            'type' => 'nullable|in:user,shift',
         ]);
 
         // Generate slug if not provided

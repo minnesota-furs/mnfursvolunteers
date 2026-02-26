@@ -16,7 +16,26 @@ class Tag extends Model
         'slug',
         'color',
         'description',
+        'type',
     ];
+
+    // type = null  → applies to both users and shifts
+    // type = user  → user tags only
+    // type = shift → shift tags only
+
+    public function scopeForUsers($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('type', 'user')->orWhereNull('type');
+        });
+    }
+
+    public function scopeForShifts($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('type', 'shift')->orWhereNull('type');
+        });
+    }
 
     protected static function boot()
     {
@@ -38,5 +57,10 @@ class Tag extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)->withTimestamps();
+    }
+
+    public function shifts(): BelongsToMany
+    {
+        return $this->belongsToMany(Shift::class)->withTimestamps();
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\AdvancedDuplicateShiftRequest;
 use App\Models\Event;
 use App\Models\Shift;
+use App\Models\Tag;
 use App\Models\User;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
@@ -22,7 +23,7 @@ class ShiftController extends Controller
      */
     public function index(Event $event)
     {
-        $shifts = $event->shifts()->orderBy('start_time', 'asc')->get();
+        $shifts = $event->shifts()->with(['users', 'tags'])->orderBy('start_time', 'asc')->get();
         return view('admin.shifts.index', compact('event', 'shifts'));
     }
 
@@ -31,7 +32,8 @@ class ShiftController extends Controller
      */
     public function create(Event $event)
     {
-        return view('admin.shifts.create', compact('event'));
+        $tags = Tag::forShifts()->orderBy('name')->get();
+        return view('admin.shifts.create', compact('event', 'tags'));
     }
 
     /**
@@ -46,8 +48,10 @@ class ShiftController extends Controller
             'end_time'       => 'required|date|after:start_time',
             'max_volunteers' => 'required|integer|min:1',
             'double_hours'   => 'nullable|boolean',
-            'user_id'        => 'nullable|array', // Accept array of user IDs
-            'user_id.*'      => 'integer|exists:users,id' // Validate each user ID
+            'user_id'        => 'nullable|array',
+            'user_id.*'      => 'integer|exists:users,id',
+            'shift_tags'     => 'nullable|array',
+            'shift_tags.*'   => 'integer|exists:tags,id',
         ]);
 
         $shiftData = $request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers']);
@@ -57,10 +61,11 @@ class ShiftController extends Controller
 
         if ($request->filled('user_id')) {
             $userIds = $request->input('user_id');
-            // Ensure we have an array of user IDs
             $userIds = is_array($userIds) ? $userIds : [$userIds];
             $shift->users()->syncWithoutDetaching($userIds);
         }
+
+        $shift->tags()->sync($request->input('shift_tags', []));
 
         return redirect()->route('admin.events.shifts.index', $event)
             ->with('success', [
@@ -81,7 +86,8 @@ class ShiftController extends Controller
      */
     public function edit(Event $event, Shift $shift)
     {
-        return view('admin.shifts.create', compact('event', 'shift'));
+        $tags = Tag::forShifts()->orderBy('name')->get();
+        return view('admin.shifts.create', compact('event', 'shift', 'tags'));
     }
 
     /**
@@ -96,23 +102,24 @@ class ShiftController extends Controller
             'end_time'       => 'required|date|after:start_time',
             'max_volunteers' => 'required|integer|min:1',
             'double_hours'   => 'nullable|boolean',
-            'user_id'        => 'nullable|array', // Accept array of user IDs
-            'user_id.*'      => 'integer|exists:users,id' // Validate each user ID
+            'user_id'        => 'nullable|array',
+            'user_id.*'      => 'integer|exists:users,id',
+            'shift_tags'     => 'nullable|array',
+            'shift_tags.*'   => 'integer|exists:tags,id',
         ]);
 
-
         $updateData = $request->only(['name', 'description', 'start_time', 'double_hours', 'end_time', 'max_volunteers']);
-
         $updateData['double_hours'] = $request->has('double_hours');
-        
+
         $shift->update($updateData);
 
         if ($request->filled('user_id')) {
             $userIds = $request->input('user_id');
-            // Ensure we have an array of user IDs
             $userIds = is_array($userIds) ? $userIds : [$userIds];
             $shift->users()->syncWithoutDetaching($userIds);
         }
+
+        $shift->tags()->sync($request->input('shift_tags', []));
 
         return redirect()->route('admin.events.shifts.index', $event)
             ->with('success', [
@@ -140,6 +147,7 @@ class ShiftController extends Controller
         $newShift->save();
 
         $event->shifts()->save($newShift);
+        $newShift->tags()->sync($shift->tags->pluck('id'));
 
         return redirect()->route('admin.events.shifts.index', $event)
             ->with('success', [
@@ -282,6 +290,8 @@ class ShiftController extends Controller
         
         $createdShifts = [];
         $volunteers = $copyVolunteers ? $shift->users->pluck('id')->toArray() : [];
+        $shift->load('tags');
+        $tagIds = $shift->tags->pluck('id')->toArray();
 
         for ($i = 1; $i <= $recurrence; $i++) {
             // Calculate new times based on interval
@@ -330,6 +340,11 @@ class ShiftController extends Controller
             // Copy volunteer assignments if requested
             if ($copyVolunteers && !empty($volunteers)) {
                 $newShift->users()->attach($volunteers, ['signed_up_at' => now()]);
+            }
+
+            // Copy tags
+            if (!empty($tagIds)) {
+                $newShift->tags()->sync($tagIds);
             }
 
             $createdShifts[] = $newShift;

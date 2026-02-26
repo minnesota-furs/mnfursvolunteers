@@ -18,6 +18,7 @@
                 <x-tailwind-dropdown-item href="{{ route('admin.events.volunteers', $event) }}" title="View all unquie volunteers signed up and email actions">View All Volunteers / Email</x-tailwind-dropdown-item>
                 <x-tailwind-dropdown-item href="{{ route('admin.events.allShifts', $event) }}" title="View all the shifts and their associated volunteers">View Shift Overview</x-tailwind-dropdown-item>
                 <x-tailwind-dropdown-item href="{{ route('admin.events.agenda', $event) }}" title="View calendar-style agenda with shift coverage visualization"><x-heroicon-o-calendar class="w-4 inline"/> View Agenda</x-tailwind-dropdown-item>
+                <x-tailwind-dropdown-item href="{{ route('admin.events.shift-tag-report', $event) }}" title="View volunteer breakdown by shift tag"><x-heroicon-o-tag class="w-4 inline"/> Tag Report</x-tailwind-dropdown-item>
                 <x-tailwind-dropdown-item href="{{ route('admin.events.manager-dashboard', $event) }}" title="Live coverage dashboard for this event"><x-heroicon-s-signal class="w-4 inline text-green-500"/> Live Manager Dashboard</x-tailwind-dropdown-item>
             </div>
             @if ($event->visibility === 'public' || $event->visibility === 'unlisted' || $event->visibility === 'internal' )
@@ -89,6 +90,10 @@
                                             class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
                                             Volunteers
                                         </th>
+                                        <th scope="col"
+                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                            Tags
+                                        </th>
                                         <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0 w-16">
                                             <span class="sr-only">Edit</span>
                                         </th>
@@ -132,6 +137,19 @@
                                                 <x-heroicon-s-battery-0 title="No Staff" class="w-4 mb-1 inline"/>
                                             @endif
                                             {{ $shift->users->count() }} of {{ $shift->max_volunteers }}
+                                        </td>
+                                        <td class="py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                            @forelse ($shift->tags->sortBy('name') as $tag)
+                                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium mb-1 mr-1"
+                                                    style="{{ $tag->color ? 'background-color:' . $tag->color . '22; color:' . $tag->color : 'background-color:#e5e7eb; color:#374151' }}">
+                                                    @if($tag->color)
+                                                        <span class="inline-block w-2 h-2 rounded-full mr-1" style="background-color:{{ $tag->color }}"></span>
+                                                    @endif
+                                                    {{ $tag->name }}
+                                                </span>
+                                            @empty
+                                                <span class="text-gray-400 text-xs">—</span>
+                                            @endforelse
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                             {{-- <a href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}" class="text-blue-600 dark:text-blue-200 px-2"><x-heroicon-m-plus class="w-3 inline"/> Signup</a> --}}

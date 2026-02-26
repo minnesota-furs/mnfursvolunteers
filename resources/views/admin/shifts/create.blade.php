@@ -53,6 +53,42 @@
                     </dd>
                 </div>
 
+                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                    <div>
+                        <dt class="form-label">Shift Tags</dt>
+                        <p class="text-gray-500 text-sm mt-1">Categorize this shift for reporting (e.g., Cashier, BadgeChecker).</p>
+                    </div>
+                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        @if(isset($tags) && $tags->isNotEmpty())
+                            <div class="flex flex-wrap gap-3">
+                                @foreach ($tags as $tag)
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            name="shift_tags[]"
+                                            value="{{ $tag->id }}"
+                                            {{ (isset($shift) && $shift->tags->contains($tag->id)) || (is_array(old('shift_tags')) && in_array($tag->id, old('shift_tags'))) ? 'checked' : '' }}
+                                            class="rounded border-gray-300 text-brand-green shadow-sm focus:border-brand-green focus:ring focus:ring-green-200 focus:ring-opacity-50">
+                                        <span class="inline-flex items-center text-sm text-gray-800 dark:text-gray-200">
+                                            @if($tag->color)
+                                                <span class="inline-block w-3 h-3 rounded mr-1" style="background-color: {{ $tag->color }}"></span>
+                                            @endif
+                                            {{ $tag->name }}
+                                        </span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-xs text-gray-500 italic">
+                                No tags available.
+                                <a href="{{ route('admin.tags.create') }}" class="text-brand-green hover:underline">Create tags</a>
+                                to use this feature.
+                            </p>
+                        @endif
+                        <x-form-validation for="shift_tags" />
+                    </dd>
+                </div>
+
                 @php
                     $defaultStart = isset($shift) ? $shift->start_time : $event->start_date;
                     $defaultEnd = isset($shift) ? $shift->end_time : $event->start_date->copy()->addHour();

@@ -19,6 +19,7 @@ use App\Http\Controllers\Volunteer\ShiftSignupController;
 use App\Http\Controllers\Volunteer\CalendarController;
 use App\Http\Controllers\Admin\ShiftController;
 use App\Http\Controllers\Admin\EventController;
+use App\Http\Controllers\Admin\ShiftTagReportController;
 use App\Http\Controllers\ElectionController;
 use App\Http\Controllers\SetupWizardController;
 use App\Http\Controllers\FeatureController;
@@ -260,6 +261,8 @@ Route::middleware('auth')->group(function () {
 
     // Volunteer Events
     Route::middleware('can:manage-volunteer-events')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/events/{event}/shift-tag-report', [ShiftTagReportController::class, 'eventReport'])->name('events.shift-tag-report');
+        Route::get('/shift-tag-report', [ShiftTagReportController::class, 'crossEventReport'])->name('shift-tag-report');
         Route::get('/manager-dashboard', [ManagerDashboardController::class, 'index'])->name('manager-dashboard');
         Route::resource('events', EventController::class);
         Route::resource('events.shifts', ShiftController::class)->except(['show']);

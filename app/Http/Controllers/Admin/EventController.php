@@ -39,7 +39,7 @@ class EventController extends Controller
      */
     public function create()
     {
-        $tags = \App\Models\Tag::orderBy('name')->get();
+        $tags = \App\Models\Tag::forUsers()->orderBy('name')->get();
         return view('admin.events.create', compact('tags'));
     }
     
@@ -107,7 +107,7 @@ class EventController extends Controller
         $this->authorize('update', $event);
         
         $event->load('requiredTags');
-        $tags = \App\Models\Tag::orderBy('name')->get();
+        $tags = \App\Models\Tag::forUsers()->orderBy('name')->get();
         return view('admin.events.create', compact('event', 'tags'));
     }
 

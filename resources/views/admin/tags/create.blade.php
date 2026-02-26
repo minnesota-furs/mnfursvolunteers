@@ -66,6 +66,27 @@
                             @enderror
                         </div>
 
+                        <!-- Applies To -->
+                        <div class="mb-6">
+                            <label for="type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Applies To
+                            </label>
+                            <select name="type" id="type"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <option value="" {{ old('type') === null || old('type') === '' ? 'selected' : '' }}>Both Users &amp; Shifts</option>
+                                <option value="user" {{ old('type') === 'user' ? 'selected' : '' }}>Users only</option>
+                                <option value="shift" {{ old('type') === 'shift' ? 'selected' : '' }}>Shifts only</option>
+                            </select>
+                            @error('type')
+                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                <strong>Both</strong> — appears when tagging users and when tagging shifts.<br>
+                                <strong>Users only</strong> — only available on user profiles and event required-tag filters.<br>
+                                <strong>Shifts only</strong> — only available on shift create/edit forms and shift tag reports.
+                            </p>
+                        </div>
+
                         <!-- Actions -->
                         <div class="flex items-center justify-end space-x-4">
                             <a href="{{ route('admin.tags.index') }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">

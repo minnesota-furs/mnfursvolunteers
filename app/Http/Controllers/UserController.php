@@ -99,7 +99,7 @@ class UserController extends Controller
         
         // Get departments and tags for filter dropdowns
         $departments = Department::orderBy('name')->get();
-        $tags = \App\Models\Tag::orderBy('name')->get();
+        $tags = \App\Models\Tag::forUsers()->orderBy('name')->get();
 
         return view('users.index', compact('users', 'sort', 'direction', 'trashedUsers', 'departments', 'tags'));
     }
@@ -321,7 +321,7 @@ class UserController extends Controller
             ->get();
 
             // Get all tags
-            $tags = \App\Models\Tag::orderBy('name')->get();
+            $tags = \App\Models\Tag::forUsers()->orderBy('name')->get();
 
             // Get timeline events for the sidebar
             $timelineEvents = $user->getTimelineEvents()->take(20);
