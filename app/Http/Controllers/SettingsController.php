@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ApplicationSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class SettingsController extends Controller
@@ -14,8 +15,103 @@ class SettingsController extends Controller
     public function index()
     {
         $settings = ApplicationSetting::getAllGrouped();
-        
-        return view('settings.index', compact('settings'));
+        $sysInfo = $this->gatherSystemInfo();
+
+        return view('settings.index', compact('settings', 'sysInfo'));
+    }
+
+    /**
+     * Gather diagnostic system information for the Information tab.
+     */
+    private function gatherSystemInfo(): array
+    {
+        // --- Git info ---
+        $gitInfo = ['available' => false];
+        try {
+            $raw = shell_exec('git -C ' . escapeshellarg(base_path()) . ' log -1 --format="%H|||%h|||%ai|||%s" 2>/dev/null');
+            if ($raw) {
+                $parts = explode('|||', trim($raw));
+                $gitInfo = [
+                    'available'    => true,
+                    'hash'         => $parts[0] ?? null,
+                    'short_hash'   => $parts[1] ?? null,
+                    'date'         => $parts[2] ?? null,
+                    'message'      => $parts[3] ?? null,
+                ];
+            }
+        } catch (\Throwable) {}
+
+        // --- PHP ---
+        $phpExtensions = ['pdo', 'pdo_mysql', 'mbstring', 'openssl', 'tokenizer', 'xml', 'ctype', 'json', 'bcmath', 'gd', 'fileinfo', 'curl', 'zip', 'intl'];
+        $loadedExtensions = [];
+        foreach ($phpExtensions as $ext) {
+            $loadedExtensions[$ext] = extension_loaded($ext);
+        }
+
+        // --- Mail ---
+        $mailDriver  = config('mail.default', 'not set');
+        $mailConfig  = config("mail.mailers.{$mailDriver}", []);
+        $mailHost    = $mailConfig['host'] ?? null;
+        $mailPort    = $mailConfig['port'] ?? null;
+        $mailEncrypt = $mailConfig['encryption'] ?? null;
+        $mailUser    = $mailConfig['username'] ?? null;
+        $mailFrom    = config('mail.from.address');
+        $mailConfigured = !empty($mailHost) && !empty($mailUser);
+
+        // --- Database ---
+        $dbDriver = config('database.default');
+        $dbConfig = config("database.connections.{$dbDriver}", []);
+        $dbConnected = false;
+        try {
+            DB::connection()->getPdo();
+            $dbConnected = true;
+        } catch (\Throwable) {}
+
+        // --- WordPress DB ---
+        $wpConfigured = !empty(config('database.connections.wordpress.host') ?? config('corcel.connection'));
+        $wpConnected  = false;
+        if ($wpConfigured) {
+            try {
+                DB::connection('wordpress')->getPdo();
+                $wpConnected = true;
+            } catch (\Throwable) {}
+        }
+
+        // --- Storage ---
+        $storageLinkExists = is_link(public_path('storage'));
+
+        return [
+            'git'              => $gitInfo,
+            'php_version'      => PHP_VERSION,
+            'php_extensions'   => $loadedExtensions,
+            'laravel_version'  => app()->version(),
+            'app_env'          => app()->environment(),
+            'app_debug'        => config('app.debug'),
+            'app_timezone'     => config('app.timezone'),
+            'app_url'          => config('app.url'),
+            'mail' => [
+                'driver'      => $mailDriver,
+                'host'        => $mailHost,
+                'port'        => $mailPort,
+                'encryption'  => $mailEncrypt,
+                'username'    => $mailUser ? '(set)' : '(not set)',
+                'from'        => $mailFrom,
+                'configured'  => $mailConfigured,
+            ],
+            'db' => [
+                'driver'    => $dbDriver,
+                'host'      => $dbConfig['host'] ?? null,
+                'database'  => $dbConfig['database'] ?? null,
+                'connected' => $dbConnected,
+            ],
+            'wordpress_db' => [
+                'configured' => $wpConfigured,
+                'connected'  => $wpConnected,
+            ],
+            'queue_driver'       => config('queue.default'),
+            'cache_driver'       => config('cache.default'),
+            'storage_link'       => $storageLinkExists,
+        ];
     }
 
     /**

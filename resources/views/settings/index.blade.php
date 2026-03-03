@@ -60,6 +60,11 @@
                     class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
                     Import/Export
                 </button>
+                <button @click="activeTab = 'information'" type="button"
+                    :class="activeTab === 'information' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    Information
+                </button>
             </nav>
         </div>
 
@@ -502,8 +507,257 @@
                         </div>
                     </div>
 
-                    <!-- Actions (visible on all tabs) -->
-                    <div class="flex items-center justify-end gap-4 border-t border-gray-200 dark:border-gray-700 pt-6 mt-8">
+                    <!-- Information Tab -->
+                    <div x-show="activeTab === 'information'" x-cloak>
+                        <div class="flex items-start justify-between gap-4 mb-6">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Deployment Information</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Diagnostic details to help troubleshoot deployments and support requests.</p>
+                            </div>
+                            <button type="button" @click="copyInfo()"
+                                class="shrink-0 inline-flex items-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition">
+                                <template x-if="!copied">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <x-heroicon-o-clipboard class="w-4 h-4" />
+                                        Copy Support Info
+                                    </span>
+                                </template>
+                                <template x-if="copied">
+                                    <span class="inline-flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                                        <x-heroicon-o-clipboard-document-check class="w-4 h-4" />
+                                        Copied!
+                                    </span>
+                                </template>
+                            </button>
+                        </div>
+
+                        <div class="space-y-6">
+
+                            {{-- Application --}}
+                            <div>
+                                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Application</h4>
+                                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Laravel Version</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['laravel_version'] }}</dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Environment</dt>
+                                        <dd>
+                                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                                                {{ $sysInfo['app_env'] === 'production' ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300' }}">
+                                                {{ $sysInfo['app_env'] }}
+                                            </span>
+                                        </dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Debug Mode</dt>
+                                        <dd>
+                                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                                                {{ $sysInfo['app_debug'] ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' }}">
+                                                {{ $sysInfo['app_debug'] ? 'ON' : 'OFF' }}
+                                            </span>
+                                        </dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Timezone</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['app_timezone'] }}</dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block sm:col-span-2">
+                                        <dt class="text-gray-500 dark:text-gray-400">App URL</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['app_url'] }}</dd>
+                                    </div>
+                                </dl>
+                            </div>
+
+                            <hr class="border-gray-200 dark:border-gray-700">
+
+                            {{-- Git / Version --}}
+                            <div>
+                                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Version / Git</h4>
+                                @if($sysInfo['git']['available'])
+                                    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                                        <div class="flex justify-between sm:block">
+                                            <dt class="text-gray-500 dark:text-gray-400">Commit (short)</dt>
+                                            <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['git']['short_hash'] }}</dd>
+                                        </div>
+                                        <div class="flex justify-between sm:block">
+                                            <dt class="text-gray-500 dark:text-gray-400">Commit Date</dt>
+                                            <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['git']['date'] }}</dd>
+                                        </div>
+                                        <div class="flex justify-between sm:block sm:col-span-2">
+                                            <dt class="text-gray-500 dark:text-gray-400">Full Hash</dt>
+                                            <dd class="font-mono text-xs text-gray-700 dark:text-gray-300 break-all">{{ $sysInfo['git']['hash'] }}</dd>
+                                        </div>
+                                        <div class="flex justify-between sm:block sm:col-span-2">
+                                            <dt class="text-gray-500 dark:text-gray-400">Last Commit Message</dt>
+                                            <dd class="text-gray-900 dark:text-gray-100">{{ $sysInfo['git']['message'] }}</dd>
+                                        </div>
+                                    </dl>
+                                @else
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 italic">Git information not available (git may not be installed or this is not a git repository).</p>
+                                @endif
+                            </div>
+
+                            <hr class="border-gray-200 dark:border-gray-700">
+
+                            {{-- PHP --}}
+                            <div>
+                                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">PHP</h4>
+                                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm mb-4">
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">PHP Version</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['php_version'] }}</dd>
+                                    </div>
+                                </dl>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide font-medium">Key Extensions</p>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($sysInfo['php_extensions'] as $ext => $loaded)
+                                        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium
+                                            {{ $loaded ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' }}">
+                                            @if($loaded)
+                                                <x-heroicon-s-check-circle class="w-3 h-3" />
+                                            @else
+                                                <x-heroicon-s-x-circle class="w-3 h-3" />
+                                            @endif
+                                            {{ $ext }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <hr class="border-gray-200 dark:border-gray-700">
+
+                            {{-- Mail --}}
+                            <div>
+                                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Mail</h4>
+                                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Status</dt>
+                                        <dd>
+                                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                                                {{ $sysInfo['mail']['configured'] ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300' }}">
+                                                {{ $sysInfo['mail']['configured'] ? 'Configured' : 'Not fully configured' }}
+                                            </span>
+                                        </dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Driver</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['mail']['driver'] }}</dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Host</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['mail']['host'] ?? '—' }}</dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Port</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['mail']['port'] ?? '—' }}</dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Encryption</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['mail']['encryption'] ?? '—' }}</dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Username</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['mail']['username'] }}</dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block sm:col-span-2">
+                                        <dt class="text-gray-500 dark:text-gray-400">From Address</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['mail']['from'] ?? '—' }}</dd>
+                                    </div>
+                                </dl>
+                            </div>
+
+                            <hr class="border-gray-200 dark:border-gray-700">
+
+                            {{-- Database --}}
+                            <div>
+                                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Database</h4>
+                                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Connection</dt>
+                                        <dd>
+                                            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium
+                                                {{ $sysInfo['db']['connected'] ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' }}">
+                                                @if($sysInfo['db']['connected'])
+                                                    <x-heroicon-s-check-circle class="w-3 h-3" /> Connected
+                                                @else
+                                                    <x-heroicon-s-x-circle class="w-3 h-3" /> Failed
+                                                @endif
+                                            </span>
+                                        </dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Driver</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['db']['driver'] }}</dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Host</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['db']['host'] ?? '—' }}</dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Database</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['db']['database'] ?? '—' }}</dd>
+                                    </div>
+                                </dl>
+
+                                @if($sysInfo['wordpress_db']['configured'])
+                                    <p class="mt-4 text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide font-medium mb-2">WordPress Database</p>
+                                    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                                        <div class="flex justify-between sm:block">
+                                            <dt class="text-gray-500 dark:text-gray-400">Connection</dt>
+                                            <dd>
+                                                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium
+                                                    {{ $sysInfo['wordpress_db']['connected'] ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' }}">
+                                                    @if($sysInfo['wordpress_db']['connected'])
+                                                        <x-heroicon-s-check-circle class="w-3 h-3" /> Connected
+                                                    @else
+                                                        <x-heroicon-s-x-circle class="w-3 h-3" /> Failed
+                                                    @endif
+                                                </span>
+                                            </dd>
+                                        </div>
+                                    </dl>
+                                @else
+                                    <p class="mt-3 text-sm text-gray-500 dark:text-gray-400 italic">WordPress database connection not configured.</p>
+                                @endif
+                            </div>
+
+                            <hr class="border-gray-200 dark:border-gray-700">
+
+                            {{-- Services --}}
+                            <div>
+                                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Services &amp; Storage</h4>
+                                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Cache Driver</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['cache_driver'] }}</dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Queue Driver</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['queue_driver'] }}</dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">Public Storage Link</dt>
+                                        <dd>
+                                            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium
+                                                {{ $sysInfo['storage_link'] ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' }}">
+                                                @if($sysInfo['storage_link'])
+                                                    <x-heroicon-s-check-circle class="w-3 h-3" /> Linked
+                                                @else
+                                                    <x-heroicon-s-x-circle class="w-3 h-3" /> Missing
+                                                @endif
+                                            </span>
+                                        </dd>
+                                    </div>
+                                </dl>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Actions (visible on all tabs except information) -->
+                    <div x-show="activeTab !== 'information'" class="flex items-center justify-end gap-4 border-t border-gray-200 dark:border-gray-700 pt-6 mt-8">
                         <button type="submit" class="rounded-md bg-brand-green px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-green-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">
                             Save Settings
                         </button>
@@ -514,12 +768,16 @@
     </div>
 
     <script>
+        const __sysInfo = @json($sysInfo);
+
         document.addEventListener('alpine:init', () => {
             Alpine.data('settingsForm', () => ({
+                sysInfo: __sysInfo,
                 activeTab: 'branding',
                 logoPreview: null,
                 faviconPreview: null,
-                
+                copied: false,
+
                 previewImage(event, targetProperty) {
                     const file = event.target.files[0];
                     if (file) {
@@ -529,6 +787,73 @@
                         };
                         reader.readAsDataURL(file);
                     }
+                },
+
+                copyInfo() {
+                    const s = this.sysInfo;
+                    const yn = (v) => v ? 'Yes' : 'No';
+                    const val = (v, fallback = '—') => v || fallback;
+
+                    let lines = [];
+                    lines.push('## Deployment Information');
+                    lines.push('');
+
+                    lines.push('**Application**');
+                    lines.push(`Laravel: ${val(s.laravel_version)}`);
+                    lines.push(`PHP: ${val(s.php_version)}`);
+                    lines.push(`Environment: ${val(s.app_env)}`);
+                    lines.push(`Debug Mode: ${s.app_debug ? 'ON ⚠️' : 'OFF'}`);
+                    lines.push(`Timezone: ${val(s.app_timezone)}`);
+                    lines.push(`App URL: ${val(s.app_url)}`);
+                    lines.push('');
+
+                    lines.push('**Version / Git**');
+                    if (s.git && s.git.available) {
+                        lines.push(`Commit: ${val(s.git.short_hash)} (${val(s.git.date)})`);
+                        lines.push(`Message: ${val(s.git.message)}`);
+                        lines.push(`Full Hash: ${val(s.git.hash)}`);
+                    } else {
+                        lines.push('Git info not available');
+                    }
+                    lines.push('');
+
+                    lines.push('**PHP Extensions**');
+                    const missing = Object.entries(s.php_extensions).filter(([,v]) => !v).map(([k]) => k);
+                    if (missing.length === 0) {
+                        lines.push('All checked extensions loaded ✅');
+                    } else {
+                        lines.push(`Missing: ${missing.join(', ')}`);
+                    }
+                    lines.push('');
+
+                    lines.push('**Mail**');
+                    lines.push(`Configured: ${s.mail.configured ? 'Yes ✅' : 'No ⚠️'}`);
+                    lines.push(`Driver: ${val(s.mail.driver)}`);
+                    lines.push(`Host: ${val(s.mail.host)}:${val(s.mail.port)}`);
+                    lines.push(`Encryption: ${val(s.mail.encryption)}`);
+                    lines.push(`Username: ${val(s.mail.username)}`);
+                    lines.push(`From: ${val(s.mail.from)}`);
+                    lines.push('');
+
+                    lines.push('**Database**');
+                    lines.push(`Connected: ${yn(s.db.connected)}`);
+                    lines.push(`Driver: ${val(s.db.driver)}`);
+                    lines.push(`Host: ${val(s.db.host)}`);
+                    lines.push(`Database: ${val(s.db.database)}`);
+                    lines.push(`WordPress DB: ${s.wordpress_db.configured ? (s.wordpress_db.connected ? 'Configured & Connected ✅' : 'Configured but Failed ❌') : 'Not configured'}`);
+                    lines.push('');
+
+                    lines.push('**Services & Storage**');
+                    lines.push(`Cache Driver: ${val(s.cache_driver)}`);
+                    lines.push(`Queue Driver: ${val(s.queue_driver)}`);
+                    lines.push(`Storage Link: ${yn(s.storage_link)}`);
+
+                    const text = '```\n' + lines.join('\n') + '\n```';
+
+                    navigator.clipboard.writeText(text).then(() => {
+                        this.copied = true;
+                        setTimeout(() => { this.copied = false; }, 2500);
+                    });
                 }
             }))
         })
