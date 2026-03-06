@@ -110,7 +110,7 @@ class UserController extends Controller
      */
     public function create(Request $request): View
     {
-        if (Auth::check() && Auth::user()->isAdmin()) {
+        if (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->hasPermission('manage-users'))) {
             $sectors = Sector::all();
             $departments = [];
             return view('users.create', [
@@ -127,7 +127,7 @@ class UserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        if (Auth::check() && Auth::user()->isAdmin()) {
+        if (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->hasPermission('manage-users'))) {
             // Validate the incoming request data
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
@@ -142,6 +142,11 @@ class UserController extends Controller
                 'primary_dept_id' => ['nullable', 'integer', 'exists:departments,id'], // Ensure 'sector' is a valid integer and exists in the sectors table
                 'admin' => ['boolean'] // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
             ]);
+
+            // Only admins may set the admin flag; non-admins always create regular users
+            if (!Auth::user()->isAdmin()) {
+                $validated['admin'] = 0;
+            }
 
             // Check if a user with the same email exists and is soft-deleted
             $existingUser = User::where('email', $validated['email'])->withTrashed()->first();
@@ -302,7 +307,7 @@ class UserController extends Controller
      */
     public function edit(Request $request, string $id = ''): View
     {
-        if (Auth::check() && Auth::user()->isAdmin()) {
+        if (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->hasPermission('manage-users'))) {
             $user = User::with([
                 'volunteerHours.department.sector',
                 'shifts.event',
@@ -343,7 +348,7 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id): RedirectResponse
     {
-        if (Auth::check() && Auth::user()->isAdmin()) {
+        if (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->hasPermission('manage-users'))) {
             // Validate the incoming request data
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
@@ -364,6 +369,11 @@ class UserController extends Controller
 
             // Find the user by ID
             $user = User::findOrFail($id);
+
+            // Only admins may change the admin flag; non-admins cannot escalate privileges
+            if (!Auth::user()->isAdmin()) {
+                unset($validated['admin']);
+            }
 
             // Update the user profile with the validated data
             $user->update($validated);

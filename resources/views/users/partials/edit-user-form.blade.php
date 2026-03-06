@@ -14,7 +14,7 @@
                                     <div class="mt-6 border-t border-gray-100 dark:border-gray-700">
                                         <dl class="divide-y divide-gray-100 dark:divide-gray-700">
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                <dt class="form-label">Full name</dt>
+                                                <dt class="form-label">Name / Alias</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                                                     <x-text-input id="name" name="name" type="text" class="block w-64 text-sm" :value="old('name', $user->name)" required autofocus autocomplete="name" />
                                                     <x-form-validation for="name" />
@@ -61,6 +61,7 @@
                                                     <x-input-error class="mt-2" :messages="$errors->get('active')" />
                                                 </dd>
                                             </div>
+                                            @if(Auth::user()->isAdmin())
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                 <dt class="form-label">User Type</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
@@ -75,6 +76,7 @@
                                                     </p>
                                                 </dd>
                                             </div>
+                                            @endif
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                 <dt class="form-label">User Comment</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
