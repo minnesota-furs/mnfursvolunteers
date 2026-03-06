@@ -10,7 +10,7 @@ use App\Models\FiscalLedger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 
-class fiscalLedgerController extends Controller
+class FiscalLedgerController extends Controller
 {
     /**
      * Display a listing of the resource.

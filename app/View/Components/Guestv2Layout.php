@@ -5,7 +5,7 @@ namespace App\View\Components;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 
-class GuestV2Layout extends Component
+class Guestv2Layout extends Component
 {
     public ?string $title;
     public ?string $ogTitle;
