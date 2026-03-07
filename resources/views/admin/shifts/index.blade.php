@@ -50,10 +50,31 @@
                 <x-heroicon-o-user-group class="w-4 inline"/> Manage Collaborators
             </a>
         @endcan
-        <a href="{{ route('admin.events.shifts.create', $event) }}"
-            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-            <x-heroicon-s-plus class="w-4 inline"/> Create New Shift
-        </a>
+
+        {{-- Split button: Create Shift Series (primary) + dropdown for Create New Shift --}}
+        <div class="relative inline-flex rounded-md shadow-md">
+            <a href="{{ route('admin.events.shifts.create-series', $event) }}"
+                class="rounded-l-md bg-white px-3 py-2 text-sm font-semibold text-brand-green hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green whitespace-nowrap">
+                <x-heroicon-o-queue-list class="w-4 inline -mt-0.5"/> Create Shift Series
+            </a>
+            <button type="button" id="menuButton" onclick="openMenu(9901); event.stopPropagation();"
+                class="rounded-r-md border-l border-gray-200 bg-white px-2 py-2 text-brand-green hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
+                aria-haspopup="true" aria-expanded="false">
+                <span class="sr-only">More shift options</span>
+                <x-heroicon-m-chevron-down class="w-4 h-4"/>
+            </button>
+            <div id="optDropdown9901"
+                class="hidden absolute right-0 top-full z-50 mt-1 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 scale-95 transition-transform"
+                role="menu" tabindex="-1">
+                <div class="py-1" role="none">
+                    <a href="{{ route('admin.events.shifts.create', $event) }}"
+                        class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        role="menuitem">
+                        <x-heroicon-s-plus class="w-4 h-4 mr-2"/> Create New Shift
+                    </a>
+                </div>
+            </div>
+        </div>
     </x-slot>
 
     <div class="">

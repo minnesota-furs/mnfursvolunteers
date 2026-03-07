@@ -401,6 +401,104 @@ class ShiftController extends Controller
         }
     }
 
+    /**
+     * Show the form for creating a shift series.
+     */
+    public function createSeries(Event $event)
+    {
+        $tags = Tag::forShifts()->orderBy('name')->get();
+        return view('admin.shifts.create-series', compact('event', 'tags'));
+    }
+
+    /**
+     * Store a newly created shift series in storage.
+     */
+    public function storeSeries(Request $request, Event $event)
+    {
+        $request->validate([
+            'name'             => 'required|string|max:255',
+            'naming_pattern'   => 'required|string|max:255',
+            'description'      => 'nullable|string',
+            'start_time'       => 'required|date',
+            'duration_hours'   => 'required|integer|min:0',
+            'duration_minutes' => 'required|integer|min:0|max:59',
+            'occurrences'      => 'required|integer|min:1|max:100',
+            'gap_hours'        => 'required|integer|min:0',
+            'gap_minutes'      => 'required|integer|min:0|max:59',
+            'max_volunteers'   => 'required|integer|min:1',
+            'double_hours'     => 'nullable|boolean',
+            'shift_tags'       => 'nullable|array',
+            'shift_tags.*'     => 'integer|exists:tags,id',
+        ]);
+
+        $durationMinutes = ((int) $request->duration_hours * 60) + (int) $request->duration_minutes;
+        $gapMinutes      = ((int) $request->gap_hours * 60) + (int) $request->gap_minutes;
+
+        if ($durationMinutes < 1) {
+            return back()->withErrors(['duration_hours' => 'Total duration must be at least 1 minute.'])->withInput();
+        }
+
+        $seriesId    = Str::uuid()->toString();
+        $startTime   = Carbon::parse($request->start_time);
+        $tagIds      = $request->input('shift_tags', []);
+        $doubleHours = $request->boolean('double_hours');
+        $createdShifts = [];
+
+        for ($i = 0; $i < (int) $request->occurrences; $i++) {
+            $shiftStart = $startTime->copy()->addMinutes(($durationMinutes + $gapMinutes) * $i);
+            $shiftEnd   = $shiftStart->copy()->addMinutes($durationMinutes);
+
+            $shiftName = $this->applySeriesNamingPattern(
+                $request->naming_pattern,
+                $request->name,
+                $shiftStart,
+                $i + 1
+            );
+
+            $shift = $event->shifts()->create([
+                'name'                 => $shiftName,
+                'description'          => $request->description,
+                'start_time'           => $shiftStart,
+                'end_time'             => $shiftEnd,
+                'max_volunteers'       => $request->max_volunteers,
+                'double_hours'         => $doubleHours,
+                'duplicate_series_id'  => $seriesId,
+                'duplicate_sequence'   => $i + 1,
+            ]);
+
+            if (!empty($tagIds)) {
+                $shift->tags()->sync($tagIds);
+            }
+
+            $createdShifts[] = $shift;
+        }
+
+        AuditLog::create([
+            'action'         => 'shift_series_created',
+            'auditable_type' => Event::class,
+            'auditable_id'   => $event->id,
+            'comment'        => 'User ' . auth()->user()->name . ' created a series of ' . count($createdShifts) . " shifts named \"{$request->name}\" (series ID: {$seriesId})",
+            'user_id'        => auth()->id(),
+        ]);
+
+        return redirect()->route('admin.events.shifts.index', $event)
+            ->with('success', [
+                'message' => 'Successfully created <span class="text-brand-green">' . count($createdShifts) . ' shifts</span> in the series.',
+            ]);
+    }
+
+    /**
+     * Replace naming pattern tokens with real values for a series shift.
+     */
+    private function applySeriesNamingPattern(string $pattern, string $name, Carbon $startTime, int $sequence): string
+    {
+        return str_replace(
+            ['{name}', '{start_time}', '{n}'],
+            [$name, $startTime->format('g:i A'), $sequence],
+            $pattern
+        );
+    }
+
     public function importCsv(Request $request, Event $event)
     {
         \Log::debug('Importing CSV', ['event_id' => $event->id]);

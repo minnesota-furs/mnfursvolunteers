@@ -271,6 +271,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/shift-tag-report', [ShiftTagReportController::class, 'crossEventReport'])->name('shift-tag-report');
         Route::get('/manager-dashboard', [ManagerDashboardController::class, 'index'])->name('manager-dashboard');
         Route::resource('events', EventController::class);
+        Route::get('events/{event}/shifts/create-series', [ShiftController::class, 'createSeries'])->name('events.shifts.create-series');
+        Route::post('events/{event}/shifts/store-series', [ShiftController::class, 'storeSeries'])->name('events.shifts.store-series');
         Route::resource('events.shifts', ShiftController::class)->except(['show']);
         Route::post('events/{event}/shifts/{shift}/duplicate', [ShiftController::class, 'duplicate'])->name('events.shifts.duplicate');
         Route::post('events/{event}/shifts/{shift}/advanced-duplicate', [ShiftController::class, 'advancedDuplicate'])->name('events.shifts.advanced-duplicate');
