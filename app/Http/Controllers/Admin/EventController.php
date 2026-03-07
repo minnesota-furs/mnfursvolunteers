@@ -40,7 +40,8 @@ class EventController extends Controller
     public function create()
     {
         $tags = \App\Models\Tag::forUsers()->orderBy('name')->get();
-        return view('admin.events.create', compact('tags'));
+        $sectors = \App\Models\Sector::with(['departments' => fn($q) => $q->orderBy('name')])->orderBy('name')->get();
+        return view('admin.events.create', compact('tags', 'sectors'));
     }
     
     public function log(Event $event)
@@ -71,6 +72,8 @@ class EventController extends Controller
             'auto_credit_hours' => 'nullable|boolean',
             'required_tags' => 'nullable|array',
             'required_tags.*' => 'exists:tags,id',
+            'required_departments' => 'nullable|array',
+            'required_departments.*' => 'exists:departments,id',
         ]);
 
         // Normalize checkbox (unchecked checkboxes don't get sent)
@@ -84,6 +87,9 @@ class EventController extends Controller
 
         // Sync required tags
         $event->requiredTags()->sync($request->input('required_tags', []));
+
+        // Sync required departments
+        $event->requiredDepartments()->sync($request->input('required_departments', []));
 
         return redirect()->route('admin.events.index')
             ->with('success', [
@@ -106,9 +112,10 @@ class EventController extends Controller
     {
         $this->authorize('update', $event);
         
-        $event->load('requiredTags');
+        $event->load('requiredTags', 'requiredDepartments');
         $tags = \App\Models\Tag::forUsers()->orderBy('name')->get();
-        return view('admin.events.create', compact('event', 'tags'));
+        $sectors = \App\Models\Sector::with(['departments' => fn($q) => $q->orderBy('name')])->orderBy('name')->get();
+        return view('admin.events.create', compact('event', 'tags', 'sectors'));
     }
 
     /**
@@ -131,6 +138,8 @@ class EventController extends Controller
             'created_by' => 'nullable|exists:users,id',
             'required_tags' => 'nullable|array',
             'required_tags.*' => 'exists:tags,id',
+            'required_departments' => 'nullable|array',
+            'required_departments.*' => 'exists:departments,id',
         ]);
 
         // Build update data
@@ -149,6 +158,9 @@ class EventController extends Controller
 
         // Sync required tags
         $event->requiredTags()->sync($request->input('required_tags', []));
+
+        // Sync required departments
+        $event->requiredDepartments()->sync($request->input('required_departments', []));
 
         return redirect()->route('admin.events.index')
             ->with('success', [
@@ -521,6 +533,10 @@ class EventController extends Controller
                 $tagIds = $event->requiredTags()->pluck('tags.id')->toArray();
                 $newEvent->requiredTags()->sync($tagIds);
             }
+
+            // Always copy required departments
+            $deptIds = $event->requiredDepartments()->pluck('departments.id')->toArray();
+            $newEvent->requiredDepartments()->sync($deptIds);
 
             // Duplicate shifts without volunteers
             $shiftMapping = []; // Map old shift IDs to new shift IDs

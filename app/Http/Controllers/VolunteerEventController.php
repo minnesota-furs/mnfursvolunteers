@@ -29,8 +29,8 @@ class VolunteerEventController extends Controller
 
     public function show(Event $event)
     {
-        // Load users for use in shift->users and required tags
-        $event->load('shifts.users', 'requiredTags');
+        // Load users for use in shift->users and required tags/departments
+        $event->load('shifts.users', 'requiredTags', 'requiredDepartments');
 
         $shifts = $event->shifts
             ->when($event->hide_past_shifts, fn ($shifts) =>

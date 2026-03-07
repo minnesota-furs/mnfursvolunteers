@@ -24,7 +24,7 @@ class ShiftSignupController extends Controller
         }
 
         // Check if event has required tags
-        $event = $shift->event()->with('requiredTags')->first();
+        $event = $shift->event()->with('requiredTags', 'requiredDepartments')->first();
         if ($event->requiredTags->isNotEmpty()) {
             $userTagIds = $user->tags()->pluck('tags.id')->toArray();
             $requiredTagIds = $event->requiredTags->pluck('id')->toArray();
@@ -34,6 +34,18 @@ class ShiftSignupController extends Controller
             if (!empty($missingTags)) {
                 $missingTagNames = $event->requiredTags->whereIn('id', $missingTags)->pluck('name')->toArray();
                 return back()->with('error', 'You must have the following tag(s) to sign up for this event: ' . implode(', ', $missingTagNames));
+            }
+        }
+
+        // Check if event restricts to specific departments
+        if ($event->requiredDepartments->isNotEmpty()) {
+            $userDeptIds = $user->departments()->pluck('departments.id')->toArray();
+            $requiredDeptIds = $event->requiredDepartments->pluck('id')->toArray();
+
+            // User must belong to at least one of the required departments
+            if (empty(array_intersect($requiredDeptIds, $userDeptIds))) {
+                $deptNames = $event->requiredDepartments->pluck('name')->join(', ');
+                return back()->with('error', 'You must be assigned to one of the following department(s) to sign up for shifts in this event: ' . $deptNames);
             }
         }
 

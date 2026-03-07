@@ -19,6 +19,39 @@
         {{-- <p class="text-sm text-gray-700 mb-1">{{ $event->start_date->format('M j, Y \@ g:i A') }} — {{ $event->end_date->format('M j, Y \@ g:i A') }}</p> --}}
         <p class="text-gray-600 mb-4">{{ $event->description ?? 'No description...' }}</p>
 
+        @if($event->requiredDepartments->isNotEmpty())
+            @php
+                $userDeptIds = auth()->user()->departments()->pluck('departments.id')->toArray();
+                $requiredDeptIds = $event->requiredDepartments->pluck('id')->toArray();
+                $hasRequiredDepartment = !empty(array_intersect($requiredDeptIds, $userDeptIds));
+            @endphp
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+                <div class="flex items-start">
+                    <x-heroicon-s-exclamation-triangle class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2 flex-shrink-0 mt-0.5"/>
+                    <div>
+                        <h3 class="text-sm font-semibold text-yellow-800 dark:text-yellow-200 mb-2">Department Restriction</h3>
+                        <p class="text-sm text-yellow-700 dark:text-yellow-300 mb-2">
+                            Signups for this event are limited to members of the following department(s):
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($event->requiredDepartments as $dept)
+                                <span class="inline-flex items-center rounded-md bg-yellow-100 dark:bg-yellow-900/40 px-2.5 py-1 text-xs font-medium text-yellow-800 dark:text-yellow-200 ring-1 ring-inset ring-yellow-200 dark:ring-yellow-700">
+                                    {{ $dept->name }}
+                                </span>
+                            @endforeach
+                        </div>
+                        @if(!$hasRequiredDepartment)
+                            <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-3 font-medium">
+                                ⚠️ You are not assigned to any of the required departments and cannot sign up for shifts in this event.
+                            </p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @else
+            @php $hasRequiredDepartment = true; @endphp
+        @endif
+
         @if($event->requiredTags->isNotEmpty())
             <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
                 <div class="flex items-start">
@@ -112,6 +145,7 @@
                 $userTagIds = auth()->user()->tags()->pluck('tags.id')->toArray();
                 $requiredTagIds = $event->requiredTags->pluck('id')->toArray();
                 $hasAllTags = empty(array_diff($requiredTagIds, $userTagIds));
+                $canSignUp = $hasAllTags && $hasRequiredDepartment;
             @endphp
             @forelse ($shifts as $shift)
             @php
@@ -206,15 +240,16 @@
                                                 </p>
                                             </div>
                                         @else
-                                            <form action="{{ route('shifts.signup', $shift) }}" method="POST">
-                                                @csrf
-                                                <button type="submit"
-                                                    class="inline-flex items-center rounded-md {{ $hasAllTags ? 'bg-brand-green hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed' }} px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-200"
-                                                    {{ $hasAllTags ? '' : 'disabled' }}>
-                                                    <x-heroicon-s-plus class="w-4 h-4 mr-1"/>
-                                                    Sign Up
-                                                </button>
-                                            </form>
+                                            @if($canSignUp)
+                                                <form action="{{ route('shifts.signup', $shift) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit"
+                                                        class="inline-flex items-center rounded-md bg-brand-green hover:bg-green-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-200">
+                                                        <x-heroicon-s-plus class="w-4 h-4 mr-1"/>
+                                                        Sign Up
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @endif
                                     @else
                                         <div class="text-gray-500 dark:text-gray-400 text-sm bg-gray-100 dark:bg-gray-700 rounded-md px-3 py-2">
@@ -275,15 +310,16 @@
                                             </p>
                                         </div>
                                     @else
-                                        <form action="{{ route('shifts.signup', $shift) }}" method="POST">
-                                            @csrf
-                                            <button type="submit"
-                                                class="w-full inline-flex items-center justify-center rounded-md {{ $hasAllTags ? 'bg-brand-green hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed' }} px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors duration-200"
-                                                {{ $hasAllTags ? '' : 'disabled' }}>
-                                                <x-heroicon-s-plus class="w-5 h-5 mr-2"/>
-                                                Sign Up for This Slot
-                                            </button>
-                                        </form>
+                                        @if($canSignUp)
+                                            <form action="{{ route('shifts.signup', $shift) }}" method="POST">
+                                                @csrf
+                                                <button type="submit"
+                                                    class="w-full inline-flex items-center justify-center rounded-md bg-brand-green hover:bg-green-700 px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors duration-200">
+                                                    <x-heroicon-s-plus class="w-5 h-5 mr-2"/>
+                                                    Sign Up for This Slot
+                                                </button>
+                                            </form>
+                                        @endif
                                     @endif
                                 @else
                                     <div class="w-full text-center py-3 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-md">

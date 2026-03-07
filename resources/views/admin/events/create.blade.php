@@ -200,6 +200,44 @@
                     </div>
                 @endif
 
+                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                    <div>
+                        <dt class="text-sm font-medium leading-6 text-gray-900">Department Restrictions</dt>
+                        <p class="text-gray-500 text-sm mt-1">Only users assigned to the selected department(s) may pick up shifts. Leave all unchecked to allow any user.</p>
+                    </div>
+                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        @if(isset($sectors) && $sectors->isNotEmpty())
+                            <div class="max-h-64 overflow-y-auto rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                @foreach ($sectors as $sector)
+                                    @if($sector->departments->isNotEmpty())
+                                        <div>
+                                            <div class="px-3 py-1.5 bg-gray-50 dark:bg-gray-700/50 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                                {{ $sector->name }}
+                                            </div>
+                                            <div class="px-3 py-2 space-y-1.5">
+                                                @foreach ($sector->departments as $department)
+                                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            name="required_departments[]"
+                                                            value="{{ $department->id }}"
+                                                            {{ (isset($event) && $event->requiredDepartments->contains($department->id)) || (is_array(old('required_departments')) && in_array($department->id, old('required_departments'))) ? 'checked' : '' }}
+                                                            class="rounded border-gray-300 text-brand-green shadow-sm focus:border-brand-green focus:ring focus:ring-green-200 focus:ring-opacity-50">
+                                                        <span class="text-sm text-gray-900 dark:text-gray-100">{{ $department->name }}</span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-xs text-gray-500 italic">No departments available.</p>
+                        @endif
+                        <x-form-validation for="required_departments" />
+                    </dd>
+                </div>
+
                 <div class="py-6 flex justify-end space-x-2">
                     <a type="submit" id="submit" href="{{ url()->previous() }}"
                         class="block rounded-md bg-gray-400 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400">Cancel</a>
