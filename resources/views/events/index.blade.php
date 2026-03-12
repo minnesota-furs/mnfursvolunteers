@@ -5,10 +5,14 @@
     </x-slot>
 
     <x-slot name="actions">
-        <a href="{{route('volunteer.events.my-shifts-all')}}"
-            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-            <x-heroicon-s-list-bullet class="w-4 inline"/> View Full Itinerary
-        </a>
+        <x-actions.primary href="{{route('volunteer.events.my-shifts-all')}}" icon="list-bullet">
+            View My Itinerary
+        </x-actions.primary>
+        @can('manage-volunteer-events')
+        <x-actions.primary href="{{route('admin.events.index')}}" icon="pencil-square">
+            Manage Events
+        </x-actions.primary>
+        @endcan
     </x-slot>
 
     <div class="">
