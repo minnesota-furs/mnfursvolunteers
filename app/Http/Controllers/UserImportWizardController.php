@@ -324,6 +324,18 @@ class UserImportWizardController extends Controller
                 }
             }
 
+            // If display name is blank, derive it from first + last name,
+            // then fall back to the email username prefix so the DB never
+            // receives a missing value for the required `name` column.
+            if (empty($userData['name'])) {
+                $derivedName = trim(($userData['first_name'] ?? '') . ' ' . ($userData['last_name'] ?? ''));
+                if ($derivedName !== '') {
+                    $userData['name'] = $derivedName;
+                } elseif (!empty($userData['email'])) {
+                    $userData['name'] = strstr($userData['email'], '@', true);
+                }
+            }
+
             // Email is required
             if (empty($userData['email']) || !filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
                 $failedRows[] = [
