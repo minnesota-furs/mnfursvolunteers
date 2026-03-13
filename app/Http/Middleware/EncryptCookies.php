@@ -12,6 +12,9 @@ class EncryptCookies extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        // Cloudflare cookies are not set by Laravel and must not be touched
+        '__cf_bm',
+        '__cflb',
+        'cf_clearance',
     ];
 }

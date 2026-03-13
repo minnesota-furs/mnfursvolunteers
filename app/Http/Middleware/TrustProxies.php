@@ -10,9 +10,14 @@ class TrustProxies extends Middleware
     /**
      * The trusted proxies for this application.
      *
+     * Trust all proxies so that Laravel Cloud / Cloudflare forwarded headers
+     * (X-Forwarded-Host, X-Forwarded-Proto, etc.) are honoured. Without this
+     * Laravel derives the session-cookie domain from the internal hostname
+     * rather than the real public domain, causing cookie domain mismatches.
+     *
      * @var array<int, string>|string|null
      */
-    protected $proxies;
+    protected $proxies = '*';
 
     /**
      * The headers that should be used to detect proxies.
