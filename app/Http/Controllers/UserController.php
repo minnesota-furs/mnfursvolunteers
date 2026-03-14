@@ -90,6 +90,7 @@ class UserController extends Controller
             }, function (Builder $query) use ($sort, $direction) {
                 $query->orderBy($sort, $direction); // Default sorting
             })
+            ->with(['departments.sector', 'headDepartments'])
             ->paginate(15);
 
         // Append the search term and filters to pagination links

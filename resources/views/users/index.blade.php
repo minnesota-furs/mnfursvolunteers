@@ -340,7 +340,7 @@
                                     <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 hidden sm:table-cell">
                                         <div class="flex flex-wrap gap-2">
                                         @forelse($user->departments as $department)
-                                            <span class="dept-badge inline-flex items-center">{{$department->name}} ({{$department->sector->name}})</span>
+                                            <span class="{{ $user->headDepartments->contains('id', $department->id) ? 'dept-badge-head' : 'dept-badge' }} inline-flex items-center">{{$department->name}} ({{$department->sector->name}})</span>
                                         @empty
                                         <span class="inline-flex text-xs items-center">No Department(s) Assigned</span>
                                         @endforelse
@@ -355,7 +355,8 @@
                                     <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
                                         <div class="flex flex-wrap gap-1">
                                         @forelse($user->tags as $tag)
-                                            <span class="inline-flex items-center px-1 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">{{$tag->name}}</span>
+                                            <span class="inline-flex items-center px-1 rounded text-[10px] font-medium border leading-4"
+                                                style="{{ $tag->color ? 'background-color:' . $tag->color . '22; color:' . $tag->color . '; border-color:' . $tag->color . '44;' : 'background-color:#e5e7eb; color:#374151; border-color:#d1d5db;' }}">{{$tag->name}}</span>
                                         @empty
                                             <span class="text-xs text-gray-400">—</span>
                                         @endforelse
