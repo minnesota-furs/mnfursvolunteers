@@ -687,6 +687,11 @@ class UserController extends Controller
 
     public function search(Request $request)
     {
+        abort_unless(
+            auth()->user()->can('manage-users') || auth()->user()->can('manage-volunteer-events'),
+            403
+        );
+
         $searchTerm = $request->input('term');
 
         if (empty($searchTerm) || strlen($searchTerm) < 2) {
