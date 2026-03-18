@@ -6,29 +6,38 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VolunteerPerk extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'perk_set_id',
         'name',
         'description',
         'min_hours',
-        'fiscal_ledger_id',
         'is_active',
+        'is_mystery',
         'sort_order',
+        'has_pass',
+        'pass_label',
+        'has_physical_reward',
+        'reward_label',
     ];
 
     protected $casts = [
-        'min_hours'   => 'decimal:2',
-        'is_active'   => 'boolean',
-        'sort_order'  => 'integer',
+        'min_hours'           => 'decimal:2',
+        'is_active'           => 'boolean',
+        'is_mystery'          => 'boolean',
+        'sort_order'          => 'integer',
+        'has_pass'            => 'boolean',
+        'has_physical_reward' => 'boolean',
     ];
 
-    public function fiscalLedger(): BelongsTo
+    public function perkSet(): BelongsTo
     {
-        return $this->belongsTo(FiscalLedger::class);
+        return $this->belongsTo(VolunteerPerkSet::class, 'perk_set_id');
     }
 
     public function events(): BelongsToMany
@@ -36,15 +45,33 @@ class VolunteerPerk extends Model
         return $this->belongsToMany(Event::class, 'volunteer_perk_event')->withTimestamps();
     }
 
+    public function redemptions(): HasMany
+    {
+        return $this->hasMany(VolunteerPerkRedemption::class, 'volunteer_perk_id');
+    }
+
     /**
-     * Calculate the total volunteer hours a user has earned toward this perk.
+     * Calculate the total volunteer hours a user has toward this perk.
      *
-     * - If specific events are linked: sum completed shift durations for those events.
-     * - Otherwise: sum VolunteerHours records, optionally filtered by fiscal year.
+     * - If specific events are linked: sum committed (signed-up, non-no-show) shift durations.
+     * - Otherwise: sum VolunteerHours records, filtered by the perk set's fiscal year if set.
      */
     public function getUserProgress(User $user): float
     {
-        $this->loadMissing('events');
+        $breakdown = $this->getUserProgressBreakdown($user);
+        return $breakdown['completed'] + $breakdown['upcoming'];
+    }
+
+    /**
+     * Break down a user's progress toward this perk into completed vs. upcoming hours.
+     *
+     * Returns ['completed' => float, 'upcoming' => float]
+     * - completed: hours from shifts whose end_time is in the past (or logged VolunteerHours)
+     * - upcoming:  hours from shifts that haven't ended yet (0 for VolunteerHours-based perks)
+     */
+    public function getUserProgressBreakdown(User $user): array
+    {
+        $this->loadMissing(['events', 'perkSet']);
 
         if ($this->events->isNotEmpty()) {
             $eventIds = $this->events->pluck('id');
@@ -53,7 +80,6 @@ class VolunteerPerk extends Model
                 ->whereHas('event', fn ($q) => $q->whereIn('id', $eventIds))
                 ->whereHas('users', fn ($q) => $q
                     ->where('users.id', $user->id)
-                    ->whereNotNull('shift_signups.hours_logged_at')
                     ->where(fn ($q2) => $q2
                         ->whereNull('shift_signups.no_show')
                         ->orWhere('shift_signups.no_show', false)
@@ -61,18 +87,27 @@ class VolunteerPerk extends Model
                 )
                 ->get();
 
-            return (float) $shifts->sum(fn ($shift) =>
-                $shift->durationInHours() * ($shift->double_hours ? 2 : 1)
-            );
+            $now = now();
+
+            $completed = (float) $shifts
+                ->filter(fn ($s) => $s->end_time->lte($now))
+                ->sum(fn ($s) => $s->durationInHours() * ($s->double_hours ? 2 : 1));
+
+            $upcoming = (float) $shifts
+                ->filter(fn ($s) => $s->end_time->gt($now))
+                ->sum(fn ($s) => $s->durationInHours() * ($s->double_hours ? 2 : 1));
+
+            return ['completed' => $completed, 'upcoming' => $upcoming];
         }
 
         $query = VolunteerHours::where('user_id', $user->id);
 
-        if ($this->fiscal_ledger_id) {
-            $query->where('fiscal_ledger_id', $this->fiscal_ledger_id);
+        $fiscalLedgerId = $this->perkSet?->fiscal_ledger_id;
+        if ($fiscalLedgerId) {
+            $query->where('fiscal_ledger_id', $fiscalLedgerId);
         }
 
-        return (float) $query->sum('hours');
+        return ['completed' => (float) $query->sum('hours'), 'upcoming' => 0.0];
     }
 
     /**

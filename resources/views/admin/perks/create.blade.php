@@ -63,26 +63,26 @@
                     </dd>
                 </div>
 
-                {{-- Fiscal Year --}}
+                {{-- Perk Set --}}
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <div>
-                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Fiscal Year <span class="font-normal text-gray-400">(optional)</span></dt>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Limit tracked hours to a specific fiscal year. Only applies when no events are linked.</p>
+                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Perk Set <span class="font-normal text-gray-400">(optional)</span></dt>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Assign this perk to a set. The set determines the fiscal year scope for general-hours perks.</p>
                     </div>
                     <dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0">
-                        <x-select-input name="fiscal_ledger_id" id="fiscal_ledger_id" class="block w-64 text-sm">
-                            <option value="">— All time —</option>
-                            @foreach($fiscalLedgers as $ledger)
-                                <option value="{{ $ledger->id }}"
-                                    {{ old('fiscal_ledger_id', $perk->fiscal_ledger_id ?? '') == $ledger->id ? 'selected' : '' }}>
-                                    {{ $ledger->name }}
-                                    @if($ledger->start_date && $ledger->end_date)
-                                        ({{ $ledger->start_date->format('M j, Y') }} – {{ $ledger->end_date->format('M j, Y') }})
-                                    @endif
+                        <x-select-input name="perk_set_id" id="perk_set_id" class="block w-64 text-sm">
+                            <option value="">— No set —</option>
+                            @foreach($perkSets as $set)
+                                <option value="{{ $set->id }}"
+                                    {{ old('perk_set_id', $perk->perk_set_id ?? '') == $set->id ? 'selected' : '' }}>
+                                    {{ $set->name }}
                                 </option>
                             @endforeach
                         </x-select-input>
-                        <x-form-validation for="fiscal_ledger_id" />
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                            Manage sets under <a href="{{ route('admin.perk-sets.index') }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">Perk Sets</a>.
+                        </p>
+                        <x-form-validation for="perk_set_id" />
                     </dd>
                 </div>
 
@@ -139,6 +139,74 @@
                             Show this perk to volunteers
                         </label>
                         <x-form-validation for="is_active" />
+                    </dd>
+                </div>
+
+                {{-- Mystery Perk --}}
+                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                    <div>
+                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Mystery Perk</dt>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">If enabled, the perk's name and details are hidden from volunteers until they earn it.</p>
+                    </div>
+                    <dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0">
+                        <x-checkbox-input name="is_mystery" id="is_mystery"
+                            :checked="old('is_mystery', $perk->is_mystery ?? false)" />
+                        <label for="is_mystery" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                            Hide this perk until earned
+                        </label>
+                        <x-form-validation for="is_mystery" />
+                    </dd>
+                </div>
+
+                {{-- Access Pass --}}
+                <div x-data="{ hasPass: {{ old('has_pass', isset($perk) ? (int)(bool)$perk->has_pass : 0) }} }"
+                     class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                    <div>
+                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Access Pass</dt>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Volunteers who earn this perk can show a digital pass (e.g., for VIP lounge access).</p>
+                    </div>
+                    <dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 space-y-3">
+                        <div class="flex items-center gap-2">
+                            <x-checkbox-input name="has_pass" id="has_pass"
+                                :checked="old('has_pass', isset($perk) ? $perk->has_pass : false)"
+                                x-model="hasPass" />
+                            <label for="has_pass" class="text-sm text-gray-700 dark:text-gray-300">
+                                This perk includes an access pass
+                            </label>
+                        </div>
+                        <div x-show="hasPass" x-cloak class="mt-2">
+                            <label for="pass_label" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Pass Label <span class="text-gray-400">(what access it grants)</span></label>
+                            <x-text-input class="block w-full text-sm" type="text" name="pass_label" id="pass_label"
+                                :value="old('pass_label', $perk->pass_label ?? '')" placeholder="e.g. VIP Lounge Access" />
+                            <x-form-validation for="pass_label" />
+                        </div>
+                        <x-form-validation for="has_pass" />
+                    </dd>
+                </div>
+
+                {{-- Physical Reward --}}
+                <div x-data="{ hasReward: {{ old('has_physical_reward', isset($perk) ? (int)(bool)$perk->has_physical_reward : 0) }} }"
+                     class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                    <div>
+                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Physical Reward</dt>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Volunteers can redeem a one-time physical reward (e.g., t-shirt, coupon) at a designated location.</p>
+                    </div>
+                    <dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 space-y-3">
+                        <div class="flex items-center gap-2">
+                            <x-checkbox-input name="has_physical_reward" id="has_physical_reward"
+                                :checked="old('has_physical_reward', isset($perk) ? $perk->has_physical_reward : false)"
+                                x-model="hasReward" />
+                            <label for="has_physical_reward" class="text-sm text-gray-700 dark:text-gray-300">
+                                This perk includes a redeemable physical reward
+                            </label>
+                        </div>
+                        <div x-show="hasReward" x-cloak class="mt-2">
+                            <label for="reward_label" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Reward Label <span class="text-gray-400">(what they receive)</span></label>
+                            <x-text-input class="block w-full text-sm" type="text" name="reward_label" id="reward_label"
+                                :value="old('reward_label', $perk->reward_label ?? '')" placeholder="e.g. Convention T-Shirt" />
+                            <x-form-validation for="reward_label" />
+                        </div>
+                        <x-form-validation for="has_physical_reward" />
                     </dd>
                 </div>
 

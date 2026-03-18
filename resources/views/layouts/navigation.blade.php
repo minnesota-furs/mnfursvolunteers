@@ -123,6 +123,9 @@
                             @endfeature
                             @feature('perk_tracking')
                             @can('manage-volunteer-events')
+                            <x-dropdown-link :href="route('admin.perk-sets.index')">
+                                {{ __('Perk Sets') }}
+                            </x-dropdown-link>
                             <x-dropdown-link :href="route('admin.perks.index')">
                                 {{ __('Volunteer Perks') }}
                             </x-dropdown-link>

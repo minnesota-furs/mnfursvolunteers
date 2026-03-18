@@ -5,6 +5,10 @@
     </x-slot>
 
     <x-slot name="actions">
+        <a href="{{ route('admin.perk-sets.index') }}"
+            class="block rounded-md px-3 py-2 text-center text-sm font-semibold text-white hover:bg-white/10">
+            Perk Sets
+        </a>
         <a href="{{ route('admin.perks.create') }}"
             class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-s-plus class="w-4 inline"/> Create Perk
@@ -23,95 +27,48 @@
                 <div class="p-6 text-gray-900 dark:text-gray-100">
 
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                        Perks reward volunteers for reaching hour milestones. Link a perk to specific events to only count hours from those events, or leave events unlinked to count all volunteer hours (optionally filtered by fiscal year).
+                        Perks are grouped by perk set. Link perks to specific events to count only those event hours, or leave events unlinked to count all volunteer hours for the set's fiscal year.
+                        Manage sets (names, visibility dates, fiscal year) under <a href="{{ route('admin.perk-sets.index') }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">Perk Sets</a>.
                     </p>
 
-                    @if($perks->isEmpty())
+                    @if($perkSets->isEmpty() && $unassignedPerks->isEmpty())
                         <p class="text-gray-500 dark:text-gray-400 text-center py-8">No perks have been created yet.</p>
                     @else
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                <thead class="bg-gray-50 dark:bg-gray-700">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Perk
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Min. Hours
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Tracks
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                    @foreach($perks as $perk)
-                                        <tr>
-                                            <td class="px-6 py-4">
-                                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $perk->name }}</div>
-                                                @if($perk->description)
-                                                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 max-w-xs">{{ Str::limit($perk->description, 80) }}</div>
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ number_format((float)$perk->min_hours, 2) }}</span>
-                                                <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">hrs</span>
-                                            </td>
-                                            <td class="px-6 py-4">
-                                                @if($perk->events->isNotEmpty())
-                                                    <div class="text-xs text-gray-700 dark:text-gray-300">
-                                                        <span class="font-medium">{{ $perk->events->count() }} event(s):</span>
-                                                        <ul class="mt-0.5 space-y-0.5">
-                                                            @foreach($perk->events->take(3) as $event)
-                                                                <li>• {{ $event->name }}</li>
-                                                            @endforeach
-                                                            @if($perk->events->count() > 3)
-                                                                <li class="text-gray-400">+ {{ $perk->events->count() - 3 }} more</li>
-                                                            @endif
-                                                        </ul>
-                                                    </div>
-                                                @else
-                                                    <span class="text-xs text-gray-500 dark:text-gray-400">
-                                                        All hours
-                                                        @if($perk->fiscalLedger)
-                                                            <br><span class="font-medium">{{ $perk->fiscalLedger->name }}</span>
-                                                        @endif
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                @if($perk->is_active)
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                                                        Active
-                                                    </span>
-                                                @else
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
-                                                        Inactive
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
-                                                <a href="{{ route('admin.perks.edit', $perk) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">Edit</a>
-                                                <form action="{{ route('admin.perks.destroy', $perk) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
-                                                        onclick="return confirm('Delete perk \'{{ addslashes($perk->name) }}\'? This cannot be undone.')">
-                                                        Delete
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+
+                        @foreach($perkSets as $set)
+                            <div id="set-{{ $set->id }}" class="mb-8">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">{{ $set->name }}</h3>
+                                    @if($set->fiscalLedger)
+                                        <span class="text-xs text-gray-400 dark:text-gray-500">{{ $set->fiscalLedger->name }}</span>
+                                    @endif
+                                    @if($set->visible_until)
+                                        @php $expired = $set->visible_until->lt(\Carbon\Carbon::today()); @endphp
+                                        <span class="text-xs {{ $expired ? 'text-gray-400' : 'text-gray-400' }} dark:text-gray-500">
+                                            · Until {{ $set->visible_until->format('M j, Y') }}
+                                            @if($expired) <span class="text-orange-500">(archived)</span> @endif
+                                        </span>
+                                    @endif
+                                    <a href="{{ route('admin.perk-sets.edit', $set) }}" class="ml-auto text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Edit Set</a>
+                                </div>
+
+                                @if($set->perks->isEmpty())
+                                    <p class="text-sm text-gray-400 dark:text-gray-500 italic pl-2">No perks in this set yet.
+                                        <a href="{{ route('admin.perks.create') }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">Add one</a>
+                                    </p>
+                                @else
+                                    @include('admin.perks._table', ['perks' => $set->perks])
+                                @endif
+                            </div>
+                        @endforeach
+
+                        @if($unassignedPerks->isNotEmpty())
+                            <div class="mb-8">
+                                <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Unassigned</h3>
+                                @include('admin.perks._table', ['perks' => $unassignedPerks])
+                            </div>
+                        @endif
+
                     @endif
                 </div>
             </div>

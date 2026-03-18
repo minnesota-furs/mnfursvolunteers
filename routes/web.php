@@ -27,6 +27,7 @@ use App\Http\Controllers\RecognitionController;
 use App\Http\Controllers\Admin\RecognitionController as AdminRecognitionController;
 use App\Http\Controllers\Admin\ManagerDashboardController;
 use App\Http\Controllers\Admin\VolunteerPerkController as AdminVolunteerPerkController;
+use App\Http\Controllers\Admin\VolunteerPerkSetController as AdminVolunteerPerkSetController;
 use App\Http\Controllers\VolunteerPerkController;
 
 use Illuminate\Support\Facades\Route;
@@ -277,11 +278,19 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
 
     // Volunteer Perks - Admin CRUD
     Route::middleware(['can:manage-volunteer-events', 'feature:perk_tracking'])->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('perk-sets', AdminVolunteerPerkSetController::class);
+        Route::get('perk-sets/{perkSet}/awards', [AdminVolunteerPerkSetController::class, 'awards'])->name('perk-sets.awards');
         Route::resource('perks', AdminVolunteerPerkController::class);
+        Route::get('perks/{perk}/redemptions', [AdminVolunteerPerkController::class, 'redemptions'])->name('perks.redemptions');
+        Route::delete('perks/{perk}/redemptions/{redemption}', [AdminVolunteerPerkController::class, 'resetRedemption'])->name('perks.redemptions.reset');
     });
 
-    // Volunteer Perks - User Progress View
-    Route::middleware('feature:perk_tracking')->get('/volunteer/perks', [VolunteerPerkController::class, 'index'])->name('volunteer.perks.index');
+    // Volunteer Perks - User Progress Views
+    Route::middleware('feature:perk_tracking')->group(function () {
+        Route::get('/volunteer/perks', [VolunteerPerkController::class, 'index'])->name('volunteer.perks.index');
+        Route::get('/volunteer/perks/history', [VolunteerPerkController::class, 'history'])->name('volunteer.perks.history');
+        Route::post('/volunteer/perks/{perk}/redeem', [VolunteerPerkController::class, 'redeem'])->name('volunteer.perks.redeem');
+    });
 
     // Volunteer Events
     Route::middleware('can:manage-volunteer-events')->prefix('admin')->name('admin.')->group(function () {
