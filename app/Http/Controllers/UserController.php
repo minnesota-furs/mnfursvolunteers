@@ -457,6 +457,41 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * Reset a user's password and display the generated password to the admin.
+     */
+    public function resetPassword(Request $request, string $id): RedirectResponse
+    {
+        if (!Auth::check() || (!Auth::user()->isAdmin() && !Auth::user()->hasPermission('manage-users'))) {
+            abort(403);
+        }
+
+        $user = User::findOrFail($id);
+
+        // Prevent resetting your own password through this flow
+        if (Auth::id() === $user->id) {
+            return redirect()->route('users.show', $user->id)
+                ->with('error', 'You cannot reset your own password through this tool.');
+        }
+
+        // Generate a secure random password (16 characters)
+        $newPassword = \Illuminate\Support\Str::password(16, letters: true, numbers: true, symbols: false);
+
+        $user->password = Hash::make($newPassword);
+        $user->save();
+
+        Log::info('Admin password reset', [
+            'admin_id'   => Auth::id(),
+            'target_user_id' => $user->id,
+        ]);
+
+        return redirect()->route('users.show', $user->id)
+            ->with('password_reset', [
+                'user_name' => $user->name,
+                'password'  => $newPassword,
+            ]);
+    }
+
     public function import_view(Request $request)
     {
         return view('users.import', []);

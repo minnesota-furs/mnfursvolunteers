@@ -38,6 +38,18 @@
                     @if (Auth::user()->isAdmin())
                     <x-tailwind-dropdown-item href="{{ route('users.permissions.edit', $user->id) }}" title="App Permissions"><x-heroicon-o-shield-check class="w-4 inline"/> App Permissions</x-tailwind-dropdown-item>
                     @endif
+                    @if(Auth::id() !== $user->id)
+                    @can('manage-users')
+                    <div class="py-1" role="none">
+                        <form method="POST" action="{{ route('users.reset-password', $user->id) }}" onsubmit="return confirm('Reset password for {{ addslashes($user->name) }}? You will be shown the new password.')">
+                            @csrf
+                            <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-gray-700">
+                                <x-heroicon-o-key class="w-4 inline"/> Reset Password
+                            </button>
+                        </form>
+                    </div>
+                    @endcan
+                    @endif
                 </div>
                 {{-- <div class="py-1" role="none">
                     <x-tailwind-dropdown-item title="Delete" href="#" class="hover:bg-red-50 text-red-900" />
@@ -45,6 +57,46 @@
             </x-tailwind-dropdown>
             @endif
         </x-slot>
+
+        @if(session('password_reset'))
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-4" x-data="{ show: true }" x-show="show">
+            <div class="rounded-lg border border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-600 p-5">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex items-start gap-3">
+                        <x-heroicon-o-key class="w-6 h-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5"/>
+                        <div>
+                            <p class="font-semibold text-yellow-800 dark:text-yellow-300">Password Reset — Save this now!</p>
+                            <p class="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
+                                The password for <strong>{{ session('password_reset')['user_name'] }}</strong> has been reset. This password will <strong>not</strong> be shown again.
+                            </p>
+                            <div class="mt-3 flex items-center gap-3">
+                                <code id="reset-pw" class="inline-block rounded bg-yellow-100 dark:bg-yellow-800 border border-yellow-300 dark:border-yellow-600 px-3 py-1.5 text-base font-mono text-yellow-900 dark:text-yellow-100 select-all">
+                                    {{ session('password_reset')['password'] }}
+                                </code>
+                                <button type="button" onclick="copyResetPassword()" class="text-sm font-medium text-yellow-700 dark:text-yellow-300 underline hover:text-yellow-900 dark:hover:text-yellow-100">
+                                    Copy
+                                </button>
+                                <span id="copy-confirm" class="hidden text-sm text-green-600 dark:text-green-400">Copied!</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" @click="show = false" class="text-yellow-500 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-200 flex-shrink-0">
+                        <x-heroicon-o-x-mark class="w-5 h-5"/>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <script>
+        function copyResetPassword() {
+            const pw = document.getElementById('reset-pw').textContent.trim();
+            navigator.clipboard.writeText(pw).then(() => {
+                const el = document.getElementById('copy-confirm');
+                el.classList.remove('hidden');
+                setTimeout(() => el.classList.add('hidden'), 2000);
+            });
+        }
+        </script>
+        @endif
 
         <div class="py-4">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">

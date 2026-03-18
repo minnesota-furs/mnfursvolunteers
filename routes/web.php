@@ -145,6 +145,7 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('users', UserController::class)->only(['create', 'edit', 'store', 'destroy', 'update'])->middleware(['can:manage-users']);
     Route::resource('users', UserController::class)->only(['index', 'show']);
+    Route::post('/users/{id}/reset-password', [UserController::class, 'resetPassword'])->middleware(['can:manage-users'])->name('users.reset-password');
     Route::get('/users/{user}/timeline', [UserController::class, 'timeline'])->name('users.timeline');
     Route::get('/users/{user}/communications', [UserController::class, 'communications'])->name('users.communications');
     Route::post('/users/{user}/send-test-email', [UserController::class, 'sendTestEmail'])->name('users.send-test-email');
