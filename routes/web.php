@@ -26,6 +26,8 @@ use App\Http\Controllers\FeatureController;
 use App\Http\Controllers\RecognitionController;
 use App\Http\Controllers\Admin\RecognitionController as AdminRecognitionController;
 use App\Http\Controllers\Admin\ManagerDashboardController;
+use App\Http\Controllers\Admin\VolunteerPerkController as AdminVolunteerPerkController;
+use App\Http\Controllers\VolunteerPerkController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -265,6 +267,14 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:manage-recognition')->prefix('admin')->name('admin.')->group(function () {
         Route::resource('recognitions', AdminRecognitionController::class);
     });
+
+    // Volunteer Perks - Admin CRUD
+    Route::middleware(['can:manage-volunteer-events', 'feature:perk_tracking'])->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('perks', AdminVolunteerPerkController::class);
+    });
+
+    // Volunteer Perks - User Progress View
+    Route::middleware('feature:perk_tracking')->get('/volunteer/perks', [VolunteerPerkController::class, 'index'])->name('volunteer.perks.index');
 
     // Volunteer Events
     Route::middleware('can:manage-volunteer-events')->prefix('admin')->name('admin.')->group(function () {

@@ -140,6 +140,14 @@ return [
             'description' => 'Enable or disable one-off event check-ins. Great for meetings or special events.',
             'beta' => true,
         ],
+        'feature_perk_tracking' => [
+            'value' => false,
+            'type' => 'boolean',
+            'group' => 'feature_flags',
+            'label' => 'Perk Tracking',
+            'description' => 'Enable or disable volunteer perk tracking. Rewards volunteers with perks for reaching hour milestones.',
+            'beta' => true,
+        ],
         'feature_wordpress_integration' => [
             'value' => true,
             'type' => 'boolean',

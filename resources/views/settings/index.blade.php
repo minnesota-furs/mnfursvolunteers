@@ -391,6 +391,12 @@
                                 :beta="feature_is_beta('one_off_events')" />
 
                             <x-feature-toggle 
+                                feature="perk_tracking" 
+                                label="Perk Tracking" 
+                                description="Reward volunteers with perks for reaching hour milestones."
+                                :beta="feature_is_beta('perk_tracking')" />
+
+                            <x-feature-toggle 
                                 feature="volunteer_events" 
                                 label="Volunteer Events" 
                                 description="Full event management with shifts and signups"

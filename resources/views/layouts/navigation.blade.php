@@ -33,6 +33,11 @@
                         {{ __('Events') }}
                     </x-nav-link>
                     @endfeature
+                    @feature('perk_tracking')
+                    <x-nav-link :href="route('volunteer.perks.index')" :active="request()->routeIs('volunteer.perks.*')">
+                        {{ __('Perks') }}
+                    </x-nav-link>
+                    @endfeature
 
                     @php
                         $activeElections = \App\Models\Election::where('active', true)
@@ -113,6 +118,13 @@
                             </x-dropdown-link> --}}
                             <x-dropdown-link :href="route('admin.events.index')">
                                 {{ __('Volunteer Events') }}
+                            </x-dropdown-link>
+                            @endcan
+                            @endfeature
+                            @feature('perk_tracking')
+                            @can('manage-volunteer-events')
+                            <x-dropdown-link :href="route('admin.perks.index')">
+                                {{ __('Volunteer Perks') }}
                             </x-dropdown-link>
                             @endcan
                             @endfeature

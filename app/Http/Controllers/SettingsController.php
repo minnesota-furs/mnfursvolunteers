@@ -140,6 +140,7 @@ class SettingsController extends Controller
             'feature_job_listings' => 'boolean',
             'feature_one_off_events' => 'boolean',
             'feature_volunteer_events' => 'boolean',
+            'feature_perk_tracking' => 'boolean',
             'feature_wordpress_integration' => 'boolean',
             'feature_user_tags' => 'boolean',
             'feature_recognition' => 'boolean',
@@ -218,6 +219,7 @@ class SettingsController extends Controller
         ApplicationSetting::set('feature_job_applications', $request->boolean('feature_job_applications'), 'boolean', 'Enable/disable job applications feature', 'feature_flags');
         ApplicationSetting::set('feature_one_off_events', $request->boolean('feature_one_off_events'), 'boolean', 'Enable/disable one-off events feature', 'feature_flags');
         ApplicationSetting::set('feature_volunteer_events', $request->boolean('feature_volunteer_events'), 'boolean', 'Enable/disable volunteer events feature', 'feature_flags');
+        ApplicationSetting::set('feature_perk_tracking', $request->boolean('feature_perk_tracking'), 'boolean', 'Enable/disable perk tracking feature', 'feature_flags');
         ApplicationSetting::set('feature_wordpress_integration', $request->boolean('feature_wordpress_integration'), 'boolean', 'Enable/disable WordPress integration feature', 'feature_flags');
         ApplicationSetting::set('feature_user_tags', $request->boolean('feature_user_tags'), 'boolean', 'Enable/disable user tags feature', 'feature_flags');
         ApplicationSetting::set('feature_recognition', $request->boolean('feature_recognition'), 'boolean', 'Enable/disable recognition and awards module', 'feature_flags');

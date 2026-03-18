@@ -137,6 +137,13 @@ class ApplicationSettingsSeeder extends Seeder
                 'group' => 'features',
             ],
             [
+                'key' => 'feature_perk_tracking',
+                'value' => '0',
+                'type' => 'boolean',
+                'description' => 'Enable/disable volunteer perk tracking',
+                'group' => 'features',
+            ],
+            [
                 'key' => 'feature_volunteer_events',
                 'value' => '1',
                 'type' => 'boolean',
