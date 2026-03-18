@@ -5,6 +5,10 @@
     </x-slot>
 
     <x-slot name="actions">
+        <a href="{{ route('admin.custom-fields.preview-force-set') }}"
+            class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <x-heroicon-o-eye class="w-4 inline"/> Preview Force Set
+        </a>
         <a href="{{ route('admin.custom-fields.create') }}"
             class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-s-plus class="w-4 inline"/> Create Custom Field
@@ -28,6 +32,7 @@
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                 <thead class="bg-gray-50 dark:bg-gray-700">
                                     <tr>
+                                        <th scope="col" class="px-3 py-3 w-8"></th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             Name
                                         </th>
@@ -45,9 +50,16 @@
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <tbody id="custom-fields-tbody"
+                                    data-reorder-url="{{ route('admin.custom-fields.reorder') }}"
+                                    class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     @foreach($customFields as $field)
-                                        <tr>
+                                        <tr data-id="{{ $field->id }}">
+                                            <td class="px-3 py-4 w-8">
+                                                <span class="drag-handle cursor-grab text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 select-none" title="Drag to reorder">
+                                                    <x-heroicon-o-bars-3 class="w-5 h-5" />
+                                                </span>
+                                            </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                                                 {{ $field->name }}
                                             </td>
@@ -99,4 +111,6 @@
             </div>
         </div>
     </div>
+
+    @vite('resources/js/custom-fields-sortable.js')
 </x-app-layout>

@@ -211,6 +211,7 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
     Route::middleware('isAdmin')->prefix('settings')->name('admin.')->group(function () {
         Route::resource('custom-fields', \App\Http\Controllers\Admin\CustomFieldController::class);
         Route::post('custom-fields/reorder', [\App\Http\Controllers\Admin\CustomFieldController::class, 'reorder'])->name('custom-fields.reorder');
+        Route::get('custom-fields-preview', [\App\Http\Controllers\Admin\CustomFieldController::class, 'previewForceSet'])->name('custom-fields.preview-force-set');
     });
 
     // Reports

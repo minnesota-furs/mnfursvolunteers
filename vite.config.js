@@ -8,6 +8,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
                 'resources/js/darkmode.js',
+                'resources/js/custom-fields-sortable.js',
             ],
             refresh: true,
         }),

@@ -153,4 +153,17 @@ class CustomFieldController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    /**
+     * Preview what the force-set screen looks like with all active force_set fields.
+     */
+    public function previewForceSet()
+    {
+        $fields = CustomField::active()
+            ->where('force_set', true)
+            ->ordered()
+            ->get();
+
+        return view('admin.custom-fields.preview-force-set', compact('fields'));
+    }
 }
