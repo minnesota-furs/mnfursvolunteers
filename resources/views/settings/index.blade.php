@@ -511,6 +511,31 @@
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Configure volunteer-related settings and what new users see when registering.</p>
 
                         <div class="space-y-8">
+                            <!-- Registration Toggle -->
+                            <div>
+                                <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-4">Registration</h4>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <label for="require_invite_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Require Invite Code to Register
+                                        </label>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            When enabled, new accounts can only be created with a valid invite code. Without this, anyone can register freely.
+                                        </p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="require_invite_code" id="require_invite_code"
+                                            value="1"
+                                            {{ old('require_invite_code', app_setting('require_invite_code', false)) ? 'checked' : '' }}
+                                            class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-green/20 dark:peer-focus:ring-brand-green/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-brand-green"></div>
+                                    </label>
+                                </div>
+                                @error('require_invite_code')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             <!-- Self-Reporting Toggle -->
                             <div>
                                 <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-4">Hour Reporting</h4>

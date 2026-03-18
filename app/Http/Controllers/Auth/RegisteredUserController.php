@@ -32,13 +32,15 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $inviteCodeRequired = \App\Models\ApplicationSetting::get('require_invite_code', false);
+
         $request->validate([
             'name'         => ['required', 'string', 'max:255'],
             'first_name'   => ['required', 'string', 'max:255', new NotBlacklisted('name', $request->first_name, $request->last_name)],
             'last_name'    => ['required', 'string', 'max:255'],
             'email'        => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class, new NotBlacklisted('email')],
             'password'     => ['required', 'confirmed', Rules\Password::defaults()],
-            'invite_code'  => ['nullable', 'string', 'max:32'],
+            'invite_code'  => [$inviteCodeRequired ? 'required' : 'nullable', 'string', 'max:32'],
         ]);
 
         // Resolve invite code if provided

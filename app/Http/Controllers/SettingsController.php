@@ -152,6 +152,7 @@ class SettingsController extends Controller
             'blacklist_names' => 'nullable|string',
             'onboarding_agreement' => 'nullable|string',
             'require_department_for_self_report' => 'boolean',
+            'require_invite_code' => 'boolean',
         ]);
 
         // Handle logo upload
@@ -250,6 +251,7 @@ class SettingsController extends Controller
         // Onboarding
         ApplicationSetting::set('onboarding_agreement', $request->input('onboarding_agreement', ''), 'string', 'Registration agreement text', 'onboarding');
         ApplicationSetting::set('require_department_for_self_report', $request->boolean('require_department_for_self_report'), 'boolean', 'Require department assignment for self-reported hours', 'volunteers');
+        ApplicationSetting::set('require_invite_code', $request->boolean('require_invite_code'), 'boolean', 'Disallow registration without an invite code', 'volunteers');
 
         // Clear cache
         ApplicationSetting::clearCache();
