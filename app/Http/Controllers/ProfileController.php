@@ -129,12 +129,20 @@ class ProfileController extends Controller
      */
     public function saveRequiredFields(Request $request): RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user()->load('customFieldValues');
 
+        // Only process fields that are still missing a value — same filter as the GET view
         $fields = \App\Models\CustomField::active()
             ->where('force_set', true)
             ->ordered()
-            ->get();
+            ->get()
+            ->filter(function (\App\Models\CustomField $field) use ($user) {
+                $value = $user->customFieldValues
+                    ->firstWhere('custom_field_id', $field->id)
+                    ?->value;
+
+                return is_null($value) || $value === '';
+            });
 
         // Build validation rules for each missing force_set field
         $rules = [];
