@@ -1,4 +1,13 @@
 <x-guest-layout>
+    @php $onboardingAgreement = app_setting('onboarding_agreement'); @endphp
+
+    @if($onboardingAgreement)
+    <div class="mb-6">
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Please review the following agreement before registering:</p>
+        <div class="h-48 overflow-y-auto rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 p-3 text-sm text-gray-700 dark:text-gray-300 prose prose-sm dark:prose-invert max-w-none">{!! \Parsedown::instance()->text($onboardingAgreement) !!}</div>
+    </div>
+    @endif
+
     <form method="POST" action="{{ route('register') }}">
         @csrf
 

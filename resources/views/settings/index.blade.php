@@ -60,6 +60,11 @@
                     class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
                     Import/Export
                 </button>
+                <button @click="activeTab = 'volunteers'; initMDE()" type="button"
+                    :class="activeTab === 'volunteers' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    Volunteers
+                </button>
                 <button @click="activeTab = 'information'" type="button"
                     :class="activeTab === 'information' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
                     class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
@@ -500,6 +505,54 @@
                         </div>
                     </div>
 
+                    <!-- Volunteers Tab -->
+                    <div x-show="activeTab === 'volunteers'" x-cloak>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Volunteers</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Configure volunteer-related settings and what new users see when registering.</p>
+
+                        <div class="space-y-8">
+                            <!-- Self-Reporting Toggle -->
+                            <div>
+                                <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-4">Hour Reporting</h4>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <label for="require_department_for_self_report" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Require Department for Self-Reported Hours
+                                        </label>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            When enabled, volunteers must have a department assigned before they can self-report hours on their volunteer page.
+                                        </p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="require_department_for_self_report" id="require_department_for_self_report"
+                                            value="1"
+                                            {{ old('require_department_for_self_report', app_setting('require_department_for_self_report', false)) ? 'checked' : '' }}
+                                            class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-green/20 dark:peer-focus:ring-brand-green/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-brand-green"></div>
+                                    </label>
+                                </div>
+                                @error('require_department_for_self_report')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Onboarding Agreement -->
+                            <div>
+                                <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-4">Onboarding Agreement</h4>
+                                <label for="onboarding_agreement" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Agreement
+                                </label>
+                                <textarea name="onboarding_agreement" id="onboarding_agreement" rows="12"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white font-mono text-sm"
+                                    placeholder="Enter your volunteer agreement, terms of service, or code of conduct here...">{{ old('onboarding_agreement', app_setting('onboarding_agreement')) }}</textarea>
+                                <p class="mt-1 text-xs text-gray-500">Markdown supported. Displayed in a scrollable box on the registration page. Leave blank to hide.</p>
+                                @error('onboarding_agreement')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Import/Export Tab -->
                     <div x-show="activeTab === 'import-export'" x-cloak>
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Import</h3>
@@ -762,8 +815,8 @@
                         </div>
                     </div>
 
-                    <!-- Actions (visible on all tabs except information) -->
-                    <div x-show="activeTab !== 'information'" class="flex items-center justify-end gap-4 border-t border-gray-200 dark:border-gray-700 pt-6 mt-8">
+                    <!-- Actions (visible on all tabs except information and import-export) -->
+                    <div x-show="activeTab !== 'information' && activeTab !== 'import-export'" class="flex items-center justify-end gap-4 border-t border-gray-200 dark:border-gray-700 pt-6 mt-8">
                         <button type="submit" class="rounded-md bg-brand-green px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-green-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">
                             Save Settings
                         </button>
@@ -870,4 +923,20 @@
         [x-cloak] { display: none !important; }
     </style>
     @endpush
+
+    <!-- EasyMDE for Onboarding Agreement -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+    <script>
+        var _mdeReady = false;
+        function initMDE() {
+            if (_mdeReady) return;
+            _mdeReady = true;
+            new EasyMDE({
+                element: document.getElementById('onboarding_agreement'),
+                spellChecker: false,
+                status: false,
+            });
+        }
+    </script>
 </x-app-layout>

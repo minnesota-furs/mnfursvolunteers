@@ -18,12 +18,12 @@
             </div>
         @endif
 
-        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+        <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
             <div class="p-6 text-gray-900 dark:text-gray-100">
                 @if($codes->isEmpty())
                     <p class="text-gray-500 dark:text-gray-400 text-center py-8">No invite codes have been created yet.</p>
                 @else
-                    <div class="overflow-x-auto">
+                    <div>
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
@@ -31,7 +31,6 @@
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tags Assigned</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Uses</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Expires</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
@@ -39,9 +38,13 @@
                                 @foreach($codes as $code)
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="font-mono text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $code->code }}</div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="inline-block w-2 h-2 rounded-full flex-shrink-0 {{ $code->isUsable() ? 'bg-green-500' : 'bg-red-500' }}"
+                                                      title="{{ $code->isUsable() ? 'Active' : 'Inactive' }}"></span>
+                                                <span class="font-mono text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $code->code }}</span>
+                                            </div>
                                             @if($code->label)
-                                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $code->label }}</div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 ml-4">{{ $code->label }}</div>
                                             @endif
                                         </td>
                                         <td class="px-6 py-4">
@@ -73,26 +76,29 @@
                                                 <span class="text-gray-400">Never</span>
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            @if($code->isUsable())
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                                                    Active
-                                                </span>
-                                            @else
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                                                    Inactive
-                                                </span>
-                                            @endif
-                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                             <a href="{{ route('admin.invite-codes.show', $code) }}" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">View</a>
                                             <a href="{{ route('admin.invite-codes.edit', $code) }}" class="text-brand-green hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">Edit</a>
-                                            <form action="{{ route('admin.invite-codes.destroy', $code) }}" method="POST" class="inline"
-                                                    onsubmit="return confirm('Delete this invite code? This cannot be undone.');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
-                                            </form>
+                                            <x-tailwind-dropdown buttonClass="dropdown-link text-blue-600" label="Manage" id="{{ $code->id }}">
+                                                <div class="py-1" role="none">
+                                                    <button type="button"
+                                                        onclick="copyInviteLink('{{ urlencode($code->code) }}', this)"
+                                                        class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                        <x-heroicon-s-link class="w-4 inline"/> Copy Link
+                                                    </button>
+                                                </div>
+                                                <div class="py-1" role="none">
+                                                    <form action="{{ route('admin.invite-codes.destroy', $code) }}" method="POST"
+                                                            onsubmit="return confirm('Delete this invite code? This cannot be undone.');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                                class="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                            <x-heroicon-o-trash class="w-4 inline"/> Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </x-tailwind-dropdown>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -117,3 +123,14 @@
         </ul>
     </x-slot>
 </x-app-layout>
+
+<script>
+function copyInviteLink(code, btn) {
+    const url = '{{ route('register') }}?code=' + code;
+    navigator.clipboard.writeText(url).then(() => {
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = original, 2000);
+    });
+}
+</script>

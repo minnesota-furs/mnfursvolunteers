@@ -4,6 +4,19 @@
         {{ __('Edit Invite Code') }}
     </x-slot>
 
+    {{-- These forms must live outside the main edit form to avoid invalid nested-form HTML --}}
+    <form id="regenerate-form"
+          action="{{ route('admin.invite-codes.regenerate', $inviteCode) }}" method="POST"
+          onsubmit="return confirm('Regenerate the code? The old code will stop working immediately.');">
+        @csrf
+    </form>
+    <form id="delete-form"
+          action="{{ route('admin.invite-codes.destroy', $inviteCode) }}" method="POST"
+          onsubmit="return confirm('Permanently delete this invite code?');">
+        @csrf
+        @method('DELETE')
+    </form>
+
     <div class="mx-auto sm:px-6 lg:px-8">
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
@@ -13,7 +26,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('admin.invite-codes.update', $inviteCode) }}">
+                <form id="edit-invite-code-form" method="POST" action="{{ route('admin.invite-codes.update', $inviteCode) }}">
                     @csrf
                     @method('PUT')
 
@@ -38,14 +51,10 @@
                             <input type="text" name="code" id="code" value="{{ old('code', $inviteCode->code) }}"
                                     required
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white font-mono uppercase @error('code') border-red-500 @enderror">
-                            <form action="{{ route('admin.invite-codes.regenerate', $inviteCode) }}" method="POST"
-                                    onsubmit="return confirm('Regenerate the code? The old code will stop working immediately.');">
-                                @csrf
-                                <button type="submit"
-                                        class="mt-1 px-3 py-2 text-xs bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                                    Regenerate
-                                </button>
-                            </form>
+                            <button type="submit" form="regenerate-form"
+                                    class="mt-1 px-3 py-2 text-xs bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                Regenerate
+                            </button>
                         </div>
                         @error('code')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -126,14 +135,10 @@
 
                     <!-- Actions -->
                     <div class="flex items-center justify-between">
-                        <form action="{{ route('admin.invite-codes.destroy', $inviteCode) }}" method="POST"
-                                onsubmit="return confirm('Permanently delete this invite code?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                Delete Code
-                            </button>
-                        </form>
+                        <button type="submit" form="delete-form"
+                                class="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                            Delete Code
+                        </button>
                         <div class="flex items-center space-x-4">
                             <a href="{{ route('admin.invite-codes.index') }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">
                                 Cancel

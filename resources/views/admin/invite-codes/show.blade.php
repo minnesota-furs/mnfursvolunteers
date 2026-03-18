@@ -79,6 +79,24 @@
                 </div>
             </div>
 
+            <!-- Registration Link Card -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">Registration Link</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Share this link with prospective volunteers. The invite code will be pre-filled on the registration form.</p>
+                    <div class="flex items-center gap-2">
+                        <input id="invite-link-url" type="text" readonly
+                            value="{{ route('register') }}?code={{ urlencode($inviteCode->code) }}"
+                            class="flex-1 font-mono text-sm rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-0 focus:border-gray-300">
+                        <button type="button" onclick="copyInviteLink()"
+                            class="inline-flex items-center px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
+                            <x-heroicon-o-clipboard-document class="w-4 h-4 mr-1" />
+                            <span id="copy-btn-label">Copy</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Tags Card -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
@@ -106,3 +124,14 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+function copyInviteLink() {
+    const input = document.getElementById('invite-link-url');
+    const label = document.getElementById('copy-btn-label');
+    navigator.clipboard.writeText(input.value).then(() => {
+        label.textContent = 'Copied!';
+        setTimeout(() => label.textContent = 'Copy', 2000);
+    });
+}
+</script>

@@ -150,6 +150,8 @@ class SettingsController extends Controller
             'checkin_hours_after' => 'nullable|numeric|min:0|max:72',
             'blacklist_emails' => 'nullable|string',
             'blacklist_names' => 'nullable|string',
+            'onboarding_agreement' => 'nullable|string',
+            'require_department_for_self_report' => 'boolean',
         ]);
 
         // Handle logo upload
@@ -244,6 +246,10 @@ class SettingsController extends Controller
         // Security settings
         ApplicationSetting::set('blacklist_emails', $request->input('blacklist_emails', ''), 'string', 'Blacklisted email addresses', 'security');
         ApplicationSetting::set('blacklist_names', $request->input('blacklist_names', ''), 'string', 'Blacklisted full names', 'security');
+
+        // Onboarding
+        ApplicationSetting::set('onboarding_agreement', $request->input('onboarding_agreement', ''), 'string', 'Registration agreement text', 'onboarding');
+        ApplicationSetting::set('require_department_for_self_report', $request->boolean('require_department_for_self_report'), 'boolean', 'Require department assignment for self-reported hours', 'volunteers');
 
         // Clear cache
         ApplicationSetting::clearCache();
