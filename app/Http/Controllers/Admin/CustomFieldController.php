@@ -57,6 +57,7 @@ class CustomFieldController extends Controller
         $validated['is_required'] = $request->has('is_required') ? 1 : 0;
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
         $validated['user_editable'] = $request->has('user_editable') ? 1 : 0;
+        $validated['force_set'] = ($request->has('force_set') && $validated['is_active'] && $validated['user_editable']) ? 1 : 0;
 
         // Convert options array to proper format for select/checkbox fields
         if (in_array($validated['field_type'], ['select', 'checkbox']) && !empty($validated['options'])) {
@@ -113,6 +114,7 @@ class CustomFieldController extends Controller
         $validated['is_required'] = $request->has('is_required') ? 1 : 0;
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
         $validated['user_editable'] = $request->has('user_editable') ? 1 : 0;
+        $validated['force_set'] = ($request->has('force_set') && $validated['is_active'] && $validated['user_editable']) ? 1 : 0;
 
         // Convert options array to proper format for select/checkbox fields
         if (in_array($validated['field_type'], ['select', 'checkbox']) && !empty($validated['options'])) {

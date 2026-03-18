@@ -87,15 +87,19 @@ Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+// Required fields (exempt from enforce.custom-fields to avoid redirect loops)
+Route::middleware('auth')->group(function () {
+    Route::get('/required-fields', [ProfileController::class, 'requiredFields'])->name('profile.required-fields');
+    Route::post('/required-fields', [ProfileController::class, 'saveRequiredFields'])->name('profile.required-fields.save');
+});
+
 // Dashboard actions
 Route::post('/dashboard/dismiss-profile-notice', [DashboardController::class, 'dismissProfileNotice'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard.dismiss-profile-notice');
 
 // Authenticated routes
-Route::middleware('auth')->group(function () {
-
-    // Profile Management
+Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');

@@ -133,7 +133,7 @@
                         <!-- Is Active -->
                         <div class="mb-6">
                             <label class="flex items-center">
-                                <input type="checkbox" name="is_active" value="1" {{ old('is_active', $customField->is_active) ? 'checked' : '' }}
+                                <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', $customField->is_active) ? 'checked' : '' }}
                                     class="rounded border-gray-300 text-brand-green shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600">
                                 <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Active (show on user forms)</span>
                             </label>
@@ -142,11 +142,21 @@
                         <!-- User Editable -->
                         <div class="mb-6">
                             <label class="flex items-center">
-                                <input type="checkbox" name="user_editable" value="1" {{ old('user_editable', $customField->user_editable) ? 'checked' : '' }}
+                                <input type="checkbox" name="user_editable" id="user_editable" value="1" {{ old('user_editable', $customField->user_editable) ? 'checked' : '' }}
                                     class="rounded border-gray-300 text-brand-green shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600">
                                 <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">User Editable (users can edit this field on their own profile)</span>
                             </label>
                             <p class="mt-1 ml-6 text-xs text-gray-500 dark:text-gray-400">If checked, users can modify this field on their profile page. If unchecked, only admins can edit it.</p>
+                        </div>
+
+                        <!-- Force Set -->
+                        <div class="mb-6">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="force_set" id="force_set" value="1" {{ old('force_set', $customField->force_set) ? 'checked' : '' }}
+                                    class="rounded border-gray-300 text-brand-green shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600">
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Force user to set</span>
+                            </label>
+                            <p class="mt-1 ml-6 text-xs text-gray-500 dark:text-gray-400">If checked, users will be redirected to a setup screen to fill in this field before they can use the application. Requires <em>Active</em> and <em>User Editable</em> to be enabled.</p>
                         </div>
 
                         <!-- Sort Order -->
@@ -229,5 +239,20 @@
         }
 
         updateRemoveButtons();
+
+        // Force Set dependency: requires is_active + user_editable
+        const isActiveChk     = document.getElementById('is_active');
+        const userEditableChk = document.getElementById('user_editable');
+        const forceSetChk     = document.getElementById('force_set');
+
+        function syncForceSet() {
+            const allowed = isActiveChk.checked && userEditableChk.checked;
+            forceSetChk.disabled = !allowed;
+            if (!allowed) forceSetChk.checked = false;
+        }
+
+        isActiveChk.addEventListener('change', syncForceSet);
+        userEditableChk.addEventListener('change', syncForceSet);
+        syncForceSet();
     </script>
 </x-app-layout>

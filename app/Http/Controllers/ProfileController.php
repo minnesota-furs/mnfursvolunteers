@@ -97,6 +97,73 @@ class ProfileController extends Controller
         return Redirect::to('/');
     }
 
+    /**
+     * Show the required custom fields screen for users who have missing force_set fields.
+     */
+    public function requiredFields(Request $request): View
+    {
+        $user = $request->user()->load('customFieldValues');
+
+        $fields = \App\Models\CustomField::active()
+            ->where('force_set', true)
+            ->ordered()
+            ->get()
+            ->filter(function (\App\Models\CustomField $field) use ($user) {
+                $value = $user->customFieldValues
+                    ->firstWhere('custom_field_id', $field->id)
+                    ?->value;
+
+                return is_null($value) || $value === '';
+            });
+
+        // If nothing is missing, send them to the dashboard
+        if ($fields->isEmpty()) {
+            return redirect()->route('dashboard');
+        }
+
+        return view('profile.required-fields', compact('user', 'fields'));
+    }
+
+    /**
+     * Save the force_set custom field values provided by the user.
+     */
+    public function saveRequiredFields(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $fields = \App\Models\CustomField::active()
+            ->where('force_set', true)
+            ->ordered()
+            ->get();
+
+        // Build validation rules for each missing force_set field
+        $rules = [];
+        foreach ($fields as $field) {
+            $fieldKey = 'custom_field_' . $field->id;
+            $rules[$fieldKey] = 'required';
+        }
+
+        $request->validate($rules);
+
+        foreach ($fields as $field) {
+            $fieldKey = 'custom_field_' . $field->id;
+            $value = $request->input($fieldKey);
+
+            if ($field->field_type === 'checkbox' && is_array($value)) {
+                $value = implode(',', $value);
+            }
+
+            if (!is_null($value) && $value !== '') {
+                \App\Models\CustomFieldValue::updateOrCreate(
+                    ['user_id' => $user->id, 'custom_field_id' => $field->id],
+                    ['value' => $value]
+                );
+            }
+        }
+
+        return redirect()->intended(route('dashboard'));
+    }
+
     public function linkWordPress(Request $request)
     {
         \Log::debug('hey');

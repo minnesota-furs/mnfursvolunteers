@@ -17,6 +17,7 @@ class CustomField extends Model
         'is_required',
         'is_active',
         'user_editable',
+        'force_set',
         'sort_order',
         'description',
     ];
@@ -26,6 +27,7 @@ class CustomField extends Model
         'is_required' => 'boolean',
         'is_active' => 'boolean',
         'user_editable' => 'boolean',
+        'force_set' => 'boolean',
     ];
 
     /**
