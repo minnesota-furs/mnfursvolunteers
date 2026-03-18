@@ -104,6 +104,11 @@
                             <div>
                                 <dt class="form-label">Shift Tags</dt>
                                 <p class="text-xs text-gray-500 mt-1">Applied to every shift in the series.</p>
+                                <p class="text-amber-600 dark:text-amber-400 text-xs mt-2">
+                                    <x-heroicon-s-information-circle class="w-3.5 h-3.5 inline -mt-0.5 mr-0.5"/>
+                                    Shift Tags are for reporting only and do <strong>not</strong> restrict who can sign up.
+                                    To require volunteers to have specific tags, edit the <a href="{{ route('admin.events.edit', $event) }}" class="underline hover:text-amber-700 dark:hover:text-amber-300">event settings</a> instead.
+                                </p>
                             </div>
                             <dd class="mt-1 sm:col-span-2 sm:mt-0">
                                 @if(isset($tags) && $tags->isNotEmpty())

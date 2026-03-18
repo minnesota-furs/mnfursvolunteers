@@ -94,10 +94,36 @@
                                     This event requires volunteers to have specific tags ({{ $event->requiredTags->pluck('name')->join(', ') }}), which may limit who can sign up for shifts.
                                 </div>
                             @endif
+                            {{-- Bulk action toolbar --}}
+                            <div id="bulk-action-bar"
+                                class="hidden mb-3 flex items-center gap-3 rounded-lg border border-yellow-300 bg-yellow-50 dark:bg-yellow-900/30 dark:border-yellow-700 px-4 py-2 text-sm">
+                                <span class="font-medium text-yellow-800 dark:text-yellow-200" id="bulk-count-label">0 selected</span>
+                                <form id="bulk-delete-form"
+                                    action="{{ route('admin.events.shifts.bulk-destroy', $event) }}"
+                                    method="POST"
+                                    onsubmit="return confirmBulkDelete()">
+                                    @csrf
+                                    @method('DELETE')
+                                    <div id="bulk-hidden-inputs"></div>
+                                    <button type="submit"
+                                        class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 focus:outline-none">
+                                        <x-heroicon-o-trash class="w-3.5 h-3.5 mr-1"/> Delete Selected
+                                    </button>
+                                </form>
+                                <button type="button" onclick="clearSelection()"
+                                    class="text-xs text-gray-500 dark:text-gray-400 hover:underline">Clear</button>
+                            </div>
+
                             {{-- {{ $shifts->links() }} --}}
                             <table class="min-w-full divide-y divide-gray-300">
                                 <thead>
                                     <tr>
+                                        <th scope="col" class="py-3.5 pl-4 pr-3 sm:pl-0 w-8">
+                                            <input type="checkbox" id="select-all-checkbox"
+                                                onchange="toggleSelectAll(this)"
+                                                class="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green cursor-pointer"
+                                                title="Select all">
+                                        </th>
                                         <th scope="col"
                                             class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-0">
                                             Name</th>
@@ -121,95 +147,115 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
-                                    @forelse ($shifts as $shift)
-                                    @php
-                                        $signupCount = $shift->users->count();
-                                        $textClass = $signupCount >= $shift->max_volunteers ? 'text-green-800 dark:text-green-500 text-weight-800' : ($signupCount > 0 ? 'text-purple-700 dark:text-purple-400' : '');
-                                    @endphp
-                                    <tr class="">
-                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            <a class="text-blue-700 dark:text-blue-200" href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}">
-                                                {{$shift->name}}
-                                            </a>
-                                        </td>
-                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            @if($event->isMultiDay())
-                                                {{ $shift->start_time->format('l \@ g:i A') }}
-                                            @else
-                                                {{ $shift->start_time->format('g:i A') }}
-                                            @endif
-                                        </td>
-                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            @if($event->isMultiDay())
-                                                {{ $shift->end_time->format('l \@ g:i A') }}
-                                            @else
-                                                {{ $shift->end_time->format('g:i A') }}
-                                            @endif
-                                            @if($shift->double_hours)
-                                                <x-heroicon-m-star title="Double Hours" class="w-3 mb-1 inline"/>
-                                            @endif
-                                        </td>
-                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm text-center sm:pl-0 {{ $textClass }}">
-                                            @if($signupCount >= $shift->max_volunteers)
-                                                <x-heroicon-s-battery-100 title="Fully Staffed" class="w-4 mb-1 inline"/>
-                                            @elseif($signupCount > 0)
-                                                <x-heroicon-s-battery-50 title="Partially Staffed" class="w-4 mb-1 inline"/>
-                                            @else
-                                                <x-heroicon-s-battery-0 title="No Staff" class="w-4 mb-1 inline"/>
-                                            @endif
-                                            {{ $shift->users->count() }} of {{ $shift->max_volunteers }}
-                                        </td>
-                                        <td class="py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            @forelse ($shift->tags->sortBy('name') as $tag)
-                                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium mb-1 mr-1"
-                                                    style="{{ $tag->color ? 'background-color:' . $tag->color . '22; color:' . $tag->color : 'background-color:#e5e7eb; color:#374151' }}">
-                                                    @if($tag->color)
-                                                        <span class="inline-block w-2 h-2 rounded-full mr-1" style="background-color:{{ $tag->color }}"></span>
-                                                    @endif
-                                                    {{ $tag->name }}
-                                                </span>
-                                            @empty
-                                                <span class="text-gray-400 text-xs">—</span>
-                                            @endforelse
-                                        </td>
-                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            {{-- <a href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}" class="text-blue-600 dark:text-blue-200 px-2"><x-heroicon-m-plus class="w-3 inline"/> Signup</a> --}}
-                                            <a href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}" class="text-blue-600 dark:text-blue-200 px-2"><x-heroicon-m-pencil class="w-3 inline"/> Edit</a>
-                                    
-                                            <x-tailwind-dropdown buttonClass="dropdown-link text-blue-600" label="Manage" id="{{ $shift->id + 1 }}">
-                                                <div class="py-1" role="none">
-                                                    {{-- <x-tailwind-dropdown-item href="{{route('admin.events.edit', $event->id)}}" title="Edit Event Details"><x-heroicon-o-pencil class="w-4 inline"/> Delete</x-tailwind-dropdown-item> --}}
-                                                    <form action="{{ route('admin.events.shifts.duplicate', [$event, $shift]) }}" method="POST" class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700">
-                                                        @csrf
-                                                        <button type="submit" class="" title="Quick duplicate (adds 1 hour to time)">
-                                                            <x-heroicon-o-document-duplicate class="w-4 inline"/> Quick Duplicate
-                                                        </button>
-                                                    </form>
-                                                    <button type="button" 
-                                                        onclick="window.dispatchEvent(new CustomEvent('open-duplicate-modal', { detail: { id: {{ $shift->id }}, name: '{{ addslashes($shift->name) }}', startTime: '{{ $shift->start_time->format('Y-m-d H:i:s') }}' } }))"
-                                                        class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
-                                                        title="Advanced duplicate with multiple options">
-                                                        <x-heroicon-o-squares-plus class="w-4 inline"/> Advanced Duplicate
-                                                    </button>
-                                                </div>
-                                                <div class="py-1" role="none">
-                                                    <form action="{{ route('admin.events.shifts.destroy', [$event, $shift]) }}" method="POST" class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="" onclick="return confirm('Are you sure you want to delete slot {{$shift->name}} on {{$shift->start_time->format('l \@ g:i A')}}?\n\nThis cannot be undone!')"><x-heroicon-o-trash class="w-4 inline"/> Delete</button>
-                                                    </form>
-                                                </div>
-                                            </x-tailwind-dropdown>
-                                        </td>
-                                    </tr>
-                                    @empty
+                                    @if ($shifts->isEmpty())
                                     <tr>
-                                        <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center" colspan="4">
+                                        <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center" colspan="7">
                                             <p class="font-semibold">No shifts created.</p>
                                             <p class="">People cannot signup for shifts until they are created.</p>
                                         </td>
                                     </tr>
-                                    @endforelse
+                                    @else
+                                    @php
+                                        $shiftsByDay = $shifts->groupBy(fn($s) => $s->start_time->format('l, M j'));
+                                    @endphp
+                                    @foreach ($shiftsByDay as $day => $dayShifts)
+                                        {{-- Day header row --}}
+                                        <tr>
+                                            <td colspan="7" class="bg-gray-100 dark:bg-gray-700 py-2 pl-4 pr-3 text-sm font-bold text-gray-800 dark:text-gray-100 sm:pl-0 border-t-2 border-gray-300 dark:border-gray-600 sm:pl-2">
+                                                <x-heroicon-o-calendar class="w-4 h-4 inline mb-0.5 mr-1 text-gray-500 dark:text-gray-400"/>{{ $day }}
+                                            </td>
+                                        </tr>
+                                        @php
+                                            $shiftsByHour = $dayShifts->groupBy(fn($s) => $s->start_time->format('g A'));
+                                        @endphp
+                                        @foreach ($shiftsByHour as $hour => $hourShifts)
+                                            {{-- Hour sub-header row --}}
+                                            <tr>
+                                                <td colspan="7" class="bg-gray-50 dark:bg-gray-800 py-1.5 pl-8 pr-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide sm:pl-2">
+                                                    {{ $hour }}
+                                                </td>
+                                            </tr>
+                                            @foreach ($hourShifts as $shift)
+                                            @php
+                                                $signupCount = $shift->users->count();
+                                                $textClass = $signupCount >= $shift->max_volunteers ? 'text-green-800 dark:text-green-500 text-weight-800' : ($signupCount > 0 ? 'text-purple-700 dark:text-purple-400' : '');
+                                            @endphp
+                                            <tr class="">
+                                                <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0 w-8">
+                                                    <input type="checkbox"
+                                                        class="shift-checkbox h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green cursor-pointer"
+                                                        value="{{ $shift->id }}"
+                                                        onchange="updateBulkBar()">
+                                                </td>
+                                                <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                    <a class="text-blue-700 dark:text-blue-200" href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}">
+                                                        {{$shift->name}}
+                                                    </a>
+                                                </td>
+                                                <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                    {{ $shift->start_time->format('g:i A') }}
+                                                </td>
+                                                <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                    {{ $shift->end_time->format('g:i A') }}
+                                                    @if($shift->double_hours)
+                                                        <x-heroicon-m-star title="Double Hours" class="w-3 mb-1 inline"/>
+                                                    @endif
+                                                </td>
+                                                <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm text-center sm:pl-0 {{ $textClass }}">
+                                                    @if($signupCount >= $shift->max_volunteers)
+                                                        <x-heroicon-s-battery-100 title="Fully Staffed" class="w-4 mb-1 inline"/>
+                                                    @elseif($signupCount > 0)
+                                                        <x-heroicon-s-battery-50 title="Partially Staffed" class="w-4 mb-1 inline"/>
+                                                    @else
+                                                        <x-heroicon-s-battery-0 title="No Staff" class="w-4 mb-1 inline"/>
+                                                    @endif
+                                                    {{ $shift->users->count() }} of {{ $shift->max_volunteers }}
+                                                </td>
+                                                <td class="py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                    @forelse ($shift->tags->sortBy('name') as $tag)
+                                                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium mb-1 mr-1"
+                                                            style="{{ $tag->color ? 'background-color:' . $tag->color . '22; color:' . $tag->color : 'background-color:#e5e7eb; color:#374151' }}">
+                                                            @if($tag->color)
+                                                                <span class="inline-block w-2 h-2 rounded-full mr-1" style="background-color:{{ $tag->color }}"></span>
+                                                            @endif
+                                                            {{ $tag->name }}
+                                                        </span>
+                                                    @empty
+                                                        <span class="text-gray-400 text-xs">—</span>
+                                                    @endforelse
+                                                </td>
+                                                <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                    <a href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}" class="text-blue-600 dark:text-blue-200 px-2"><x-heroicon-m-pencil class="w-3 inline"/> Edit</a>
+
+                                                    <x-tailwind-dropdown buttonClass="dropdown-link text-blue-600" label="Manage" id="{{ $shift->id + 1 }}">
+                                                        <div class="py-1" role="none">
+                                                            <form action="{{ route('admin.events.shifts.duplicate', [$event, $shift]) }}" method="POST" class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700">
+                                                                @csrf
+                                                                <button type="submit" class="" title="Quick duplicate (adds 1 hour to time)">
+                                                                    <x-heroicon-o-document-duplicate class="w-4 inline"/> Quick Duplicate
+                                                                </button>
+                                                            </form>
+                                                            <button type="button" 
+                                                                onclick="window.dispatchEvent(new CustomEvent('open-duplicate-modal', { detail: { id: {{ $shift->id }}, name: '{{ addslashes($shift->name) }}', startTime: '{{ $shift->start_time->format('Y-m-d H:i:s') }}' } }))"
+                                                                class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
+                                                                title="Advanced duplicate with multiple options">
+                                                                <x-heroicon-o-squares-plus class="w-4 inline"/> Advanced Duplicate
+                                                            </button>
+                                                        </div>
+                                                        <div class="py-1" role="none">
+                                                            <form action="{{ route('admin.events.shifts.destroy', [$event, $shift]) }}" method="POST" class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="" onclick="return confirm('Are you sure you want to delete slot {{$shift->name}} on {{$shift->start_time->format('l \@ g:i A')}}?\n\nThis cannot be undone!')"><x-heroicon-o-trash class="w-4 inline"/> Delete</button>
+                                                            </form>
+                                                        </div>
+                                                    </x-tailwind-dropdown>
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        @endforeach
+                                    @endforeach
+                                    @endif
                                 </tbody>
                             </table>
                             {{-- {{ $shifts->links() }} --}}
@@ -232,6 +278,54 @@
             }, function(err) {
                 console.error('Failed to copy URL: ', err);
             });
+        }
+
+        function getCheckedBoxes() {
+            return Array.from(document.querySelectorAll('.shift-checkbox:checked'));
+        }
+
+        function updateBulkBar() {
+            const checked = getCheckedBoxes();
+            const bar     = document.getElementById('bulk-action-bar');
+            const label   = document.getElementById('bulk-count-label');
+            const allBox  = document.getElementById('select-all-checkbox');
+            const all     = document.querySelectorAll('.shift-checkbox');
+
+            bar.classList.toggle('hidden', checked.length === 0);
+            label.textContent = checked.length + ' selected';
+            allBox.indeterminate = checked.length > 0 && checked.length < all.length;
+            allBox.checked = checked.length === all.length && all.length > 0;
+        }
+
+        function toggleSelectAll(source) {
+            document.querySelectorAll('.shift-checkbox').forEach(cb => cb.checked = source.checked);
+            updateBulkBar();
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.shift-checkbox').forEach(cb => cb.checked = false);
+            document.getElementById('select-all-checkbox').checked = false;
+            document.getElementById('select-all-checkbox').indeterminate = false;
+            updateBulkBar();
+        }
+
+        function confirmBulkDelete() {
+            const checked = getCheckedBoxes();
+            if (checked.length === 0) return false;
+
+            if (!confirm('Delete ' + checked.length + ' shift(s)? This cannot be undone!')) return false;
+
+            // Populate hidden inputs with selected IDs
+            const container = document.getElementById('bulk-hidden-inputs');
+            container.innerHTML = '';
+            checked.forEach(cb => {
+                const input = document.createElement('input');
+                input.type  = 'hidden';
+                input.name  = 'shift_ids[]';
+                input.value = cb.value;
+                container.appendChild(input);
+            });
+            return true;
         }
     </script>
 </x-app-layout>

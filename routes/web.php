@@ -284,10 +284,11 @@ Route::middleware('auth')->group(function () {
         Route::resource('events', EventController::class);
         Route::get('events/{event}/shifts/create-series', [ShiftController::class, 'createSeries'])->name('events.shifts.create-series');
         Route::post('events/{event}/shifts/store-series', [ShiftController::class, 'storeSeries'])->name('events.shifts.store-series');
+        Route::post('events/{event}/shifts/import', [ShiftController::class, 'importCsv'])->name('events.shifts.import');
+        Route::delete('events/{event}/shifts/bulk-destroy', [ShiftController::class, 'bulkDestroy'])->name('events.shifts.bulk-destroy');
         Route::resource('events.shifts', ShiftController::class)->except(['show']);
         Route::post('events/{event}/shifts/{shift}/duplicate', [ShiftController::class, 'duplicate'])->name('events.shifts.duplicate');
         Route::post('events/{event}/shifts/{shift}/advanced-duplicate', [ShiftController::class, 'advancedDuplicate'])->name('events.shifts.advanced-duplicate');
-        Route::post('events/{event}/shifts/import', [ShiftController::class, 'importCsv'])->name('events.shifts.import');
         Route::delete('events/{event}/shifts/{shift}/remove-volunteer/{user}', [ShiftController::class, 'removeVolunteer'])->name('events.shifts.remove-volunteer');
         Route::post('events/{event}/shifts/{shift}/add-volunteer/{user}', [ShiftController::class, 'addVolunteer'])->name('events.shifts.add-volunteer');
         Route::patch('events/{event}/shifts/{shift}/no-show/{user}', [ShiftController::class, 'setNoShow'])->name('events.shifts.no-show');

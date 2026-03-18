@@ -57,6 +57,11 @@
                     <div>
                         <dt class="form-label">Shift Tags</dt>
                         <p class="text-gray-500 text-sm mt-1">Categorize this shift for reporting (e.g., Cashier, BadgeChecker).</p>
+                        <p class="text-amber-600 dark:text-amber-400 text-xs mt-2">
+                            <x-heroicon-s-information-circle class="w-3.5 h-3.5 inline -mt-0.5 mr-0.5"/>
+                            Tags are for reporting only and do <strong>not</strong> restrict who can sign up for this shift.
+                            To require volunteers to have specific tags before signing up, edit the <a href="{{ route('admin.events.edit', $event) }}" class="underline hover:text-amber-700 dark:hover:text-amber-300">event settings</a> instead.
+                        </p>
                     </div>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         @if(isset($tags) && $tags->isNotEmpty())

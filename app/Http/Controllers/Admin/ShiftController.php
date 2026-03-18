@@ -138,6 +138,26 @@ class ShiftController extends Controller
         ]);
     }
 
+    public function bulkDestroy(Request $request, Event $event)
+    {
+        $request->validate([
+            'shift_ids'   => 'required|array|min:1',
+            'shift_ids.*' => 'integer|exists:shifts,id',
+        ]);
+
+        $shifts = $event->shifts()->whereIn('id', $request->input('shift_ids'))->get();
+        $count  = $shifts->count();
+
+        foreach ($shifts as $shift) {
+            $shift->delete();
+        }
+
+        return redirect()->route('admin.events.shifts.index', $event)
+            ->with('success', [
+                'message' => "{$count} shift(s) deleted successfully",
+            ]);
+    }
+
     public function duplicate(Event $event, Shift $shift)
     {
         $newShift = $shift->replicate();
