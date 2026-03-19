@@ -88,7 +88,12 @@ class UserController extends Controller
                 }], 'hours')
                 ->orderBy('volunteer_hours_sum_hours', $direction);
             }, function (Builder $query) use ($sort, $direction) {
-                $query->orderBy($sort, $direction); // Default sorting
+                // When sorting by name and legal name is the prominent display, sort by legal name fields instead
+                if ($sort === 'name' && app_setting('user_display_name', 'alias') === 'legal_name') {
+                    $query->orderBy('first_name', $direction)->orderBy('last_name', $direction);
+                } else {
+                    $query->orderBy($sort, $direction);
+                }
             })
             ->with(['departments.sector', 'headDepartments'])
             ->paginate(15);
