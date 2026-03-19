@@ -2,42 +2,67 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Department;
+use App\Models\FiscalLedger;
+use App\Models\Sector;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
+        // --- Sectors ---
+        $mnfurs = Sector::factory()->create(['name' => 'MNFurs']);
+        $fm     = Sector::factory()->create(['name' => 'Furry Migration']);
+        $frolic = Sector::factory()->create(['name' => 'Frolic']);
 
-        // \App\Models\User::factory(3)->count(5)->create();
+        // --- Departments ---
+        foreach (['Administration', 'Communications', 'Events', 'Finance', 'Marketing', 'Web & Technology'] as $name) {
+            Department::factory()->create(['name' => $name, 'sector_id' => $mnfurs->id]);
+        }
 
-        $sector_mnf = \App\Models\Sector::factory()->create(['name' => 'MNFurs']);
-        $sector_fm  = \App\Models\Sector::factory()->create(['name' => 'Furry Migration']);
-        $sector_frl = \App\Models\Sector::factory()->create(['name' => 'Frolic']);
+        foreach ([
+            'Art Show', 'Consuite', 'Dealers Room', 'Gaming', 'Guest Relations',
+            'Hospitality', 'Logistics', 'Main Stage', 'Operations', 'Programming',
+            'Registration', 'Security', 'Tech', 'Volunteers',
+        ] as $name) {
+            Department::factory()->create(['name' => $name, 'sector_id' => $fm->id]);
+        }
 
-        \App\Models\Department::factory(6)->create(['sector_id' => $sector_mnf->id]);
-        \App\Models\Department::factory(14)->create(['sector_id' => $sector_fm->id]);
-        \App\Models\Department::factory(4)->create(['sector_id' => $sector_frl->id]);
+        foreach (['Operations', 'Programming', 'Registration', 'Volunteers'] as $name) {
+            Department::factory()->create(['name' => $name, 'sector_id' => $frolic->id]);
+        }
 
-        \App\Models\User::factory()->create([
-            'name' => 'User',
+        // --- Users ---
+        User::factory()->create([
+            'name'  => 'Regular User',
             'email' => 'user@mnfurs.org',
+            'password' => bcrypt('password'),
         ]);
 
-        \App\Models\User::factory()->create([
-            'name' => 'Admin',
+        User::factory()->admin()->create([
+            'name'  => 'Admin User',
             'email' => 'admin@mnfurs.org',
-            'admin' => true
+            'password' => bcrypt('password'),
         ]);
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        // 12 plain users (no department assignments)
+        User::factory()->count(12)->create();
+
+        // 6 users each attached to 1–2 departments
+        User::factory()->count(4)->withDepartments(1)->create();
+        User::factory()->count(2)->withDepartments(2)->create();
+
+        // --- Fiscal Ledgers ---
+        FiscalLedger::factory()->forYear(2025)->create();
+        FiscalLedger::factory()->forYear(2026)->create();
+
+        // --- Application settings & feature flags ---
+        $this->call([
+            ApplicationSettingsSeeder::class,
+            FeatureFlagSeeder::class,
+            MusicConSeeder::class,
+        ]);
     }
 }
