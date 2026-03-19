@@ -115,8 +115,8 @@
 
                                             <div class="text-right shrink-0">
                                                 <p class="text-2xl font-bold {{ $earned ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-gray-100' }}">
-                                                    {{ number_format($progress, 1) }}
-                                                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400">/ {{ number_format((float)$perk->min_hours, 1) }} hrs</span>
+                                                    {{ rtrim(rtrim(number_format($progress, 1), '0'), '.') }}
+                                                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400">/ {{ rtrim(rtrim(number_format((float)$perk->min_hours, 1), '0'), '.') }} hrs</span>
                                                 </p>
                                             </div>
                                         </div>
@@ -140,18 +140,18 @@
                                                 @if($breakdown['completed'] > 0)
                                                     <span class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                                                         <span class="inline-block w-2 h-2 rounded-full bg-green-500 shrink-0"></span>
-                                                        {{ number_format($breakdown['completed'], 1) }} completed
+                                                        {{ rtrim(rtrim(number_format($breakdown['completed'], 1), '0'), '.') }} completed
                                                     </span>
                                                 @endif
-                                                @if($breakdown['upcoming'] > 0)
+                                                @if($breakdown['upcoming'] > 0 && !$earned)
                                                     <span class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                                                         <span class="inline-block w-2 h-2 rounded-full bg-yellow-400 dark:bg-yellow-500 shrink-0"></span>
-                                                        {{ number_format($breakdown['upcoming'], 1) }} upcoming
+                                                        {{ rtrim(rtrim(number_format($breakdown['upcoming'], 1), '0'), '.') }} upcoming
                                                     </span>
                                                 @endif
                                                 @if(!$earned)
                                                     <span class="text-xs text-gray-500 dark:text-gray-400 ml-auto">
-                                                        {{ number_format(max(0, $minHours - $progress), 1) }} more hr(s) needed
+                                                        {{ rtrim(rtrim(number_format(max(0, $minHours - $progress), 1), '0'), '.') }} more hr(s) needed
                                                     </span>
                                                 @endif
                                             </div>
