@@ -320,7 +320,11 @@
                                         </div> --}}
                                         <div class="ml-4">
                                         <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                                            {{$user->name}}
+                                            @if(app_setting('user_display_name', 'alias') === 'legal_name')
+                                                {{trim($user->first_name . ' ' . $user->last_name) ?: $user->name}}
+                                            @else
+                                                {{$user->name}}
+                                            @endif
                                             @if($user->active)
                                                 <span class="inline-block w-2 h-2 rounded-full bg-green-500" title="Active"></span>
                                             @else
@@ -329,7 +333,11 @@
                                         </div>
                                         </a>
                                         @if(Auth::user()->isAdmin())
-                                            <div class="mt-1 text-xs text-gray-500">{{$user->first_name}} {{$user->last_name}}</div>
+                                            @if(app_setting('user_display_name', 'alias') === 'legal_name')
+                                                <div class="mt-1 text-xs text-gray-500">{{$user->name}}</div>
+                                            @else
+                                                <div class="mt-1 text-xs text-gray-500">{{$user->first_name}} {{$user->last_name}}</div>
+                                            @endif
                                             <div class="mt-1 text-xs text-gray-500">{{$user->email}}</div>
                                         @else
                                             <div class="mt-1 text-xs text-gray-300">Email Not Visible</div>

@@ -561,6 +561,31 @@
                                 @enderror
                             </div>
 
+                            <!-- User Display Name -->
+                            <div>
+                                <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-4">User List Display</h4>
+                                <div>
+                                    <label for="user_display_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Prominent Name on Users List
+                                    </label>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-2">
+                                        Choose which name is shown as the bold primary identifier in the Users list.
+                                    </p>
+                                    <select name="user_display_name" id="user_display_name"
+                                        class="mt-1 block w-full max-w-xs rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm">
+                                        <option value="alias" {{ old('user_display_name', app_setting('user_display_name', 'alias')) === 'alias' ? 'selected' : '' }}>
+                                            Alias (Nickname / display name)
+                                        </option>
+                                        <option value="legal_name" {{ old('user_display_name', app_setting('user_display_name', 'alias')) === 'legal_name' ? 'selected' : '' }}>
+                                            Legal Name (first &amp; last name)
+                                        </option>
+                                    </select>
+                                    @error('user_display_name')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
                             <!-- Onboarding Agreement -->
                             <div>
                                 <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-4">Onboarding Agreement</h4>
