@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\View;
 use App\Models\User;
 use App\Models\Event;
 use App\Models\Shift;
@@ -29,6 +31,26 @@ class AppServiceProvider extends ServiceProvider
         Shift::observe(AuditableObserver::class);
 
         $this->registerFeatureBladeDirectives();
+        $this->registerViewComposers();
+    }
+
+    /**
+     * Share notification data with the navigation view.
+     */
+    protected function registerViewComposers(): void
+    {
+        View::composer('layouts.navigation', function ($view) {
+            if (Auth::check()) {
+                $user = Auth::user();
+                $unreadNotificationsCount = $user->unreadNotifications()->count();
+                $recentNotifications = $user->unreadNotifications()->latest()->take(5)->get();
+            } else {
+                $unreadNotificationsCount = 0;
+                $recentNotifications = collect();
+            }
+
+            $view->with(compact('unreadNotificationsCount', 'recentNotifications'));
+        });
     }
 
     /**

@@ -9,6 +9,7 @@ use App\Models\Shift;
 use App\Models\Tag;
 use App\Models\User;
 use App\Models\AuditLog;
+use App\Notifications\AppNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -63,6 +64,14 @@ class ShiftController extends Controller
             $userIds = $request->input('user_id');
             $userIds = is_array($userIds) ? $userIds : [$userIds];
             $shift->users()->syncWithoutDetaching($userIds);
+
+            User::whereIn('id', $userIds)->each(function (User $user) use ($shift, $event) {
+                $user->notify(new AppNotification(
+                    title: "You've been added to a shift",
+                    message: "You were added to the \"" . $shift->name . "\" shift for \"" . $event->name . "\".",
+                    url: route('volunteer.events.show', $event),
+                ));
+            });
         }
 
         $shift->tags()->sync($request->input('shift_tags', []));
@@ -116,7 +125,21 @@ class ShiftController extends Controller
         if ($request->filled('user_id')) {
             $userIds = $request->input('user_id');
             $userIds = is_array($userIds) ? $userIds : [$userIds];
+
+            $existingUserIds = $shift->users()->pluck('users.id')->toArray();
+            $newUserIds = array_diff($userIds, $existingUserIds);
+
             $shift->users()->syncWithoutDetaching($userIds);
+
+            if (!empty($newUserIds)) {
+                User::whereIn('id', $newUserIds)->each(function (User $user) use ($shift, $event) {
+                    $user->notify(new AppNotification(
+                        title: "You've been added to a shift",
+                        message: "You were added to the \"" . $shift->name . "\" shift for \"" . $event->name . "\".",
+                        url: route('volunteer.events.show', $event),
+                    ));
+                });
+            }
         }
 
         $shift->tags()->sync($request->input('shift_tags', []));
@@ -223,6 +246,13 @@ class ShiftController extends Controller
         // Add the user to the shift
         $shift->users()->attach($user->id, ['signed_up_at' => now()]);
 
+        // Notify the user
+        $user->notify(new AppNotification(
+            title: "You've been added to a shift",
+            message: "You were added to the \"{$shift->name}\" shift for \"{$shift->event->name}\".",
+            url: route('volunteer.events.show', $shift->event),
+        ));
+
         // Log the action
         AuditLog::create([
             'action'         => 'shift_volunteer_added',
@@ -272,6 +302,14 @@ class ShiftController extends Controller
             'no_show' => $noShow,
             'no_show_marked_at' => $noShow ? now() : null,
         ]);
+
+        if ($noShow) {
+            $user->notify(new AppNotification(
+                title: 'You were marked as a no-show',
+                message: "You have been marked as a no-show for the \"{$shift->name}\" shift at \"{$shift->event->name}\".",
+                url: route('volunteer.events.show', $shift->event),
+            ));
+        }
 
         AuditLog::create([
             'action'         => $noShow ? 'shift_volunteer_no_show_marked' : 'shift_volunteer_no_show_cleared',

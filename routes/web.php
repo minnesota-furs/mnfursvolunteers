@@ -29,6 +29,7 @@ use App\Http\Controllers\Admin\ManagerDashboardController;
 use App\Http\Controllers\Admin\VolunteerPerkController as AdminVolunteerPerkController;
 use App\Http\Controllers\Admin\VolunteerPerkSetController as AdminVolunteerPerkSetController;
 use App\Http\Controllers\VolunteerPerkController;
+use App\Http\Controllers\NotificationsController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -98,6 +99,15 @@ Route::middleware('auth')->group(function () {
 Route::post('/dashboard/dismiss-profile-notice', [DashboardController::class, 'dismissProfileNotice'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard.dismiss-profile-notice');
+
+// Notifications
+Route::middleware('auth')->prefix('notifications')->name('notifications.')->group(function () {
+    Route::get('/', [NotificationsController::class, 'index'])->name('index');
+    Route::post('/read-all', [NotificationsController::class, 'markAllRead'])->name('mark-all-read');
+    Route::post('/{id}/read', [NotificationsController::class, 'markRead'])->name('mark-read');
+    Route::post('/{id}/unread', [NotificationsController::class, 'markUnread'])->name('mark-unread');
+    Route::delete('/{id}', [NotificationsController::class, 'destroy'])->name('destroy');
+});
 
 // Authenticated routes
 Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
