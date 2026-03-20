@@ -80,12 +80,7 @@
                                         style="background-color: {{ $primaryBg10 }}; color: {{ $primaryColor }};"
                                         x-on:mouseenter="$el.style.backgroundColor='{{ $primaryBg20 }}'"
                                         x-on:mouseleave="$el.style.backgroundColor='{{ $primaryBg10 }}'">
-
                                         <x-heroicon-o-calendar class="w-5 h-5" />
-
-                                        {{-- <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                                        </svg> --}}
                                     </div>
                                     <div>
                                         <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Event Assignments</p>
@@ -101,9 +96,6 @@
                                         x-on:mouseenter="$el.style.backgroundColor='{{ $primaryBg20 }}'"
                                         x-on:mouseleave="$el.style.backgroundColor='{{ $primaryBg10 }}'">
                                         <x-heroicon-o-check class="w-5 h-5" />
-                                        {{-- <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg> --}}
                                     </div>
                                     <div>
                                         <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">One-Off Events</p>
@@ -119,9 +111,6 @@
                                         x-on:mouseenter="$el.style.backgroundColor='{{ $primaryBg20 }}'"
                                         x-on:mouseleave="$el.style.backgroundColor='{{ $primaryBg10 }}'">
                                         <x-heroicon-o-gift class="w-5 h-5" />
-                                        {{-- <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                                        </svg> --}}
                                     </div>
                                     <div>
                                         <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Perks</p>
@@ -138,9 +127,6 @@
                                         x-on:mouseenter="$el.style.backgroundColor='{{ $primaryBg20 }}'"
                                         x-on:mouseleave="$el.style.backgroundColor='{{ $primaryBg10 }}'">
                                         <x-heroicon-o-bookmark class="w-5 h-5" />
-                                        {{-- <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 7.5h-.75A2.25 2.25 0 004.5 9.75v7.5a2.25 2.25 0 002.25 2.25h7.5a2.25 2.25 0 002.25-2.25v-7.5a2.25 2.25 0 00-2.25-2.25h-.75m-6 3.75l3 3m0 0l3-3m-3 3V1.5m6 9h.75a2.25 2.25 0 012.25 2.25v7.5a2.25 2.25 0 01-2.25 2.25h-7.5a2.25 2.25 0 01-2.25-2.25v-.75" />
-                                        </svg> --}}
                                     </div>
                                     <div>
                                         <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Elections</p>
@@ -162,9 +148,6 @@
                         </x-slot>
 
                         <x-slot name="content" class="-mt-32">
-                            {{-- <x-dropdown-link :href="route('departments.index')">
-                                {{ __('Recently Logged Hours') }}
-                            </x-dropdown-link> --}}
                             <x-dropdown-link :href="route('report.usersWithoutDepartments')">
                                 {{ __('Users without Dept') }}
                             </x-dropdown-link>
@@ -208,12 +191,12 @@
                             @endfeature
                             @feature('perk_tracking')
                             @can('manage-volunteer-events')
-                            <x-dropdown-link :href="route('admin.perk-sets.index')">
-                                {{ __('Perk Sets') }}
-                            </x-dropdown-link>
                             <x-dropdown-link :href="route('admin.perks.index')">
                                 {{ __('Volunteer Perks') }}
                             </x-dropdown-link>
+                            {{-- <x-dropdown-link :href="route('admin.perk-sets.index')">
+                                {{ __('Volunteer Perk Sets') }}
+                            </x-dropdown-link> --}}
                             @endcan
                             @endfeature
 
