@@ -140,18 +140,18 @@
                                                 @if($breakdown['completed'] > 0)
                                                     <span class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                                                         <span class="inline-block w-2 h-2 rounded-full bg-green-500 shrink-0"></span>
-                                                        {{ rtrim(rtrim(number_format($breakdown['completed'], 1), '0'), '.') }} completed
+                                                        {{ rtrim(rtrim(number_format($breakdown['completed'], 1), '0'), '.') }} hours completed
                                                     </span>
                                                 @endif
                                                 @if($breakdown['upcoming'] > 0 && !$earned)
                                                     <span class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                                                         <span class="inline-block w-2 h-2 rounded-full bg-yellow-400 dark:bg-yellow-500 shrink-0"></span>
-                                                        {{ rtrim(rtrim(number_format($breakdown['upcoming'], 1), '0'), '.') }} upcoming
+                                                        {{ rtrim(rtrim(number_format($breakdown['upcoming'], 1), '0'), '.') }} hours upcoming
                                                     </span>
                                                 @endif
                                                 @if(!$earned)
                                                     <span class="text-xs text-gray-500 dark:text-gray-400 ml-auto">
-                                                        {{ rtrim(rtrim(number_format(max(0, $minHours - $progress), 1), '0'), '.') }} more hr(s) needed
+                                                        {{ rtrim(rtrim(number_format(max(0, $minHours - $progress), 1), '0'), '.') }} more hour(s) needed
                                                     </span>
                                                 @endif
                                             </div>
