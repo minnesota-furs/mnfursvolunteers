@@ -195,8 +195,9 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::post('/users/bulk-assign-department', [\App\Http\Controllers\Admin\UserController::class, 'bulkAssignDepartment'])->name('users.bulk-assign-department');
     });
 
-    // Org chart view
+    // Org chart views
     Route::get('/org-chart', [UserController::class, 'orgChart'])->name('orgchart');
+    Route::get('/org-chart-visual', [UserController::class, 'orgChartVisual'])->name('orgchart-visual');
 
     // Application Settings
     Route::middleware('isAdmin')->prefix('settings')->name('settings.')->group(function () {

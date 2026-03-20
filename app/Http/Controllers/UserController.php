@@ -737,25 +737,43 @@ class UserController extends Controller
 
     public function orgChart()
     {
-        $sectors = Sector::with('departments.users')->get();
+        $sectors = Sector::with([
+            'departments' => fn ($q) => $q->orderBy('name'),
+            'departments.heads',
+            'departments.users' => fn ($q) => $q->orderBy('name')->select('users.id', 'users.name'),
+        ])->orderBy('name')->get();
 
-        $nodes = [];
-        foreach ($sectors as $sector) {
-            // Add sector (no parent)
-            $nodes[] = ['key' => 'S'.$sector->id, 'name' => $sector->name, 'type' => 'sector', 'fillColor' => '#efe8e1', 'textColor' => '#007848'];
-    
-            foreach ($sector->departments as $department) {
-                // Add department with parent sector
-                $nodes[] = ['key' => 'D'.$department->id, 'name' => $department->name, 'parent' => 'S'.$sector->id, 'type' => 'department', 'fillColor' => '#44392b', 'textColor' => '#FFF'];
-    
-                foreach ($department->users as $user) {
-                    // Add user with parent department
-                    $nodes[] = ['key' => $user->id, 'name' => $user->name, 'parent' => 'D'.$department->id, 'type' => 'user', 'fillColor' => '#007848', 'textColor' => '#FFF'];
-                }
-            }
-        }
+        return view('users.orgchart', compact('sectors'));
+    }
 
-        return view('users.orgchart', ['nodes' => $nodes]);
+    public function orgChartVisual()
+    {
+        $sectors = Sector::with([
+            'departments' => fn ($q) => $q->orderBy('name'),
+            'departments.heads',
+            'departments.users' => fn ($q) => $q->orderBy('name')->select('users.id', 'users.name'),
+        ])->orderBy('name')->get();
+
+        $tree = [
+            'name' => config('app.name', 'Organization'),
+            'type' => 'root',
+            'children' => $sectors->map(fn ($sector) => [
+                'name'     => $sector->name,
+                'type'     => 'sector',
+                'children' => $sector->departments->map(fn ($dept) => [
+                    'name'     => $dept->name,
+                    'type'     => 'department',
+                    'head'     => $dept->heads->isEmpty() ? null : $dept->heads->map->name->join(', '),
+                    'children' => $dept->users->map(fn ($user) => [
+                        'name' => $user->name,
+                        'type' => 'user',
+                        'url'  => route('users.show', $user->id),
+                    ])->values()->toArray(),
+                ])->values()->toArray(),
+            ])->values()->toArray(),
+        ];
+
+        return view('users.orgchart-visual', compact('tree'));
     }
 
     public function restore($id)
