@@ -20,22 +20,7 @@
                     </x-nav-link>
                     @feature('job_listings')
                     <x-nav-link :href="route('job-listings.index')" :active="request()->routeIs('job-listings.*')">
-                        {{ __('Open Positons') }}
-                    </x-nav-link>
-                    @endfeature
-                    @feature('one_off_events')
-                    <x-nav-link :href="route('one-off-events.index')" :active="request()->routeIs('one-off-events.*')">
-                        {{ __('One-Off Event') }}
-                    </x-nav-link>
-                    @endfeature
-                    @feature('volunteer_events')
-                    <x-nav-link :href="route('volunteer.events.index')" :active="request()->routeIs('volunteer.events.*')">
-                        {{ __('Events') }}
-                    </x-nav-link>
-                    @endfeature
-                    @feature('perk_tracking')
-                    <x-nav-link :href="route('volunteer.perks.index')" :active="request()->routeIs('volunteer.perks.*')">
-                        {{ __('Perks') }}
+                        {{ __('Staff Openings') }}
                     </x-nav-link>
                     @endfeature
 
@@ -54,19 +39,119 @@
                                 });
                             })
                             ->exists();
+                        $volunteerActive = request()->routeIs('volunteer.events.*')
+                            || request()->routeIs('one-off-events.*')
+                            || request()->routeIs('volunteer.perks.*')
+                            || request()->routeIs('elections.*');
                     @endphp
 
-                    @feature('elections')
-                    @if($activeElections)
-                        <x-nav-link :href="route('elections.index')" :active="request()->routeIs('elections.*')">
-                            {{ __('Elections') }}
-                        </x-nav-link>
-                    @endif
-                    @endfeature
-                    
-                    {{-- <x-nav-link :href="route('orgchart')" :active="request()->routeIs('orgchart')">
-                        {{ __('Org Chart') }} (Test)
-                    </x-nav-link> --}}
+                    @php
+                        $primaryColor = app_setting('primary_color', '#10b981');
+                        [$pr, $pg, $pb] = sscanf(ltrim($primaryColor, '#'), "%02x%02x%02x");
+                        $primaryBg10  = "rgba({$pr},{$pg},{$pb},0.1)";
+                        $primaryBg20  = "rgba({$pr},{$pg},{$pb},0.2)";
+                    @endphp
+
+                    <!-- Volunteer flyout menu -->
+                    <div class="relative" x-data="{ open: false }" @click.outside="open = false" @close.stop="open = false">
+                        <button @click="open = !open"
+                            class="inline-flex mt-5 pb-5 items-center gap-1 px-1 pt-1 border-b-2 {{ $volunteerActive ? 'border-white/50' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-100 dark:text-gray-400 hover:text-gray-200 dark:hover:text-gray-300 hover:border-white/25 dark:hover:border-gray-700 focus:outline-none transition duration-150 ease-in-out">
+                            Volunteer
+                            <svg class="h-4 w-4 transition-transform duration-150" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div x-show="open"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 translate-y-1"
+                            @click="open = false"
+                            class="absolute start-0 z-50 mt-2 w-72 rounded-xl shadow-lg ring-1 ring-black/10 bg-white dark:bg-gray-800"
+                            style="display: none;">
+                            <div class="p-2 space-y-0.5">
+                                @feature('volunteer_events')
+                                <a href="{{ route('volunteer.events.index') }}"
+                                    class="group flex items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 {{ request()->routeIs('volunteer.events.*') ? 'bg-gray-50 dark:bg-gray-700' : '' }}">
+                                    <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition duration-150"
+                                        style="background-color: {{ $primaryBg10 }}; color: {{ $primaryColor }};"
+                                        x-on:mouseenter="$el.style.backgroundColor='{{ $primaryBg20 }}'"
+                                        x-on:mouseleave="$el.style.backgroundColor='{{ $primaryBg10 }}'">
+
+                                        <x-heroicon-o-calendar class="w-5 h-5" />
+
+                                        {{-- <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                                        </svg> --}}
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Event Assignments</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Sign up for volunteer assignments at upcoming conventions or events</p>
+                                    </div>
+                                </a>
+                                @endfeature
+                                @feature('one_off_events')
+                                <a href="{{ route('one-off-events.index') }}"
+                                    class="group flex items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 {{ request()->routeIs('one-off-events.*') ? 'bg-gray-50 dark:bg-gray-700' : '' }}">
+                                    <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition duration-150"
+                                        style="background-color: {{ $primaryBg10 }}; color: {{ $primaryColor }};"
+                                        x-on:mouseenter="$el.style.backgroundColor='{{ $primaryBg20 }}'"
+                                        x-on:mouseleave="$el.style.backgroundColor='{{ $primaryBg10 }}'">
+                                        <x-heroicon-o-check class="w-5 h-5" />
+                                        {{-- <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg> --}}
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">One-Off Events</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Check in to standalone activities like meetings or training</p>
+                                    </div>
+                                </a>
+                                @endfeature
+                                @feature('perk_tracking')
+                                <a href="{{ route('volunteer.perks.index') }}"
+                                    class="group flex items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 {{ request()->routeIs('volunteer.perks.*') ? 'bg-gray-50 dark:bg-gray-700' : '' }}">
+                                    <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition duration-150"
+                                        style="background-color: {{ $primaryBg10 }}; color: {{ $primaryColor }};"
+                                        x-on:mouseenter="$el.style.backgroundColor='{{ $primaryBg20 }}'"
+                                        x-on:mouseleave="$el.style.backgroundColor='{{ $primaryBg10 }}'">
+                                        <x-heroicon-o-gift class="w-5 h-5" />
+                                        {{-- <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                                        </svg> --}}
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Perks</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">View and redeem your earned volunteer rewards</p>
+                                    </div>
+                                </a>
+                                @endfeature
+                                @feature('elections')
+                                @if($activeElections)
+                                <a href="{{ route('elections.index') }}"
+                                    class="group flex items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 {{ request()->routeIs('elections.*') ? 'bg-gray-50 dark:bg-gray-700' : '' }}">
+                                    <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition duration-150"
+                                        style="background-color: {{ $primaryBg10 }}; color: {{ $primaryColor }};"
+                                        x-on:mouseenter="$el.style.backgroundColor='{{ $primaryBg20 }}'"
+                                        x-on:mouseleave="$el.style.backgroundColor='{{ $primaryBg10 }}'">
+                                        <x-heroicon-o-bookmark class="w-5 h-5" />
+                                        {{-- <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 7.5h-.75A2.25 2.25 0 004.5 9.75v7.5a2.25 2.25 0 002.25 2.25h7.5a2.25 2.25 0 002.25-2.25v-7.5a2.25 2.25 0 00-2.25-2.25h-.75m-6 3.75l3 3m0 0l3-3m-3 3V1.5m6 9h.75a2.25 2.25 0 012.25 2.25v7.5a2.25 2.25 0 01-2.25 2.25h-7.5a2.25 2.25 0 01-2.25-2.25v-.75" />
+                                        </svg> --}}
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Elections</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Nominate candidates and cast your vote</p>
+                                    </div>
+                                </a>
+                                @endif
+                                @endfeature
+                            </div>
+                        </div>
+                    </div>
 
                     @can('view-reports')
                     <x-dropdown align="left" width="48">
@@ -138,12 +223,6 @@
                                 {{ __('Elections') }}
                             </x-dropdown-link>
                             @endcan
-                            @endfeature
-
-                            @feature('one_off_events')
-                            <x-dropdown-link :href="route('one-off-events.index')">
-                                {{ __('One Off Events') }}
-                            </x-dropdown-link>
                             @endfeature
 
                             @if( Auth::check() && Auth::user()->isAdmin() )
@@ -328,34 +407,42 @@
             <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                 {{ __('Users') }}
             </x-responsive-nav-link>
+            @feature('job_listings')
             <x-responsive-nav-link :href="route('job-listings.index')" :active="request()->routeIs('job-listings.*')">
-                {{ __('Open Positons') }}
+                {{ __('Open Positions') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('volunteer.events.index')" :active="request()->routeIs('volunteer.events.*')">
-                {{ __('Events') }}
-            </x-responsive-nav-link>
-            
-            @php
-                $activeElections = \App\Models\Election::where('active', true)
-                    ->where(function($query) {
-                        // Show if voting is active
-                        $query->where(function($q) {
-                            $q->where('start_date', '<=', now())
-                              ->where('end_date', '>=', now());
-                        })
-                        // OR if nominations are active
-                        ->orWhere(function($q) {
-                            $q->where('nomination_start_date', '<=', now())
-                              ->where('nomination_end_date', '>=', now());
-                        });
-                    })
-                    ->exists();
-            @endphp
-            @if($activeElections)
-                <x-responsive-nav-link :href="route('elections.index')" :active="request()->routeIs('elections.*')">
-                    {{ __('Elections') }}
-                </x-responsive-nav-link>
-            @endif
+            @endfeature
+
+            <!-- Volunteer Section -->
+            <div class="pt-2 pb-1 border-t border-gray-200 dark:border-gray-600">
+                <div class="px-4 py-2">
+                    <div class="font-medium text-base text-white dark:text-gray-200">Volunteer</div>
+                </div>
+                <div class="space-y-1">
+                    @feature('volunteer_events')
+                    <x-responsive-nav-link :href="route('volunteer.events.index')" :active="request()->routeIs('volunteer.events.*')">
+                        {{ __('Events') }}
+                    </x-responsive-nav-link>
+                    @endfeature
+                    @feature('one_off_events')
+                    <x-responsive-nav-link :href="route('one-off-events.index')" :active="request()->routeIs('one-off-events.*')">
+                        {{ __('One-Off Events') }}
+                    </x-responsive-nav-link>
+                    @endfeature
+                    @feature('perk_tracking')
+                    <x-responsive-nav-link :href="route('volunteer.perks.index')" :active="request()->routeIs('volunteer.perks.*')">
+                        {{ __('Perks') }}
+                    </x-responsive-nav-link>
+                    @endfeature
+                    @feature('elections')
+                    @if($activeElections)
+                    <x-responsive-nav-link :href="route('elections.index')" :active="request()->routeIs('elections.*')">
+                        {{ __('Elections') }}
+                    </x-responsive-nav-link>
+                    @endif
+                    @endfeature
+                </div>
+            </div>
 
             @can('view-reports')
             <!-- Reports Section -->
@@ -401,10 +488,6 @@
                     </x-responsive-nav-link>
                     @endcan
 
-                    <x-responsive-nav-link :href="route('one-off-events.index')">
-                        {{ __('One Off Events') }}
-                    </x-responsive-nav-link>
-                    
                     @if( Auth::user()->isAdmin() )
                     <x-responsive-nav-link :href="route('ledger.index')">
                         {{ __('Ledgers') }}
