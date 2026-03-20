@@ -191,12 +191,27 @@
                                 </label>
                                 <div class="flex items-center gap-2 mt-1">
                                     <input type="color" name="primary_color" id="primary_color"
-                                        value="{{ old('primary_color', app_setting('primary_color', '#10b981')) }}"
+                                        x-model="primaryColorValue"
                                         class="h-10 w-20 rounded border-gray-300 dark:border-gray-600">
-                                    <input type="text" x-model="$el.previousElementSibling.value"
+                                    <input type="text" x-model="primaryColorValue"
                                         class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                         placeholder="#10b981">
                                 </div>
+                                <template x-if="primaryColorContrast() !== null && primaryColorContrast() < 4.5">
+                                    <div class="mt-2 flex items-start gap-2 rounded-md border border-yellow-300 bg-yellow-50 px-3 py-2 dark:border-yellow-700 dark:bg-yellow-900/30">
+                                        <svg class="mt-0.5 h-4 w-4 shrink-0 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                        </svg>
+                                        <div>
+                                            <p class="text-sm font-medium text-yellow-800 dark:text-yellow-300">WCAG 2.2 AA Contrast Warning</p>
+                                            <p class="mt-0.5 text-sm text-yellow-700 dark:text-yellow-400">
+                                                White text on this background has a contrast ratio of <strong x-text="primaryColorContrast() + ':1'"></strong>.
+                                                <span x-show="primaryColorContrast() < 3">This fails both large text (needs 3:1) and normal text (needs 4.5:1) requirements.</span>
+                                                <span x-show="primaryColorContrast() >= 3">This passes large text (3:1) but fails normal text (needs 4.5:1) requirements.</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </template>
                                 @error('primary_color')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -886,6 +901,18 @@
                 logoPreview: null,
                 faviconPreview: null,
                 copied: false,
+                primaryColorValue: '{{ old('primary_color', app_setting('primary_color', '#10b981')) }}',
+
+                primaryColorContrast() {
+                    const hex = (this.primaryColorValue || '').replace('#', '');
+                    if (!/^[0-9a-f]{6}$/i.test(hex)) return null;
+                    const toLinear = c => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+                    const r = toLinear(parseInt(hex.slice(0, 2), 16) / 255);
+                    const g = toLinear(parseInt(hex.slice(2, 4), 16) / 255);
+                    const b = toLinear(parseInt(hex.slice(4, 6), 16) / 255);
+                    const L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                    return parseFloat((1.05 / (L + 0.05)).toFixed(2));
+                },
 
                 previewImage(event, targetProperty) {
                     const file = event.target.files[0];
