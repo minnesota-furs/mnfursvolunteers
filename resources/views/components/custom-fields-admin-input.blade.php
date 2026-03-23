@@ -89,6 +89,14 @@
                         class="block w-full text-sm" 
                         :value="$value"
                         :required="$field->is_required" />
+                @elseif($field->field_type === 'telephone')
+                    <x-text-input 
+                        name="custom_field_{{ $field->id }}" 
+                        id="custom_field_{{ $field->id }}" 
+                        type="tel" 
+                        class="block w-full text-sm" 
+                        :value="$value"
+                        :required="$field->is_required" />
                 @endif
 
                 @if($field->description)

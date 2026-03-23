@@ -54,6 +54,7 @@
                                 <option value="checkbox" {{ old('field_type') == 'checkbox' ? 'selected' : '' }}>Checkbox</option>
                                 <option value="date" {{ old('field_type') == 'date' ? 'selected' : '' }}>Date</option>
                                 <option value="number" {{ old('field_type') == 'number' ? 'selected' : '' }}>Number</option>
+                                <option value="telephone" {{ old('field_type') == 'telephone' ? 'selected' : '' }}>Telephone</option>
                             </select>
                             @error('field_type')
                                 <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>

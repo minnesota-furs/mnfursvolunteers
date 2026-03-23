@@ -223,6 +223,8 @@
                                                             {{ \Carbon\Carbon::parse($customFieldValue->value)->format('F j, Y') }}
                                                         @elseif($field->field_type === 'textarea')
                                                             <div class="whitespace-pre-wrap">{{ $customFieldValue->value }}</div>
+                                                        @elseif($field->field_type === 'telephone')
+                                                            <a href="tel:{{ $customFieldValue->value }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $customFieldValue->value }}</a>
                                                         @else
                                                             {{ $customFieldValue->value }}
                                                         @endif

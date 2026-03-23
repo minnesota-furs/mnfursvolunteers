@@ -84,6 +84,14 @@
                     class="mt-1 block w-full" 
                     :value="$value"
                     :required="$field->is_required" />
+            @elseif($field->field_type === 'telephone')
+                <x-text-input 
+                    name="custom_field_{{ $field->id }}" 
+                    id="custom_field_{{ $field->id }}" 
+                    type="tel" 
+                    class="mt-1 block w-full" 
+                    :value="$value"
+                    :required="$field->is_required" />
             @endif
 
             @if($field->description)

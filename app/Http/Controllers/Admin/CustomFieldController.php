@@ -36,7 +36,7 @@ class CustomFieldController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'field_key' => 'required|string|max:255|unique:custom_fields,field_key|regex:/^[a-z0-9_]+$/',
-            'field_type' => 'required|in:text,textarea,select,checkbox,date,number',
+            'field_type' => 'required|in:text,textarea,select,checkbox,date,number,telephone',
             'options' => 'nullable|array',
             'options.*' => 'nullable|string',
             'sort_order' => 'nullable|integer',
@@ -103,7 +103,7 @@ class CustomFieldController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'field_key' => 'required|string|max:255|regex:/^[a-z0-9_]+$/|unique:custom_fields,field_key,' . $customField->id,
-            'field_type' => 'required|in:text,textarea,select,checkbox,date,number',
+            'field_type' => 'required|in:text,textarea,select,checkbox,date,number,telephone',
             'options' => 'nullable|array',
             'options.*' => 'nullable|string',
             'sort_order' => 'nullable|integer',
