@@ -441,26 +441,61 @@
                     </th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
-                  @forelse($trashedUsers as $trashed)
+                @forelse($trashedUsers as $trashed)
+                <tbody x-data="{ nuking: false, confirmText: '' }" class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
                   <tr>
                     <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 sm:pl-0">{{$trashed->name}}</td>
                     <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900">{{$trashed->email}}</td>
                     <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">{{$trashed->deleted_at->diffForHumans()}}</td>
                     <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                      <a href="#" class="text-indigo-600 hover:text-indigo-900">
+                      <div class="flex items-center justify-end gap-2">
                         <form action="{{ route('users.restore', $trashed->id) }}" method="POST" class="inline">
                           @csrf
                           <button type="submit" class="text-blue-600 hover:underline">Restore</button>
-                      </form>
-                      </a>
+                        </form>
+                        <button type="button"
+                                @click="nuking = true; $nextTick(() => $refs.nukeInput.focus())"
+                                class="text-red-600 hover:underline font-semibold">Nuke</button>
+                      </div>
                     </td>
-                    @empty
-                      <tr>
-                        <td colspan="4" class="text-center text-sm text-gray-500 py-4">Nothing Deleted Here!</td></tr>
-                    @endforelse
+                  </tr>
+                  <tr x-show="nuking" x-cloak class="bg-red-50 dark:bg-red-950/30">
+                    <td colspan="4" class="px-4 py-3">
+                        <p class="text-sm font-semibold text-red-700 dark:text-red-400">
+                          <x-heroicon-s-exclamation-triangle class="w-4 inline mb-0.5"/> Warning: This action is permanent. Once deleted, this user cannot be recovered.
+                        </p>
+                        <div class="mt-2 flex items-center gap-2">
+                          <label class="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">Type <span class="font-mono font-bold">delete</span> to confirm:</label>
+                          <input type="text" x-model="confirmText"
+                                 x-ref="nukeInput"
+                                 class="border border-red-400 rounded px-2 py-1 text-sm w-28 dark:bg-gray-900 dark:text-gray-100"
+                                 placeholder="delete"
+                                 @keydown.escape="nuking = false; confirmText = ''" />
+                          <form action="{{ route('users.nuke', $trashed->id) }}" method="POST" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                    :disabled="confirmText !== 'delete'"
+                                    :class="confirmText === 'delete'
+                                        ? 'bg-red-600 hover:bg-red-700 text-white cursor-pointer'
+                                        : 'bg-gray-300 dark:bg-gray-700 text-gray-400 cursor-not-allowed'"
+                                    class="rounded px-3 py-1 text-sm font-semibold transition-colors">
+                              Permanently Delete
+                            </button>
+                          </form>
+                          <button type="button" @click="nuking = false; confirmText = ''"
+                                  class="text-sm text-gray-500 hover:underline">Cancel</button>
+                        </div>
+                    </td>
                   </tr>
                 </tbody>
+                @empty
+                <tbody class="bg-white dark:bg-gray-800">
+                  <tr>
+                    <td colspan="4" class="text-center text-sm text-gray-500 py-4">Nothing Deleted Here!</td>
+                  </tr>
+                </tbody>
+                @endforelse
               </table>
             </div>
           </div>

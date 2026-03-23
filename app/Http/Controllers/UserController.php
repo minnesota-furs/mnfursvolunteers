@@ -797,6 +797,17 @@ class UserController extends Controller
             ]);
     }
 
+    public function nuke($id)
+    {
+        $user = User::onlyTrashed()->findOrFail($id);
+        $user->forceDelete();
+
+        return redirect()->route('users.index')
+            ->with('success', [
+                'message' => "User permanently deleted."
+            ]);
+    }
+
     /**
      * Display communications sent to a user
      */

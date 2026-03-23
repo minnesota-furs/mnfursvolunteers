@@ -158,6 +158,7 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::get('/users/import/results/download', [UserImportWizardController::class, 'downloadFailed'])->name('users.import.results.download');
         Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
         Route::post('/users/{id}/restore', [UserController::class, 'restore'])->middleware('isAdmin')->name('users.restore');
+        Route::delete('/users/{id}/nuke', [UserController::class, 'nuke'])->middleware('isAdmin')->name('users.nuke');
     });
 
     Route::resource('users', UserController::class)->only(['create', 'edit', 'store', 'destroy', 'update'])->middleware(['can:manage-users']);
