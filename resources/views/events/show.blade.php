@@ -238,7 +238,7 @@
                         {{-- Max length pill group --}}
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Max length:</span>
-                            @php $durationOptions = [0 => 'Any', 1 => '≤1h', 2 => '≤2h', 3 => '≤3h', 4 => '≤4h']; @endphp
+                            @php $durationOptions = [0 => 'Any', 1 => '≤ 1h', 2 => '≤ 2h', 3 => '≤ 3h', 4 => '≤ 4h']; @endphp
                             @foreach($durationOptions as $val => $label)
                                 <button type="button"
                                     x-on:click="maxHours = {{ $val }}"

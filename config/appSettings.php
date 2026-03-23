@@ -81,6 +81,13 @@ return [
             'label' => 'Enable Department Head',
             'description' => 'Turn on or off the department head feature for your organization.',
         ],
+        'require_department_for_user_index' => [
+            'value' => false,
+            'type' => 'boolean',
+            'group' => 'department_settings',
+            'label' => 'Require Department to View User List',
+            'description' => 'When enabled, users without a department assignment cannot access the User index page.',
+        ],
     ],
     'api_settings' => [
         'test' => [

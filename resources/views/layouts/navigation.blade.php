@@ -15,9 +15,11 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    @if(!app_setting('require_department_for_user_index', false) || Auth::user()->isAdmin() || Auth::user()->hasPermission('manage-users') || Auth::user()->departments->isNotEmpty())
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                         {{ __('Users') }}
                     </x-nav-link>
+                    @endif
                     @feature('job_listings')
                     <x-nav-link :href="route('job-listings.index')" :active="request()->routeIs('job-listings.*')">
                         {{ __('Staff Openings') }}
@@ -224,6 +226,7 @@
                 </div>
             </div>
 
+            @if(!app_setting('require_department_for_user_index', false) || Auth::user()->isAdmin() || Auth::user()->hasPermission('manage-users') || Auth::user()->departments->isNotEmpty())
             <div class="flex flex-1 justify-center items-center px-2 lg:ml-6 lg:justify-end">
                 <div class="max-w-lg lg:max-w-xs">
                   <label for="search" class="sr-only">Search</label>
@@ -237,6 +240,7 @@
                   </form>
                 </div>
             </div>
+            @endif
 
             <!-- Settings Dropdown -->
             @auth
@@ -372,6 +376,7 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <!-- Mobile Search -->
+        @if(!app_setting('require_department_for_user_index', false) || Auth::user()->isAdmin() || Auth::user()->hasPermission('manage-users') || Auth::user()->departments->isNotEmpty())
         <div class="pt-2 pb-3 px-4">
             <form class="relative text-white focus-within:text-white" action="{{ route('users.index') }}" method="GET">
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -382,14 +387,17 @@
                 <input id="mobile-search" class="block w-full rounded-md border-0 bg-white/5 py-1.5 pl-10 pr-3 text-white focus:ring-2 focus:ring-white focus:ring-offset-white sm:text-sm sm:leading-6 placeholder-white/25" placeholder="Search Users" type="search" name="search" value="{{ request('search') }}">
             </form>
         </div>
+        @endif
 
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            @if(!app_setting('require_department_for_user_index', false) || Auth::user()->isAdmin() || Auth::user()->hasPermission('manage-users') || Auth::user()->departments->isNotEmpty())
             <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                 {{ __('Users') }}
             </x-responsive-nav-link>
+            @endif
             @feature('job_listings')
             <x-responsive-nav-link :href="route('job-listings.index')" :active="request()->routeIs('job-listings.*')">
                 {{ __('Open Positions') }}

@@ -30,6 +30,14 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+        // When enabled, users without a department cannot access this page (admins and manage-users are exempt)
+        if (app_setting('require_department_for_user_index', false)) {
+            $user = Auth::user();
+            if ($user && !$user->isAdmin() && !$user->hasPermission('manage-users') && $user->departments->isEmpty()) {
+                abort(403, 'You must be assigned to a department to view this page.');
+            }
+        }
+
         $search = $request->input('search');
 
         $sort = $request->input('sort', 'name'); // Default sort column

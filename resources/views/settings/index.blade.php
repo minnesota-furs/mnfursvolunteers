@@ -599,6 +599,27 @@
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
                                 </div>
+
+                                <div class="flex items-center justify-between mt-6">
+                                    <div>
+                                        <label for="require_department_for_user_index" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Require Department to View User List
+                                        </label>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            When enabled, users without a department assignment will be denied access to the User index page.
+                                        </p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="require_department_for_user_index" id="require_department_for_user_index"
+                                            value="1"
+                                            {{ old('require_department_for_user_index', app_setting('require_department_for_user_index', false)) ? 'checked' : '' }}
+                                            class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-green/20 dark:peer-focus:ring-brand-green/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-brand-green"></div>
+                                    </label>
+                                </div>
+                                @error('require_department_for_user_index')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <!-- Onboarding Agreement -->
