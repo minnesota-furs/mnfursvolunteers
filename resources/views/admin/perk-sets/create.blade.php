@@ -46,6 +46,7 @@
                     <dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0">
                         <x-textarea-input name="description" id="description" rows="3"
                             class="block w-full text-sm" placeholder="Briefly describe this set of perks...">{{ old('description', $perkSet->description ?? '') }}</x-textarea-input>
+                        <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">Markdown formatting is supported.</p>
                         <x-form-validation for="description" />
                     </dd>
                 </div>

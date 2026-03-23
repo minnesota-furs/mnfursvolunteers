@@ -46,7 +46,7 @@
                                 @endif
                             </div>
                             @if($set->description)
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">{{ $set->description }}</p>
+                                <div class="prose prose-sm dark:prose-invert max-w-none text-gray-500 dark:text-gray-400 mb-3">{!! \Parsedown::instance()->text($set->description) !!}</div>
                             @endif
 
                             {{-- Perks --}}
