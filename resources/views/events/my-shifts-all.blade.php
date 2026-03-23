@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Event Summary - All My Shifts')
+    @section('title', 'All My Assignments')
     <x-slot name="header">
         My Volunteer Summary all slots
     </x-slot>

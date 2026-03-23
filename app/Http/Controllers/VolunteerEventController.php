@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\Shift;
 
 class VolunteerEventController extends Controller
 {
@@ -72,6 +73,52 @@ class VolunteerEventController extends Controller
             'userShifts' => $userShifts,
             'shiftConflicts' => $shiftConflicts,
         ]);
+    }
+
+    public function showShift(Event $event, Shift $shift)
+    {
+        if ($shift->event_id !== $event->id) {
+            abort(404);
+        }
+
+        $shift->load('users', 'tags');
+        $event->load('requiredTags', 'requiredDepartments');
+
+        $user = auth()->user();
+
+        $userTagIds     = $user->tags()->pluck('tags.id')->toArray();
+        $requiredTagIds = $event->requiredTags->pluck('id')->toArray();
+        $hasAllTags     = empty(array_diff($requiredTagIds, $userTagIds));
+
+        $userDeptIds           = $user->departments()->pluck('departments.id')->toArray();
+        $requiredDeptIds       = $event->requiredDepartments->pluck('id')->toArray();
+        $hasRequiredDepartment = $event->requiredDepartments->isEmpty()
+            || !empty(array_intersect($requiredDeptIds, $userDeptIds));
+
+        $canSignUp = $hasAllTags && $hasRequiredDepartment;
+
+        // Check for schedule conflicts against all of the user's other shifts
+        $allUserShifts     = $user->shifts()->with('event')->get();
+        $conflictingShifts = $allUserShifts->filter(function ($userShift) use ($shift) {
+            if ($userShift->id === $shift->id) {
+                return false;
+            }
+            return (
+                ($userShift->start_time <= $shift->start_time && $userShift->end_time > $shift->start_time) ||
+                ($userShift->start_time < $shift->end_time   && $userShift->end_time >= $shift->end_time)  ||
+                ($userShift->start_time >= $shift->start_time && $userShift->end_time <= $shift->end_time)
+            );
+        });
+
+        $signedUp    = $shift->users->contains($user->id);
+        $isFull      = $shift->users->count() >= $shift->max_volunteers;
+        $isPast      = $shift->start_time->isPast();
+        $hasConflict = $conflictingShifts->isNotEmpty();
+
+        return view('events.shift-show', compact(
+            'event', 'shift', 'signedUp', 'isFull', 'isPast',
+            'hasConflict', 'conflictingShifts', 'canSignUp'
+        ));
     }
 
     public function myShifts(Event $event)

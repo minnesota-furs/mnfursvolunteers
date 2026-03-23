@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Event Summary - My Shifts for ' . $event->name)
+    @section('title', 'My Assignments for ' . $event->name)
     <x-slot name="header">
         My Volunteer Summary for {{ $event->name }}
     </x-slot>
@@ -150,7 +150,7 @@
                         <div class="mt-2">
                             <a href="{{route('volunteer.events.show', $event)}}" 
                                class="text-blue-600 hover:text-blue-800 text-sm">
-                                Browse available shifts →
+                                Browse available assignments →
                             </a>
                         </div>
                     </div>

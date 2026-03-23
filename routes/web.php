@@ -335,6 +335,7 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::get('events', [VolunteerEventController::class, 'index'])->name('events.index');
         Route::get('events/my-shifts', [VolunteerEventController::class, 'myShiftsAll'])->name('events.my-shifts-all');
         Route::get('events/{event}', [VolunteerEventController::class, 'show'])->name('events.show');
+        Route::get('events/{event}/shifts/{shift}', [VolunteerEventController::class, 'showShift'])->name('shifts.show');
         Route::get('events/{event}/my-shifts', [VolunteerEventController::class, 'myShifts'])->name('events.my-shifts');
     });
 
