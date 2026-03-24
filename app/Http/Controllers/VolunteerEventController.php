@@ -10,22 +10,53 @@ use App\Models\Shift;
 
 class VolunteerEventController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $now = Carbon::now();
         $threeMonthsAgo = $now->copy()->subMonths(3);
 
-        $upcomingEvents = Event::visibleToAuthUsers()
+        $filter = in_array($request->input('filter'), ['all', 'eligible'])
+            ? $request->input('filter')
+            : 'eligible';
+
+        $user = auth()->user();
+        $userTagIds  = $user->tags()->pluck('tags.id')->toArray();
+        $userDeptIds = $user->departments()->pluck('departments.id')->toArray();
+
+        $checkEligible = function ($event) use ($userTagIds, $userDeptIds) {
+            $requiredTagIds = $event->requiredTags->pluck('id')->toArray();
+            $hasAllTags = empty(array_diff($requiredTagIds, $userTagIds));
+
+            $requiredDeptIds = $event->requiredDepartments->pluck('id')->toArray();
+            $hasRequiredDept = empty($requiredDeptIds)
+                || !empty(array_intersect($requiredDeptIds, $userDeptIds));
+
+            return $hasAllTags && $hasRequiredDept;
+        };
+
+        $allUpcoming = Event::visibleToAuthUsers()
             ->where('start_date', '>=', $now)
             ->orderBy('start_date')
-            ->get();
+            ->with('requiredTags', 'requiredDepartments')
+            ->get()
+            ->each(fn ($e) => $e->is_eligible = $checkEligible($e));
 
-        $recentPastEvents = Event::visibleToAuthUsers()
-            ->whereBetween('start_date', [$threeMonthsAgo, $now])  
+        $allPast = Event::visibleToAuthUsers()
+            ->whereBetween('start_date', [$threeMonthsAgo, $now])
             ->orderByDesc('start_date')
-            ->get();
+            ->with('requiredTags', 'requiredDepartments')
+            ->get()
+            ->each(fn ($e) => $e->is_eligible = $checkEligible($e));
 
-        return view('events.index', compact('upcomingEvents', 'recentPastEvents'));
+        if ($filter === 'eligible') {
+            $upcomingEvents   = $allUpcoming->filter(fn ($e) => $e->is_eligible)->values();
+            $recentPastEvents = $allPast->filter(fn ($e) => $e->is_eligible)->values();
+        } else {
+            $upcomingEvents   = $allUpcoming;
+            $recentPastEvents = $allPast;
+        }
+
+        return view('events.index', compact('upcomingEvents', 'recentPastEvents', 'filter'));
     }
 
     public function show(Event $event)

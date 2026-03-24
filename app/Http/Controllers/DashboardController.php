@@ -15,12 +15,27 @@ class DashboardController extends Controller
         $user = Auth::user();
         $now = Carbon::now();
 
-        // Get upcoming public volunteer events
-        $upcomingEvents = Event::where('visibility', 'public')
+        // Get upcoming volunteer events the user is eligible for
+        $userTagIds  = $user->tags()->pluck('tags.id')->toArray();
+        $userDeptIds = $user->departments()->pluck('departments.id')->toArray();
+
+        $upcomingEvents = Event::visibleToAuthUsers()
             ->where('end_date', '>=', $now)
             ->orderBy('start_date')
+            ->with('requiredTags', 'requiredDepartments')
+            ->get()
+            ->filter(function ($event) use ($userTagIds, $userDeptIds) {
+                $requiredTagIds = $event->requiredTags->pluck('id')->toArray();
+                $hasAllTags = empty(array_diff($requiredTagIds, $userTagIds));
+
+                $requiredDeptIds = $event->requiredDepartments->pluck('id')->toArray();
+                $hasRequiredDept = empty($requiredDeptIds)
+                    || !empty(array_intersect($requiredDeptIds, $userDeptIds));
+
+                return $hasAllTags && $hasRequiredDept;
+            })
             ->take(5)
-            ->get();
+            ->values();
 
         // Get the user's upcoming shifts
         $upcomingShifts = $user->shifts()

@@ -14,6 +14,26 @@
 
     <div class="space-y-8">
 
+        {{-- ── Filter Toggle ───────────────────────────────────────────── --}}
+        <div class="flex items-center gap-2">
+            <a href="{{ route('volunteer.events.index', ['filter' => 'eligible']) }}"
+               class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium border transition-colors
+                      {{ $filter === 'eligible'
+                          ? 'bg-brand-green text-white border-brand-green'
+                          : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-brand-green hover:text-brand-green' }}">
+                <x-heroicon-m-check-badge class="w-4 h-4"/>
+                Eligible for me
+            </a>
+            <a href="{{ route('volunteer.events.index', ['filter' => 'all']) }}"
+               class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium border transition-colors
+                      {{ $filter === 'all'
+                          ? 'bg-brand-green text-white border-brand-green'
+                          : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-brand-green hover:text-brand-green' }}">
+                <x-heroicon-m-list-bullet class="w-4 h-4"/>
+                Show all
+            </a>
+        </div>
+
         {{-- ── Upcoming Events ──────────────────────────────────────────── --}}
         <section>
             <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">
@@ -24,10 +44,14 @@
                 @php
                     $spots = $event->remaining_volunteer_spots;
                     $isSignupOpen = !$event->signup_open_date || $event->signup_open_date->isPast();
+                    $hasLimitations = $event->requiredTags->isNotEmpty() || $event->requiredDepartments->isNotEmpty();
                 @endphp
 
                 <a href="{{ route('volunteer.events.show', $event) }}"
-                   class="group block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:border-brand-green dark:hover:border-brand-green hover:shadow-md transition-all mb-4">
+                   class="group block bg-white dark:bg-gray-800 rounded-xl border shadow-sm hover:border-brand-green dark:hover:border-brand-green hover:shadow-md transition-all mb-4
+                          {{ ($filter === 'all' && !$event->is_eligible)
+                              ? 'border-gray-200 dark:border-gray-700 opacity-75'
+                              : 'border-gray-200 dark:border-gray-700' }}">
                     <div class="p-5">
                         <div class="flex items-start justify-between gap-4">
                             <div class="min-w-0 flex-1">
@@ -54,9 +78,45 @@
                                         </span>
                                     @endif
                                 </div>
+
+                                {{-- Limitations: required tags + departments --}}
+                                @if($hasLimitations)
+                                    <div class="mt-3 flex flex-wrap items-center gap-1.5">
+                                        @if($event->requiredDepartments->isNotEmpty())
+                                            <span class="text-xs text-gray-400 dark:text-gray-500 mr-0.5">Dept:</span>
+                                            @foreach($event->requiredDepartments as $dept)
+                                                <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">
+                                                    {{ $dept->name }}
+                                                </span>
+                                            @endforeach
+                                        @endif
+
+                                        @if($event->requiredTags->isNotEmpty())
+                                            <span class="text-xs text-gray-400 dark:text-gray-500 mr-0.5 {{ $event->requiredDepartments->isNotEmpty() ? 'ml-2' : '' }}">Required:</span>
+                                            @foreach($event->requiredTags as $tag)
+                                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                                      @if($tag->color)
+                                                          style="background-color: {{ $tag->color }}22; color: {{ $tag->color }}; border: 1px solid {{ $tag->color }}55;"
+                                                      @else
+                                                          style="background-color: #e5e7eb; color: #374151;"
+                                                      @endif>
+                                                    {{ $tag->name }}
+                                                </span>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
 
                             <div class="flex flex-col items-end gap-2 flex-shrink-0">
+                                {{-- Not eligible indicator (only in "show all" mode) --}}
+                                @if($filter === 'all' && !$event->is_eligible)
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-red-50 dark:bg-red-900/20 px-3 py-1 text-xs font-medium text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800">
+                                        <x-heroicon-m-no-symbol class="w-3 h-3"/>
+                                        Not eligible
+                                    </span>
+                                @endif
+
                                 {{-- Availability badge --}}
                                 @if(!$isSignupOpen)
                                     <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-700 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">
@@ -91,7 +151,13 @@
             @empty
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-10 text-center">
                     <x-heroicon-o-calendar-days class="w-10 h-10 mx-auto text-gray-300 dark:text-gray-600 mb-3"/>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">No upcoming events at this time.</p>
+                    @if($filter === 'eligible')
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">No upcoming events you're eligible for.</p>
+                        <a href="{{ route('volunteer.events.index', ['filter' => 'all']) }}"
+                           class="text-sm text-brand-green hover:underline">Show all events</a>
+                    @else
+                        <p class="text-sm text-gray-500 dark:text-gray-400">No upcoming events at this time.</p>
+                    @endif
                 </div>
             @endforelse
         </section>
@@ -105,16 +171,47 @@
 
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm divide-y divide-gray-100 dark:divide-gray-700">
                 @foreach($recentPastEvents as $event)
+                    @php $hasLimitations = $event->requiredTags->isNotEmpty() || $event->requiredDepartments->isNotEmpty(); @endphp
                     <a href="{{ route('volunteer.events.show', $event) }}"
-                       class="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors first:rounded-t-xl last:rounded-b-xl">
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
-                            {{ $event->name }}
-                        </span>
-                        <span class="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
-                            {{ $event->start_date->format('M j') }}
-                            @if($event->isMultiDay()) – {{ $event->end_date->format('M j') }}@endif,
-                            {{ $event->start_date->format('Y') }}
-                        </span>
+                       class="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors first:rounded-t-xl last:rounded-b-xl
+                              {{ ($filter === 'all' && !$event->is_eligible) ? 'opacity-75' : '' }}">
+                        <div class="min-w-0 flex-1">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate block">
+                                {{ $event->name }}
+                            </span>
+                            @if($hasLimitations)
+                                <div class="mt-1 flex flex-wrap gap-1">
+                                    @foreach($event->requiredDepartments as $dept)
+                                        <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-400">
+                                            {{ $dept->name }}
+                                        </span>
+                                    @endforeach
+                                    @foreach($event->requiredTags as $tag)
+                                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                                              @if($tag->color)
+                                                  style="background-color: {{ $tag->color }}22; color: {{ $tag->color }}; border: 1px solid {{ $tag->color }}55;"
+                                              @else
+                                                  style="background-color: #e5e7eb; color: #374151;"
+                                              @endif>
+                                            {{ $tag->name }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            @if($filter === 'all' && !$event->is_eligible)
+                                <span class="inline-flex items-center gap-1 rounded-full bg-red-50 dark:bg-red-900/20 px-2 py-0.5 text-xs font-medium text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800">
+                                    <x-heroicon-m-no-symbol class="w-3 h-3"/>
+                                    Not eligible
+                                </span>
+                            @endif
+                            <span class="text-xs text-gray-400 dark:text-gray-500">
+                                {{ $event->start_date->format('M j') }}
+                                @if($event->isMultiDay()) – {{ $event->end_date->format('M j') }}@endif,
+                                {{ $event->start_date->format('Y') }}
+                            </span>
+                        </div>
                     </a>
                 @endforeach
             </div>
