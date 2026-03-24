@@ -19,6 +19,7 @@ class Event extends Model
         'created_by',
         'visibility',
         'hide_past_shifts',
+        'require_eligibility',
         'signup_open_date'
     ];
 
@@ -26,6 +27,7 @@ class Event extends Model
         'start_date' => 'datetime',
         'end_date' => 'datetime',
         'hide_past_shifts' => 'boolean',
+        'require_eligibility' => 'boolean',
         'signup_open_date' => 'datetime',
     ];
     

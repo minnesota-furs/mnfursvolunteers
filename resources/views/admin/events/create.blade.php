@@ -166,6 +166,18 @@
                     </dd>
                 </div>
 
+                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                    <div>
+                        <dt class="text-sm font-medium leading-6 text-gray-900">Restrict Ineligible Users</dt>
+                        <p class="text-gray-500 text-sm mt-1">When enabled, users who do not meet the tag or department requirements above will be blocked from viewing this event&rsquo;s shifts entirely. By default, ineligible users can still browse shifts but cannot sign up.</p>
+                    </div>
+                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <x-checkbox-input class="block w-64 text-sm" name="require_eligibility" id="require_eligibility"
+                            checked="{{ old('require_eligibility', isset($event) ? $event->require_eligibility : false) }}" />
+                        <x-form-validation for="require_eligibility" />
+                    </dd>
+                </div>
+
                 @if(app_setting('feature_user_tags', false))
                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                         <div>

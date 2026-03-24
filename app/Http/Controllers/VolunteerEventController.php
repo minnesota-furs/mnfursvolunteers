@@ -64,6 +64,23 @@ class VolunteerEventController extends Controller
         // Load users for use in shift->users and required tags/departments
         $event->load('shifts.users', 'requiredTags', 'requiredDepartments');
 
+        // Block ineligible users from viewing shifts if the event requires eligibility
+        if ($event->require_eligibility) {
+            $user            = auth()->user();
+            $userTagIds      = $user->tags()->pluck('tags.id')->toArray();
+            $requiredTagIds  = $event->requiredTags->pluck('id')->toArray();
+            $hasAllTags      = empty(array_diff($requiredTagIds, $userTagIds));
+
+            $userDeptIds     = $user->departments()->pluck('departments.id')->toArray();
+            $requiredDeptIds = $event->requiredDepartments->pluck('id')->toArray();
+            $hasRequiredDept = empty($requiredDeptIds)
+                || !empty(array_intersect($requiredDeptIds, $userDeptIds));
+
+            if (!$hasAllTags || !$hasRequiredDept) {
+                abort(403, 'You are not eligible to view this event\'s shifts.');
+            }
+        }
+
         $shifts = $event->shifts
             ->when($event->hide_past_shifts, fn ($shifts) =>
                 $shifts->filter(fn ($shift) => $shift->start_time->isFuture())
@@ -145,6 +162,11 @@ class VolunteerEventController extends Controller
         $isFull      = $shift->users->count() >= $shift->max_volunteers;
         $isPast      = $shift->start_time->isPast();
         $hasConflict = $conflictingShifts->isNotEmpty();
+
+        // Block ineligible users from viewing the shift if the event requires eligibility
+        if ($event->require_eligibility && !$canSignUp) {
+            abort(403, 'You are not eligible to view this shift.');
+        }
 
         return view('events.shift-show', compact(
             'event', 'shift', 'signedUp', 'isFull', 'isPast',

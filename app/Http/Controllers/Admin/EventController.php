@@ -70,6 +70,7 @@ class EventController extends Controller
             'visibility' => 'required|in:public,unlisted,internal,draft',
             'hide_past_shifts' => 'nullable|boolean',
             'auto_credit_hours' => 'nullable|boolean',
+            'require_eligibility' => 'nullable|boolean',
             'required_tags' => 'nullable|array',
             'required_tags.*' => 'exists:tags,id',
             'required_departments' => 'nullable|array',
@@ -79,9 +80,11 @@ class EventController extends Controller
         // Normalize checkbox (unchecked checkboxes don't get sent)
         $validated['hide_past_shifts'] = $request->has('hide_past_shifts');
         $validated['auto_credit_hours'] = $request->has('auto_credit_hours');
+        $validated['require_eligibility'] = $request->has('require_eligibility');
 
         $event = Event::create([
             ...$request->only(['name', 'description', 'start_date', 'end_date', 'signup_open_date', 'location', 'visibility', 'hide_past_shifts', 'auto_credit_hours']),
+            'require_eligibility' => $validated['require_eligibility'],
             'created_by' => auth()->id(),
         ]);
 
@@ -135,6 +138,7 @@ class EventController extends Controller
             'visibility' => 'required|in:public,unlisted,internal,draft',
             'hide_past_shifts' => 'nullable|boolean',
             'auto_credit_hours' => 'nullable|boolean',
+            'require_eligibility' => 'nullable|boolean',
             'created_by' => 'nullable|exists:users,id',
             'required_tags' => 'nullable|array',
             'required_tags.*' => 'exists:tags,id',
@@ -148,6 +152,7 @@ class EventController extends Controller
         // Normalize checkbox (unchecked checkboxes don't get sent)
         $updateData['hide_past_shifts'] = $request->has('hide_past_shifts');
         $updateData['auto_credit_hours'] = $request->has('auto_credit_hours');
+        $updateData['require_eligibility'] = $request->has('require_eligibility');
         
         // Only admins with manage-events permission can change the creator
         if ($request->has('created_by') && auth()->user()->isAdmin()) {
