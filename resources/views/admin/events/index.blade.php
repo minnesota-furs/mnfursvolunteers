@@ -65,9 +65,6 @@
                                             class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-0">
                                             Name</th>
                                         <th scope="col"
-                                            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-0">
-                                            Creator</th>
-                                        <th scope="col"
                                             class="py-3.5 pl-4 pr-3 w-32 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-0">
                                             Visibility</th>
                                         <th scope="col"
@@ -93,22 +90,21 @@
                                                 @if($event->requiredTags->isNotEmpty())
                                                     <x-heroicon-s-tag class="w-4 h-4 inline text-red-500" title="Has tag requirements ({{ $event->requiredTags->count() }} tag{{ $event->requiredTags->count() > 1 ? 's' : '' }})"/>
                                                 @endif
-                                                <!-- If event past -->
+                                                @if($event->requiredDepartments->isNotEmpty())
+                                                    <x-heroicon-s-building-office class="w-4 h-4 inline text-amber-500" title="Department limited ({{ $event->requiredDepartments->pluck('name')->join(', ') }})"/>
+                                                @endif
                                                 @if ($event->hasPast())
                                                     <span>(Past Event)</span>
                                                 @endif
                                             </span>
-                                        </td>
-                                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            <div class="flex items-center">
-                                                <x-heroicon-o-user class="w-4 h-4 mr-1 text-gray-400"/>
-                                                <span class="text-gray-700 dark:text-gray-300">{{ $event->creator->name ?? 'Unknown' }}</span>
+                                            <div class="mt-1 flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
+                                                <x-heroicon-o-user class="w-3 h-3 flex-shrink-0"/>
+                                                <span>{{ $event->creator->name ?? 'Unknown' }}</span>
+                                                @if($event->editors->count() > 0)
+                                                    <span class="text-gray-300 dark:text-gray-600">·</span>
+                                                    <span>+{{ $event->editors->count() }} editor{{ $event->editors->count() > 1 ? 's' : '' }}</span>
+                                                @endif
                                             </div>
-                                            @if($event->editors()->count() > 0)
-                                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                    +{{ $event->editors()->count() }} editor{{ $event->editors()->count() > 1 ? 's' : '' }}
-                                                </div>
-                                            @endif
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                             @if($event->visibility === 'draft')
@@ -141,11 +137,31 @@
                                                 </span>
                                             @endif
                                         </td>
-                                        <td class="whitespace-nowrap py-5 pl-1 pr-3 text-sm sm:pl-0">
+                                        <td class="py-5 pl-1 pr-3 text-sm sm:pl-0 min-w-[120px]">
+                                            @php
+                                                $shiftCount  = $event->shifts->count();
+                                                $totalSlots  = $event->shifts->sum('max_volunteers');
+                                                $filledSlots = $event->shifts->sum(fn($s) => $s->users->count());
+                                                $pct         = $totalSlots > 0 ? round($filledSlots / $totalSlots * 100) : 0;
+                                                $barColor    = $pct >= 100 ? 'bg-red-500' : ($pct >= 75 ? 'bg-amber-400' : 'bg-brand-green');
+                                            @endphp
                                             @if(auth()->user()->isAdmin() || auth()->user()->can('update', $event))
-                                                <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-blue-500 font-semibold px-2">{{ $event->shifts()->count() }}</a>
+                                                <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-blue-500 font-semibold hover:underline">
+                                                    {{ $shiftCount }} {{ Str::plural('shift', $shiftCount) }}
+                                                </a>
                                             @else
-                                                <span class="text-gray-500 font-semibold px-2">{{ $event->shifts()->count() }}</span>
+                                                <span class="text-gray-500 font-semibold">{{ $shiftCount }} {{ Str::plural('shift', $shiftCount) }}</span>
+                                            @endif
+                                            @if($totalSlots > 0)
+                                                <div class="mt-1.5">
+                                                    <div class="flex justify-between text-xs text-gray-400 dark:text-gray-500 mb-0.5">
+                                                        <span>{{ $filledSlots }}/{{ $totalSlots }} slots</span>
+                                                        <span>{{ $pct }}%</span>
+                                                    </div>
+                                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                                                        <div class="{{ $barColor }} h-1.5 rounded-full transition-all" style="width: {{ $pct }}%"></div>
+                                                    </div>
+                                                </div>
                                             @endif
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm text-center sm:pl-0">
@@ -166,7 +182,7 @@
                                                         <x-tailwind-dropdown-item href="{{route('admin.events.edit', $event->id)}}" title="Edit Event Details"><x-heroicon-o-pencil class="w-4 inline"/> Edit Event</x-tailwind-dropdown-item>
                                                         <x-tailwind-dropdown-item href="{{route('admin.events.shifts.index', $event->id)}}" title="Create/Edit/View Event Shifts"><x-heroicon-o-clock class="w-4 inline"/> Manage Shifts</x-tailwind-dropdown-item>
                                                         <button type="button" 
-                                                            onclick="window.dispatchEvent(new CustomEvent('open-event-duplicate-modal', { detail: { id: {{ $event->id }}, name: '{{ addslashes($event->name) }}', shiftsCount: {{ $event->shifts()->count() }}, startDate: '{{ $event->start_date->toIso8601String() }}', endDate: '{{ $event->end_date->toIso8601String() }}' } }))"
+                                                            onclick="window.dispatchEvent(new CustomEvent('open-event-duplicate-modal', { detail: { id: {{ $event->id }}, name: '{{ addslashes($event->name) }}', shiftsCount: {{ $event->shifts->count() }}, startDate: '{{ $event->start_date->toIso8601String() }}', endDate: '{{ $event->end_date->toIso8601String() }}' } }))"
                                                             class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
                                                             title="Create a duplicate event with all shifts">
                                                             <x-heroicon-o-document-duplicate class="w-4 inline"/> Duplicate Event

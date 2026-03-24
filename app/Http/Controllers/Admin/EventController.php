@@ -19,7 +19,7 @@ class EventController extends Controller
         $showPast = $request->boolean('show_past');
         $showMine = $request->boolean('show_mine');
         
-        $query = Event::with(['creator', 'editors'])->orderBy('start_date', 'asc');
+        $query = Event::with(['creator', 'editors', 'requiredTags', 'requiredDepartments', 'shifts.users'])->orderBy('start_date', 'asc');
         
         if (!$showPast) {
             $query->upcoming();
