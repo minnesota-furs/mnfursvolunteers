@@ -59,6 +59,8 @@
 
             <x-profile-completion-notice />
 
+            <x-no-show-warning :recentNoShows="$recentNoShows" />
+
             <x-elections-dashboard-notice :activeElections="$activeElections" />
 
             <x-applications-dashboard-notice 

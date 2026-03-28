@@ -86,8 +86,31 @@
                     </div>
                 </div> --}}
                 <div class="flow-root">
-                    <div class="-mx-4 -my-2 sm:-mx-6 lg:-mx-8">
-                        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8"
+                            x-data="{
+                                showVolunteers: JSON.parse(localStorage.getItem('shifts_showVolunteers') ?? 'false'),
+                                toggle() {
+                                    this.showVolunteers = !this.showVolunteers;
+                                    localStorage.setItem('shifts_showVolunteers', this.showVolunteers);
+                                }
+                            }">
+
+                            {{-- View Options --}}
+                            <div class="mb-3 flex items-center gap-2">
+                                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mr-1">View Options:</span>
+                                <button type="button"
+                                    @click="toggle()"
+                                    :class="showVolunteers
+                                        ? 'bg-brand-green text-white border-brand-green'
+                                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600'"
+                                    class="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-brand-green focus:ring-offset-1">
+                                    <x-heroicon-o-users class="w-3.5 h-3.5"/>
+                                    Show Volunteer Names
+                                    <span x-show="showVolunteers" class="ml-1 text-xs opacity-80">&check;</span>
+                                </button>
+                            </div>
+
                             @if($event->requiredTags->isNotEmpty())
                                 <div class="mb-4 text-sm text-gray-500 dark:text-gray-400">
                                     <x-heroicon-s-tag class="w-4 h-4 inline text-gray-400" />
@@ -128,20 +151,20 @@
                                             class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-0">
                                             Name</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
+                                            class="hidden sm:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
                                             Start Time</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
+                                            class="hidden sm:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
                                             End Time</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
+                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 w-24">
                                             Volunteers
                                         </th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                            class="hidden sm:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
                                             Tags
                                         </th>
-                                        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0 w-16">
+                                        <th scope="col" class="relative py-3.5 pl-3 pr-2 sm:pr-0 w-16">
                                             <span class="sr-only">Edit</span>
                                         </th>
                                     </tr>
@@ -187,31 +210,68 @@
                                                         value="{{ $shift->id }}"
                                                         onchange="updateBulkBar()">
                                                 </td>
-                                                <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                                    <a class="text-blue-700 dark:text-blue-200" href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}">
+                                                <td class="py-4 pl-4 pr-3 text-sm sm:pl-0">
+                                                    <a class="font-medium text-blue-700 dark:text-blue-200 hover:underline" href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}">
                                                         {{$shift->name}}
                                                     </a>
+                                                    {{-- Mobile: show time + tags inline under name --}}
+                                                    <div class="sm:hidden mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+                                                        <span class="whitespace-nowrap">
+                                                            <x-heroicon-m-clock class="w-3 h-3 inline -mt-0.5"/>
+                                                            {{ $shift->start_time->format('g:i A') }} – {{ $shift->end_time->format('g:i A') }}
+                                                            @if($shift->double_hours)
+                                                                <x-heroicon-m-star title="Double Hours" class="w-3 mb-0.5 inline text-yellow-500"/>
+                                                            @endif
+                                                        </span>
+                                                        @foreach ($shift->tags->sortBy('name') as $tag)
+                                                            <span class="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium"
+                                                                style="{{ $tag->color ? 'background-color:' . $tag->color . '22; color:' . $tag->color : 'background-color:#e5e7eb; color:#374151' }}">
+                                                                @if($tag->color)
+                                                                    <span class="inline-block w-1.5 h-1.5 rounded-full mr-1" style="background-color:{{ $tag->color }}"></span>
+                                                                @endif
+                                                                {{ $tag->name }}
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
                                                 </td>
-                                                <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                <td class="hidden sm:table-cell whitespace-nowrap py-4 px-3 text-sm">
                                                     {{ $shift->start_time->format('g:i A') }}
                                                 </td>
-                                                <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                <td class="hidden sm:table-cell whitespace-nowrap py-4 px-3 text-sm">
                                                     {{ $shift->end_time->format('g:i A') }}
                                                     @if($shift->double_hours)
                                                         <x-heroicon-m-star title="Double Hours" class="w-3 mb-1 inline"/>
                                                     @endif
                                                 </td>
-                                                <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm text-center sm:pl-0 {{ $textClass }}">
-                                                    @if($signupCount >= $shift->max_volunteers)
-                                                        <x-heroicon-s-battery-100 title="Fully Staffed" class="w-4 mb-1 inline"/>
-                                                    @elseif($signupCount > 0)
-                                                        <x-heroicon-s-battery-50 title="Partially Staffed" class="w-4 mb-1 inline"/>
-                                                    @else
-                                                        <x-heroicon-s-battery-0 title="No Staff" class="w-4 mb-1 inline"/>
-                                                    @endif
-                                                    {{ $shift->users->count() }} of {{ $shift->max_volunteers }}
+                                                <td class="py-4 pl-3 pr-2 text-sm text-center {{ $textClass }}">
+                                                    <div class="whitespace-nowrap">
+                                                        @if($signupCount >= $shift->max_volunteers)
+                                                            <x-heroicon-s-battery-100 title="Fully Staffed" class="w-4 mb-1 inline"/>
+                                                        @elseif($signupCount > 0)
+                                                            <x-heroicon-s-battery-50 title="Partially Staffed" class="w-4 mb-1 inline"/>
+                                                        @else
+                                                            <x-heroicon-s-battery-0 title="No Staff" class="w-4 mb-1 inline"/>
+                                                        @endif
+                                                        {{ $shift->users->count() }} of {{ $shift->max_volunteers }}
+                                                    </div>
+                                                    <div x-show="showVolunteers" x-cloak
+                                                        class="mt-1.5 text-left space-y-0.5">
+                                                        @forelse($shift->users->sortBy('name') as $vol)
+                                                            <div class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-normal
+                                                                {{ $vol->pivot->no_show ? 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 line-through' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200' }}">
+                                                                @if($vol->pivot->no_show)
+                                                                    <x-heroicon-m-x-circle class="w-3 h-3 flex-shrink-0"/>
+                                                                @else
+                                                                    <x-heroicon-m-user class="w-3 h-3 flex-shrink-0"/>
+                                                                @endif
+                                                                {{ $vol->name }}
+                                                            </div>
+                                                        @empty
+                                                            <span class="text-xs text-gray-400 italic">No sign-ups</span>
+                                                        @endforelse
+                                                    </div>
                                                 </td>
-                                                <td class="py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                <td class="hidden sm:table-cell py-4 px-3 text-sm">
                                                     @forelse ($shift->tags->sortBy('name') as $tag)
                                                         <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium mb-1 mr-1"
                                                             style="{{ $tag->color ? 'background-color:' . $tag->color . '22; color:' . $tag->color : 'background-color:#e5e7eb; color:#374151' }}">
@@ -224,32 +284,77 @@
                                                         <span class="text-gray-400 text-xs">—</span>
                                                     @endforelse
                                                 </td>
-                                                <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                                    <a href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}" class="text-blue-600 dark:text-blue-200 px-2"><x-heroicon-m-pencil class="w-3 inline"/> Edit</a>
+                                                <td class="py-4 pl-2 pr-2 text-sm align-top">
+                                                    <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0">
+                                                        {{-- Edit link: icon-only on mobile, icon+text on sm+ --}}
+                                                        <a href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}"
+                                                            class="inline-flex items-center gap-1 rounded px-2 py-1 text-blue-600 dark:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/30">
+                                                            <x-heroicon-m-pencil class="w-3.5 h-3.5 flex-shrink-0"/>
+                                                            <span class="hidden sm:inline text-xs">Edit</span>
+                                                        </a>
 
-                                                    <x-tailwind-dropdown buttonClass="dropdown-link text-blue-600" label="Manage" id="{{ $shift->id + 1 }}">
-                                                        <div class="py-1" role="none">
-                                                            <form action="{{ route('admin.events.shifts.duplicate', [$event, $shift]) }}" method="POST" class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700">
-                                                                @csrf
-                                                                <button type="submit" class="" title="Quick duplicate (adds 1 hour to time)">
-                                                                    <x-heroicon-o-document-duplicate class="w-4 inline"/> Quick Duplicate
-                                                                </button>
-                                                            </form>
-                                                            <button type="button" 
-                                                                onclick="window.dispatchEvent(new CustomEvent('open-duplicate-modal', { detail: { id: {{ $shift->id }}, name: '{{ addslashes($shift->name) }}', startTime: '{{ $shift->start_time->format('Y-m-d H:i:s') }}' } }))"
-                                                                class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
-                                                                title="Advanced duplicate with multiple options">
-                                                                <x-heroicon-o-squares-plus class="w-4 inline"/> Advanced Duplicate
-                                                            </button>
+                                                        {{-- Mobile: single ••• dropdown containing all actions --}}
+                                                        <div class="sm:hidden">
+                                                            <x-tailwind-dropdown buttonClass="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-blue-600 dark:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/30" label="•••" id="{{ $shift->id + 5000 }}">
+                                                                <div class="py-1" role="none">
+                                                                    <a href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}"
+                                                                        class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                                        <x-heroicon-m-pencil class="w-4 h-4 mr-2"/> Edit Shift
+                                                                    </a>
+                                                                </div>
+                                                                <div class="py-1" role="none">
+                                                                    <form action="{{ route('admin.events.shifts.duplicate', [$event, $shift]) }}" method="POST" class="block px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200">
+                                                                        @csrf
+                                                                        <button type="submit" title="Quick duplicate (adds 1 hour to time)">
+                                                                            <x-heroicon-o-document-duplicate class="w-4 inline"/> Quick Duplicate
+                                                                        </button>
+                                                                    </form>
+                                                                    <button type="button"
+                                                                        onclick="window.dispatchEvent(new CustomEvent('open-duplicate-modal', { detail: { id: {{ $shift->id }}, name: '{{ addslashes($shift->name) }}', startTime: '{{ $shift->start_time->format('Y-m-d H:i:s') }}' } }))"
+                                                                        class="block px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 w-full text-left"
+                                                                        title="Advanced duplicate with multiple options">
+                                                                        <x-heroicon-o-squares-plus class="w-4 inline"/> Advanced Duplicate
+                                                                    </button>
+                                                                </div>
+                                                                <div class="py-1" role="none">
+                                                                    <form action="{{ route('admin.events.shifts.destroy', [$event, $shift]) }}" method="POST" class="block px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-red-600">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                        <button type="submit" onclick="return confirm('Are you sure you want to delete slot {{$shift->name}} on {{$shift->start_time->format('l \@ g:i A')}}?\n\nThis cannot be undone!')">
+                                                                            <x-heroicon-o-trash class="w-4 inline"/> Delete
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            </x-tailwind-dropdown>
                                                         </div>
-                                                        <div class="py-1" role="none">
-                                                            <form action="{{ route('admin.events.shifts.destroy', [$event, $shift]) }}" method="POST" class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="" onclick="return confirm('Are you sure you want to delete slot {{$shift->name}} on {{$shift->start_time->format('l \@ g:i A')}}?\n\nThis cannot be undone!')"><x-heroicon-o-trash class="w-4 inline"/> Delete</button>
-                                                            </form>
+
+                                                        {{-- Desktop: Manage dropdown --}}
+                                                        <div class="hidden sm:block">
+                                                            <x-tailwind-dropdown buttonClass="dropdown-link text-blue-600 dark:text-blue-200" label="Manage" id="{{ $shift->id + 1 }}">
+                                                                <div class="py-1" role="none">
+                                                                    <form action="{{ route('admin.events.shifts.duplicate', [$event, $shift]) }}" method="POST" class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700">
+                                                                        @csrf
+                                                                        <button type="submit" class="" title="Quick duplicate (adds 1 hour to time)">
+                                                                            <x-heroicon-o-document-duplicate class="w-4 inline"/> Quick Duplicate
+                                                                        </button>
+                                                                    </form>
+                                                                    <button type="button"
+                                                                        onclick="window.dispatchEvent(new CustomEvent('open-duplicate-modal', { detail: { id: {{ $shift->id }}, name: '{{ addslashes($shift->name) }}', startTime: '{{ $shift->start_time->format('Y-m-d H:i:s') }}' } }))"
+                                                                        class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
+                                                                        title="Advanced duplicate with multiple options">
+                                                                        <x-heroicon-o-squares-plus class="w-4 inline"/> Advanced Duplicate
+                                                                    </button>
+                                                                </div>
+                                                                <div class="py-1" role="none">
+                                                                    <form action="{{ route('admin.events.shifts.destroy', [$event, $shift]) }}" method="POST" class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                        <button type="submit" class="" onclick="return confirm('Are you sure you want to delete slot {{$shift->name}} on {{$shift->start_time->format('l \@ g:i A')}}?\n\nThis cannot be undone!')"><x-heroicon-o-trash class="w-4 inline"/> Delete</button>
+                                                                    </form>
+                                                                </div>
+                                                            </x-tailwind-dropdown>
                                                         </div>
-                                                    </x-tailwind-dropdown>
+                                                    </div>
                                                 </td>
                                             </tr>
                                             @endforeach

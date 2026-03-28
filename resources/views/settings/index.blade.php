@@ -34,40 +34,58 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8" x-data="settingsForm()">
         <!-- Tabs Navigation -->
         <div class="border-b border-gray-200 dark:border-gray-700">
-            <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+            {{-- Mobile: select dropdown --}}
+            <div class="sm:hidden px-4 pt-3 pb-1">
+                <label for="settings-tab-select" class="sr-only">Select a tab</label>
+                <select id="settings-tab-select"
+                    x-model="activeTab"
+                    @change="if (activeTab === 'volunteers') initMDE()"
+                    class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-sm focus:border-brand-green focus:outline-none focus:ring-brand-green">
+                    <option value="branding">Branding</option>
+                    <option value="features">Features</option>
+                    <option value="contact">Contact</option>
+                    <option value="security">Security</option>
+                    <option value="import-export">Import/Export</option>
+                    <option value="volunteers">Volunteers</option>
+                    <option value="information">Information</option>
+                </select>
+            </div>
+
+            {{-- sm+: scrollable tab bar --}}
+            <nav class="-mb-px hidden sm:flex overflow-x-auto px-6" aria-label="Tabs">
                 <button @click="activeTab = 'branding'" type="button"
                     :class="activeTab === 'branding' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
-                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    class="whitespace-nowrap border-b-2 py-4 px-1 mr-8 text-sm font-medium flex-shrink-0">
                     Branding
                 </button>
                 <button @click="activeTab = 'features'" type="button"
                     :class="activeTab === 'features' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
-                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    class="whitespace-nowrap border-b-2 py-4 px-1 mr-8 text-sm font-medium flex-shrink-0">
                     Features
                 </button>
                 <button @click="activeTab = 'contact'" type="button"
                     :class="activeTab === 'contact' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
-                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    class="whitespace-nowrap border-b-2 py-4 px-1 mr-8 text-sm font-medium flex-shrink-0">
                     Contact
                 </button>
                 <button @click="activeTab = 'security'" type="button"
                     :class="activeTab === 'security' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
-                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    class="whitespace-nowrap border-b-2 py-4 px-1 mr-8 text-sm font-medium flex-shrink-0">
                     Security
                 </button>
                 <button @click="activeTab = 'import-export'" type="button"
                     :class="activeTab === 'import-export' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
-                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    class="whitespace-nowrap border-b-2 py-4 px-1 mr-8 text-sm font-medium flex-shrink-0">
                     Import/Export
                 </button>
                 <button @click="activeTab = 'volunteers'; initMDE()" type="button"
                     :class="activeTab === 'volunteers' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
-                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    class="whitespace-nowrap border-b-2 py-4 px-1 mr-8 text-sm font-medium flex-shrink-0">
                     Volunteers
                 </button>
                 <button @click="activeTab = 'information'" type="button"
                     :class="activeTab === 'information' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
-                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium flex-shrink-0">
                     Information
                 </button>
             </nav>

@@ -86,7 +86,15 @@ class DashboardController extends Controller
                 ->count();
         }
 
-        return view('dashboard', compact('upcomingEvents', 'upcomingShifts', 'activeElections', 'claimedApplications', 'unclaimedPendingCount'));
+        // Get any shifts where this user was marked as a no-show in the past 14 days
+        $recentNoShows = $user->shifts()
+            ->with('event')
+            ->wherePivot('no_show', true)
+            ->wherePivot('no_show_marked_at', '>=', $now->copy()->subDays(14))
+            ->orderByPivot('no_show_marked_at', 'desc')
+            ->get();
+
+        return view('dashboard', compact('upcomingEvents', 'upcomingShifts', 'activeElections', 'claimedApplications', 'unclaimedPendingCount', 'recentNoShows'));
     }
 
     public function dismissProfileNotice()
