@@ -69,19 +69,38 @@
             />
 
             <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
-                    <dt class="text-xl font-bold mb-3 text-gray-500">Upcoming Volunteer Events
+                <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow-lg sm:p-6">
+                    <dt class="text-xl font-bold mb-1 text-gray-500 dark:text-gray-400">Upcoming Volunteer Events
                         ({{ $upcomingEvents->count() }})</dt>
-                    <dd class="mt-1 tracking-tight text-gray-900">
-                        <ul class="mb-6 list-disc">
+                    <p class="text-sm text-gray-400 dark:text-gray-500 mb-3">These events and departments are looking for volunteers!</p>
+                    <dd class="mt-1">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                             @forelse($upcomingEvents as $event)
-                                <li class="ml-6"><a href="{{ route('volunteer.events.show', $event) }}"
-                                        class="text-blue-600 hover:underline mt-2 inline-block">{{ $event->name }}</a>
-                                    — {{ $event->start_date->format('M j, Y') }}</li>
+                                <a href="{{ route('volunteer.events.show', $event) }}"
+                                   class="group flex items-center gap-2.5 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 px-2.5 py-1.5 hover:border-brand-green dark:hover:border-brand-green hover:bg-green-50 dark:hover:bg-brand-green/10 transition-all">
+                                    <div class="flex-shrink-0 text-center leading-tight rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 px-1.5 py-0.5 shadow-sm">
+                                        <div class="text-[10px] font-semibold uppercase text-brand-green">{{ $event->start_date->format('M') }}</div>
+                                        <div class="text-base font-bold text-gray-900 dark:text-gray-100 -mt-0.5">{{ $event->start_date->format('j') }}</div>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-brand-green transition-colors truncate">{{ $event->name }}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                            @if($event->isMultiDay())
+                                                {{ $event->start_date->format('M j') }} – {{ $event->end_date->format('M j, Y') }}
+                                            @else
+                                                {{ $event->start_date->format('l, g:i A') }}
+                                            @endif
+                                            @if($event->location)
+                                                · {{ $event->location }}
+                                            @endif
+                                        </p>
+                                    </div>
+                                    <x-heroicon-m-chevron-right class="w-4 h-4 flex-shrink-0 text-gray-300 dark:text-gray-600 group-hover:text-brand-green transition-colors"/>
+                                </a>
                             @empty
-                                <p class="text-gray-300">No upcoming events in need of volunteers.</p>
+                                <p class="text-gray-300 dark:text-gray-500">No upcoming events in need of volunteers.</p>
                             @endforelse
-                        </ul>
+                        </div>
                     </dd>
                 </div>
                 <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
