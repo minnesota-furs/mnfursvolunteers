@@ -191,7 +191,7 @@
                                             <div>{{ $event->end_date->format('M j, Y') ?? '-' }}</div>
                                             <div>{{ $event->end_date->format('g:i A') }}</div>
                                         </td>
-                                        <td class="py-4 pl-2 pr-2 text-sm align-top">
+                                        <td class="py-4 pl-2 pr-2 text-sm align-middle">
                                             @if(auth()->user()->isAdmin() || auth()->user()->can('update', $event))
                                                 {{-- Mobile: single ••• dropdown --}}
                                                 <div class="sm:hidden">
@@ -224,8 +224,8 @@
 
                                                 {{-- Desktop: Edit + Manage Shifts + Manage dropdown --}}
                                                 <div class="hidden sm:flex sm:items-center sm:gap-0">
-                                                    <a href="{{ route('admin.events.edit', $event) }}" class="text-blue-600 dark:text-blue-200 px-2 hover:underline"><x-heroicon-s-pencil class="w-3 inline"/> Edit</a>
-                                                    <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-blue-600 dark:text-blue-200 px-2 hover:underline"><x-heroicon-m-clock class="w-3 inline"/> Manage Shifts</a>
+                                                    <a href="{{ route('admin.events.edit', $event) }}" class="text-blue-600 dark:text-blue-200 px-2 hover:underline whitespace-nowrap"><x-heroicon-s-pencil class="w-3 h-3 inline-block align-middle"/> Edit</a>
+                                                    <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-blue-600 dark:text-blue-200 px-2 hover:underline whitespace-nowrap"><x-heroicon-m-clock class="w-3 h-3 inline-block align-middle"/> Manage Shifts</a>
 
                                                 <x-tailwind-dropdown buttonClass="dropdown-link text-blue-600 dark:text-blue-200" label="Manage" id="{{ $event->id }}">
                                                     <div class="py-1" role="none">

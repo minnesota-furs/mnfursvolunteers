@@ -57,7 +57,7 @@
                                           <div class="flex w-0 flex-1 items-center">
                                             <x-heroicon-o-user class="w-4 inline"/>
                                             <div class="ml-4 flex min-w-0 flex-1 gap-2">
-                                              <span class="truncate font-medium">{{$head->name}}</span>
+                                              <span class="truncate font-medium">{{$head->displayName()}}</span>
                                             </div>
                                           </div>
                                           <div class="ml-4 flex-shrink-0">
@@ -81,7 +81,7 @@
                                           <div class="flex w-0 flex-1 items-center">
                                             <x-heroicon-o-user class="w-4 inline"/>
                                             <div class="ml-4 flex min-w-0 flex-1 gap-2">
-                                              <span class="truncate font-medium">{{$user->name}}</span>
+                                              <span class="truncate font-medium">{{$user->displayName()}}</span>
                                             </div>
                                           </div>
                                           <div class="ml-4 flex-shrink-0">

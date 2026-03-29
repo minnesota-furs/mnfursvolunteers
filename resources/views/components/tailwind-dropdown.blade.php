@@ -1,7 +1,7 @@
 @props(['id', 'buttonClass' => 'inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-brand-green shadow-sm hover:bg-gray-50', 'label' => 'Options'])
 <div class="relative inline-block text-left">
     <div>
-        <button id="menuButton" onclick="openMenu({{ $id }})" type="button"
+        <button id="menuButton{{ $id }}" onclick="openMenu({{ $id }})" type="button"
             {!! $attributes->merge(['class' => $buttonClass]) !!}
             aria-expanded="true" aria-haspopup="true">
             {{$label}}
@@ -9,57 +9,74 @@
         </button>
     </div>
 
+    {{-- Panel starts hidden inside the component; JS moves it to <body> on first open --}}
     <div id="optDropdown{{ $id }}"
-        class="hidden absolute right-0 z-50 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 scale-95 transition-transform" 
-        role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+        class="hidden absolute z-50 w-56 divide-y divide-gray-100 dark:divide-gray-600 rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 scale-95 origin-top-right"
+        role="menu" aria-orientation="vertical" aria-labelledby="menuButton{{ $id }}" tabindex="-1">
         {{ $slot }}
     </div>
 </div>
 
 <script>
-    // Store reference to open dropdown
-    var currentOpenDropdown = null;
+    if (typeof window.__currentOpenDropdown === 'undefined') {
+        window.__currentOpenDropdown = null;
+    }
 
     function openMenu(id) {
         const dropdownMenu = document.getElementById('optDropdown' + id);
+        const button = document.getElementById('menuButton' + id);
 
-        // Close any currently open dropdowns
-        if (currentOpenDropdown && currentOpenDropdown !== dropdownMenu) {
-            closeDropdown(currentOpenDropdown);
+        // Close any currently open dropdown
+        if (window.__currentOpenDropdown && window.__currentOpenDropdown !== dropdownMenu) {
+            closeDropdown(window.__currentOpenDropdown);
         }
 
         if (dropdownMenu.classList.contains('hidden')) {
+            // Teleport to <body> so no overflow/transform ancestor can clip it
+            if (dropdownMenu.parentElement !== document.body) {
+                document.body.appendChild(dropdownMenu);
+            }
+
+            // Position absolutely relative to document (scroll-aware)
+            const rect = button.getBoundingClientRect();
+            const scrollY = window.scrollY || window.pageYOffset;
+            const scrollX = window.scrollX || window.pageXOffset;
+
+            dropdownMenu.style.position = 'absolute';
+            dropdownMenu.style.top  = (rect.bottom + scrollY + 4) + 'px';
+            // Align right edge of menu with right edge of button
+            dropdownMenu.style.left = 'auto';
+            dropdownMenu.style.right = (document.documentElement.clientWidth - rect.right - scrollX) + 'px';
+
             dropdownMenu.classList.remove('hidden');
-            dropdownMenu.offsetHeight; // Force reflow
+            dropdownMenu.offsetHeight; // force reflow before animation
             dropdownMenu.classList.add('transition', 'ease-out', 'duration-100');
             dropdownMenu.classList.remove('opacity-0', 'scale-95');
             dropdownMenu.classList.add('opacity-100', 'scale-100');
-            currentOpenDropdown = dropdownMenu;
+            window.__currentOpenDropdown = dropdownMenu;
 
-            // Attach click listener if not already set
             if (!window.__dropdownOutsideClickListener) {
                 window.__dropdownOutsideClickListener = (event) => {
-                    if (currentOpenDropdown && !currentOpenDropdown.contains(event.target) &&
-                        !event.target.closest(`#menuButton`)) {
-                        closeDropdown(currentOpenDropdown);
-                        currentOpenDropdown = null;
+                    if (window.__currentOpenDropdown &&
+                        !window.__currentOpenDropdown.contains(event.target) &&
+                        !event.target.closest('[id^="menuButton"]')) {
+                        closeDropdown(window.__currentOpenDropdown);
+                        window.__currentOpenDropdown = null;
                     }
                 };
                 document.addEventListener('click', window.__dropdownOutsideClickListener);
             }
-
         } else {
             closeDropdown(dropdownMenu);
-            currentOpenDropdown = null;
+            window.__currentOpenDropdown = null;
         }
     }
 
     function closeDropdown(dropdown) {
         dropdown.classList.remove('opacity-100', 'scale-100');
         dropdown.classList.add('transition', 'ease-in', 'duration-75', 'opacity-0', 'scale-95');
-        setTimeout(() => {
-            dropdown.classList.add('hidden');
-        }, 75);
+        setTimeout(() => dropdown.classList.add('hidden'), 75);
     }
 </script>
+
 

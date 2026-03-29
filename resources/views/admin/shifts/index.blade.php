@@ -57,7 +57,7 @@
                 class="rounded-l-md bg-white px-3 py-2 text-sm font-semibold text-brand-green hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green whitespace-nowrap">
                 <x-heroicon-o-queue-list class="w-4 inline -mt-0.5"/> Create Shift Series
             </a>
-            <button type="button" id="menuButton" onclick="openMenu(9901); event.stopPropagation();"
+            <button type="button" id="menuButton9901" onclick="openMenu(9901); event.stopPropagation();"
                 class="rounded-r-md border-l border-gray-200 bg-white px-2 py-2 text-brand-green hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
                 aria-haspopup="true" aria-expanded="false">
                 <span class="sr-only">More shift options</span>
@@ -161,7 +161,7 @@
                                             Volunteers
                                         </th>
                                         <th scope="col"
-                                            class="hidden sm:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                            class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
                                             Tags
                                         </th>
                                         <th scope="col" class="relative py-3.5 pl-3 pr-2 sm:pr-0 w-16">
@@ -256,7 +256,7 @@
                                                     </div>
                                                     <div x-show="showVolunteers" x-cloak
                                                         class="mt-1.5 text-left space-y-0.5">
-                                                        @forelse($shift->users->sortBy('name') as $vol)
+                                                        @forelse($shift->users->sortBy(fn($v) => $v->displayName()) as $vol)
                                                             <div class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-normal
                                                                 {{ $vol->pivot->no_show ? 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 line-through' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200' }}">
                                                                 @if($vol->pivot->no_show)
@@ -264,14 +264,14 @@
                                                                 @else
                                                                     <x-heroicon-m-user class="w-3 h-3 flex-shrink-0"/>
                                                                 @endif
-                                                                {{ $vol->name }}
+                                                                {{ $vol->displayName() }}
                                                             </div>
                                                         @empty
                                                             <span class="text-xs text-gray-400 italic">No sign-ups</span>
                                                         @endforelse
                                                     </div>
                                                 </td>
-                                                <td class="hidden sm:table-cell py-4 px-3 text-sm">
+                                                <td class="hidden py-4 px-3 text-sm">
                                                     @forelse ($shift->tags->sortBy('name') as $tag)
                                                         <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium mb-1 mr-1"
                                                             style="{{ $tag->color ? 'background-color:' . $tag->color . '22; color:' . $tag->color : 'background-color:#e5e7eb; color:#374151' }}">

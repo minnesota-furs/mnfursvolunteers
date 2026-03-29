@@ -70,6 +70,24 @@ class User extends Authenticatable
         'calendar_token' => 'string',
     ];
 
+    /**
+     * Get the user's display name based on the application setting.
+     *
+     * Returns the alias (name) or legal name (first + last) depending
+     * on the 'user_display_name' application setting.
+     */
+    public function displayName(): string
+    {
+        $format = \App\Models\ApplicationSetting::get('user_display_name', 'alias');
+
+        if ($format === 'legal_name') {
+            $full = trim($this->first_name . ' ' . $this->last_name);
+            return $full ?: $this->name;
+        }
+
+        return $this->name;
+    }
+
     public function volunteerHours()
     {
         return $this->hasMany(VolunteerHours::class);

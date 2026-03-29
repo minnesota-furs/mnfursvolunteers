@@ -69,7 +69,7 @@
                 </span>
             </div>
             @if($event->description)
-                <p class="text-gray-700 dark:text-gray-300 leading-relaxed">{{ $event->description }}</p>
+                <div class="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed">{!! \Parsedown::instance()->text($event->description) !!}</div>
             @endif
         </div>
 
@@ -122,6 +122,14 @@
             </div>
         @endif
 
+        {{-- ── No-show warning for this event ──────────────────────────── --}}
+        @php
+            $eventNoShows = $userShifts
+                ->filter(fn($s) => $s->pivot->no_show)
+                ->each(fn($s) => $s->setRelation('event', $event));
+        @endphp
+        <x-no-show-warning :recentNoShows="$eventNoShows" :timeframe="null" />
+
         {{-- ── Your signed-up shifts ────────────────────────────────────── --}}
         @if($userShifts->isNotEmpty())
             <div class="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-5">
@@ -139,7 +147,11 @@
                 </p>
                 <div class="space-y-2">
                     @foreach($userShifts as $s)
-                        <div class="flex items-center justify-between gap-4 rounded-lg bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 px-4 py-3 shadow-sm">
+                        <div class="flex items-center justify-between gap-4 rounded-lg px-4 py-3 shadow-sm border
+                            {{ $s->pivot->no_show
+                                ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700'
+                                : 'bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700' }}"
+                        >
                             <div class="min-w-0">
                                 <p class="font-medium text-gray-900 dark:text-gray-100 truncate">{{ $s->name }}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -151,7 +163,12 @@
                                 </p>
                             </div>
                             <div class="flex-shrink-0">
-                                @if($s->start_time->isPast())
+                                @if($s->pivot->no_show)
+                                    <span class="inline-flex items-center gap-1 rounded-md bg-red-100 dark:bg-red-900/40 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300">
+                                        <x-heroicon-m-exclamation-triangle class="w-3.5 h-3.5"/>
+                                        No show
+                                    </span>
+                                @elseif($s->start_time->isPast())
                                     <span class="inline-flex items-center gap-1 rounded-md bg-gray-100 dark:bg-gray-700 px-2.5 py-1 text-xs text-gray-500 dark:text-gray-400">
                                         <x-heroicon-m-clock class="w-3.5 h-3.5"/>
                                         Past

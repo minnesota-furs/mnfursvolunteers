@@ -1,4 +1,4 @@
-@props(['recentNoShows'])
+@props(['recentNoShows', 'timeframe' => 'in the past 14 days'])
 
 @if($recentNoShows->isNotEmpty())
 <div class="mt-5">
@@ -11,7 +11,8 @@
         <p class="text-red-700 dark:text-red-300 mb-4 text-sm leading-relaxed">
             You have been marked as a <strong>no-show</strong> on
             {{ $recentNoShows->count() === 1 ? 'a shift' : $recentNoShows->count() . ' shifts' }}
-            in the past 14 days. Please review the details below.
+            @if($timeframe) {{ $timeframe }}. @endif
+            Please review the details below.
         </p>
 
         <div class="bg-white dark:bg-gray-800 rounded-lg border border-red-200 dark:border-red-700 divide-y divide-red-100 dark:divide-red-800 mb-4">

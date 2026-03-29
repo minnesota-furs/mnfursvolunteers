@@ -184,7 +184,7 @@
                                     <span class="no-show-badge hidden inline-flex items-center rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-xs font-medium mb-1">No Show</span>
                                 @endif
                                 <div class="font-medium">
-                                    <a href="{{ route('users.show', $user->id) }}" class="text-blue-600 hover:underline">{{ $user->name }}</a>
+                                    <a href="{{ route('users.show', $user->id) }}" class="text-blue-600 hover:underline">{{ $user->displayName() }}</a>
                                 </div>
                                 <div class="text-xs text-gray-500">{{ $user->email }}</div>
                             </div>

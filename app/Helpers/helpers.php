@@ -69,6 +69,22 @@ if (!function_exists('app_favicon')) {
     }
 }
 
+if (!function_exists('user_display_name')) {
+    /**
+     * Get the display name for a user based on the application setting.
+     *
+     * Uses the 'user_display_name' setting: 'alias' returns the name field,
+     * 'legal_name' returns first + last name.
+     *
+     * @param  \App\Models\User  $user
+     * @return string
+     */
+    function user_display_name(\App\Models\User $user): string
+    {
+        return $user->displayName();
+    }
+}
+
 if (!function_exists('feature_enabled')) {
     /**
      * Check if a feature is enabled.
