@@ -68,6 +68,11 @@ class Event extends Model
         return $this->belongsToMany(Department::class, 'department_event')->withTimestamps();
     }
 
+    public function perks()
+    {
+        return $this->belongsToMany(VolunteerPerk::class, 'volunteer_perk_event')->withTimestamps();
+    }
+
     public function getRemainingVolunteerSpotsAttribute()
     {
         return $this->shifts->sum(function ($shift) {

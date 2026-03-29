@@ -35,17 +35,22 @@ class DatabaseSeeder extends Seeder
         }
 
         // --- Users ---
-        User::factory()->create([
-            'name'  => 'Regular User',
-            'email' => 'user@mnfurs.org',
-            'password' => bcrypt('password'),
-        ]);
+        if (! User::where('email', 'user@mnfurs.org')->exists()) {
+            User::factory()->create([
+                'name'  => 'Regular User',
+                'email' => 'user@mnfurs.org',
+                'password' => bcrypt('password'),
+            ]);
+        }
 
-        User::factory()->admin()->create([
-            'name'  => 'Admin User',
-            'email' => 'admin@mnfurs.org',
-            'password' => bcrypt('password'),
-        ]);
+        if (! User::where('email', 'admin@mnfurs.org')->exists()) {
+            User::factory()->admin()->create([
+                'name'  => 'Admin User',
+                'email' => 'admin@mnfurs.org',
+                'password' => bcrypt('password'),
+                'permissions' => array_keys(config('permissions')),
+            ]);
+        }
 
         // 12 plain users (no department assignments)
         User::factory()->count(12)->create();
@@ -63,6 +68,7 @@ class DatabaseSeeder extends Seeder
             ApplicationSettingsSeeder::class,
             FeatureFlagSeeder::class,
             MusicConSeeder::class,
+            EventsAndShiftsSeeder::class,
         ]);
     }
 }

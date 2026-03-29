@@ -15,13 +15,22 @@ class VolunteerEventController extends Controller
             ->where('start_date', '>=', Carbon::now())
             ->orderBy('start_date')
             ->with(['requiredTags', 'requiredUserTags', 'requiredDepartments', 'shifts.users'])
+            ->withCount(['perks as active_perks_count' => fn ($q) => $q->where('is_active', true)])
             ->get();
+
+        $pastEvents = Event::visibleToAuthUsers()
+            ->where('start_date', '<', Carbon::now())
+            ->orderByDesc('start_date')
+            ->with(['requiredTags', 'requiredUserTags', 'requiredDepartments', 'shifts.users'])
+            ->withCount(['perks as active_perks_count' => fn ($q) => $q->where('is_active', true)])
+            ->paginate(5, ['*'], 'past_page');
 
         $user = auth()->user();
         $userTagIds = $user->tags()->pluck('tags.id')->all();
         $userDeptIds = $user->departments()->pluck('departments.id')->all();
+        $workedEventIds = $user->shifts()->pluck('event_id')->unique()->all();
 
-        return view('events.index', compact('events', 'userTagIds', 'userDeptIds'));
+        return view('events.index', compact('events', 'pastEvents', 'userTagIds', 'userDeptIds', 'workedEventIds'));
     }
 
     public function show(Event $event)
