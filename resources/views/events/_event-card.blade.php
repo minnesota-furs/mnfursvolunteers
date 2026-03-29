@@ -42,6 +42,10 @@
                     @endif
                 </div>
 
+                @if($event->description)
+                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{{ $event->description }}</p>
+                @endif
+
                 {{-- Limitations: required tags + departments --}}
                 @if($hasLimitations)
                     <div class="mt-3 flex flex-wrap items-center gap-1.5">

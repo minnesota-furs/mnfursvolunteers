@@ -103,29 +103,44 @@
                         </div>
                     </dd>
                 </div>
-                <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-lg sm:p-6">
-                    <dt class="text-xl font-bold mb-3 text-gray-500">Your Upcoming Volunteer Slots</dt>
-                    <dd class="mt-1 tracking-tight text-gray-900">
-                        @forelse($upcomingShifts as $eventName => $shifts)
-                            <div class="mb-4">
-                                <h3 class="font-semibold text-lg">{{ $eventName }}</h3>
-                                <ul class="pl-4 list-disc text-sm">
-                                    <!-- Limit to first 3 shifts -->
-                                    @foreach ($shifts->take(5) as $shift)
-                                        <li>{{ $shift->name }} - {{ $shift->start_time->diffForHumans() }} ({{ $shift->start_time->format('M j, g:i A') }})</li>
-                                    @endforeach
-                                    @if ($shifts->count() > 5)
-                                        <li class="text-gray-500 italic">and {{ $shifts->count() - 5 }} more...</li>
-                                    @endif
-                                </ul>
-                            </div>
-                        @empty
-                            <p class="text-gray-300">No upcoming volunteer slots.</p>
-                        @endforelse
+                <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow-lg sm:p-6">
+                    <dt class="text-xl font-bold mb-1 text-gray-500 dark:text-gray-400">Your Upcoming Volunteer Slots
+                        ({{ $upcomingShifts->flatten()->count() }})</dt>
+                    <p class="text-sm text-gray-400 dark:text-gray-500 mb-3">Shifts you've signed up for across upcoming events.</p>
+                    <dd class="mt-1">
+                        <div class="space-y-3">
+                            @forelse($upcomingShifts as $eventName => $shifts)
+                                <div>
+                                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1.5">{{ $eventName }}</h3>
+                                    <div class="space-y-1.5 pl-1">
+                                        @foreach ($shifts->take(5) as $shift)
+                                            <div class="group flex items-center gap-2.5 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 px-2.5 py-1.5 transition-all">
+                                                <div class="flex-shrink-0 text-center leading-tight rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 px-1.5 py-0.5 shadow-sm">
+                                                    <div class="text-[10px] font-semibold uppercase text-brand-green">{{ $shift->start_time->format('M') }}</div>
+                                                    <div class="text-base font-bold text-gray-900 dark:text-gray-100 -mt-0.5">{{ $shift->start_time->format('j') }}</div>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{{ $shift->name }}</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $shift->start_time->format('g:i A') }}</p>
+                                                </div>
+                                                <span class="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">{{ $shift->start_time->diffForHumans() }}</span>
+                                            </div>
+                                        @endforeach
+                                        @if ($shifts->count() > 5)
+                                            <div class="flex items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700 px-2.5 py-1.5">
+                                                <p class="text-xs text-gray-400 dark:text-gray-500 italic">and {{ $shifts->count() - 5 }} more…</p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @empty
+                                <p class="text-gray-300 dark:text-gray-500">No upcoming volunteer slots.</p>
+                            @endforelse
+                        </div>
 
-                        <div class="mt-4">
-                            <a href="{{ route('volunteer.events.index') }}" class="text-sm text-blue-600 hover:underline">View Volunteer Opportunities</a>
-                            <a href="{{ route('volunteer.events.my-shifts-all') }}" class="ml-4 text-sm text-blue-600 hover:underline">View Full Itinerary</a>
+                        <div class="mt-4 flex gap-4">
+                            <a href="{{ route('volunteer.events.index') }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">View Volunteer Opportunities</a>
+                            <a href="{{ route('volunteer.events.my-shifts-all') }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">View Full Itinerary</a>
                         </div>
                     </dd>
                 </div>
