@@ -36,7 +36,7 @@ class VolunteerEventController extends Controller
     public function show(Event $event)
     {
         // Load users for use in shift->users and required tags/departments
-        $event->load('shifts.users', 'requiredTags', 'requiredUserTags', 'requiredDepartments');
+        $event->load('shifts.users', 'requiredTags', 'requiredUserTags', 'requiredDepartments', 'perks');
         $user = auth()->user();
         $hasSignedUpForEvent = $user->shifts()->where('event_id', $event->id)->exists();
 
@@ -199,5 +199,14 @@ class VolunteerEventController extends Controller
         $shiftsRemaining = $shifts->filter(fn($shift) => $shift->start_time->isFuture())->count();
 
         return view('events.my-shifts-all', compact('shifts', 'futureShifts', 'totalVolunteerHours', 'shiftsRemaining'));
+    }
+
+    public function faq(Event $event)
+    {
+        if (!$event->faq) {
+            abort(404);
+        }
+
+        return view('events.faq', compact('event'));
     }
 }

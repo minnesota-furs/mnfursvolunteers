@@ -66,6 +66,18 @@
                 </div>
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                    <div>
+                        <dt class="text-sm font-medium leading-6 text-gray-900">FAQ</dt>
+                        <p class="text-gray-500 text-sm mt-1">Optional FAQ content shown on a dedicated page. Supports Markdown.</p>
+                    </div>
+                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <x-textarea-input id="faq" rows="8" name="faq"
+                            class="block w-full text-sm" placeholder="# How much physical involvement does this entail?&#10;Some shifts may require standing or walking for extended periods. Please review each shift description for specific physical requirements.&#10;&#10;# What should I bring?&#10;We recommend comfortable clothing, a water bottle, and any personal items you may need during your shift.&#10;&#10;# Can I sign up for multiple shifts?&#10;Yes! You are welcome to sign up for as many shifts as you'd like, as long as they don't overlap.">{{ old('faq', $event->faq ?? '') }}</x-textarea-input>
+                        <x-form-validation for="faq" />
+                    </dd>
+                </div>
+
+                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <dt class="text-sm font-medium leading-6 text-gray-900">Location</dt>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-text-input class="block w-64 text-sm" type="text" name="location" id="location"
@@ -115,10 +127,10 @@
                             <option value="public" {{ old('visibility', $event->visibility ?? '') == 'public' ? 'selected' : '' }}>Public</option>
                         </x-select-input>
                         <x-form-validation for="visibility" />
-                        <p class="text-gray-500 text-sm mt-1">Public will show up on to everyone, including guests.</p>
-                        <p class="text-gray-500 text-sm mt-1">Unlisted lets you link it to people, but isn't organically discoverable.</p>
-                        <p class="text-gray-500 text-sm mt-1">Internal is visible to signed-in users but won't appear on the public site.</p>
-                        <p class="text-gray-500 text-sm mt-1">Draft is just when you are working on it and don't want to publish it yet.</p>
+                        <p class="text-gray-500 text-sm mt-1"><span class="font-semibold">Public</span> will show up on to everyone, including guests.</p>
+                        <p class="text-gray-500 text-sm mt-1"><span class="font-semibold">Unlisted</span> lets you link it to people, but isn't organically discoverable.</p>
+                        <p class="text-gray-500 text-sm mt-1"><span class="font-semibold">Internal</span> is visible to signed-in users but won't appear on the public site.</p>
+                        <p class="text-gray-500 text-sm mt-1"><span class="font-semibold">Draft</span> is just when you are working on it and don't want to publish it yet.</p>
                     </dd>
                 </div>
 
@@ -141,6 +153,8 @@
                         </dd>
                     </div>
                 @endif
+
+                <x-section-heading title="Event Behavior" description="Configure how the event behaves and how volunteers interact with it." />
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <div>
@@ -166,17 +180,7 @@
                     </dd>
                 </div>
 
-                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <div>
-                        <dt class="text-sm font-medium leading-6 text-gray-900">Restrict Ineligible Users</dt>
-                        <p class="text-gray-500 text-sm mt-1">When enabled, users who do not meet the tag or department requirements above will be blocked from viewing this event&rsquo;s shifts entirely. By default, ineligible users can still browse shifts but cannot sign up.</p>
-                    </div>
-                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                        <x-checkbox-input class="block w-64 text-sm" name="require_eligibility" id="require_eligibility"
-                            checked="{{ old('require_eligibility', isset($event) ? $event->require_eligibility : false) }}" />
-                        <x-form-validation for="require_eligibility" />
-                    </dd>
-                </div>
+                <x-section-heading title="Eligibility" description="Control which volunteers can sign up for this event." />
 
                 @if(app_setting('feature_user_tags', false))
                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -250,6 +254,18 @@
                     </dd>
                 </div>
 
+                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                    <div>
+                        <dt class="text-sm font-medium leading-6 text-gray-900">Restrict Ineligible Users</dt>
+                        <p class="text-gray-500 text-sm mt-1">When enabled, users who do not meet the tag or department requirements above will be blocked from viewing this event&rsquo;s shifts entirely. By default, ineligible users can still browse shifts but cannot sign up.</p>
+                    </div>
+                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <x-checkbox-input class="block w-64 text-sm" name="require_eligibility" id="require_eligibility"
+                            checked="{{ old('require_eligibility', isset($event) ? $event->require_eligibility : false) }}" />
+                        <x-form-validation for="require_eligibility" />
+                    </dd>
+                </div>
+
                 <div class="py-6 flex justify-end space-x-2">
                     <a type="submit" id="submit" href="{{ url()->previous() }}"
                         class="block rounded-md bg-gray-400 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400">Cancel</a>
@@ -288,5 +304,27 @@
                 console.error('Failed to copy URL: ', err);
             });
         }
+    </script>
+
+    <!-- EasyMDE for FAQ -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            new EasyMDE({
+                element: document.getElementById('faq'),
+                spellChecker: false,
+                status: false,
+                minHeight: '150px',
+                placeholder: "# How much physical involvement does this entail?\nSome shifts may require standing or walking for extended periods. Please review each shift description for specific physical requirements.\n\n# What should I bring?\nWe recommend comfortable clothing, a water bottle, and any personal items you may need during your shift.\n\n# Can I sign up for multiple shifts?\nYes! You are welcome to sign up for as many shifts as you'd like, as long as they don't overlap.",
+                toolbar: [
+                    "bold", "italic", "heading", "|",
+                    "quote", "unordered-list", "ordered-list", "|",
+                    "link", "image", "|",
+                    "preview", "fullscreen", "|",
+                    "guide"
+                ],
+            });
+        });
     </script>
 </x-app-layout>

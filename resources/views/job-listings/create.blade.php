@@ -100,7 +100,16 @@
         <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
         <script>
             document.addEventListener("DOMContentLoaded", function() {
-                new EasyMDE({ element: document.getElementById("description") });
+                new EasyMDE({
+                    element: document.getElementById("description"),
+                    toolbar: [
+                        "bold", "italic", "heading", "|",
+                        "quote", "unordered-list", "ordered-list", "|",
+                        "link", "image", "|",
+                        "preview", "fullscreen", "|",
+                        "guide"
+                    ],
+                });
             });
         </script>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">

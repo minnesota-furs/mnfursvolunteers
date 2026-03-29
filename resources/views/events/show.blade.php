@@ -10,6 +10,13 @@
             <x-heroicon-m-arrow-left class="w-4 h-4"/>
             Back
         </a>
+        @if($event->faq)
+            <a href="{{ route('volunteer.events.faq', $event) }}"
+                class="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-3 py-2 text-sm font-medium text-white hover:bg-white/20 transition-colors">
+                <x-heroicon-m-question-mark-circle class="w-4 h-4"/>
+                FAQ
+            </a>
+        @endif
         <a href="{{ route('volunteer.events.my-shifts', $event) }}"
             class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-brand-green shadow-sm hover:bg-gray-100 transition-colors">
             <x-heroicon-m-list-bullet class="w-4 h-4"/>
@@ -65,8 +72,14 @@
                 </span>
                 <span class="flex items-center gap-1.5">
                     <x-heroicon-m-user-group class="w-4 h-4 text-gray-400"/>
-                    {{ $shifts->count() }} {{ Str::plural('shift', $shifts->count()) }}
+                    {{ $shifts->count() }} {{ Str::plural('assignment', $shifts->count()) }}
                 </span>
+                @if($event->perks->isNotEmpty())
+                    <span class="flex items-center gap-1.5">
+                        <x-heroicon-m-gift class="w-4 h-4 text-gray-400"/>
+                        Earns Perks
+                    </span>
+                @endif
             </div>
             @if($event->description)
                 <div class="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed">{!! \Parsedown::instance()->text($event->description) !!}</div>

@@ -1057,6 +1057,13 @@
                 element: document.getElementById('onboarding_agreement'),
                 spellChecker: false,
                 status: false,
+                toolbar: [
+                    "bold", "italic", "heading", "|",
+                    "quote", "unordered-list", "ordered-list", "|",
+                    "link", "image", "|",
+                    "preview", "fullscreen", "|",
+                    "guide"
+                ],
             });
         }
     </script>

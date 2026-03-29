@@ -158,7 +158,6 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::get('/users/import/results/download', [UserImportWizardController::class, 'downloadFailed'])->name('users.import.results.download');
         Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
         Route::post('/users/{id}/restore', [UserController::class, 'restore'])->middleware('isAdmin')->name('users.restore');
-        Route::delete('/users/{id}/nuke', [UserController::class, 'nuke'])->middleware('isAdmin')->name('users.nuke');
     });
 
     Route::resource('users', UserController::class)->only(['create', 'edit', 'store', 'destroy', 'update'])->middleware(['can:manage-users']);
@@ -338,6 +337,7 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::get('events/{event}', [VolunteerEventController::class, 'show'])->name('events.show');
         Route::get('events/{event}/shifts/{shift}', [VolunteerEventController::class, 'showShift'])->name('shifts.show');
         Route::get('events/{event}/my-shifts', [VolunteerEventController::class, 'myShifts'])->name('events.my-shifts');
+        Route::get('events/{event}/faq', [VolunteerEventController::class, 'faq'])->name('events.faq');
     });
 
     

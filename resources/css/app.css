@@ -49,3 +49,11 @@
 .text-muted {
     @apply text-gray-500 dark:text-gray-400;
 }
+
+/* EasyMDE editor header size overrides */
+.EasyMDEContainer .cm-header-1 { font-size: 1.4em !important; }
+.EasyMDEContainer .cm-header-2 { font-size: 1.2em !important; }
+.EasyMDEContainer .cm-header-3 { font-size: 1.1em !important; }
+.EasyMDEContainer .cm-header-4 { font-size: 1.05em !important; }
+.EasyMDEContainer .cm-header-5 { font-size: 1em !important; }
+.EasyMDEContainer .cm-header-6 { font-size: 1em !important; }
