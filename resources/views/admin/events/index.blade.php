@@ -99,7 +99,7 @@
                                             </span>
                                             <div class="mt-1 flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
                                                 <x-heroicon-o-user class="w-3 h-3 flex-shrink-0"/>
-                                                <span>{{ $event->creator->name ?? 'Unknown' }}</span>
+                                                <span>{{ $event->creator->displayName() ?? 'Unknown' }}</span>
                                                 @if($event->editors->count() > 0)
                                                     <span class="text-gray-300 dark:text-gray-600">·</span>
                                                     <span>+{{ $event->editors->count() }} editor{{ $event->editors->count() > 1 ? 's' : '' }}</span>
@@ -121,7 +121,7 @@
                                                 </span>
                                                 <span class="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
                                                     <x-heroicon-m-calendar class="w-3 h-3 inline -mt-0.5"/>
-                                                    {{ $event->start_date->format('M j') }} – {{ $event->end_date->format('M j, Y') }}
+                                                    {{ $event->start_date->format('M j') }} - {{ $event->end_date->format('M j, Y') }}
                                                 </span>
                                             </div>
                                         </td>
@@ -162,7 +162,7 @@
                                                 $totalSlots  = $event->shifts->sum('max_volunteers');
                                                 $filledSlots = $event->shifts->sum(fn($s) => $s->users->count());
                                                 $pct         = $totalSlots > 0 ? round($filledSlots / $totalSlots * 100) : 0;
-                                                $barColor    = $pct >= 100 ? 'bg-red-500' : ($pct >= 75 ? 'bg-amber-400' : 'bg-brand-green');
+                                                $barColor    = $pct >= 100 ? 'bg-green-600' : ($pct >= 75 ? 'bg-green-900' : 'bg-orange-600');
                                             @endphp
                                             @if(auth()->user()->isAdmin() || auth()->user()->can('update', $event))
                                                 <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-blue-500 font-semibold hover:underline">
