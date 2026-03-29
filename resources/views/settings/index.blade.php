@@ -701,6 +701,10 @@
                                 <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Application</h4>
                                 <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
                                     <div class="flex justify-between sm:block">
+                                        <dt class="text-gray-500 dark:text-gray-400">OpenVolunteer Version</dt>
+                                        <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['app_version'] }}</dd>
+                                    </div>
+                                    <div class="flex justify-between sm:block">
                                         <dt class="text-gray-500 dark:text-gray-400">Laravel Version</dt>
                                         <dd class="font-mono text-gray-900 dark:text-gray-100">{{ $sysInfo['laravel_version'] }}</dd>
                                     </div>
@@ -974,6 +978,7 @@
                     lines.push('');
 
                     lines.push('**Application**');
+                    lines.push(`OpenVolunteer: ${val(s.app_version)}`);
                     lines.push(`Laravel: ${val(s.laravel_version)}`);
                     lines.push(`PHP: ${val(s.php_version)}`);
                     lines.push(`Environment: ${val(s.app_env)}`);

@@ -22,10 +22,10 @@ class DashboardController extends Controller
         $upcomingEvents = Event::visibleToAuthUsers()
             ->where('end_date', '>=', $now)
             ->orderBy('start_date')
-            ->with('requiredTags', 'requiredDepartments')
+            ->with('requiredUserTags', 'requiredDepartments')
             ->get()
             ->filter(function ($event) use ($userTagIds, $userDeptIds) {
-                $requiredTagIds = $event->requiredTags->pluck('id')->toArray();
+                $requiredTagIds = $event->requiredUserTags->pluck('id')->toArray();
                 $hasAllTags = empty(array_diff($requiredTagIds, $userTagIds));
 
                 $requiredDeptIds = $event->requiredDepartments->pluck('id')->toArray();

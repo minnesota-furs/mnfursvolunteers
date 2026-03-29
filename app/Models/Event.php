@@ -53,6 +53,16 @@ class Event extends Model
         return $this->belongsToMany(Tag::class)->withTimestamps();
     }
 
+    /**
+     * Required tags scoped to user-eligible types (type = 'user' or null).
+     * Used for eligibility checks so that shift-only tags on the event
+     * do not incorrectly gate users who can never hold shift-type tags.
+     */
+    public function requiredUserTags()
+    {
+        return $this->belongsToMany(Tag::class)->withTimestamps()->forUsers();
+    }
+
     public function requiredDepartments()
     {
         return $this->belongsToMany(Department::class, 'department_event')->withTimestamps();

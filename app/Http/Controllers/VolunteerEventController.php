@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
@@ -10,65 +9,33 @@ use App\Models\Shift;
 
 class VolunteerEventController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $now = Carbon::now();
-        $threeMonthsAgo = $now->copy()->subMonths(3);
-
-        $filter = in_array($request->input('filter'), ['all', 'eligible'])
-            ? $request->input('filter')
-            : 'eligible';
+        $events = Event::visibleToAuthUsers()
+            ->where('start_date', '>=', Carbon::now())
+            ->orderBy('start_date')
+            ->with(['requiredTags', 'requiredUserTags', 'requiredDepartments', 'shifts.users'])
+            ->get();
 
         $user = auth()->user();
-        $userTagIds  = $user->tags()->pluck('tags.id')->toArray();
-        $userDeptIds = $user->departments()->pluck('departments.id')->toArray();
+        $userTagIds = $user->tags()->pluck('tags.id')->all();
+        $userDeptIds = $user->departments()->pluck('departments.id')->all();
 
-        $checkEligible = function ($event) use ($userTagIds, $userDeptIds) {
-            $requiredTagIds = $event->requiredTags->pluck('id')->toArray();
-            $hasAllTags = empty(array_diff($requiredTagIds, $userTagIds));
-
-            $requiredDeptIds = $event->requiredDepartments->pluck('id')->toArray();
-            $hasRequiredDept = empty($requiredDeptIds)
-                || !empty(array_intersect($requiredDeptIds, $userDeptIds));
-
-            return $hasAllTags && $hasRequiredDept;
-        };
-
-        $allUpcoming = Event::visibleToAuthUsers()
-            ->where('start_date', '>=', $now)
-            ->orderBy('start_date')
-            ->with('requiredTags', 'requiredDepartments')
-            ->get()
-            ->each(fn ($e) => $e->is_eligible = $checkEligible($e));
-
-        $allPast = Event::visibleToAuthUsers()
-            ->whereBetween('start_date', [$threeMonthsAgo, $now])
-            ->orderByDesc('start_date')
-            ->with('requiredTags', 'requiredDepartments')
-            ->get()
-            ->each(fn ($e) => $e->is_eligible = $checkEligible($e));
-
-        if ($filter === 'eligible') {
-            $upcomingEvents   = $allUpcoming->filter(fn ($e) => $e->is_eligible)->values();
-            $recentPastEvents = $allPast->filter(fn ($e) => $e->is_eligible)->values();
-        } else {
-            $upcomingEvents   = $allUpcoming;
-            $recentPastEvents = $allPast;
-        }
-
-        return view('events.index', compact('upcomingEvents', 'recentPastEvents', 'filter'));
+        return view('events.index', compact('events', 'userTagIds', 'userDeptIds'));
     }
 
     public function show(Event $event)
     {
         // Load users for use in shift->users and required tags/departments
-        $event->load('shifts.users', 'requiredTags', 'requiredDepartments');
+        $event->load('shifts.users', 'requiredTags', 'requiredUserTags', 'requiredDepartments');
+        $user = auth()->user();
+        $hasSignedUpForEvent = $user->shifts()->where('event_id', $event->id)->exists();
 
-        // Block ineligible users from viewing shifts if the event requires eligibility
-        if ($event->require_eligibility) {
-            $user            = auth()->user();
+        // Block ineligible users from viewing shifts if the event requires eligibility.
+        // Keep existing signups accessible even if eligibility requirements changed later.
+        if ($event->require_eligibility && !$hasSignedUpForEvent) {
             $userTagIds      = $user->tags()->pluck('tags.id')->toArray();
-            $requiredTagIds  = $event->requiredTags->pluck('id')->toArray();
+            $requiredTagIds  = $event->requiredUserTags->pluck('id')->toArray();
             $hasAllTags      = empty(array_diff($requiredTagIds, $userTagIds));
 
             $userDeptIds     = $user->departments()->pluck('departments.id')->toArray();
@@ -130,12 +97,12 @@ class VolunteerEventController extends Controller
         }
 
         $shift->load('users', 'tags');
-        $event->load('requiredTags', 'requiredDepartments');
+        $event->load('requiredTags', 'requiredUserTags', 'requiredDepartments');
 
         $user = auth()->user();
 
         $userTagIds     = $user->tags()->pluck('tags.id')->toArray();
-        $requiredTagIds = $event->requiredTags->pluck('id')->toArray();
+        $requiredTagIds = $event->requiredUserTags->pluck('id')->toArray();
         $hasAllTags     = empty(array_diff($requiredTagIds, $userTagIds));
 
         $userDeptIds           = $user->departments()->pluck('departments.id')->toArray();
@@ -163,8 +130,9 @@ class VolunteerEventController extends Controller
         $isPast      = $shift->start_time->isPast();
         $hasConflict = $conflictingShifts->isNotEmpty();
 
-        // Block ineligible users from viewing the shift if the event requires eligibility
-        if ($event->require_eligibility && !$canSignUp) {
+        // Block ineligible users from viewing the shift if the event requires eligibility.
+        // Keep access for users already signed up on this shift.
+        if ($event->require_eligibility && !$canSignUp && !$signedUp) {
             abort(403, 'You are not eligible to view this shift.');
         }
 

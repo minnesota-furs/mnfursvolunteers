@@ -24,15 +24,15 @@ class ShiftSignupController extends Controller
         }
 
         // Check if event has required tags
-        $event = $shift->event()->with('requiredTags', 'requiredDepartments')->first();
-        if ($event->requiredTags->isNotEmpty()) {
+        $event = $shift->event()->with('requiredUserTags', 'requiredDepartments')->first();
+        if ($event->requiredUserTags->isNotEmpty()) {
             $userTagIds = $user->tags()->pluck('tags.id')->toArray();
-            $requiredTagIds = $event->requiredTags->pluck('id')->toArray();
+            $requiredTagIds = $event->requiredUserTags->pluck('id')->toArray();
             
             // Check if user has ALL required tags
             $missingTags = array_diff($requiredTagIds, $userTagIds);
             if (!empty($missingTags)) {
-                $missingTagNames = $event->requiredTags->whereIn('id', $missingTags)->pluck('name')->toArray();
+                $missingTagNames = $event->requiredUserTags->whereIn('id', $missingTags)->pluck('name')->toArray();
                 return back()->with('error', 'You must have the following tag(s) to sign up for this event: ' . implode(', ', $missingTagNames));
             }
         }

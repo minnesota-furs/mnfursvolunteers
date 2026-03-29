@@ -111,6 +111,7 @@ class SettingsController extends Controller
             'queue_driver'       => config('queue.default'),
             'cache_driver'       => config('cache.default'),
             'storage_link'       => $storageLinkExists,
+            'app_version'        => config('app.version', '—'),
         ];
     }
 

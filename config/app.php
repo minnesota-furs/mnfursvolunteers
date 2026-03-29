@@ -16,7 +16,8 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'OpenVolunteer'),
+    'version' => '1.3.8',
 
     /*
     |--------------------------------------------------------------------------
