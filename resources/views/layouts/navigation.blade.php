@@ -226,8 +226,8 @@
                 </div>
             </div>
 
-            {{-- @if(!app_setting('require_department_for_user_index', false) || Auth::user()->isAdmin() || Auth::user()->hasPermission('manage-users') || Auth::user()->departments->isNotEmpty()) --}}
-            <div class="hidden sm:flex justify-center items-center px-2 lg:ml-6 lg:justify-end">
+            @if(!app_setting('require_department_for_user_index', false) || Auth::user()->isAdmin() || Auth::user()->hasPermission('manage-users') || Auth::user()->departments->isNotEmpty())
+            <div class="sm:flex justify-center items-center px-2 lg:ml-6 lg:justify-end">
                 <div class="max-w-lg lg:max-w-xs">
                   <label for="search" class="sr-only">Search</label>
                   <form class="relative text-white focus-within:text-white" action="{{ route('users.index') }}" method="GET">
@@ -240,7 +240,7 @@
                   </form>
                 </div>
             </div>
-            {{-- @endif --}}
+            @endif
 
             <!-- Settings Dropdown -->
             @auth

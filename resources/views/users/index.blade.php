@@ -454,8 +454,8 @@
                           <button type="submit" class="text-blue-600 hover:underline">Restore</button>
                         </form>
                         <button type="button"
-                                @click="nuking = true; $nextTick(() => $refs.nukeInput.focus())"
-                                class="text-red-600 hover:underline font-semibold">Nuke</button>
+                            @click="nuking = true; $nextTick(() => $refs.nukeInput.focus())"
+                            class="text-red-600 hover:underline font-semibold">Nuke</button>
                       </div>
                     </td>
                   </tr>
