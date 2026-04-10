@@ -226,7 +226,7 @@
                 </div>
             </div>
 
-            @if(!app_setting('require_department_for_user_index', false) || Auth::user()->isAdmin() || Auth::user()->hasPermission('manage-users') || Auth::user()->departments->isNotEmpty())
+            {{-- @if(!app_setting('require_department_for_user_index', false) || Auth::user()->isAdmin() || Auth::user()->hasPermission('manage-users') || Auth::user()->departments->isNotEmpty()) --}}
             <div class="hidden sm:flex justify-center items-center px-2 lg:ml-6 lg:justify-end">
                 <div class="max-w-lg lg:max-w-xs">
                   <label for="search" class="sr-only">Search</label>
@@ -236,11 +236,11 @@
                         <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
                       </svg>
                     </div>
-                    <input id="search" class="block w-full rounded-md border-0  bg-white/5 py-1.5 pl-10 pr-3 text-white focus:ring-2 focus:ring-white focus:ring-offset-white sm:text-sm sm:leading-6 placeholder-white/25" placeholder="Search Users" type="search" name="search" value="{{ request('search') }}">
+                    <input id="search" class="block w-full rounded-md border-0 bg-white/5 py-1.5 pl-10 pr-3 text-white focus:ring-2 focus:ring-white focus:ring-offset-white sm:text-sm sm:leading-6 placeholder-white/25" placeholder="Search Users" type="search" name="search" value="{{ request('search') }}">
                   </form>
                 </div>
             </div>
-            @endif
+            {{-- @endif --}}
 
             <!-- Settings Dropdown -->
             @auth
