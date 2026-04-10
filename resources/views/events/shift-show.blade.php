@@ -175,16 +175,35 @@
             @else
                 <ul class="space-y-2">
                     @foreach($shift->users as $vol)
-                        <li class="flex items-center gap-3">
+                        @php
+                            $isFav     = in_array($vol->id, $favoritedIds ?? []);
+                            $isAvoided = in_array($vol->id, $avoidedIds ?? []);
+                        @endphp
+                        <li class="flex items-center gap-3 rounded-lg px-2 py-1 -mx-2
+                            {{ $isFav ? 'bg-yellow-50 dark:bg-yellow-900/10' : ($isAvoided ? 'bg-orange-50 dark:bg-orange-900/10' : '') }}">
                             <div class="w-7 h-7 rounded-full bg-brand-green/20 dark:bg-brand-green/30 flex items-center justify-center text-xs font-semibold text-brand-green flex-shrink-0">
                                 {{ strtoupper(substr($vol->name ?? '?', 0, 1)) }}
                             </div>
                             <span class="text-sm text-gray-800 dark:text-gray-200">
-                                {{ $vol->name }}
+                                @if($vol->id !== auth()->id())
+                                    <a href="{{ route('users.profile.show', $vol) }}" class="hover:underline">{{ $vol->name }}</a>
+                                @else
+                                    {{ $vol->name }}
+                                @endif
                                 @if($vol->id === auth()->id())
                                     <span class="text-xs text-blue-500 dark:text-blue-400 font-medium">(you)</span>
                                 @endif
                             </span>
+                            @if($isFav)
+                                <span class="inline-flex items-center gap-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 text-xs text-yellow-700 dark:text-yellow-400" title="Favorited">
+                                    <x-heroicon-s-star class="w-3 h-3"/>
+                                </span>
+                            @endif
+                            @if($isAvoided)
+                                <span class="inline-flex items-center gap-1 rounded-full bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 text-xs text-orange-700 dark:text-orange-400" title="Avoided">
+                                    <x-heroicon-s-hand-raised class="w-3 h-3"/>
+                                </span>
+                            @endif
                             @if($vol->pivot->hours_logged_at)
                                 <span class="ml-auto inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-xs text-green-700 dark:text-green-400">
                                     <x-heroicon-m-check class="w-3 h-3"/>

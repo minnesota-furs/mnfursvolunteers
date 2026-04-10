@@ -30,6 +30,8 @@ use App\Http\Controllers\Admin\VolunteerPerkController as AdminVolunteerPerkCont
 use App\Http\Controllers\Admin\VolunteerPerkSetController as AdminVolunteerPerkSetController;
 use App\Http\Controllers\VolunteerPerkController;
 use App\Http\Controllers\NotificationsController;
+use App\Http\Controllers\VolunteerProfileController;
+use App\Http\Controllers\UserRelationshipController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -158,6 +160,7 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::get('/users/import/results/download', [UserImportWizardController::class, 'downloadFailed'])->name('users.import.results.download');
         Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
         Route::post('/users/{id}/restore', [UserController::class, 'restore'])->middleware('isAdmin')->name('users.restore');
+        Route::delete('/users/{id}/nuke', [UserController::class, 'nuke'])->middleware('isAdmin')->name('users.nuke');
     });
 
     Route::resource('users', UserController::class)->only(['create', 'edit', 'store', 'destroy', 'update'])->middleware(['can:manage-users']);
@@ -232,6 +235,10 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::get('/users-without-hours', [ReportsController::class, 'usersWithoutHoursThisPeriod'])->name('usersWithoutHoursThisPeriod');
         Route::get('/event-shift-hours', [ReportsController::class, 'eventShiftHoursReport'])->name('eventShiftHours');
         Route::get('/event-shift-hours/export', [ReportsController::class, 'eventShiftHoursExportCsv'])->name('eventShiftHours.export');
+        Route::get('/volunteer-relationships', [ReportsController::class, 'volunteerRelationships'])->name('volunteerRelationships');
+        Route::delete('/volunteer-relationships/{relationship}', [ReportsController::class, 'destroyRelationship'])->name('volunteerRelationships.destroy');
+        Route::get('/no-shows', [ReportsController::class, 'noShows'])->name('noShows');
+        Route::get('/new-signups-no-shifts', [ReportsController::class, 'newSignupsWithNoShifts'])->name('newSignupsWithNoShifts');
     });
 
     // Departments
@@ -338,6 +345,17 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::get('events/{event}/shifts/{shift}', [VolunteerEventController::class, 'showShift'])->name('shifts.show');
         Route::get('events/{event}/my-shifts', [VolunteerEventController::class, 'myShifts'])->name('events.my-shifts');
         Route::get('events/{event}/faq', [VolunteerEventController::class, 'faq'])->name('events.faq');
+    });
+
+    // Volunteer Profiles
+    Route::middleware('feature:volunteer_profiles')->group(function () {
+        Route::get('/users/{user}/profile', [VolunteerProfileController::class, 'show'])->name('users.profile.show');
+    });
+
+    // Volunteer Relationships (Favorite & Avoid)
+    Route::middleware('feature:volunteer_relationships')->group(function () {
+        Route::post('/users/{user}/relationship', [UserRelationshipController::class, 'toggle'])->name('users.relationship.toggle');
+        Route::get('/my-relationships', [UserRelationshipController::class, 'index'])->name('relationships.index');
     });
 
     

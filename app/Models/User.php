@@ -170,6 +170,32 @@ class User extends Authenticatable
         return $this->hasMany(Recognition::class, 'granted_by_user_id');
     }
 
+    public function relationships()
+    {
+        return $this->hasMany(UserRelationship::class);
+    }
+
+    public function favoritedUsers()
+    {
+        return $this->belongsToMany(User::class, 'user_relationships', 'user_id', 'target_user_id')
+            ->wherePivot('type', 'favorite')
+            ->withTimestamps();
+    }
+
+    public function avoidedUsers()
+    {
+        return $this->belongsToMany(User::class, 'user_relationships', 'user_id', 'target_user_id')
+            ->wherePivot('type', 'avoid')
+            ->withTimestamps();
+    }
+
+    public function getRelationshipWith(int $userId): ?string
+    {
+        return $this->relationships()
+            ->where('target_user_id', $userId)
+            ->value('type');
+    }
+
     public function getCustomFieldValue($fieldKey)
     {
         $customField = CustomField::where('field_key', $fieldKey)->first();

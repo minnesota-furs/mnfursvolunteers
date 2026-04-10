@@ -142,25 +142,62 @@
                     </div>
 
                     @can('view-reports')
-                    <x-dropdown align="left" width="48">
-                        <x-slot name="trigger">
+                    <div class="relative" x-data="{ open: false }" @click.outside="open = false" @close.stop="open = false">
+                        <div @click="open = !open">
                             <button class="inline-flex mt-5 pb-5 items-center px-1 pt-1 border-b-2 border-transparent hover:underline text-sm font-medium leading-5 text-gray-100 dark:text-gray-400 hover:text-gray-200 dark:hover:text-gray-300 hover:border-white/25 dark:hover:border-gray-700 focus:outline-none focus:text-gray-100 dark:focus:text-gray-300 focus:border-gray-100 dark:focus:border-gray-700 transition duration-150 ease-in-out">
-                                <div>Reports</div>
+                                Reports
+                                <svg class="ml-1 w-3.5 h-3.5 transition-transform duration-150" :class="{ 'rotate-180': open }" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" /></svg>
                             </button>
-                        </x-slot>
+                        </div>
 
-                        <x-slot name="content" class="-mt-32">
-                            <x-dropdown-link :href="route('report.usersWithoutDepartments')">
-                                {{ __('Users without Dept') }}
-                            </x-dropdown-link>
-                            <x-dropdown-link :href="route('report.usersWithoutHoursThisPeriod')">
-                                {{ __('Users With Zero Hours') }}
-                            </x-dropdown-link>
-                            <x-dropdown-link :href="route('report.eventShiftHours')">
-                                {{ __('Event Shift Hours') }}
-                            </x-dropdown-link>
-                        </x-slot>
-                    </x-dropdown>
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute z-50 mt-2 w-[480px] rounded-xl shadow-xl ltr:origin-top-left start-0"
+                             style="display: none;"
+                             @click="open = false">
+                            <div class="rounded-xl ring-1 ring-black ring-opacity-5 bg-white dark:bg-gray-700 overflow-hidden">
+                                <div class="grid grid-cols-2 divide-x divide-gray-200 dark:divide-gray-600">
+                                    {{-- Users column --}}
+                                    <div class="p-4">
+                                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-2 px-2">Users</p>
+                                        <a href="{{ route('report.usersWithoutDepartments') }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                                            <x-heroicon-o-user-minus class="w-4 h-4 shrink-0 text-gray-400"/>
+                                            Without Department
+                                        </a>
+                                        <a href="{{ route('report.usersWithoutHoursThisPeriod') }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                                            <x-heroicon-o-clock class="w-4 h-4 shrink-0 text-gray-400"/>
+                                            Zero Hours This Period
+                                        </a>
+                                        <a href="{{ route('report.volunteerRelationships') }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                                            <x-heroicon-o-heart class="w-4 h-4 shrink-0 text-gray-400"/>
+                                            Volunteer Relationships
+                                        </a>
+                                        <a href="{{ route('report.newSignupsWithNoShifts') }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                                            <x-heroicon-o-user-plus class="w-4 h-4 shrink-0 text-gray-400"/>
+                                            New Signups Without Shifts
+                                        </a>
+                                    </div>
+                                    {{-- Shifts column --}}
+                                    <div class="p-4">
+                                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-2 px-2">Shifts</p>
+                                        <a href="{{ route('report.eventShiftHours') }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                                            <x-heroicon-o-calendar class="w-4 h-4 shrink-0 text-gray-400"/>
+                                            Event Shift Hours
+                                        </a>
+                                        <a href="{{ route('report.noShows') }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                                            <x-heroicon-o-x-circle class="w-4 h-4 shrink-0 text-gray-400"/>
+                                            No-Shows
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     @endcan
 
                     <x-dropdown align="left" width="48">
@@ -331,6 +368,12 @@
                             {{ __('My Volunteer Profile') }}
                         </x-dropdown-link>
 
+                        @feature('volunteer_relationships')
+                        <x-dropdown-link :href="route('relationships.index')">
+                            {{ __('Favorite & Avoid List') }}
+                        </x-dropdown-link>
+                        @endfeature
+
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Account Settings') }}
                         </x-dropdown-link>
@@ -341,7 +384,8 @@
 
                         <x-dropdown-link href="#" 
                                 onclick="window.themeController.toggleTheme();">
-                            {{ __('Light/Dark Mode') }}
+                            {{ __('Light/Dark Mode') }} 
+                            <span class="text-xs p-1 font-medium rounded-md bg-purple-100 text-purple-800 dark:bg-yellow-900/30 dark:text-yellow-400">BETA</span>
                         </x-dropdown-link>
 
                         <div class="border-t border-gray-200 dark:border-gray-600"></div>
@@ -442,14 +486,29 @@
                     <div class="font-medium text-base text-white dark:text-gray-200">Reports</div>
                 </div>
                 <div class="space-y-1">
+                    <div class="px-4 pt-2 pb-1">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Users</p>
+                    </div>
                     <x-responsive-nav-link :href="route('report.usersWithoutDepartments')">
-                        {{ __('Users without Dept') }}
+                        {{ __('Without Department') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('report.usersWithoutHoursThisPeriod')">
-                        {{ __('Users With Zero Hours') }}
+                        {{ __('Zero Hours This Period') }}
                     </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('report.volunteerRelationships')">
+                        {{ __('Volunteer Relationships') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('report.newSignupsWithNoShifts')">
+                        {{ __('New Signups Without Shifts') }}
+                    </x-responsive-nav-link>
+                    <div class="px-4 pt-3 pb-1">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Shifts</p>
+                    </div>
                     <x-responsive-nav-link :href="route('report.eventShiftHours')">
                         {{ __('Event Shift Hours') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('report.noShows')">
+                        {{ __('No-Shows') }}
                     </x-responsive-nav-link>
                 </div>
             </div>
@@ -518,6 +577,12 @@
                     {{ __('My Volunteer Profile') }}
                 </x-responsive-nav-link>
 
+                @feature('volunteer_relationships')
+                <x-responsive-nav-link :href="route('relationships.index')">
+                    {{ __('Favorite & Avoid List') }}
+                </x-responsive-nav-link>
+                @endfeature
+
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Account Settings') }}
                 </x-responsive-nav-link>
@@ -525,6 +590,7 @@
                 <x-responsive-nav-link href="#" 
                         onclick="window.themeController.toggleTheme();">
                     {{ __('Light/Dark Mode') }}
+                    <span class="text-xs p-1 font-medium rounded-md bg-purple-100 text-purple-800 dark:bg-yellow-900/30 dark:text-yellow-400">BETA</span>
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->

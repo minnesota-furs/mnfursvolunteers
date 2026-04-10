@@ -119,11 +119,11 @@
                                                     @foreach($otherVolunteers->take(3) as $volunteer)
                                                         <div class="flex items-center text-xs">
                                                             <div class="w-5 h-5 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-200 mr-2">
-                                                                {{ strtoupper(substr($volunteer->name ?? 'M', 0, 1)) }}
+                                                                {{ strtoupper(substr($volunteer->displayName() ?? 'M', 0, 1)) }}
                                                             </div>
-                                                            <span class="text-gray-700 dark:text-gray-300">
-                                                                {{ $volunteer->name }}
-                                                            </span>
+                                                            <a href="{{ route('users.profile.show', $volunteer) }}" class="text-gray-700 dark:text-gray-300 hover:text-brand-green hover:underline">
+                                                                {{ $volunteer->displayName() }}
+                                                            </a>
                                                         </div>
                                                     @endforeach
                                                     @if($otherVolunteers->count() > 3)
