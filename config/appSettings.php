@@ -145,7 +145,7 @@ return [
             'group' => 'feature_flags',
             'label' => 'One-Off Events',
             'description' => 'Enable or disable one-off event check-ins. Great for meetings or special events.',
-            'beta' => true,
+            'beta' => false,
         ],
         'feature_perk_tracking' => [
             'value' => false,
@@ -162,6 +162,22 @@ return [
             'label' => 'WordPress Integration',
             'description' => 'Enable or disable WordPress user authentication and linking.',
             'beta' => false,
+        ],
+        'feature_volunteer_profiles' => [
+            'value' => true,
+            'type' => 'boolean',
+            'group' => 'feature_flags',
+            'label' => 'Volunteer Profiles',
+            'description' => 'Enable volunteer profile pages where users can view other volunteers.',
+            'beta' => true,
+        ],
+        'feature_volunteer_relationships' => [
+            'value' => false,
+            'type' => 'boolean',
+            'group' => 'feature_flags',
+            'label' => 'Volunteer Relationships (Favorite & Avoid)',
+            'description' => 'Enable the favorite and avoid system for volunteers. Requires Volunteer Profiles to also be enabled.',
+            'beta' => true,
         ],
     ],
     'security' => [

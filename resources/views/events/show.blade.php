@@ -362,6 +362,9 @@
                                         $hasConflict = isset($shiftConflicts[$shift->id]);
                                         $conflictingShift = $hasConflict ? $shiftConflicts[$shift->id]->first() : null;
                                         $openSpots   = $shift->max_volunteers - $shift->users->count();
+                                        $shiftUserIds = $shift->users->pluck('id')->all();
+                                        $hasFavorite = !empty(array_intersect($shiftUserIds, $favoritedIds ?? []));
+                                        $hasAvoided  = !empty(array_intersect($shiftUserIds, $avoidedIds ?? []));
                                     @endphp
 
                                     <div class="ml-4 rounded-xl border shadow-sm transition-shadow hover:shadow-md
@@ -403,6 +406,20 @@
                                                             2× Hours
                                                         </span>
                                                     @endif
+                                                    @feature('volunteer_relationships')
+                                                    @if($hasFavorite)
+                                                        <span class="inline-flex items-center gap-1 rounded-full bg-yellow-50 dark:bg-yellow-900/20 px-2 py-0.5 text-xs font-medium text-yellow-600 dark:text-yellow-400" title="A favorited volunteer is signed up">
+                                                            <x-heroicon-s-star class="w-3 h-3"/>
+                                                            Favorite here
+                                                        </span>
+                                                    @endif
+                                                    @if($hasAvoided)
+                                                        <span class="inline-flex items-center gap-1 rounded-full bg-orange-50 dark:bg-orange-900/20 px-2 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-400" title="An avoided volunteer is signed up">
+                                                            <x-heroicon-s-hand-raised class="w-3 h-3"/>
+                                                            Avoid here
+                                                        </span>
+                                                    @endif
+                                                    @endfeature
                                                 </div>
 
                                                 @if($shift->description)

@@ -96,6 +96,8 @@ class VolunteerEventController extends Controller
             'shifts' => $shifts,
             'userShifts' => $userShifts,
             'shiftConflicts' => $shiftConflicts,
+            'favoritedIds' => auth()->user()->favoritedUsers()->pluck('users.id')->all(),
+            'avoidedIds' => auth()->user()->avoidedUsers()->pluck('users.id')->all(),
         ]);
     }
 
@@ -145,9 +147,13 @@ class VolunteerEventController extends Controller
             abort(403, 'You are not eligible to view this shift.');
         }
 
+        $favoritedIds = auth()->user()->favoritedUsers()->pluck('users.id')->all();
+        $avoidedIds = auth()->user()->avoidedUsers()->pluck('users.id')->all();
+
         return view('events.shift-show', compact(
             'event', 'shift', 'signedUp', 'isFull', 'isPast',
-            'hasConflict', 'conflictingShifts', 'canSignUp'
+            'hasConflict', 'conflictingShifts', 'canSignUp',
+            'favoritedIds', 'avoidedIds'
         ));
     }
 

@@ -425,7 +425,7 @@
                             <x-feature-toggle 
                                 feature="one_off_events" 
                                 label="One-Off Events" 
-                                description="Simple event check-ins without shifts with fixed volunteer hours."
+                                description="Simple event check-ins without shifts with fixed volunteer hours. This is great for people to check-in for volunteer hours for things with static hours like training, meetings, and other events."
                                 :beta="feature_is_beta('one_off_events')" />
 
                             <x-feature-toggle 
@@ -437,13 +437,13 @@
                             <x-feature-toggle 
                                 feature="volunteer_events" 
                                 label="Volunteer Events" 
-                                description="Full event management with shifts and signups"
+                                description="Full event management with shifts and signups."
                                 :beta="feature_is_beta('volunteer_events')" />
 
                             <x-feature-toggle 
                                 feature="wordpress_integration" 
                                 label="WordPress Integration" 
-                                description="WordPress user authentication and linking"
+                                description="WordPress user authentication and linking. This is advanced and heavily recommended to leave disabled unless you understand how to configure this feature on the backend."
                                 :beta="feature_is_beta('wordpress_integration')" />
 
                             <x-feature-toggle 
@@ -457,6 +457,12 @@
                                 label="Recognition & Awards" 
                                 description="User recognition and awards management system with privacy controls"
                                 :beta="feature_is_beta('recognition')" />
+
+                            <x-feature-toggle 
+                                feature="volunteer_relationships" 
+                                label="Volunteer Relationships (Favorite & Avoid)" 
+                                description="Allow volunteers to mark other volunteers as favorite or avoid. Requires Volunteer Profiles to also be enabled."
+                                :beta="feature_is_beta('volunteer_relationships')" />
                         </div>
                     </div>
 
