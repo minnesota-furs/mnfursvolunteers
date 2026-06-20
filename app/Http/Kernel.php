@@ -65,6 +65,8 @@ class Kernel extends HttpKernel
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
         'precognitive' => \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
+        'scopes' => \Laravel\Passport\Http\Middleware\CheckScopes::class,
+        'scope' => \Laravel\Passport\Http\Middleware\CheckForAnyScope::class,
         'public.site' => \App\Http\Middleware\CheckPublicSiteEnabled::class,
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
