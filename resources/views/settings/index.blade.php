@@ -537,9 +537,21 @@
 
                             <div class="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                                 <p class="text-sm text-yellow-800 dark:text-yellow-200">
-                                    <strong>Note:</strong> When a blacklisted value is detected during user creation, the system will display: 
+                                    <strong>Note:</strong> When a blacklisted value is detected during user creation, the system will display:
                                     "This [field] is not allowed. Please contact a staff administrator if you believe this is an error."
                                 </p>
+                            </div>
+
+                            <!-- OAuth Provider -->
+                            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-1">OAuth Provider</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                    Let other applications offer "Sign in with {{ app_setting('app_name', config('app.name')) }}" by registering them as OAuth client apps.
+                                </p>
+                                <a href="{{ route('settings.oauth-setup') }}"
+                                    class="inline-flex items-center rounded-md bg-brand-green px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-green/90">
+                                    Manage OAuth Client Apps
+                                </a>
                             </div>
                         </div>
                     </div>

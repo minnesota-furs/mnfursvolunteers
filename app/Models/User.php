@@ -284,6 +284,18 @@ class User extends Authenticatable
         return $this->admin;
     }
 
+    /**
+     * Sanctum's HasApiTokens trait doesn't define this, but Passport's
+     * scope-checking middleware (CheckScopes/CheckForAnyScope) requires it.
+     * tokenCan() is already inherited from Sanctum and works for both:
+     * it just delegates to $this->accessToken->can(), which both
+     * Sanctum's PersonalAccessToken and Passport's Token implement.
+     */
+    public function token()
+    {
+        return $this->accessToken;
+    }
+
     public function hasPermission(string $permission): bool
     {
         $permissions = $this->permissions ?? [];

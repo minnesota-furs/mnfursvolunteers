@@ -208,6 +208,11 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::put('/', [\App\Http\Controllers\SettingsController::class, 'update'])->name('update');
         Route::delete('/reset-logo', [\App\Http\Controllers\SettingsController::class, 'resetLogo'])->name('reset-logo');
         Route::delete('/reset-favicon', [\App\Http\Controllers\SettingsController::class, 'resetFavicon'])->name('reset-favicon');
+
+        Route::get('/oauth-setup', [\App\Http\Controllers\OAuthSetupController::class, 'index'])->name('oauth-setup');
+        Route::post('/oauth-setup', [\App\Http\Controllers\OAuthSetupController::class, 'store'])->name('oauth-setup.store');
+        Route::delete('/oauth-setup/{client}', [\App\Http\Controllers\OAuthSetupController::class, 'destroy'])->name('oauth-setup.destroy');
+        Route::delete('/oauth-setup/{client}/tokens', [\App\Http\Controllers\OAuthSetupController::class, 'revokeTokens'])->name('oauth-setup.revoke-tokens');
     });
 
     // Tag Management (nested under settings)
