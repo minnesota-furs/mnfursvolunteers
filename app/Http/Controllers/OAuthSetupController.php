@@ -32,6 +32,7 @@ class OAuthSetupController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'redirect' => ['required', 'string'],
+            'confidential' => ['boolean'],
             'scopes' => ['array'],
             'scopes.*' => ['string', 'in:'.implode(',', Passport::scopeIds())],
         ]);
@@ -45,7 +46,7 @@ class OAuthSetupController extends Controller
             userId: null,
             name: $validated['name'],
             redirect: $redirects,
-            confidential: false,
+            confidential: $request->boolean('confidential'),
         );
 
         // An empty/missing selection is treated as "all scopes" (column
@@ -57,7 +58,20 @@ class OAuthSetupController extends Controller
 
         return redirect()->route('settings.oauth-setup')
             ->with('status', 'oauth-client-created')
-            ->with('new_client_id', $client->id);
+            ->with('new_client_id', $client->id)
+            ->with('new_client_secret', $client->plainSecret);
+    }
+
+    public function regenerateSecret(Client $client, ClientRepository $clients)
+    {
+        abort_unless($client->confidential(), 404);
+
+        $client = $clients->regenerateSecret($client);
+
+        return redirect()->route('settings.oauth-setup')
+            ->with('status', 'oauth-secret-regenerated')
+            ->with('new_client_id', $client->id)
+            ->with('new_client_secret', $client->plainSecret);
     }
 
     public function destroy(Client $client, ClientRepository $clients)

@@ -56,6 +56,8 @@ class AuthServiceProvider extends ServiceProvider
         // managed by admins at /settings/oauth-setup instead.
         $this->registerPassportRoutes();
 
+        Passport::hashClientSecrets();
+
         Passport::tokensExpireIn(now()->addDay());
         Passport::refreshTokensExpireIn(now()->addDays(30));
 

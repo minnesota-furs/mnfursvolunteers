@@ -213,6 +213,7 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::post('/oauth-setup', [\App\Http\Controllers\OAuthSetupController::class, 'store'])->name('oauth-setup.store');
         Route::delete('/oauth-setup/{client}', [\App\Http\Controllers\OAuthSetupController::class, 'destroy'])->name('oauth-setup.destroy');
         Route::delete('/oauth-setup/{client}/tokens', [\App\Http\Controllers\OAuthSetupController::class, 'revokeTokens'])->name('oauth-setup.revoke-tokens');
+        Route::post('/oauth-setup/{client}/regenerate-secret', [\App\Http\Controllers\OAuthSetupController::class, 'regenerateSecret'])->name('oauth-setup.regenerate-secret');
     });
 
     // Tag Management (nested under settings)
