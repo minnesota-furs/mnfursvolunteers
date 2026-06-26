@@ -17,7 +17,24 @@
                 <p class="text-sm text-green-800 dark:text-green-200 font-medium">OAuth client app created.</p>
                 <p class="text-sm text-green-800 dark:text-green-200 mt-1">
                     Client ID: <span class="font-mono">{{ session('new_client_id') }}</span>
-                    — this client has no secret and must authenticate using the Authorization Code grant with PKCE.
+                </p>
+                @if(session('new_client_secret'))
+                    <p class="text-sm text-green-800 dark:text-green-200 mt-1">
+                        Client Secret: <span class="font-mono">{{ session('new_client_secret') }}</span>.
+                        Copy this now, it will not be shown again.
+                    </p>
+                @else
+                    <p class="text-sm text-green-800 dark:text-green-200 mt-1">
+                        This client has no secret and must authenticate using the Authorization Code grant with PKCE.
+                    </p>
+                @endif
+            </div>
+        @elseif(session('status') === 'oauth-secret-regenerated')
+            <div class="px-4 py-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                <p class="text-sm text-green-800 dark:text-green-200 font-medium">Client secret regenerated.</p>
+                <p class="text-sm text-green-800 dark:text-green-200 mt-1">
+                    New Client Secret: <span class="font-mono">{{ session('new_client_secret') }}</span>
+                    — copy this now, it will not be shown again.
                 </p>
             </div>
         @elseif(session('status') === 'oauth-client-deleted')
@@ -35,11 +52,23 @@
             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Register a New OAuth Client App</h3>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
                 Register a trusted application that should be allowed to offer "Sign in with {{ app_setting('app_name', config('app.name')) }}".
-                Clients are created as public (PKCE) clients with no client secret.
+                By default clients are created as public (PKCE) clients with no client secret. Check the box below if
+                the other side requires a client secret (for example, Authentik's Federation &amp; Social Login sources
+                always authenticate as a confidential client).
             </p>
 
             <form method="POST" action="{{ route('settings.oauth-setup.store') }}" class="space-y-4 max-w-xl">
                 @csrf
+
+                <div class="flex items-start gap-2">
+                    <input type="checkbox" name="confidential" id="confidential" value="1"
+                        {{ old('confidential') ? 'checked' : '' }}
+                        class="mt-1 rounded border-gray-300 text-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600">
+                    <label for="confidential" class="text-sm text-gray-700 dark:text-gray-300">
+                        Require a client secret (confidential client)
+                        <span class="block text-xs text-gray-500">The secret is shown once, immediately after creation.</span>
+                    </label>
+                </div>
 
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Application Name</label>
@@ -72,7 +101,7 @@
                                     {{ in_array($scope->id, old('scopes', $availableScopes->pluck('id')->all())) ? 'checked' : '' }}
                                     class="mt-1 rounded border-gray-300 text-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600">
                                 <span class="text-sm text-gray-700 dark:text-gray-300">
-                                    <span class="font-mono">{{ $scope->id }}</span> &mdash; {{ $scope->description }}
+                                    <span class="font-mono">{{ $scope->id }}</span>: {{ $scope->description }}
                                 </span>
                             </label>
                         @endforeach
@@ -106,9 +135,21 @@
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $client->revoked ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' }}">
                                             {{ $client->revoked ? 'Revoked' : 'Active' }}
                                         </span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                                            {{ $client->confidential() ? 'Confidential' : 'Public (PKCE)' }}
+                                        </span>
                                     </div>
                                     <div class="flex items-center gap-3 text-sm font-medium">
                                         @unless($client->revoked)
+                                            @if($client->confidential())
+                                                <form action="{{ route('settings.oauth-setup.regenerate-secret', $client) }}" method="POST"
+                                                    onsubmit="return confirm('Regenerate the client secret? The old secret will stop working immediately.');">
+                                                    @csrf
+                                                    <button type="submit" class="text-blue-700 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
+                                                        Regenerate Secret
+                                                    </button>
+                                                </form>
+                                            @endif
                                             @if($client->active_token_count > 0)
                                                 <form action="{{ route('settings.oauth-setup.revoke-tokens', $client) }}" method="POST"
                                                     onsubmit="return confirm('Revoke all active tokens issued to this client? Signed-in users of this app will be signed out and need to re-authorize.');">
@@ -174,7 +215,7 @@
     <x-slot name="right">
         <p class="py-4">
             Registering an app here lets it use {{ app_setting('app_name', config('app.name')) }} as an OAuth 2.0 identity provider
-            via the Authorization Code grant with PKCE, no client secret required.
+            via the Authorization Code grant with PKCE. Clients are public (no secret) unless marked confidential.
         </p>
         <ul class="text-sm space-y-1 list-disc list-inside text-gray-600 dark:text-gray-400">
             <li>Authorization endpoint: <code>/oauth/authorize</code></li>
