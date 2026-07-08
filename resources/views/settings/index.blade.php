@@ -553,6 +553,18 @@
                                     Manage OAuth Client Apps
                                 </a>
                             </div>
+
+                            <!-- API Documentation -->
+                            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-1">API Documentation</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                    View the public API endpoints available for integrating with external tools, such as the upcoming shifts feed.
+                                </p>
+                                <a href="{{ route('settings.api-docs') }}"
+                                    class="inline-flex items-center rounded-md bg-brand-green px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-green/90">
+                                    View API Documentation
+                                </a>
+                            </div>
                         </div>
                     </div>
 

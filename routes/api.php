@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\JobListingController;
+use App\Http\Controllers\Api\ShiftController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,3 +48,7 @@ Route::middleware(['auth:api', 'scopes:identity'])->get('/oauth/user', function 
 
 
 Route::get('/job-listings', [JobListingController::class, 'index']);
+
+// Public feed of upcoming shifts for an event, e.g. for embedding on a
+// third-party signage board or external website widget.
+Route::get('/events/{event}/shifts/upcoming', [ShiftController::class, 'upcoming']);

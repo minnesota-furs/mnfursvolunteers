@@ -209,6 +209,8 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::delete('/reset-logo', [\App\Http\Controllers\SettingsController::class, 'resetLogo'])->name('reset-logo');
         Route::delete('/reset-favicon', [\App\Http\Controllers\SettingsController::class, 'resetFavicon'])->name('reset-favicon');
 
+        Route::view('/api-docs', 'settings.api-docs')->name('api-docs');
+
         Route::get('/oauth-setup', [\App\Http\Controllers\OAuthSetupController::class, 'index'])->name('oauth-setup');
         Route::post('/oauth-setup', [\App\Http\Controllers\OAuthSetupController::class, 'store'])->name('oauth-setup.store');
         Route::delete('/oauth-setup/{client}', [\App\Http\Controllers\OAuthSetupController::class, 'destroy'])->name('oauth-setup.destroy');
