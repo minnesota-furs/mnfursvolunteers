@@ -56,7 +56,7 @@
 
                     <!-- Volunteer flyout menu -->
                     <div class="relative" x-data="{ open: false }" @click.outside="open = false" @close.stop="open = false">
-                        <button @click="open = !open"
+                        <button id="tour-volunteer-menu-trigger" @click="open = !open"
                             class="inline-flex mt-5 pb-5 items-center gap-1 px-1 pt-1 border-b-2 {{ $volunteerActive ? 'border-white/50' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-100 dark:text-gray-400 hover:text-gray-200 dark:hover:text-gray-300 hover:border-white/25 dark:hover:border-gray-700 focus:outline-none transition duration-150 ease-in-out">
                             Volunteer
                             <svg class="h-4 w-4 transition-transform duration-150" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -76,7 +76,7 @@
                             style="display: none;">
                             <div class="p-2 space-y-0.5">
                                 @feature('volunteer_events')
-                                <a href="{{ route('volunteer.events.index') }}"
+                                <a href="{{ route('volunteer.events.index') }}" data-tour="tour-events-link"
                                     class="group flex items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 {{ request()->routeIs('volunteer.events.*') ? 'bg-gray-50 dark:bg-gray-700' : '' }}">
                                     <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition duration-150"
                                         style="background-color: {{ $primaryBg10 }}; color: {{ $primaryColor }};"
@@ -260,7 +260,7 @@
                             </x-dropdown-link>
                             @if( Auth::check() && Auth::user()->isAdmin() )
                             <div class="border-t border-gray-200 dark:border-gray-600"></div>
-                            <x-dropdown-link href="#" onclick="event.preventDefault(); window.MNFTour && window.MNFTour.start();">
+                            <x-dropdown-link href="#" onclick="event.preventDefault(); window.MNFTour && window.MNFTour.start('admin-setup');">
                                 <x-heroicon-o-map class="w-3.5 h-3.5 inline text-brand-green mr-1"/>{{ __('Start Guided Tour') }}
                             </x-dropdown-link>
                             @endif
@@ -413,7 +413,7 @@
 
             <!-- Hamburger -->
             <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-white dark:text-gray-500 hover:text-brand-green dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-brand-green dark:focus:text-gray-400 transition duration-150 ease-in-out">
+                <button id="tour-mobile-menu-trigger" @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-white dark:text-gray-500 hover:text-brand-green dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-brand-green dark:focus:text-gray-400 transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -461,7 +461,7 @@
                 </div>
                 <div class="space-y-1">
                     @feature('volunteer_events')
-                    <x-responsive-nav-link :href="route('volunteer.events.index')" :active="request()->routeIs('volunteer.events.*')">
+                    <x-responsive-nav-link :href="route('volunteer.events.index')" :active="request()->routeIs('volunteer.events.*')" data-tour="tour-events-link">
                         {{ __('Events') }}
                     </x-responsive-nav-link>
                     @endfeature
@@ -533,7 +533,7 @@
                     @endif
 
                     @can('manage-volunteer-events')
-                    <x-responsive-nav-link :href="route('admin.events.index')">
+                    <x-responsive-nav-link :href="route('admin.events.index')" data-tour="tour-volunteer-events-link">
                         {{ __('Volunteer Events') }}
                     </x-responsive-nav-link>
                     @endcan
@@ -545,7 +545,7 @@
                     @endcan
 
                     @if( Auth::user()->isAdmin() )
-                    <x-responsive-nav-link :href="route('ledger.index')">
+                    <x-responsive-nav-link :href="route('ledger.index')" data-tour="tour-ledgers-link">
                         {{ __('Ledgers') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('sectors.index')">
@@ -558,6 +558,9 @@
                     @if( Auth::user()->isAdmin() )
                     <x-responsive-nav-link :href="route('admin.custom-fields.index')">
                         {{ __('User Custom Fields') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link href="#" onclick="event.preventDefault(); window.MNFTour && window.MNFTour.start('admin-setup');">
+                        {{ __('Start Guided Tour') }}
                     </x-responsive-nav-link>
                     @endif
                 </div>

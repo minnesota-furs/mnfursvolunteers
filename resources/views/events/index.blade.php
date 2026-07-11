@@ -5,7 +5,12 @@
     </x-slot>
 
     <x-slot name="actions">
-        <a href="{{ route('volunteer.events.my-shifts-all') }}"
+        <a href="#" onclick="event.preventDefault(); window.MNFTour && window.MNFTour.start('volunteer-shifts');"
+            class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-brand-green shadow-sm hover:bg-gray-100 transition-colors">
+            <x-heroicon-o-map class="w-4 h-4"/>
+            Tour
+        </a>
+        <a id="tour-itinerary-btn" href="{{ route('volunteer.events.my-shifts-all') }}"
             class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-brand-green shadow-sm hover:bg-gray-100 transition-colors">
             <x-heroicon-m-list-bullet class="w-4 h-4"/>
             My Full Itinerary

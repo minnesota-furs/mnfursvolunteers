@@ -12,7 +12,11 @@
         && (empty($requiredDeptIds) || !empty(array_intersect($requiredDeptIds, $userDeptIds)));
 @endphp
 
+@php
+    $tourSignable = !$dimmed && $isEligible && $isSignupOpen && $spots !== 0;
+@endphp
 <a href="{{ route('volunteer.events.show', $event) }}"
+   @if($tourSignable) data-tour="tour-event-card" @endif
    class="group block bg-white dark:bg-gray-800 rounded-xl border shadow-sm hover:border-brand-green dark:hover:border-brand-green hover:shadow-md transition-all mb-4
           {{ $dimmed ? 'border-gray-200 dark:border-gray-700 opacity-75' : 'border-gray-200 dark:border-gray-700' }}">
     <div class="p-5">

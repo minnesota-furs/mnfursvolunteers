@@ -5,7 +5,7 @@
     </x-slot>
 
     <x-slot name="actions">
-        <a href="{{ route('volunteer.events.index') }}"
+        <a id="tour-back-to-events-btn" href="{{ route('volunteer.events.index') }}"
             class="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-white hover:bg-white/10 transition-colors">
             <x-heroicon-m-arrow-left class="w-4 h-4"/>
             Back
@@ -353,7 +353,7 @@
                             </div>
 
                             {{-- Shifts for this day --}}
-                            <div class="space-y-3 pl-1 border-l-2 border-gray-200 dark:border-gray-700 ml-6">
+                            <div class="space-y-3 pl-1 border-l-2 border-gray-200 dark:border-gray-700 ml-2 sm:ml-6">
                                 @foreach($dayShifts as $shift)
                                     @php
                                         $isFull      = $shift->users->count() >= $shift->max_volunteers;
@@ -367,7 +367,7 @@
                                         $hasAvoided  = !empty(array_intersect($shiftUserIds, $avoidedIds ?? []));
                                     @endphp
 
-                                    <div class="ml-4 rounded-xl border shadow-sm transition-shadow hover:shadow-md
+                                    <div class="ml-2 sm:ml-4 rounded-xl border shadow-sm transition-shadow hover:shadow-md
                                         {{ $signedUp ? 'border-blue-300 dark:border-blue-700 bg-blue-50/60 dark:bg-blue-900/10'
                                                      : ($isPast || $isFull ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 opacity-70'
                                                                            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800') }}"
@@ -379,13 +379,13 @@
                                         x-transition:leave-start="opacity-100"
                                         x-transition:leave-end="opacity-0">
 
-                                        <div class="flex items-start gap-4 p-4">
+                                        <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 p-3 sm:p-4">
 
                                             {{-- Time column --}}
-                                            <div class="flex-shrink-0 w-20 text-center pt-0.5">
+                                            <div class="flex items-baseline gap-x-2 gap-y-0.5 flex-wrap sm:flex-shrink-0 sm:w-20 sm:flex-col sm:items-center sm:gap-x-0 sm:text-center sm:pt-0.5">
                                                 <p class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ $shift->start_time->format('g:i') }}<span class="text-xs font-normal ml-0.5">{{ $shift->start_time->format('A') }}</span></p>
-                                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ $shift->end_time->format('g:i A') }}</p>
-                                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ round($shift->durationInHours(), 1) }}h</p>
+                                                <p class="text-xs text-gray-400 dark:text-gray-500">{{ $shift->end_time->format('g:i A') }}</p>
+                                                <p class="text-xs text-gray-400 dark:text-gray-500">{{ round($shift->durationInHours(), 1) }}h</p>
                                             </div>
 
                                             {{-- Details column --}}
@@ -442,7 +442,7 @@
                                             </div>
 
                                             {{-- Action column --}}
-                                            <div class="flex-shrink-0 flex items-start pt-0.5">
+                                            <div class="flex-shrink-0 flex items-start sm:pt-0.5">
                                                 @if($isPast)
                                                     <span class="inline-flex items-center gap-1 rounded-md bg-gray-100 dark:bg-gray-700 px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400">
                                                         <x-heroicon-m-clock class="w-3.5 h-3.5"/>
@@ -478,7 +478,7 @@
                                                     @if($canSignUp)
                                                         <form action="{{ route('shifts.signup', $shift) }}" method="POST">
                                                             @csrf
-                                                            <button type="submit"
+                                                            <button type="submit" data-tour="tour-signup-btn" data-shift-id="{{ $shift->id }}"
                                                                 class="inline-flex items-center gap-1 rounded-md bg-brand-green hover:bg-green-700 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors">
                                                                 <x-heroicon-m-plus class="w-3.5 h-3.5"/>
                                                                 Sign Up

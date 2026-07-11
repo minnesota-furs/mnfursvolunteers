@@ -195,10 +195,10 @@
                                             @if(auth()->user()->isAdmin() || auth()->user()->can('update', $event))
                                                 {{-- Mobile: single ••• dropdown --}}
                                                 <div class="sm:hidden">
-                                                    <x-tailwind-dropdown buttonClass="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-blue-600 dark:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/30" label="•••" id="{{ $event->id + 9000 }}">
+                                                    <x-tailwind-dropdown buttonClass="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-blue-600 dark:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/30" label="•••" id="{{ $event->id + 9000 }}" data-tour="row-menu-trigger">
                                                         <div class="py-1" role="none">
                                                             <x-tailwind-dropdown-item href="{{route('admin.events.edit', $event->id)}}" title="Edit Event Details"><x-heroicon-o-pencil class="w-4 inline"/> Edit Event</x-tailwind-dropdown-item>
-                                                            <x-tailwind-dropdown-item href="{{route('admin.events.shifts.index', $event->id)}}" title="Manage Shifts"><x-heroicon-o-clock class="w-4 inline"/> Manage Shifts</x-tailwind-dropdown-item>
+                                                            <x-tailwind-dropdown-item href="{{route('admin.events.shifts.index', $event->id)}}" title="Manage Shifts" data-tour="manage-shifts-link"><x-heroicon-o-clock class="w-4 inline"/> Manage Shifts</x-tailwind-dropdown-item>
                                                             <button type="button"
                                                                 onclick="window.dispatchEvent(new CustomEvent('open-event-duplicate-modal', { detail: { id: {{ $event->id }}, name: '{{ addslashes($event->name) }}', shiftsCount: {{ $event->shifts->count() }}, startDate: '{{ $event->start_date->toIso8601String() }}', endDate: '{{ $event->end_date->toIso8601String() }}' } }))"
                                                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200">
