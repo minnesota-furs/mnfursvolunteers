@@ -16,7 +16,7 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
     <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/darkmode.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/darkmode.js', 'resources/js/tour.js'])
     <script>
         // yes i know this is redundant but we need it here to make sure it has priority.
         // without it, there will be a brief moment where the light theme flashes on the screen before switching to dark mode. this is annoying.
@@ -25,6 +25,8 @@
         {
             document.documentElement.classList.add('dark');
         }
+        window.tourRouteName = @json(request()->route()?->getName());
+        window.tourHasErrors = @json($errors->any());
     </script>
 </head>
 

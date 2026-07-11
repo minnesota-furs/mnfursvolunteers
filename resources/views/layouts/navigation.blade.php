@@ -202,7 +202,7 @@
 
                     <x-dropdown align="left" width="48">
                         <x-slot name="trigger">
-                            <button class="inline-flex mt-5 pb-5 items-center px-1 pt-1 border-b-2 border-transparent hover:underline text-sm font-medium leading-5 text-gray-100 dark:text-gray-400 hover:text-gray-200 dark:hover:text-gray-300 hover:border-white/25 dark:hover:border-gray-700 focus:outline-none focus:text-gray-100 dark:focus:text-gray-300 focus:border-gray-100 dark:focus:border-gray-700 transition duration-150 ease-in-out">
+                            <button id="tour-settings-trigger" class="inline-flex mt-5 pb-5 items-center px-1 pt-1 border-b-2 border-transparent hover:underline text-sm font-medium leading-5 text-gray-100 dark:text-gray-400 hover:text-gray-200 dark:hover:text-gray-300 hover:border-white/25 dark:hover:border-gray-700 focus:outline-none focus:text-gray-100 dark:focus:text-gray-300 focus:border-gray-100 dark:focus:border-gray-700 transition duration-150 ease-in-out">
                                 <div>Settings</div>
                             </button>
                         </x-slot>
@@ -223,7 +223,7 @@
                             {{-- <x-dropdown-link :href="route('admin.manager-dashboard')">
                                 <x-heroicon-s-signal class="w-3.5 h-3.5 inline text-green-500 mr-1"/>{{ __('Manager Dashboard') }}
                             </x-dropdown-link> --}}
-                            <x-dropdown-link :href="route('admin.events.index')">
+                            <x-dropdown-link :href="route('admin.events.index')" data-tour="tour-volunteer-events-link">
                                 {{ __('Volunteer Events') }}
                             </x-dropdown-link>
                             @endcan
@@ -248,7 +248,7 @@
                             @endfeature
 
                             @if( Auth::check() && Auth::user()->isAdmin() )
-                            <x-dropdown-link :href="route('ledger.index')">
+                            <x-dropdown-link :href="route('ledger.index')" data-tour="tour-ledgers-link">
                                 {{ __('Ledgers') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('sectors.index')">
@@ -258,6 +258,12 @@
                             <x-dropdown-link :href="route('departments.index')">
                                 {{ __('Departments') }}
                             </x-dropdown-link>
+                            @if( Auth::check() && Auth::user()->isAdmin() )
+                            <div class="border-t border-gray-200 dark:border-gray-600"></div>
+                            <x-dropdown-link href="#" onclick="event.preventDefault(); window.MNFTour && window.MNFTour.start();">
+                                <x-heroicon-o-map class="w-3.5 h-3.5 inline text-brand-green mr-1"/>{{ __('Start Guided Tour') }}
+                            </x-dropdown-link>
+                            @endif
                         </x-slot>
                     </x-dropdown>
                 </div>

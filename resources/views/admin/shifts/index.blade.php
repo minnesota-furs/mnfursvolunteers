@@ -53,7 +53,7 @@
 
         {{-- Split button: Create Shift Series (primary) + dropdown for Create New Shift --}}
         <div class="relative inline-flex rounded-md shadow-md">
-            <a href="{{ route('admin.events.shifts.create-series', $event) }}"
+            <a id="tour-create-series-btn" href="{{ route('admin.events.shifts.create-series', $event) }}"
                 class="rounded-l-md bg-white px-3 py-2 text-sm font-semibold text-brand-green hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green whitespace-nowrap">
                 <x-heroicon-o-queue-list class="w-4 inline -mt-0.5"/> Create Shift Series
             </a>

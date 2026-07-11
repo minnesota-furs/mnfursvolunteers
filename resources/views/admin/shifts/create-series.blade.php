@@ -293,7 +293,7 @@
                         class="rounded-md bg-gray-400 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500">
                         Cancel
                     </a>
-                    <button type="submit"
+                    <button type="submit" id="tour-series-save-btn"
                         :disabled="previewShifts.length === 0 || !!previewError"
                         class="rounded-md bg-brand-green px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">
                         <x-heroicon-s-plus class="w-4 inline -mt-0.5 mr-1"/>

@@ -9,6 +9,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/darkmode.js',
                 'resources/js/custom-fields-sortable.js',
+                'resources/js/tour.js',
             ],
             refresh: true,
         }),

@@ -11,7 +11,7 @@
             <x-heroicon-s-signal class="w-4 inline"/> Manager Overview
         </a>
         @endcan
-        <a href="{{route('admin.events.create')}}"
+        <a id="tour-create-event-btn" href="{{route('admin.events.create')}}"
             class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-s-plus class="w-4 inline"/> Create New Event
         </a>
@@ -83,7 +83,7 @@
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
                                     @forelse ($events as $event)
-                                    <tr>
+                                    <tr data-tour-event-name="{{ $event->name }}">
                                         <td class="py-4 pl-4 pr-3 text-sm sm:pl-0">
                                             <span class="font-extrabold {{ $event->hasPast() ? 'text-gray-400' : '' }}">
                                                 {{$event->name}}
@@ -225,7 +225,7 @@
                                                 {{-- Desktop: Edit + Manage Shifts + Manage dropdown --}}
                                                 <div class="hidden sm:flex sm:items-center sm:gap-0">
                                                     <a href="{{ route('admin.events.edit', $event) }}" class="text-blue-600 dark:text-blue-200 px-2 hover:underline whitespace-nowrap"><x-heroicon-s-pencil class="w-3 h-3 inline-block align-middle"/> Edit</a>
-                                                    <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-blue-600 dark:text-blue-200 px-2 hover:underline whitespace-nowrap"><x-heroicon-m-clock class="w-3 h-3 inline-block align-middle"/> Manage Shifts</a>
+                                                    <a href="{{ route('admin.events.shifts.index', $event) }}" data-tour="manage-shifts-link" class="text-blue-600 dark:text-blue-200 px-2 hover:underline whitespace-nowrap"><x-heroicon-m-clock class="w-3 h-3 inline-block align-middle"/> Manage Shifts</a>
 
                                                 <x-tailwind-dropdown buttonClass="dropdown-link text-blue-600 dark:text-blue-200" label="Manage" id="{{ $event->id }}">
                                                     <div class="py-1" role="none">

@@ -1,0 +1,118 @@
+/* Guided admin tour: bottom banner + click-target glow */
+
+@keyframes mnf-tour-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(0, 120, 72, 0.65), 0 0 0 0 rgba(0, 120, 72, 0.35);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(0, 120, 72, 0.25), 0 0 20px 10px rgba(0, 120, 72, 0.45);
+    }
+}
+
+.mnf-tour-glow {
+    position: relative;
+    z-index: 60;
+    border-radius: 0.375rem;
+    outline: 2px solid #007848;
+    outline-offset: 2px;
+    animation: mnf-tour-pulse 1.6s ease-in-out infinite;
+}
+
+.mnf-tour-banner {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 70;
+    background-color: #007848;
+    color: #ffffff;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.25);
+    padding: 0.875rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.875rem;
+}
+
+.dark .mnf-tour-banner {
+    background-color: #00543a;
+}
+
+.mnf-tour-banner__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+    flex: 1 1 320px;
+}
+
+.mnf-tour-banner__title {
+    font-weight: 700;
+    font-size: 0.9375rem;
+}
+
+.mnf-tour-banner__desc {
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.35;
+}
+
+.mnf-tour-banner__hint {
+    margin-top: 0.25rem;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.75rem;
+    font-style: italic;
+}
+
+.mnf-tour-banner__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+}
+
+.mnf-tour-banner__step {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    margin-right: 0.25rem;
+}
+
+.mnf-tour-btn {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 0.375rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.mnf-tour-btn--primary {
+    background-color: #ffffff;
+    color: #007848;
+}
+
+.mnf-tour-btn--primary:hover {
+    background-color: #e6f4ee;
+}
+
+.mnf-tour-btn--ghost {
+    background-color: transparent;
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.mnf-tour-btn--ghost:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+@media (max-width: 640px) {
+    .mnf-tour-banner {
+        padding: 0.75rem 1rem;
+    }
+}
