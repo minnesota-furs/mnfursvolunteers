@@ -35,7 +35,7 @@ class VolunteerHours extends Model
 
     public function fiscalLedger()
     {
-        return $this->belongsTo(FiscalLedger::class);
+        return $this->belongsTo(FiscalLedger::class)->withTrashed();
     }
 
     /**

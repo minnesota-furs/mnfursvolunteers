@@ -31,7 +31,7 @@ class VolunteerPerkSet extends Model
 
     public function fiscalLedger(): BelongsTo
     {
-        return $this->belongsTo(FiscalLedger::class);
+        return $this->belongsTo(FiscalLedger::class)->withTrashed();
     }
 
     public function perks(): HasMany

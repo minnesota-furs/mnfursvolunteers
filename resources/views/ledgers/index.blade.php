@@ -51,7 +51,7 @@
                                     @forelse ($ledgers as $ledger)
                                     <tr>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                            <a class="text-blue-700" href="{{route('ledger.edit', $ledger->id)}}">{{$ledger->name}}</a>
+                                            <a class="text-blue-700" href="{{route('ledger.show', $ledger->id)}}">{{$ledger->name}}</a>
                                         </td>
                                         <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0 text-center">
                                             {{format_hours($ledger->totalVolunteerHours())}}
@@ -69,7 +69,7 @@
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center" colspan="4">
+                                        <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center" colspan="5">
                                             <p class="">No ledgers found</p>
                                             <p class="text-xs">(You should create one)</p>
                                         </td>

@@ -3,6 +3,15 @@
         {{ __('Edit Ledger') }}
     </x-slot>
 
+    <x-slot name="actions">
+        @if (Auth::user()->isAdmin())
+            <a href="{{ route('ledger.delete_confirm', $ledger->id) }}"
+                class="block rounded-md bg-red-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-md hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                <x-heroicon-s-trash class="w-4 inline" /> Delete
+            </a>
+        @endif
+    </x-slot>
+
     <div class="py-6d">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <form action="{{ route('ledger.update', $ledger->id) }}" method="POST">

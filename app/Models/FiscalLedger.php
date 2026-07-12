@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FiscalLedger extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = ['name', 'start_date', 'end_date'];
 
@@ -26,6 +27,11 @@ class FiscalLedger extends Model
     public function volunteerHours()
     {
         return $this->hasMany(VolunteerHours::class);
+    }
+
+    public function elections()
+    {
+        return $this->hasMany(Election::class);
     }
 
     /**

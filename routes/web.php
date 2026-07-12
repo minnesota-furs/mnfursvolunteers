@@ -263,6 +263,7 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::resource('sectors', SectorController::class);
         // Ledger
         Route::get('/ledgers/{id}/export-csv', [FiscalLedgerController::class, 'exportCsv'])->name('ledgers.export-csv');
+        Route::get('/ledger/{id}/delete', [FiscalLedgerController::class, 'delete'])->name('ledger.delete_confirm');
         Route::resource('ledger', FiscalLedgerController::class);
     });
 

@@ -93,8 +93,21 @@ class FiscalLedgerController extends Controller
         }
 
         $ledger = FiscalLedger::findOrFail($id);
-        return view('ledger.show', [
-            'ledger' => $ledger
+
+        $topVolunteers = $ledger->volunteerHours()
+            ->selectRaw('user_id, SUM(hours) as total_hours')
+            ->groupBy('user_id')
+            ->orderByDesc('total_hours')
+            ->with('user')
+            ->take(10)
+            ->get();
+
+        return view('ledgers.show', [
+            'ledger'          => $ledger,
+            'volunteerCount'  => $ledger->volunteerHours()->distinct('user_id')->count('user_id'),
+            'entryCount'      => $ledger->volunteerHours()->count(),
+            'electionCount'   => $ledger->elections()->count(),
+            'topVolunteers'   => $topVolunteers,
         ]);
     }
 
@@ -144,11 +157,39 @@ class FiscalLedgerController extends Controller
     }
 
     /**
+     * Show a confirmation page before deleting the resource.
+     */
+    public function delete(string $id)
+    {
+        if (Auth::check() && !Auth::user()->isAdmin()) {
+            abort(401);
+        }
+
+        $ledger = FiscalLedger::findOrFail($id);
+
+        return view('ledgers.delete_confirm', [
+            'ledger'        => $ledger,
+            'hoursCount'    => $ledger->volunteerHours()->count(),
+            'electionCount' => $ledger->elections()->count(),
+        ]);
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        //
+        if (Auth::check() && !Auth::user()->isAdmin()) {
+            abort(401);
+        }
+
+        $ledger = FiscalLedger::findOrFail($id);
+        $ledger->delete();
+
+        return redirect()->route('ledger.index')
+            ->with('success', [
+                'message' => "Ledger <span class=\"text-brand-red\">{$ledger->name}</span> deleted successfully",
+            ]);
     }
 
     public function exportCsv($id)
