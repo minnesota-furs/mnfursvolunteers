@@ -157,11 +157,11 @@
                              x-transition:leave="transition ease-in duration-75"
                              x-transition:leave-start="opacity-100 scale-100"
                              x-transition:leave-end="opacity-0 scale-95"
-                             class="absolute z-50 mt-2 w-[480px] rounded-xl shadow-xl ltr:origin-top-left start-0"
+                             class="absolute z-50 mt-2 w-[680px] rounded-xl shadow-xl ltr:origin-top-left start-0"
                              style="display: none;"
                              @click="open = false">
                             <div class="rounded-xl ring-1 ring-black ring-opacity-5 bg-white dark:bg-gray-700 overflow-hidden">
-                                <div class="grid grid-cols-2 divide-x divide-gray-200 dark:divide-gray-600">
+                                <div class="grid grid-cols-3 divide-x divide-gray-200 dark:divide-gray-600">
                                     {{-- Users column --}}
                                     <div class="p-4">
                                         <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-2 px-2">Users</p>
@@ -192,6 +192,14 @@
                                         <a href="{{ route('report.noShows') }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
                                             <x-heroicon-o-x-circle class="w-4 h-4 shrink-0 text-gray-400"/>
                                             No-Shows
+                                        </a>
+                                    </div>
+                                    {{-- Other column --}}
+                                    <div class="p-4">
+                                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-2 px-2">Other</p>
+                                        <a href="{{ route('report.departmentsWithoutHead') }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                                            <x-heroicon-o-building-office class="w-4 h-4 shrink-0 text-gray-400"/>
+                                            Departments Without Head
                                         </a>
                                     </div>
                                 </div>
@@ -515,6 +523,12 @@
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('report.noShows')">
                         {{ __('No-Shows') }}
+                    </x-responsive-nav-link>
+                    <div class="px-4 pt-3 pb-1">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Other</p>
+                    </div>
+                    <x-responsive-nav-link :href="route('report.departmentsWithoutHead')">
+                        {{ __('Departments Without Head') }}
                     </x-responsive-nav-link>
                 </div>
             </div>

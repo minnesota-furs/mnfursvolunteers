@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Event;
 use App\Models\Shift;
+use App\Models\Department;
 use App\Models\FiscalLedger;
 use App\Models\UserRelationship;
 
@@ -393,6 +394,40 @@ class ReportsController extends Controller
         return view('reports.new-signups-no-shifts', compact(
             'users', 'search', 'sort', 'direction', 'days',
             'totalLast30', 'totalLast60', 'totalAllTime'
+        ));
+    }
+
+    public function departmentsWithoutHead(Request $request)
+    {
+        $reportTitle = 'Departments Without Head';
+        $reportDescription = 'This report lists all departments that do not have a head assigned.';
+        $search = $request->input('search');
+
+        $sort = $request->input('sort', 'name');
+        $direction = $request->input('direction', 'asc');
+
+        $allowedSorts = ['name', 'created_at'];
+        if (!in_array($sort, $allowedSorts)) {
+            $sort = 'name';
+        }
+        if (!in_array($direction, ['asc', 'desc'])) {
+            $direction = 'asc';
+        }
+
+        $query = Department::query()
+            ->doesntHave('heads')
+            ->with('sector');
+
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $query->orderBy($sort, $direction);
+
+        $departments = $query->paginate(25)->withQueryString();
+
+        return view('reports.departments-without-head', compact(
+            'departments', 'search', 'sort', 'direction', 'reportTitle', 'reportDescription'
         ));
     }
 

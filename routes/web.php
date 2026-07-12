@@ -247,6 +247,7 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::delete('/volunteer-relationships/{relationship}', [ReportsController::class, 'destroyRelationship'])->name('volunteerRelationships.destroy');
         Route::get('/no-shows', [ReportsController::class, 'noShows'])->name('noShows');
         Route::get('/new-signups-no-shifts', [ReportsController::class, 'newSignupsWithNoShifts'])->name('newSignupsWithNoShifts');
+        Route::get('/departments-without-head', [ReportsController::class, 'departmentsWithoutHead'])->name('departmentsWithoutHead');
     });
 
     // Departments
