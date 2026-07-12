@@ -21,6 +21,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Managed Hosting Paid-Through Date
+    |--------------------------------------------------------------------------
+    |
+    | For clients on managed hosting plans, set this to the date their
+    | hosting is paid through. When set, a "Managed Hosting" tab appears
+    | in Application Settings showing this information.
+    |
+    */
+
+    'hosting_paid_through' => env('HOSTING_PAID_THROUGH'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

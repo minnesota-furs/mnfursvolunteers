@@ -47,6 +47,9 @@
                     <option value="security">Security</option>
                     <option value="import-export">Import/Export</option>
                     <option value="volunteers">Volunteers</option>
+                    @if($hostingInfo)
+                        <option value="hosting">Managed Hosting</option>
+                    @endif
                     <option value="information">Information</option>
                 </select>
             </div>
@@ -83,6 +86,13 @@
                     class="whitespace-nowrap border-b-2 py-4 px-1 mr-8 text-sm font-medium flex-shrink-0">
                     Volunteers
                 </button>
+                @if($hostingInfo)
+                    <button @click="activeTab = 'hosting'" type="button"
+                        :class="activeTab === 'hosting' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                        class="whitespace-nowrap border-b-2 py-4 px-1 mr-8 text-sm font-medium flex-shrink-0">
+                        Managed Hosting
+                    </button>
+                @endif
                 <button @click="activeTab = 'information'" type="button"
                     :class="activeTab === 'information' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
                     class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium flex-shrink-0">
@@ -699,6 +709,65 @@
                             </a>
                         </div>
                     </div>
+
+                    @if($hostingInfo)
+                        <!-- Managed Hosting Tab -->
+                        <div x-show="activeTab === 'hosting'" x-cloak>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Managed Hosting</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">This application is on a managed hosting plan. Below is your current billing status.</p>
+
+                            <div class="max-w-md rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                                <dl class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <dt class="text-sm text-gray-500 dark:text-gray-400">Status</dt>
+                                        <dd>
+                                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                                                @if($hostingInfo['status'] === 'active') bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300
+                                                @elseif($hostingInfo['status'] === 'expiring_soon') bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300
+                                                @else bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300
+                                                @endif">
+                                                @if($hostingInfo['status'] === 'active')
+                                                    Active
+                                                @elseif($hostingInfo['status'] === 'expiring_soon')
+                                                    Expiring Soon
+                                                @else
+                                                    Expired
+                                                @endif
+                                            </span>
+                                        </dd>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <dt class="text-sm text-gray-500 dark:text-gray-400">Paid Through</dt>
+                                        <dd class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $hostingInfo['date']->format('F j, Y') }}</dd>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <dt class="text-sm text-gray-500 dark:text-gray-400">
+                                            @if($hostingInfo['days_remaining'] < 0)
+                                                Days Overdue
+                                            @else
+                                                Days Remaining
+                                            @endif
+                                        </dt>
+                                        <dd class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ abs($hostingInfo['days_remaining']) }}</dd>
+                                    </div>
+                                </dl>
+                            </div>
+
+                            @if($hostingInfo['status'] === 'expired')
+                                <div class="mt-4 max-w-md p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                                    <p class="text-sm text-red-800 dark:text-red-200">
+                                        Your hosting is past due. Please contact your hosting provider to renew.
+                                    </p>
+                                </div>
+                            @elseif($hostingInfo['status'] === 'expiring_soon')
+                                <div class="mt-4 max-w-md p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                                    <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                                        Your hosting is expiring soon. Please contact your hosting provider to renew.
+                                    </p>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
 
                     <!-- Information Tab -->
                     <div x-show="activeTab === 'information'" x-cloak>

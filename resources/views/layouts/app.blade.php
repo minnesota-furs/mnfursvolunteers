@@ -31,6 +31,15 @@
 </head>
 
 <body class="min-h-full">
+    @php
+        $__hostingInfo = (Auth::check() && Auth::user()->isAdmin()) ? hosting_info() : null;
+    @endphp
+    @if ($__hostingInfo && $__hostingInfo['status'] === 'expired')
+        <div class="bg-red-600 text-white text-center text-sm font-semibold py-2 px-4 print:hidden">
+            Managed hosting payment is past due (paid through {{ $__hostingInfo['date']->format('F j, Y') }}).
+            <a href="{{ route('settings.index') }}" class="underline hover:no-underline">View details</a>
+        </div>
+    @endif
     @if (filter_var(env('DEMO', false), FILTER_VALIDATE_BOOLEAN))
         <div class="pointer-events-none fixed left-0 top-0 z-50 h-24 w-24 overflow-hidden">
             <a href="{{ route('demo') }}" class="pointer-events-auto absolute left-[-38px] top-[14px] w-40 -rotate-45 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 text-center text-xs font-bold tracking-widest text-white shadow-lg" aria-label="Demo information">

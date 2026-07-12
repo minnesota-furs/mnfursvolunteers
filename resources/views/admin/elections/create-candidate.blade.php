@@ -129,6 +129,15 @@
                                     <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Settings</dt>
                                     <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
                                         <div class="space-y-3">
+                                            <div class="flex items-center">
+                                                <input type="checkbox" name="notify_candidate" id="notify_candidate" value="1"
+                                                    class="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green"
+                                                    {{ old('notify_candidate', true) ? 'checked' : '' }}>
+                                                <label for="notify_candidate" class="ml-2 text-sm text-gray-900 dark:text-gray-100">
+                                                    Notify the user (email &amp; in-app notification) that they were nominated
+                                                </label>
+                                            </div>
+
                                             @if($election->requires_approval)
                                                 <div class="flex items-center">
                                                     <input type="checkbox" name="approved" id="approved" value="1"

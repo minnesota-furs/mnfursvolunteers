@@ -110,3 +110,38 @@ if (!function_exists('feature_is_beta')) {
         return app(\App\Services\FeatureService::class)->isBeta($feature);
     }
 }
+
+if (!function_exists('hosting_info')) {
+    /**
+     * Get managed hosting paid-through information, if configured.
+     *
+     * @return array{date: \Illuminate\Support\Carbon, days_remaining: int, status: string}|null
+     */
+    function hosting_info(): ?array
+    {
+        $paidThrough = config('app.hosting_paid_through');
+
+        if (empty($paidThrough)) {
+            return null;
+        }
+
+        try {
+            $date = \Illuminate\Support\Carbon::parse($paidThrough)->startOfDay();
+        } catch (\Throwable) {
+            return null;
+        }
+
+        $today = \Illuminate\Support\Carbon::today();
+        $daysRemaining = $today->diffInDays($date, false);
+
+        return [
+            'date' => $date,
+            'days_remaining' => $daysRemaining,
+            'status' => match (true) {
+                $daysRemaining < 0 => 'expired',
+                $daysRemaining <= 14 => 'expiring_soon',
+                default => 'active',
+            },
+        ];
+    }
+}

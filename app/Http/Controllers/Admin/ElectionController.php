@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Parsedown;
 use App\Mail\VotingReminder;
+use App\Mail\CandidateNomination;
 use App\Models\CommunicationLog;
+use App\Notifications\AppNotification;
 
 class ElectionController extends Controller
 {
@@ -258,6 +260,56 @@ class ElectionController extends Controller
             'statement' => $request->statement,
             'approved' => $request->has('approved') ? true : !$election->requires_approval,
         ]);
+
+        if ($request->has('notify_candidate')) {
+            $user->notify(new AppNotification(
+                title: "You've been nominated as a candidate",
+                message: "You were nominated as a candidate in the \"{$election->title}\" election.",
+                url: route('elections.show', $election->id),
+            ));
+
+            try {
+                Mail::to($user->email)->send(new CandidateNomination($user, $election));
+
+                CommunicationLog::create([
+                    'user_id' => $user->id,
+                    'type' => 'email',
+                    'subject' => "You've been nominated as a candidate in {$election->title}",
+                    'message' => "Candidate nomination notice for election: {$election->title}",
+                    'recipient_email' => $user->email,
+                    'status' => 'sent',
+                    'sent_by' => auth()->id(),
+                    'metadata' => [
+                        'email_type' => 'candidate_nomination',
+                        'election_id' => $election->id,
+                        'election_title' => $election->title,
+                    ],
+                ]);
+            } catch (\Exception $e) {
+                CommunicationLog::create([
+                    'user_id' => $user->id,
+                    'type' => 'email',
+                    'subject' => "You've been nominated as a candidate in {$election->title}",
+                    'message' => "Candidate nomination notice for election: {$election->title}",
+                    'recipient_email' => $user->email,
+                    'status' => 'failed',
+                    'sent_by' => auth()->id(),
+                    'metadata' => [
+                        'email_type' => 'candidate_nomination',
+                        'election_id' => $election->id,
+                        'election_title' => $election->title,
+                        'error' => $e->getMessage(),
+                    ],
+                ]);
+
+                Log::error('Failed to send candidate nomination email', [
+                    'election_id' => $election->id,
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         return redirect()->route('admin.elections.candidates', $election)
             ->with('success', [

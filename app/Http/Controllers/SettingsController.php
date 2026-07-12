@@ -16,8 +16,9 @@ class SettingsController extends Controller
     {
         $settings = ApplicationSetting::getAllGrouped();
         $sysInfo = $this->gatherSystemInfo();
+        $hostingInfo = hosting_info();
 
-        return view('settings.index', compact('settings', 'sysInfo'));
+        return view('settings.index', compact('settings', 'sysInfo', 'hostingInfo'));
     }
 
     /**
