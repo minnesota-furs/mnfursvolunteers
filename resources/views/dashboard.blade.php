@@ -70,7 +70,7 @@
 
             <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow-lg sm:p-6">
-                    <dt class="text-xl font-bold mb-1 text-gray-500 dark:text-gray-400">Upcoming Volunteer Events
+                    <dt class="text-xl font-bold mb-1 text-gray-500 dark:text-gray-400">Upcoming Volunteer Opportunities
                         ({{ $upcomingEvents->count() }})</dt>
                     <p class="text-sm text-gray-400 dark:text-gray-500 mb-3">These events and departments are looking for volunteers!</p>
                     <dd class="mt-1">
@@ -104,7 +104,7 @@
                     </dd>
                 </div>
                 <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow-lg sm:p-6">
-                    <dt class="text-xl font-bold mb-1 text-gray-500 dark:text-gray-400">Your Upcoming Volunteer Slots
+                    <dt class="text-xl font-bold mb-1 text-gray-500 dark:text-gray-400">Your Upcoming Volunteer Assignments
                         ({{ $upcomingShifts->flatten()->count() }})</dt>
                     <p class="text-sm text-gray-400 dark:text-gray-500 mb-3">Shifts you've signed up for across upcoming events.</p>
                     <dd class="mt-1">

@@ -1,5 +1,8 @@
 <x-app-layout>
     @auth
+        @php
+            $canViewSensitiveInfo = Auth::user()->can('manage-users') || Auth::id() === $user->id;
+        @endphp
         @section('title', 'Users - View ' . $user->name)
         <x-slot name="header">
             {{ __('Volunteer: ') }}{{ $user->name }}
@@ -245,6 +248,7 @@
                             </div>
                             <div class="mt-6 border-t border-gray-100 dark:border-gray-700">
                                 <dl class="divide-y divide-gray-100 dark:divide-gray-700">
+                                    @if($canViewSensitiveInfo)
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">App
                                             Permissions</dt>
@@ -270,6 +274,7 @@
                                             class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
                                             {{ $user->vol_code ?? '-' }}</dd>
                                     </div>
+                                    @endif
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Primary
                                             Sector</dt>
@@ -309,7 +314,7 @@
                                         </dd>
                                     </div>
 
-                                    @if(app_setting('feature_user_tags', false))
+                                    @if(app_setting('feature_user_tags', false) && $canViewSensitiveInfo)
                                         <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                             <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Tags
                                                 ({{ $user->tags->count() }})</dt>
@@ -331,6 +336,7 @@
                                         </div>
                                     @endif
 
+                                    @if($canViewSensitiveInfo)
                                     <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">This Fiscal
                                         </dt>
@@ -348,6 +354,7 @@
                                             {{ format_hours($user->totalVolunteerHours()) }} hours
                                         </dd>
                                     </div>
+                                    @endif
                                 </dl>
                             </div>
                         </div>
@@ -356,6 +363,7 @@
             </div>
             
             <!-- Hour Log Section -->
+            @if($canViewSensitiveInfo)
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-6">
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
@@ -548,9 +556,11 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             <!-- Volunteer Signup Log Section -->
             @feature('volunteer_events')
+            @if($canViewSensitiveInfo)
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-6">
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
@@ -622,6 +632,7 @@
                         </div>
                 </div>
             </div>
+            @endif
             @endfeature
         </div>
     @endauth
