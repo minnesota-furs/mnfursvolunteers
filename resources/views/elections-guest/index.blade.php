@@ -1,6 +1,6 @@
 <x-guestv2-layout
-  title="Board Elections - MNFurs"
-  ogTitle="MNFurs Board Elections"
+  title="Board Elections - {{ app_name() }}"
+  ogTitle="{{ app_name() }} Board Elections"
   ogDescription="Stay informed about board elections, view candidates, and learn about governance opportunities within our organization."
   ogImage="{{URL('/images/dashboard/image2.jpg')}}"
   ogUrl="{{ url()->current() }}"

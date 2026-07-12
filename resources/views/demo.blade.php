@@ -1,5 +1,5 @@
 <x-guestv2-layout
-    ogTitle="MNFurs Volunteers Demo"
+    ogTitle="{{ app_name() }} Demo"
     ogDescription="Demo environment information and evaluation notes."
     ogImage="{{URL('/images/dashboard/image1.jpg')}}"
     ogUrl="{{ url()->current() }}"

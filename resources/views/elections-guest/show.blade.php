@@ -1,6 +1,6 @@
 <x-guestv2-layout
-  title="{{ $election->title }} - Board Elections - MNFurs"
-  ogTitle="{{ $election->title }} - MNFurs Board Elections"
+  title="{{ $election->title }} - Board Elections - {{ app_name() }}"
+  ogTitle="{{ $election->title }} - {{ app_name() }} Board Elections"
   ogDescription="{{ strip_tags($election->parsedDescription) }}"
   ogImage="{{URL('/images/dashboard/image2.jpg')}}"
   ogUrl="{{ url()->current() }}"

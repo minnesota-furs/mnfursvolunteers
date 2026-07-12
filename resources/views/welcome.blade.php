@@ -1,5 +1,5 @@
 <x-guestv2-layout
-    ogTitle="MNFurs Volunteer Portal"
+    ogTitle="{{ app_name() }} Volunteer Portal"
     ogDescription="Want to help out? We're always looking for volunteers to help make our events possible!"
     ogImage="{{URL('/images/dashboard/image1.jpg')}}"
     ogUrl="{{ url()->current() }}"
