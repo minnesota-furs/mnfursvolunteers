@@ -54,6 +54,10 @@ class JobListingController extends Controller
                 // Filter by department
                 $query->where('department_id', $request->input('department'));
             })
+            ->when($request->filled('visibility'), function ($query) use ($request) {
+                // Filter by visibility
+                $query->where('visibility', $request->input('visibility'));
+            })
             ->with('department')
             ->orderBy(
                 in_array($request->input('sort'), ['position_title', 'closing_date']) ? $request->input('sort') : 'position_title',
@@ -65,10 +69,10 @@ class JobListingController extends Controller
         $trashedListings = JobListing::onlyTrashed()->get();
         $sectors = Sector::orderBy('name')->get(); // Fetch all sectors for the filter dropdown
         $selectedSector = $request->input('sector');
-        $sort = $request->input('sort', 'name');
-        $direction = $request->input('direction', 'asc');
+        $sort = in_array($request->input('sort'), ['position_title', 'closing_date']) ? $request->input('sort') : 'position_title';
+        $direction = $request->input('direction', 'asc') === 'desc' ? 'desc' : 'asc';
 
-        return view('job-listings.index', compact('jobListings', 'trashedListings', 'sectors', 'sectorsWithDepartments', 'selectedSector', 'sort', 'direction'));
+        return view('job-listings.index', compact('jobListings', 'trashedListings', 'sectors', 'sectorsWithDepartments', 'selectedSector', 'sort', 'direction', 'isAdmin'));
     }
 
     /**

@@ -249,9 +249,9 @@
                                                             <x-heroicon-s-battery-100 title="Fully Staffed" class="w-4 mb-1 inline"/>
                                                         @elseif($signupCount > 0)
                                                             <x-heroicon-s-battery-50 title="Partially Staffed" class="w-4 mb-1 inline"/>
-                                                        @else
+                                                        @elseyou m
                                                             <x-heroicon-s-battery-0 title="No Staff" class="w-4 mb-1 inline"/>
-                                                        @endif
+                                                        @endif you m
                                                         {{ $shift->users->count() }} of {{ $shift->max_volunteers }}
                                                     </div>
                                                     <div x-show="showVolunteers" x-cloak

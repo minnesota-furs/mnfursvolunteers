@@ -88,6 +88,57 @@
                     @endforeach
                 </select>
 
+                {{-- Visibility Filter --}}
+                <select
+                    name="visibility"
+                    id="visibility"
+                    class="rounded-md border-0 py-2.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    onchange="this.form.submit()"
+                >
+                    <option value="">All Visibilities</option>
+                    @if($isAdmin)
+                        <option value="draft" {{ request('visibility') == 'draft' ? 'selected' : '' }}>Draft</option>
+                    @endif
+                    <option value="public" {{ request('visibility') == 'public' ? 'selected' : '' }}>Public</option>
+                    <option value="internal" {{ request('visibility') == 'internal' ? 'selected' : '' }}>Internal</option>
+                </select>
+
+                {{-- Sort --}}
+                <div class="relative" x-data="{ open: false }" x-on:click.outside="open = false">
+                    <button
+                        type="button"
+                        x-on:click="open = !open"
+                        title="Sort"
+                        class="flex items-center justify-center rounded-md border-0 bg-white px-3 py-2.5 text-sm leading-6 text-gray-500 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 hover:text-gray-700 focus:ring-2 focus:ring-indigo-600"
+                    >
+                        <span class="sr-only">Sort</span>
+                        <x-heroicon-o-funnel class="size-5"/>
+                    </button>
+                    <div
+                        x-show="open"
+                        x-transition
+                        x-cloak
+                        class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"
+                    >
+                        @foreach ([
+                            ['sort' => 'position_title', 'direction' => 'asc', 'label' => 'Title (A-Z)'],
+                            ['sort' => 'position_title', 'direction' => 'desc', 'label' => 'Title (Z-A)'],
+                            ['sort' => 'closing_date', 'direction' => 'asc', 'label' => 'Closing Date (Soonest)'],
+                            ['sort' => 'closing_date', 'direction' => 'desc', 'label' => 'Closing Date (Latest)'],
+                        ] as $option)
+                            <a
+                                href="{{ route('job-listings.index', array_merge(request()->query(), ['sort' => $option['sort'], 'direction' => $option['direction']])) }}"
+                                class="flex items-center justify-between px-4 py-2 text-sm {{ $sort == $option['sort'] && $direction == $option['direction'] ? 'font-semibold text-indigo-600' : 'text-gray-700' }} hover:bg-gray-50"
+                            >
+                                {{ $option['label'] }}
+                                @if($sort == $option['sort'] && $direction == $option['direction'])
+                                    <x-heroicon-o-check class="size-4"/>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
                 {{-- Search Button --}}
                 <button
                     type="submit"
@@ -98,7 +149,7 @@
             </div>
 
             {{-- Active Filters & Reset --}}
-            @if(request()->hasAny(['search', 'sector', 'department']))
+            @if(request()->hasAny(['search', 'sector', 'department', 'visibility']))
                 <div class="flex items-center justify-between pt-2">
                     <div class="flex flex-wrap gap-2">
                         @if(request('search'))
@@ -145,6 +196,17 @@
                                     </a>
                                 </span>
                             @endif
+                        @endif
+                        @if(request('visibility'))
+                            <span class="inline-flex items-center gap-x-1.5 rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-700">
+                                Visibility: {{ ucfirst(request('visibility')) }}
+                                <a href="{{ route('job-listings.index', array_diff_key(request()->query(), ['visibility' => ''])) }}" class="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-orange-200">
+                                    <span class="sr-only">Remove</span>
+                                    <svg viewBox="0 0 14 14" class="h-3.5 w-3.5 stroke-orange-700/50 group-hover:stroke-orange-700/75">
+                                        <path d="M4 4l6 6m0-6l-6 6" />
+                                    </svg>
+                                </a>
+                            </span>
                         @endif
                     </div>
                     <a href="{{ route('job-listings.index') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
@@ -225,7 +287,7 @@
                     {{-- <svg class="mx-auto size-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                       <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                     </svg> --}}
-                    @if(request()->hasAny(['search', 'sector', 'department']))
+                    @if(request()->hasAny(['search', 'sector', 'department', 'visibility']))
                         <h3 class="mt-2 text-sm font-semibold text-gray-900">No positions found</h3>
                         <p class="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
                         <div class="mt-4">
