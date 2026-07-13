@@ -20,11 +20,29 @@ class JobListingController extends Controller
     {
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
 
+        // Get sectors with their departments that have job listings (grouped, for the department filter)
+        $sectorsWithDepartments = Sector::with(['departments' => function ($query) {
+                $query->whereHas('jobListings')
+                    ->orderBy('name');
+            }])
+            ->orderBy('name')
+            ->get()
+            ->filter(function ($sector) {
+                return $sector->departments->isNotEmpty();
+            });
+
         // Query job listings
         $jobListings = JobListing::query()
             ->when(!$isAdmin, function ($query) {
                 // For non-admins, exclude drafts
                 $query->where('visibility', '!=', 'draft');
+            })
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $searchTerm = $request->input('search');
+                $query->where(function ($q) use ($searchTerm) {
+                    $q->where('position_title', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('description', 'like', '%' . $searchTerm . '%');
+                });
             })
             ->when($request->filled('sector'), function ($query) use ($request) {
                 // Filter by sector
@@ -32,20 +50,25 @@ class JobListingController extends Controller
                     $q->where('sector_id', $request->input('sector'));
                 });
             })
+            ->when($request->filled('department'), function ($query) use ($request) {
+                // Filter by department
+                $query->where('department_id', $request->input('department'));
+            })
             ->with('department')
             ->orderBy(
                 in_array($request->input('sort'), ['position_title', 'closing_date']) ? $request->input('sort') : 'position_title',
                 $request->input('direction', 'asc') === 'desc' ? 'desc' : 'asc'
             )
-            ->paginate(15);
+            ->paginate(15)
+            ->appends($request->query());
 
         $trashedListings = JobListing::onlyTrashed()->get();
-        $sectors = Sector::all(); // Fetch all sectors for the filter dropdown
+        $sectors = Sector::orderBy('name')->get(); // Fetch all sectors for the filter dropdown
         $selectedSector = $request->input('sector');
         $sort = $request->input('sort', 'name');
         $direction = $request->input('direction', 'asc');
 
-        return view('job-listings.index', compact('jobListings', 'trashedListings', 'sectors', 'selectedSector', 'sort', 'direction'));
+        return view('job-listings.index', compact('jobListings', 'trashedListings', 'sectors', 'sectorsWithDepartments', 'selectedSector', 'sort', 'direction'));
     }
 
     /**
