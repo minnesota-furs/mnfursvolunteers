@@ -155,6 +155,7 @@ class SettingsController extends Controller
             'onboarding_agreement' => 'nullable|string',
             'require_department_for_self_report' => 'boolean',
             'require_invite_code' => 'boolean',
+            'advertise_registration_on_login' => 'boolean',
             'require_department_for_user_index' => 'boolean',
             'user_display_name' => 'nullable|string|in:alias,legal_name',
         ]);
@@ -256,6 +257,7 @@ class SettingsController extends Controller
         ApplicationSetting::set('onboarding_agreement', $request->input('onboarding_agreement', ''), 'string', 'Registration agreement text', 'onboarding');
         ApplicationSetting::set('require_department_for_self_report', $request->boolean('require_department_for_self_report'), 'boolean', 'Require department assignment for self-reported hours', 'volunteers');
         ApplicationSetting::set('require_invite_code', $request->boolean('require_invite_code'), 'boolean', 'Disallow registration without an invite code', 'volunteers');
+        ApplicationSetting::set('advertise_registration_on_login', $request->boolean('advertise_registration_on_login'), 'boolean', 'Show a side panel advertising registration on the login page', 'volunteers');
         ApplicationSetting::set('require_department_for_user_index', $request->boolean('require_department_for_user_index'), 'boolean', 'Prevent users without a department from accessing the User index page', 'volunteers');
         ApplicationSetting::set('user_display_name', $request->input('user_display_name', 'alias'), 'string', 'Prominent name displayed on the Users index page', 'volunteers');
 

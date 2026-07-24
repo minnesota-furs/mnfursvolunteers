@@ -168,14 +168,16 @@
                         Login or create an account to sign up for this volunteer opportunity and help make {{ $event->name }} a success!
                       </p>
                       <div class="flex gap-3">
-                        <a href="{{ route('login') }}" 
+                        <a href="{{ route('login') }}"
                            class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                           Login
                         </a>
-                        {{-- <a href="{{ route('register') }}" 
+                        @if(app_setting('advertise_registration_on_login', true))
+                        <a href="{{ route('register') }}"
                            class="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm ring-1 ring-inset ring-blue-300 hover:bg-blue-50">
                           Create Account
-                        </a> --}}
+                        </a>
+                        @endif
                       </div>
                     </div>
                   @endauth
