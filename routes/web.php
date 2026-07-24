@@ -405,4 +405,8 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
 });
 
 
+if (app()->environment(['local', 'testing'])) {
+    Route::get('/test-419', fn () => abort(419));
+}
+
 require __DIR__.'/auth.php';
