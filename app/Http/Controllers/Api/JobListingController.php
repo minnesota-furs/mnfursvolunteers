@@ -40,6 +40,10 @@ class JobListingController extends Controller
 
         $jobListings = $query->get();
 
+        $jobListings->each(function ($listing) {
+            $listing->signup_url = route('job-listings-public.apply', $listing->id);
+        });
+
         if ($request->has('with_html_markdown')) {
             $jobListings->each(function ($listing) {
                 $listing->description_html = $listing->html_description; // Replace with HTML version

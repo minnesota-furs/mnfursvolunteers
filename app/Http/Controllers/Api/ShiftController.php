@@ -52,7 +52,7 @@ class ShiftController extends Controller
             ? max(0, (int) $request->input('descriptionLength'))
             : null;
 
-        $data = $shifts->map(function ($shift) use ($descriptionLength) {
+        $data = $shifts->map(function ($shift) use ($event, $descriptionLength) {
             $description = $descriptionLength !== null
                 ? Str::limit($shift->description ?? '', $descriptionLength)
                 : $shift->description;
@@ -67,6 +67,9 @@ class ShiftController extends Controller
                 'volunteers_signed_up' => $shift->users_count,
                 'open_slots' => max(0, $shift->max_volunteers - $shift->users_count),
                 'tags' => $shift->tags->pluck('name'),
+                'detail_url' => route('vol-listings-public.shift.show', [$event, $shift]),
+                // Requires login; takes the volunteer into the app to sign up for this event's shifts.
+                'signup_url' => route('volunteer.events.show', $event),
             ];
         });
 
