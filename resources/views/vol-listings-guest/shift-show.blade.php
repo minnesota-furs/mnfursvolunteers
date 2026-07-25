@@ -186,8 +186,10 @@
                 {{-- Related Shifts --}}
                 @php
                   $relatedShifts = $event->shifts()
+                    ->withCount(['users as filled_count'])
                     ->where('id', '!=', $shift->id)
                     ->when($event->hide_past_shifts, fn($query) => $query->where('start_time', '>=', now()))
+                    ->havingRaw('filled_count < max_volunteers')
                     ->orderBy('start_time')
                     ->limit(5)
                     ->get();
@@ -199,7 +201,7 @@
                   <ul role="list" class="divide-y divide-gray-100 border border-gray-200 rounded-lg">
                     @foreach($relatedShifts as $relatedShift)
                     @php
-                      $relatedOpenings = $relatedShift->max_volunteers - $relatedShift->users->count();
+                      $relatedOpenings = $relatedShift->max_volunteers - $relatedShift->filled_count;
                       $relatedIsFull = $relatedOpenings <= 0;
                     @endphp
                       <li class="flex items-center justify-between gap-x-6 py-4 px-4 hover:bg-gray-50">

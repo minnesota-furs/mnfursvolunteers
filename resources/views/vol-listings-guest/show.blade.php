@@ -20,7 +20,7 @@
                 {{-- Start --}}
                 <h1 class="text-5xl font-semibold tracking-tight sm:text-6xl">{{$event->name}}</h1>
                 <div class="mt-6">
-                  <dl class="grid grid-cols-3 gap-4">
+                  <dl class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div class="border-t border-gray-100 px-4 py-6 sm:col-span-1 sm:px-0">
                       <dt class="text-sm/6 font-medium text-gray-900">Starts</dt>
                       <dd class="mt-1 text-sm/6 text-gray-700 sm:mt-2">
@@ -102,7 +102,7 @@
                           <select
                             name="day"
                             id="day"
-                            class="rounded-md border-0 py-2.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                            class="w-full rounded-md border-0 py-2.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:w-auto sm:text-sm sm:leading-6"
                             onchange="this.form.submit()"
                           >
                             <option value="">All Days</option>
@@ -118,7 +118,7 @@
                         <select
                           name="availability"
                           id="availability"
-                          class="rounded-md border-0 py-2.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          class="w-full rounded-md border-0 py-2.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:w-auto sm:text-sm sm:leading-6"
                           onchange="this.form.submit()"
                         >
                           <option value="">All Slots</option>
@@ -128,7 +128,7 @@
                         {{-- Search Button --}}
                         <button
                           type="submit"
-                          class="rounded-md bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                          class="w-full rounded-md bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:w-auto"
                         >
                           Search
                         </button>
@@ -136,7 +136,7 @@
 
                       {{-- Active Filters & Reset --}}
                       @if(request()->hasAny(['search', 'day', 'availability']))
-                        <div class="flex items-center justify-between pt-2">
+                        <div class="flex flex-col gap-2 pt-2 sm:flex-row sm:items-center sm:justify-between">
                           <div class="flex flex-wrap gap-2">
                             @if(request('search'))
                               <span class="inline-flex items-center gap-x-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
@@ -189,18 +189,18 @@
                       $isFull = $openings <= 0;
                     @endphp
                       <li class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-nowrap hover:bg-gray-50 p-2 rounded">
-                        <div class="flex-grow">
-                          <p class="text-sm/6 mt-4">
+                        <div class="min-w-0 flex-grow">
+                          <p class="text-sm/6 mt-4 break-words">
                             @if($isFull)
                               <x-heroicon-o-check class="w-4 mb-1 inline text-gray-400"/>
                             @else
                               <x-heroicon-s-users class="w-4 mb-1 inline"/>
                             @endif
-                            <a href="{{ route('vol-listings-public.shift.show', [$event, $shift]) }}" 
+                            <a href="{{ route('vol-listings-public.shift.show', [$event, $shift]) }}"
                                class="font-semibold no-underline hover:underline {{ $isFull ? 'text-gray-400 hover:text-gray-500' : 'text-blue-700 hover:text-blue-800' }}">
                               {{$shift->name}}
                             </a>
-                            <span class="font-light {{ $isFull ? 'text-gray-300' : 'text-gray-500' }}"> - 
+                            <span class="font-light {{ $isFull ? 'text-gray-300' : 'text-gray-500' }}"> -
                               @if($event->isMultiDay())
                                 {{ $shift->start_time->format('l') }}
                               @endif
@@ -213,20 +213,18 @@
                               <x-heroicon-s-star title="Double Hours" class="w-3 mb-1 inline"/> This slot grants Double Hours
                             </div>
                             @endif
-                            <p>
+                            <p class="break-words">
                               {{$shift->description ?? 'No description given'}}
 
                             </p>
                           </div>
                         </div>
-                        <dl class="flex w-full flex-none justify-between gap-x-8 sm:w-auto">
-                          <div class="flex w-32 gap-x-2.5">
-                            <dt>
-                              <span class="sr-only">Openings</span>
-                            </dt>
-                            <dd class="text-sm/6 {{ $isFull ? 'text-gray-300' : 'text-gray-900' }}">{{ $openings }} Openings</dd>
-                          </div>
-                        </dl>
+                        <div class="flex-shrink-0">
+                          <span class="sr-only">Openings</span>
+                          <span class="inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium {{ $isFull ? 'bg-gray-100 text-gray-500' : 'bg-green-50 text-green-700' }}">
+                            {{ $openings }} {{ Str::plural('Opening', $openings) }}
+                          </span>
+                        </div>
                       </li>
                     @empty
                     <li class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-nowrap">
