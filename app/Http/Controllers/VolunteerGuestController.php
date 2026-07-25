@@ -23,16 +23,37 @@ class VolunteerGuestController extends Controller
         return view('vol-listings-guest.index', compact('events'));
     }
 
-    public function guestShow(Event $event)
-    {            
-        $shifts = $event->shifts
-            ->when($event->hide_past_shifts, fn ($shifts) =>
-                $shifts->filter(fn ($shift) => $shift->start_time->isFuture())
-            )
-            ->sortBy('start_time')
-            ->values(); // reindex
-        
-        return view('vol-listings-guest.show', compact('event', 'shifts'));
+    public function guestShow(Event $event, Request $request)
+    {
+        // Direct links should only work for public/unlisted events, matching guestIndex's visibility rules.
+        abort_unless(in_array($event->visibility, ['public', 'unlisted']), 404);
+
+        $availableDays = $event->isMultiDay()
+            ? $event->shifts()
+                ->when($event->hide_past_shifts, fn ($q) => $q->where('start_time', '>=', now()))
+                ->selectRaw('DATE(start_time) as day')
+                ->distinct()
+                ->orderBy('day')
+                ->pluck('day')
+            : collect();
+
+        $shifts = $event->shifts()
+            ->withCount(['users as filled_count'])
+            ->when($event->hide_past_shifts, fn ($q) => $q->where('start_time', '>=', now()))
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $search = $request->input('search');
+                $q->where(function ($q2) use ($search) {
+                    $q2->where('name', 'like', "%{$search}%")
+                       ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->filled('day'), fn ($q) => $q->whereDate('start_time', $request->input('day')))
+            ->when($request->input('availability') === 'open', fn ($q) => $q->havingRaw('filled_count < max_volunteers'))
+            ->orderBy('start_time')
+            ->paginate(10)
+            ->appends($request->query());
+
+        return view('vol-listings-guest.show', compact('event', 'shifts', 'availableDays'));
     }
 
     public function guestShowShift(Event $event, Shift $shift)
