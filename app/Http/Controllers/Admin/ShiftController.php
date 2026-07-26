@@ -10,6 +10,7 @@ use App\Models\Tag;
 use App\Models\User;
 use App\Models\AuditLog;
 use App\Notifications\AppNotification;
+use App\Services\ShiftWaitlistService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -24,7 +25,7 @@ class ShiftController extends Controller
      */
     public function index(Event $event)
     {
-        $shifts = $event->shifts()->with(['users', 'tags'])->orderBy('start_time', 'asc')->get();
+        $shifts = $event->shifts()->with(['users', 'tags', 'waitlistedUsers'])->orderBy('start_time', 'asc')->get();
         return view('admin.shifts.index', compact('event', 'shifts'));
     }
 
@@ -96,13 +97,14 @@ class ShiftController extends Controller
     public function edit(Event $event, Shift $shift)
     {
         $tags = Tag::forShifts()->orderBy('name')->get();
+        $shift->load('waitlistedUsers');
         return view('admin.shifts.create', compact('event', 'shift', 'tags'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Event $event, Shift $shift)
+    public function update(Request $request, Event $event, Shift $shift, ShiftWaitlistService $waitlist)
     {
         $request->validate([
             'name'           => 'required|string|max:255',
@@ -143,6 +145,9 @@ class ShiftController extends Controller
         }
 
         $shift->tags()->sync($request->input('shift_tags', []));
+
+        // Capacity may have increased — fill any newly opened spots from the waitlist.
+        $waitlist->handleOpenSpots($shift);
 
         return redirect()->route('admin.events.shifts.index', $event)
             ->with('success', [
@@ -198,7 +203,7 @@ class ShiftController extends Controller
             ]); 
     }
 
-    public function removeVolunteer(Event $event, Shift $shift, User $user)
+    public function removeVolunteer(Event $event, Shift $shift, User $user, ShiftWaitlistService $waitlist)
     {
         $shift->users()->detach($user->id);
 
@@ -209,6 +214,8 @@ class ShiftController extends Controller
             'comment'        => "User {$user->name} removed from {$shift->name} (ID: {$shift->id}) by " . auth()->user()->name,
             'user_id'        => auth()->id(),
         ]);
+
+        $waitlist->handleOpenSpots($shift);
 
         // Return JSON for AJAX requests
         if (request()->wantsJson()) {
@@ -222,7 +229,32 @@ class ShiftController extends Controller
         return redirect()->back()
             ->with('success', [
                 'message' => "<span class=\"text-brand-green\">{$user->name}</span> removed from shift",
-            ]); 
+            ]);
+    }
+
+    public function removeFromWaitlist(Event $event, Shift $shift, User $user)
+    {
+        $shift->waitlistedUsers()->detach($user->id);
+
+        AuditLog::create([
+            'action'         => 'shift_waitlist_removed_by_admin',
+            'auditable_type' => Event::class,
+            'auditable_id'   => $shift->event->id,
+            'comment'        => "User {$user->name} removed from waitlist for {$shift->name} (ID: {$shift->id}) by " . auth()->user()->name,
+            'user_id'        => auth()->id(),
+        ]);
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "{$user->name} has been removed from the waitlist.",
+            ]);
+        }
+
+        return redirect()->back()
+            ->with('success', [
+                'message' => "<span class=\"text-brand-green\">{$user->name}</span> removed from waitlist",
+            ]);
     }
 
     public function addVolunteer(Event $event, Shift $shift, User $user)
@@ -245,6 +277,7 @@ class ShiftController extends Controller
 
         // Add the user to the shift
         $shift->users()->attach($user->id, ['signed_up_at' => now()]);
+        $shift->waitlistedUsers()->detach($user->id);
 
         // Notify the user
         $user->notify(new AppNotification(

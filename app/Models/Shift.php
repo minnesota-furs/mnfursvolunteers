@@ -38,8 +38,34 @@ class Shift extends Model
         return $this->belongsToMany(User::class, 'shift_signups')
                 ->withPivot(['hours_logged_at', 'no_show', 'no_show_marked_at'])
                 ->withTimestamps();
-                
+
         return $this->belongsToMany(User::class, 'shift_signups')->withTimestamps();
+    }
+
+    public function waitlistedUsers()
+    {
+        return $this->belongsToMany(User::class, 'shift_waitlists')
+            ->withPivot(['notified_at', 'auto_assign'])
+            ->withTimestamps()
+            ->orderBy('shift_waitlists.created_at');
+    }
+
+    public function openSpots(): int
+    {
+        return max(0, $this->max_volunteers - $this->users()->count());
+    }
+
+    public function waitlistPositionFor(User $user): ?int
+    {
+        $entry = $this->waitlistedUsers()->where('user_id', $user->id)->first();
+
+        if (! $entry) {
+            return null;
+        }
+
+        return $this->waitlistedUsers()
+            ->wherePivot('created_at', '<', $entry->pivot->created_at)
+            ->count() + 1;
     }
 
     public function durationInHours(): float

@@ -336,6 +336,7 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::delete('events/{event}/shifts/{shift}/remove-volunteer/{user}', [ShiftController::class, 'removeVolunteer'])->name('events.shifts.remove-volunteer');
         Route::post('events/{event}/shifts/{shift}/add-volunteer/{user}', [ShiftController::class, 'addVolunteer'])->name('events.shifts.add-volunteer');
         Route::patch('events/{event}/shifts/{shift}/no-show/{user}', [ShiftController::class, 'setNoShow'])->name('events.shifts.no-show');
+        Route::delete('events/{event}/shifts/{shift}/waitlist/{user}', [ShiftController::class, 'removeFromWaitlist'])->name('events.shifts.waitlist.remove');
         Route::post('events/{event}/advanced-duplicate', [EventController::class, 'advancedDuplicate'])->name('events.advanced-duplicate');
         Route::get('/events/{event}/volunteers', [EventController::class, 'volunteerList'])->name('events.volunteers');
         Route::get('/events/{event}/allShifts', [EventController::class, 'indexWithShifts'])->name('events.allShifts');
@@ -373,6 +374,10 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
     Route::post('/shifts/{shift}/quick-add', [ShiftSignupController::class, 'storeByVolCode'])->name('shifts.quick-add');
     Route::post('/shifts/{shift}/signup', [ShiftSignupController::class, 'store'])->name('shifts.signup');
     Route::delete('/shifts/{shift}/signup', [ShiftSignupController::class, 'destroy'])->name('shifts.cancel');
+    Route::post('/shifts/{shift}/waitlist', [ShiftSignupController::class, 'joinWaitlist'])->name('shifts.waitlist.join');
+    Route::delete('/shifts/{shift}/waitlist', [ShiftSignupController::class, 'leaveWaitlist'])->name('shifts.waitlist.leave');
+    Route::patch('/shifts/{shift}/waitlist', [ShiftSignupController::class, 'updateWaitlistPreference'])->name('shifts.waitlist.update');
+    Route::post('/shifts/{shift}/waitlist/claim', [ShiftSignupController::class, 'claimWaitlistSpot'])->name('shifts.waitlist.claim');
 
     // Board Elections - Admin Management
     Route::middleware('can:manage-elections')->prefix('admin')->name('admin.')->group(function () {

@@ -254,6 +254,14 @@
                                                         @endif
                                                         {{ $shift->users->count() }} of {{ $shift->max_volunteers }}
                                                     </div>
+                                                    @if($shift->waitlistedUsers->isNotEmpty())
+                                                        <div class="whitespace-nowrap mt-0.5">
+                                                            <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+                                                                <x-heroicon-m-clock class="w-3 h-3"/>
+                                                                {{ $shift->waitlistedUsers->count() }} waiting
+                                                            </span>
+                                                        </div>
+                                                    @endif
                                                     <div x-show="showVolunteers" x-cloak
                                                         class="mt-1.5 text-left space-y-0.5">
                                                         @forelse($shift->users->sortBy(fn($v) => $v->displayName()) as $vol)
@@ -269,6 +277,12 @@
                                                         @empty
                                                             <span class="text-xs text-gray-400 italic">No sign-ups</span>
                                                         @endforelse
+                                                        @foreach($shift->waitlistedUsers->sortBy(fn($v) => $v->displayName()) as $vol)
+                                                            <div class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-normal bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
+                                                                <x-heroicon-m-clock class="w-3 h-3 flex-shrink-0"/>
+                                                                {{ $vol->displayName() }} (waitlist)
+                                                            </div>
+                                                        @endforeach
                                                     </div>
                                                 </td>
                                                 <td class="hidden py-4 px-3 text-sm">

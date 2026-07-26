@@ -146,6 +146,75 @@
                     </div>
                 @endforelse
             </section>
+
+            @if($waitlistedShifts->isNotEmpty())
+                <section class="mt-8">
+                    <h2 class="text-base font-semibold text-gray-900 dark:text-white">Waitlisted</h2>
+
+                    @foreach($waitlistedShifts as $shift)
+                        <div class="mt-4 bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-amber-200 dark:border-amber-800">
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-4 sm:p-6">
+                                <div class="flex flex-row sm:flex-col items-baseline sm:items-start gap-x-2 sm:w-28 sm:flex-shrink-0">
+                                    <time datetime="{{ $shift->start_time }}" class="text-sm font-medium text-gray-900 dark:text-white">
+                                        {{ $shift->start_time->format('D, M j') }}
+                                    </time>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                        {{ $shift->start_time->diffForHumans() }}
+                                    </span>
+                                </div>
+
+                                <div class="flex flex-col flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $shift->name }}</span>
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+                                            <x-heroicon-s-clock class="w-3 h-3"/>
+                                            Waitlisted (#{{ $shift->waitlistPosition }})
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
+                                        <span>
+                                            <x-heroicon-s-clock class="w-3 h-3 inline mr-1" />
+                                            {{ $shift->start_time->format('g:i A') }} - {{ $shift->end_time->format('g:i A') }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="text-sm font-medium text-right sm:flex-shrink-0 space-y-1.5">
+                                    @if($shift->openSpots() > 0)
+                                        <form action="{{ route('shifts.waitlist.claim', $shift) }}" method="POST">
+                                            @csrf
+                                            <button type="submit"
+                                                class="inline-flex items-center gap-1 rounded-md bg-brand-green hover:bg-green-700 px-2.5 py-1 text-xs font-medium text-white shadow-sm">
+                                                <x-heroicon-m-check class="w-3.5 h-3.5" /> Claim Spot
+                                            </button>
+                                        </form>
+                                    @endif
+                                    <div class="flex items-center justify-end gap-2 text-xs">
+                                        <form action="{{ route('shifts.waitlist.leave', $shift) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="text-amber-700 dark:text-amber-400 hover:underline"
+                                                onclick="return confirm('Leave the waitlist for {{ addslashes($shift->name) }}?')">
+                                                <x-heroicon-m-x-mark class="w-4 inline mb-0.5" /> Leave
+                                            </button>
+                                        </form>
+                                        <span class="text-gray-300 dark:text-gray-600">&middot;</span>
+                                        <form action="{{ route('shifts.waitlist.update', $shift) }}" method="POST">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="auto_assign" value="{{ $shift->pivot->auto_assign ? '0' : '1' }}">
+                                            <button type="submit" class="text-gray-500 dark:text-gray-400 hover:underline">
+                                                Auto-assign: {{ $shift->pivot->auto_assign ? 'on' : 'off' }}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </section>
+            @endif
         </div>
     </div>
 </x-app-layout>

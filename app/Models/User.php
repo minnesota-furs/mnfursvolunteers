@@ -140,6 +140,13 @@ class User extends Authenticatable
         return $this->shifts->filter(fn ($shift) => $shift->event_id == $eventId);
     }
 
+    public function waitlistedShifts()
+    {
+        return $this->belongsToMany(Shift::class, 'shift_waitlists')
+            ->withPivot(['notified_at', 'auto_assign'])
+            ->withTimestamps();
+    }
+
     public function auditLogs()
     {
         return $this->morphMany(AuditLog::class, 'auditable');

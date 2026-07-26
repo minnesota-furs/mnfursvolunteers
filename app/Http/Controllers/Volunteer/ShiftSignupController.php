@@ -8,6 +8,7 @@ use App\Models\Shift;
 use App\Models\AuditLog;
 use App\Models\Event;
 use App\Models\User;
+use App\Services\ShiftWaitlistService;
 
 class ShiftSignupController extends Controller
 {
@@ -94,7 +95,7 @@ class ShiftSignupController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, Shift $shift)
+    public function destroy(Request $request, Shift $shift, ShiftWaitlistService $waitlist)
     {
         $user = $request->user();
 
@@ -108,8 +109,101 @@ class ShiftSignupController extends Controller
             'user_id'        => $user->id,
         ]);
 
+        $waitlist->handleOpenSpots($shift);
+
         return back()->with('success', [
             'message' => "You've been removed from the shift.",
+        ]);
+    }
+
+    public function joinWaitlist(Request $request, Shift $shift, ShiftWaitlistService $waitlist)
+    {
+        $user = $request->user();
+
+        if ($shift->users()->where('user_id', $user->id)->exists()) {
+            return back()->with('error', 'You are already signed up for this shift.');
+        }
+
+        if ($shift->openSpots() > 0) {
+            return back()->with('error', 'This shift has open spots — you can sign up directly.');
+        }
+
+        if ($shift->waitlistedUsers()->where('user_id', $user->id)->exists()) {
+            return back()->with('error', 'You are already on the waitlist for this shift.');
+        }
+
+        if ($error = $waitlist->eligibilityError($shift, $user)) {
+            return back()->with('error', $error);
+        }
+
+        $autoAssign = $request->boolean('auto_assign');
+
+        $shift->waitlistedUsers()->attach($user->id, ['auto_assign' => $autoAssign]);
+
+        // Treat this as a single event-wide preference across all of the user's waitlist entries.
+        $waitlist->setAutoAssignForEvent($shift->event, $user, $autoAssign);
+
+        AuditLog::create([
+            'action'         => 'shift_waitlist_joined',
+            'auditable_type' => Event::class,
+            'auditable_id'   => $shift->event->id,
+            'comment'        => "Joined waitlist for shift {$shift->name} (Shift ID: {$shift->id})",
+            'user_id'        => $user->id,
+        ]);
+
+        return back()->with('success', [
+            'message' => "You've been added to the waitlist for <span class=\"text-brand-green\">{$shift->name}</span>.",
+        ]);
+    }
+
+    public function updateWaitlistPreference(Request $request, Shift $shift, ShiftWaitlistService $waitlist)
+    {
+        $user = $request->user();
+
+        if (! $shift->waitlistedUsers()->where('user_id', $user->id)->exists()) {
+            return back()->with('error', 'You are not on the waitlist for this shift.');
+        }
+
+        $autoAssign = $request->boolean('auto_assign');
+
+        $waitlist->setAutoAssignForEvent($shift->event, $user, $autoAssign);
+
+        return back()->with('success', [
+            'message' => $autoAssign
+                ? 'Got it — you\'ll be signed up automatically for this event if a spot opens.'
+                : 'Got it — you\'ll be notified to accept a spot if one opens for this event.',
+        ]);
+    }
+
+    public function claimWaitlistSpot(Request $request, Shift $shift, ShiftWaitlistService $waitlist)
+    {
+        $user = $request->user();
+
+        if ($error = $waitlist->claim($shift, $user)) {
+            return back()->with('error', $error);
+        }
+
+        return back()->with('success', [
+            'message' => "You've claimed the open spot for <span class=\"text-brand-green\">{$shift->name}</span>!",
+        ]);
+    }
+
+    public function leaveWaitlist(Request $request, Shift $shift)
+    {
+        $user = $request->user();
+
+        $shift->waitlistedUsers()->detach($user->id);
+
+        AuditLog::create([
+            'action'         => 'shift_waitlist_left',
+            'auditable_type' => Event::class,
+            'auditable_id'   => $shift->event->id,
+            'comment'        => "Left waitlist for shift {$shift->name} (Shift ID: {$shift->id})",
+            'user_id'        => $user->id,
+        ]);
+
+        return back()->with('success', [
+            'message' => "You've been removed from the waitlist.",
         ]);
     }
 

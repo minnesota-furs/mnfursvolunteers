@@ -56,6 +56,11 @@
                                 <x-heroicon-m-check class="w-3.5 h-3.5"/>
                                 You're Signed Up
                             </span>
+                        @elseif($isWaitlisted)
+                            <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/30 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-400">
+                                <x-heroicon-m-clock class="w-3.5 h-3.5"/>
+                                On Waitlist (#{{ $waitlistPosition }})
+                            </span>
                         @elseif($isFull)
                             <span class="inline-flex items-center gap-1 rounded-full bg-red-50 dark:bg-red-900/20 px-2.5 py-1 text-xs font-medium text-red-600 dark:text-red-400 ring-1 ring-inset ring-red-200 dark:ring-red-800">
                                 <x-heroicon-m-x-circle class="w-3.5 h-3.5"/>
@@ -93,6 +98,57 @@
                                 <x-heroicon-m-x-mark class="w-4 h-4"/>
                                 Cancel Signup
                             </button>
+                        </form>
+                    @elseif($isWaitlisted)
+                        <div class="text-right space-y-2">
+                            @if($shift->openSpots() > 0)
+                                <form action="{{ route('shifts.waitlist.claim', $shift) }}" method="POST">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-green hover:bg-green-700 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors">
+                                        <x-heroicon-m-check class="w-4 h-4"/>
+                                        Claim Open Spot
+                                    </button>
+                                </form>
+                            @endif
+                            <form action="{{ route('shifts.waitlist.leave', $shift) }}" method="POST">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-white dark:bg-gray-700 border border-amber-300 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 px-4 py-2.5 text-sm font-medium text-amber-700 dark:text-amber-400 shadow-sm transition-colors">
+                                    <x-heroicon-m-x-mark class="w-4 h-4"/>
+                                    Leave Waitlist
+                                </button>
+                            </form>
+                            <form action="{{ route('shifts.waitlist.update', $shift) }}" method="POST" class="flex items-center justify-end">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="auto_assign" value="{{ $currentAutoAssign ? '0' : '1' }}">
+                                <button type="submit" class="text-xs text-gray-500 dark:text-gray-400 hover:underline">
+                                    @if($currentAutoAssign)
+                                        <x-heroicon-m-bolt class="w-3.5 h-3.5 inline text-amber-500"/> Auto-assign is on — turn off
+                                    @else
+                                        Turn on auto-assign
+                                    @endif
+                                </button>
+                            </form>
+                        </div>
+                    @elseif($isFull && $canJoinWaitlist)
+                        <form action="{{ route('shifts.waitlist.join', $shift) }}" method="POST" class="text-right">
+                            @csrf
+                            <button type="submit"
+                                class="inline-flex items-center gap-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors">
+                                <x-heroicon-m-clock class="w-4 h-4"/>
+                                Join Waitlist
+                                @if($waitlistCount)
+                                    <span class="opacity-80">({{ $waitlistCount }} waiting)</span>
+                                @endif
+                            </button>
+                            <label class="mt-2 flex items-center justify-end gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                <input type="checkbox" name="auto_assign" value="1" {{ $currentAutoAssign ? 'checked' : '' }}
+                                    class="rounded border-gray-300 text-brand-green focus:ring-brand-green">
+                                Sign me up automatically if a spot opens
+                            </label>
                         </form>
                     @elseif($isFull)
                         <span class="inline-flex items-center gap-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400">
@@ -215,6 +271,37 @@
                 </ul>
             @endif
         </div>
+
+        {{-- ── Waitlist ─────────────────────────────────────────────────── --}}
+        @if($shift->waitlistedUsers->isNotEmpty())
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+            <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                <x-heroicon-m-clock class="w-4 h-4 text-gray-400"/>
+                Waitlist
+                <span class="text-xs font-normal text-gray-400 dark:text-gray-500">({{ $shift->waitlistedUsers->count() }})</span>
+            </h2>
+            <ul class="space-y-2">
+                @foreach($shift->waitlistedUsers as $index => $vol)
+                    <li class="flex items-center gap-3 rounded-lg px-2 py-1 -mx-2">
+                        <span class="w-5 text-xs font-medium text-gray-400 dark:text-gray-500 text-right flex-shrink-0">{{ $index + 1 }}</span>
+                        <div class="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-xs font-semibold text-amber-700 dark:text-amber-400 flex-shrink-0">
+                            {{ strtoupper(substr($vol->name ?? '?', 0, 1)) }}
+                        </div>
+                        <span class="text-sm text-gray-800 dark:text-gray-200">
+                            @if($vol->id !== auth()->id())
+                                <a href="{{ route('users.profile.show', $vol) }}" class="hover:underline">{{ $vol->name }}</a>
+                            @else
+                                {{ $vol->name }}
+                            @endif
+                            @if($vol->id === auth()->id())
+                                <span class="text-xs text-blue-500 dark:text-blue-400 font-medium">(you)</span>
+                            @endif
+                        </span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
 
     </div>
 </x-app-layout>

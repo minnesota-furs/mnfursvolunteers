@@ -150,7 +150,7 @@ class EventController extends Controller
 
         // Build update data
         $updateData = $request->only(['name', 'description', 'faq', 'start_date', 'end_date', 'signup_open_date', 'location', 'visibility']);
-        
+
         // Normalize checkbox (unchecked checkboxes don't get sent)
         $updateData['hide_past_shifts'] = $request->has('hide_past_shifts');
         $updateData['auto_credit_hours'] = $request->has('auto_credit_hours');

@@ -6,6 +6,7 @@ use Illuminate\Support\Carbon;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Shift;
+use App\Services\ShiftWaitlistService;
 
 class VolunteerEventController extends Controller
 {
@@ -33,10 +34,10 @@ class VolunteerEventController extends Controller
         return view('events.index', compact('events', 'pastEvents', 'userTagIds', 'userDeptIds', 'workedEventIds'));
     }
 
-    public function show(Event $event)
+    public function show(Event $event, ShiftWaitlistService $waitlist)
     {
         // Load users for use in shift->users and required tags/departments
-        $event->load('shifts.users', 'requiredTags', 'requiredUserTags', 'requiredDepartments', 'perks');
+        $event->load('shifts.users', 'shifts.waitlistedUsers', 'requiredTags', 'requiredUserTags', 'requiredDepartments', 'perks');
         $user = auth()->user();
         $hasSignedUpForEvent = $user->shifts()->where('event_id', $event->id)->exists();
 
@@ -65,6 +66,14 @@ class VolunteerEventController extends Controller
             ->values(); // reindex
 
         $userShifts = auth()->user()->shiftsForEvent($event->id)->sortBy('start_time');
+
+        $userWaitlistedShifts = $shifts
+            ->filter(fn ($shift) => $shift->waitlistedUsers->contains($user->id))
+            ->map(function ($shift) use ($user) {
+                $shift->waitlistPosition = $shift->waitlistPositionFor($user);
+                return $shift;
+            })
+            ->values();
 
         // Get all user's shifts (not just for this event) to check for conflicts
         $allUserShifts = auth()->user()->shifts()->with('event')->get();
@@ -95,19 +104,21 @@ class VolunteerEventController extends Controller
             'event' => $event,
             'shifts' => $shifts,
             'userShifts' => $userShifts,
+            'userWaitlistedShifts' => $userWaitlistedShifts,
             'shiftConflicts' => $shiftConflicts,
             'favoritedIds' => auth()->user()->favoritedUsers()->pluck('users.id')->all(),
             'avoidedIds' => auth()->user()->avoidedUsers()->pluck('users.id')->all(),
+            'autoAssignDefault' => $waitlist->autoAssignDefaultForEvent($event, $user),
         ]);
     }
 
-    public function showShift(Event $event, Shift $shift)
+    public function showShift(Event $event, Shift $shift, ShiftWaitlistService $waitlist)
     {
         if ($shift->event_id !== $event->id) {
             abort(404);
         }
 
-        $shift->load('users', 'tags');
+        $shift->load('users', 'tags', 'waitlistedUsers');
         $event->load('requiredTags', 'requiredUserTags', 'requiredDepartments');
 
         $user = auth()->user();
@@ -150,10 +161,20 @@ class VolunteerEventController extends Controller
         $favoritedIds = auth()->user()->favoritedUsers()->pluck('users.id')->all();
         $avoidedIds = auth()->user()->avoidedUsers()->pluck('users.id')->all();
 
+        $isWaitlisted = $shift->waitlistedUsers->contains($user->id);
+        $waitlistCount = $shift->waitlistedUsers->count();
+        $waitlistPosition = $isWaitlisted ? $shift->waitlistPositionFor($user) : null;
+        $canJoinWaitlist = $canSignUp && !$hasConflict;
+        $currentAutoAssign = $isWaitlisted
+            ? (bool) $shift->waitlistedUsers->firstWhere('id', $user->id)->pivot->auto_assign
+            : $waitlist->autoAssignDefaultForEvent($event, $user);
+
         return view('events.shift-show', compact(
             'event', 'shift', 'signedUp', 'isFull', 'isPast',
             'hasConflict', 'conflictingShifts', 'canSignUp',
-            'favoritedIds', 'avoidedIds'
+            'favoritedIds', 'avoidedIds',
+            'isWaitlisted', 'waitlistCount', 'waitlistPosition', 'canJoinWaitlist',
+            'currentAutoAssign'
         ));
     }
 
@@ -182,7 +203,17 @@ class VolunteerEventController extends Controller
 
         $shiftsRemaining = $shifts->filter(fn($shift) => $shift->start_time->isFuture())->count();
 
-        return view('events.my-shifts', compact('event', 'shifts', 'futureShifts', 'totalVolunteerHours', 'shiftsRemaining'));
+        // Shifts within this event the user is waitlisted for
+        $waitlistedShifts = $user->waitlistedShifts()
+            ->where('event_id', $event->id)
+            ->orderBy('start_time')
+            ->get()
+            ->map(function ($shift) use ($user) {
+                $shift->waitlistPosition = $shift->waitlistPositionFor($user);
+                return $shift;
+            });
+
+        return view('events.my-shifts', compact('event', 'shifts', 'futureShifts', 'totalVolunteerHours', 'shiftsRemaining', 'waitlistedShifts'));
     }
 
     public function myShiftsAll()
@@ -204,7 +235,17 @@ class VolunteerEventController extends Controller
 
         $shiftsRemaining = $shifts->filter(fn($shift) => $shift->start_time->isFuture())->count();
 
-        return view('events.my-shifts-all', compact('shifts', 'futureShifts', 'totalVolunteerHours', 'shiftsRemaining'));
+        // All shifts (any event) the user is waitlisted for
+        $waitlistedShifts = $user->waitlistedShifts()
+            ->with('event')
+            ->orderBy('start_time')
+            ->get()
+            ->map(function ($shift) use ($user) {
+                $shift->waitlistPosition = $shift->waitlistPositionFor($user);
+                return $shift;
+            });
+
+        return view('events.my-shifts-all', compact('shifts', 'futureShifts', 'totalVolunteerHours', 'shiftsRemaining', 'waitlistedShifts'));
     }
 
     public function faq(Event $event)

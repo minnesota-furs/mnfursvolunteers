@@ -215,6 +215,43 @@
                 @endforelse
             </div>
         </div>
+
+        @if($shift->waitlistedUsers->isNotEmpty())
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-3 dark:text-white">
+                Waitlist
+                <span class="text-sm bg-amber-100 text-amber-700 px-2 py-1 rounded">{{ $shift->waitlistedUsers->count() }}</span>
+            </h2>
+            <div class="waitlist-list">
+                @foreach ($shift->waitlistedUsers as $index => $user)
+                    <div class="waitlist-item flex items-center justify-between p-3 mb-2 bg-amber-50 rounded-lg border border-amber-200" data-waitlist-user-id="{{ $user->id }}">
+                        <div class="flex items-center">
+                            <span class="text-xs font-semibold text-amber-600 w-6">#{{ $index + 1 }}</span>
+                            <div>
+                                <div class="font-medium">
+                                    <a href="{{ route('users.show', $user->id) }}" class="text-blue-600 hover:underline">{{ $user->displayName() }}</a>
+                                </div>
+                                <div class="text-xs text-gray-500">{{ $user->email }} &middot; joined waitlist {{ $user->pivot->created_at->diffForHumans() }}</div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-1">
+                            <button type="button"
+                                    class="add-from-waitlist-btn text-green-700 hover:bg-green-50 px-2 py-1 rounded text-xs"
+                                    data-user-id="{{ $user->id }}">
+                                <x-heroicon-m-plus class="w-4 inline mr-1"/> Add to Shift
+                            </button>
+                            <button type="button"
+                                    class="remove-from-waitlist-btn text-red-600 hover:bg-red-50 px-2 py-1 rounded text-xs"
+                                    data-user-id="{{ $user->id }}"
+                                    data-user-name="{{ $user->name }}">
+                                <x-heroicon-m-trash class="w-4 inline mr-1"/> Remove
+                            </button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
         @else
             <div class="text-center py-8 text-gray-500">
                 <x-heroicon-m-information-circle class="w-12 h-12 mx-auto mb-2 text-gray-300"/>
@@ -425,6 +462,60 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    // Handle "add to shift" buttons from the waitlist
+    document.querySelectorAll('.add-from-waitlist-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            addVolunteerToShift(userId, this);
+        });
+    });
+
+    // Handle "remove from waitlist" buttons
+    document.querySelectorAll('.remove-from-waitlist-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            const userName = this.dataset.userName;
+
+            if (confirm(`Remove ${userName} from the waitlist?`)) {
+                removeFromWaitlist(userId, this);
+            }
+        });
+    });
+
+    function removeFromWaitlist(userId, button) {
+        const waitlistItem = button.closest('.waitlist-item');
+        button.disabled = true;
+        button.innerHTML = '<span class="inline-block w-4 h-4 mr-1 animate-spin">⟳</span> Removing...';
+
+        fetch(`{{ route('admin.events.shifts.waitlist.remove', [$event, $shift, '']) }}/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                waitlistItem.style.transition = 'all 0.3s ease';
+                waitlistItem.style.opacity = '0';
+                setTimeout(() => waitlistItem.remove(), 300);
+            } else {
+                showNotification(data.message || 'Failed to remove from waitlist', 'error');
+                button.disabled = false;
+                button.innerHTML = '<span class="w-4 inline mr-1">🗑</span> Remove';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred while removing from the waitlist', 'error');
+            button.disabled = false;
+            button.innerHTML = '<span class="w-4 inline mr-1">🗑</span> Remove';
+        });
+    }
 
     // Handle no-show toggle buttons
     document.querySelectorAll('.no-show-toggle-btn').forEach(btn => {
