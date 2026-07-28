@@ -22,8 +22,20 @@
                     <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ $oneOffEvent->name }}</h1>
                     <div class="text-sm text-gray-600 dark:text-gray-400">
                         <p><strong>Date:</strong> {{ $oneOffEvent->start_time->format('F j, Y') }}</p>
-                        <p><strong>Time:</strong> {{ $oneOffEvent->start_time->format('g:i A') }} - {{ $oneOffEvent->end_time->format('g:i A') }}</p>
-                        <p><strong>Duration:</strong> {{ $oneOffEvent->start_time->floatDiffInHours($oneOffEvent->end_time) }} hours</p>
+                        <p><strong>Time:</strong> {{ $oneOffEvent->start_time->format('g:i A') }}
+                            @if($oneOffEvent->end_time)
+                                - {{ $oneOffEvent->end_time->format('g:i A') }}
+                            @else
+                                (ongoing)
+                            @endif
+                        </p>
+                        <p><strong>Duration:</strong>
+                            @if($oneOffEvent->end_time)
+                                {{ $oneOffEvent->start_time->floatDiffInHours($oneOffEvent->end_time) }} hours
+                            @else
+                                <span class="text-gray-500">No end time set &mdash; hours cannot be calculated</span>
+                            @endif
+                        </p>
                         <p><strong>Auto-credit hours:</strong> 
                             <span class="{{ $oneOffEvent->auto_credit_hours ? 'text-green-600' : 'text-gray-500' }}">
                                 {{ $oneOffEvent->auto_credit_hours ? '✓ Enabled' : '✗ Disabled' }}
@@ -50,8 +62,20 @@
 
                 {{-- Check-ins Table --}}
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-4">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Check-in List</h2>
+                        @if($oneOffEvent->end_time && $checkIns->where('hours_credited', false)->isNotEmpty())
+                            <form method="POST" action="{{ route('simple-volunteer-events.check-ins.credit-all', $oneOffEvent) }}">
+                                @csrf
+                                <button type="submit"
+                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-green hover:bg-indigo-700"
+                                        onclick="return confirm('Credit {{ $oneOffEvent->start_time->floatDiffInHours($oneOffEvent->end_time) }} hours to all {{ $checkIns->where('hours_credited', false)->count() }} pending check-in(s)?')">
+                                    <x-heroicon-m-plus-circle class="w-4 h-4 mr-1"/> Credit Hours To All
+                                </button>
+                            </form>
+                        @elseif(!$oneOffEvent->end_time && $checkIns->where('hours_credited', false)->isNotEmpty())
+                            <p class="text-xs text-gray-500 dark:text-gray-400 italic">Set an end time on this event to credit hours.</p>
+                        @endif
                     </div>
 
                     @if($checkIns->isEmpty())
@@ -116,20 +140,33 @@
                                                 @endif
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                @if(!$checkIn->hours_credited)
-                                                    <form method="POST" action="{{ route('simple-volunteer-events.check-ins.credit', [$oneOffEvent, $checkIn]) }}" class="inline">
+                                                <div class="flex items-center justify-end gap-3">
+                                                    @if($checkIn->hours_credited)
+                                                        <span class="text-gray-400 dark:text-gray-600">
+                                                            <x-heroicon-s-check class="w-5 h-5 inline"/> Completed
+                                                        </span>
+                                                    @elseif($oneOffEvent->end_time)
+                                                        <form method="POST" action="{{ route('simple-volunteer-events.check-ins.credit', [$oneOffEvent, $checkIn]) }}" class="inline">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                    class="text-brand-green hover:text-indigo-900 dark:hover:text-indigo-400"
+                                                                    onclick="return confirm('Credit {{ $oneOffEvent->start_time->floatDiffInHours($oneOffEvent->end_time) }} hours to {{ $checkIn->user->name }}?')">
+                                                                <x-heroicon-m-plus-circle class="w-5 h-5 inline"/> Credit Hours
+                                                            </button>
+                                                        </form>
+                                                    @else
+                                                        <span class="text-gray-400 dark:text-gray-600 text-xs italic">No end time set</span>
+                                                    @endif
+                                                    <form method="POST" action="{{ route('simple-volunteer-events.check-ins.destroy', [$oneOffEvent, $checkIn]) }}" class="inline">
                                                         @csrf
-                                                        <button type="submit" 
-                                                                class="text-brand-green hover:text-indigo-900 dark:hover:text-indigo-400"
-                                                                onclick="return confirm('Credit {{ $oneOffEvent->start_time->floatDiffInHours($oneOffEvent->end_time) }} hours to {{ $checkIn->user->name }}?')">
-                                                            <x-heroicon-m-plus-circle class="w-5 h-5 inline"/> Credit Hours
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                                class="text-red-600 hover:text-red-900 dark:hover:text-red-400"
+                                                                onclick="return confirm('Remove {{ $checkIn->user->name }}\'s check-in?{{ $checkIn->hours_credited ? ' Their already-credited hours will NOT be automatically removed.' : '' }}')">
+                                                            <x-heroicon-m-x-circle class="w-5 h-5 inline"/> Remove
                                                         </button>
                                                     </form>
-                                                @else
-                                                    <span class="text-gray-400 dark:text-gray-600">
-                                                        <x-heroicon-s-check class="w-5 h-5 inline"/> Completed
-                                                    </span>
-                                                @endif
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach

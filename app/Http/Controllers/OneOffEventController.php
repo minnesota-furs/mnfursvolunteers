@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Department;
 use App\Models\OneOffEvent;
 use App\Models\OneOffEventCheckIn;
+use App\Models\OneOffEventRsvp;
 use App\Models\Sector;
 use App\Models\Tag;
 use Illuminate\Http\Request;
@@ -15,7 +16,11 @@ class OneOffEventController extends Controller
     // Show list of upcoming events
     public function index()
     {
-        $events = OneOffEvent::where('end_time', '>=', now())->orderBy('start_time')->get();
+        $events = OneOffEvent::where(function ($query) {
+                $query->where('end_time', '>=', now())->orWhereNull('end_time');
+            })
+            ->orderBy('start_time')
+            ->get();
 
         $pastEvents = OneOffEvent::where('end_time', '<', now())
             ->orderByDesc('start_time')
@@ -25,7 +30,11 @@ class OneOffEventController extends Controller
             ->pluck('one_off_event_id')
             ->all();
 
-        return view('one_off_events.index', compact('events', 'pastEvents', 'checkedInEventIds'));
+        $rsvpedEventIds = OneOffEventRsvp::where('user_id', Auth::id())
+            ->pluck('one_off_event_id')
+            ->all();
+
+        return view('one_off_events.index', compact('events', 'pastEvents', 'checkedInEventIds', 'rsvpedEventIds'));
     }
 
     // Show list of archived/past events (admin only)
@@ -43,6 +52,7 @@ class OneOffEventController extends Controller
         $oneOffEvent->load('requiredUserTags', 'requiredDepartments', 'requiredSectors');
 
         $checkIn = null;
+        $rsvp = null;
         $isEligible = true;
         $missingTagNames = [];
         $eligibleDepartmentNames = [];
@@ -51,14 +61,20 @@ class OneOffEventController extends Controller
         if (Auth::check()) {
             $user = Auth::user();
 
-            $checkIn = OneOffEventCheckIn::where('user_id', $user->id)
-                ->where('one_off_event_id', $oneOffEvent->id)
-                ->first();
+            if ($oneOffEvent->isCheckInType()) {
+                $checkIn = OneOffEventCheckIn::where('user_id', $user->id)
+                    ->where('one_off_event_id', $oneOffEvent->id)
+                    ->first();
+            } else {
+                $rsvp = OneOffEventRsvp::where('user_id', $user->id)
+                    ->where('one_off_event_id', $oneOffEvent->id)
+                    ->first();
+            }
 
             [$isEligible, $missingTagNames, $eligibleDepartmentNames, $eligibleSectorNames] = $this->checkEligibility($oneOffEvent, $user);
         }
 
-        return view('one_off_events.show', compact('oneOffEvent', 'checkIn', 'isEligible', 'missingTagNames', 'eligibleDepartmentNames', 'eligibleSectorNames'));
+        return view('one_off_events.show', compact('oneOffEvent', 'checkIn', 'rsvp', 'isEligible', 'missingTagNames', 'eligibleDepartmentNames', 'eligibleSectorNames'));
     }
 
     // Show form to create an event (admin)
@@ -77,8 +93,10 @@ class OneOffEventController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'location' => 'nullable|string|max:255',
+            'type' => 'required|in:check_in,rsvp',
+            'max_rsvps' => 'nullable|integer|min:1',
             'start_time' => 'required|date',
-            'end_time' => 'required|date|after:start_time',
+            'end_time' => 'nullable|date|after:start_time',
             'checkin_hours_before' => 'nullable|integer|min:0|max:48',
             'checkin_hours_after' => 'nullable|integer|min:0|max:72',
             'required_tags' => 'nullable|array',
@@ -92,6 +110,12 @@ class OneOffEventController extends Controller
         $validated['auto_credit_hours'] = $request->has('auto_credit_hours');
         $validated['checkin_hours_before'] = $validated['checkin_hours_before'] ?? 1;
         $validated['checkin_hours_after'] = $validated['checkin_hours_after'] ?? 12;
+
+        if (empty($validated['end_time']) && $validated['auto_credit_hours']) {
+            return back()->withErrors([
+                'auto_credit_hours' => 'Automatic hour crediting requires an end time so hours can be calculated.'
+            ])->withInput();
+        }
 
         $event = OneOffEvent::create($validated);
 
@@ -121,8 +145,10 @@ class OneOffEventController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'location' => 'nullable|string|max:255',
+            'type' => 'required|in:check_in,rsvp',
+            'max_rsvps' => 'nullable|integer|min:1',
             'start_time' => 'required|date',
-            'end_time' => 'required|date|after:start_time',
+            'end_time' => 'nullable|date|after:start_time',
             'checkin_hours_before' => 'nullable|integer|min:0|max:48',
             'checkin_hours_after' => 'nullable|integer|min:0|max:72',
             'required_tags' => 'nullable|array',
@@ -136,6 +162,12 @@ class OneOffEventController extends Controller
         $validated['auto_credit_hours'] = $request->has('auto_credit_hours');
         $validated['checkin_hours_before'] = $validated['checkin_hours_before'] ?? 1;
         $validated['checkin_hours_after'] = $validated['checkin_hours_after'] ?? 12;
+
+        if (empty($validated['end_time']) && $validated['auto_credit_hours']) {
+            return back()->withErrors([
+                'auto_credit_hours' => 'Automatic hour crediting requires an end time so hours can be calculated.'
+            ])->withInput();
+        }
 
         $oneOffEvent->update($validated);
 
@@ -207,6 +239,133 @@ class OneOffEventController extends Controller
         ]);
     }
 
+    // Credit hours for every pending check-in on an event (admin)
+    public function creditAllHours(OneOffEvent $oneOffEvent)
+    {
+        $pendingCheckIns = $oneOffEvent->checkIns()->where('hours_credited', false)->get();
+
+        $creditedCount = 0;
+        foreach ($pendingCheckIns as $checkIn) {
+            if ($checkIn->creditHours()) {
+                $creditedCount++;
+            }
+        }
+
+        if ($creditedCount === 0) {
+            return back()->with('error', [
+                'message' => 'No pending check-ins to credit.'
+            ]);
+        }
+
+        return back()->with('success', [
+            'message' => "Hours credited to <span class=\"text-brand-green\">{$creditedCount}</span> volunteer" . ($creditedCount !== 1 ? 's' : '')
+        ]);
+    }
+
+    // Remove a check-in (admin)
+    public function destroyCheckIn(OneOffEvent $oneOffEvent, OneOffEventCheckIn $checkIn)
+    {
+        $userName = $checkIn->user->name;
+        $checkIn->delete();
+
+        return back()->with('success', [
+            'message' => "Check-in for <span class=\"text-brand-green\">{$userName}</span> removed"
+        ]);
+    }
+
+    // View all RSVPs for an event (admin)
+    public function rsvps(OneOffEvent $oneOffEvent)
+    {
+        $rsvps = $oneOffEvent->rsvps()
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('one_off_events.rsvps', compact('oneOffEvent', 'rsvps'));
+    }
+
+    // Remove a user's RSVP (admin)
+    public function destroyRsvp(OneOffEvent $oneOffEvent, OneOffEventRsvp $rsvp)
+    {
+        $rsvp->delete();
+
+        return back()->with('success', [
+            'message' => "RSVP for <span class=\"text-brand-green\">{$rsvp->user->name}</span> removed"
+        ]);
+    }
+
+    // RSVP to an event
+    public function rsvp(OneOffEvent $oneOffEvent)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', [
+                'message' => 'Please log in to RSVP.'
+            ]);
+        }
+
+        if (!$oneOffEvent->isRsvpType()) {
+            abort(404);
+        }
+
+        if (OneOffEventRsvp::where('one_off_event_id', $oneOffEvent->id)->where('user_id', Auth::id())->exists()) {
+            return back()->with('error', [
+                'message' => 'You have already RSVP\'d to this event.'
+            ]);
+        }
+
+        if ($oneOffEvent->hasEnded()) {
+            return back()->with('error', [
+                'message' => 'This event has already ended.'
+            ]);
+        }
+
+        if ($oneOffEvent->isRsvpFull()) {
+            return back()->with('error', [
+                'message' => 'This event has reached its maximum number of RSVPs.'
+            ]);
+        }
+
+        [$isEligible, $missingTagNames, $eligibleDepartmentNames, $eligibleSectorNames] = $this->checkEligibility($oneOffEvent, Auth::user());
+
+        if (!$isEligible) {
+            if (!empty($missingTagNames)) {
+                return back()->with('error', [
+                    'message' => 'You must have the following tag(s) to RSVP to this event: ' . implode(', ', $missingTagNames)
+                ]);
+            }
+
+            $groups = $eligibleDepartmentNames;
+            foreach ($eligibleSectorNames as $sectorName) {
+                $groups[] = "any department in the {$sectorName} sector";
+            }
+
+            return back()->with('error', [
+                'message' => 'You must be assigned to one of the following to RSVP to this event: ' . implode(', ', $groups)
+            ]);
+        }
+
+        OneOffEventRsvp::create([
+            'one_off_event_id' => $oneOffEvent->id,
+            'user_id' => Auth::id(),
+        ]);
+
+        return back()->with('success', [
+            'message' => "You're RSVP'd! We'll see you there."
+        ]);
+    }
+
+    // Cancel a user's own RSVP
+    public function cancelRsvp(OneOffEvent $oneOffEvent)
+    {
+        OneOffEventRsvp::where('one_off_event_id', $oneOffEvent->id)
+            ->where('user_id', Auth::id())
+            ->delete();
+
+        return back()->with('success', [
+            'message' => 'Your RSVP has been cancelled.'
+        ]);
+    }
+
         // Check in to an event
     public function checkIn(OneOffEvent $oneOffEvent)
     {
@@ -214,6 +373,10 @@ class OneOffEventController extends Controller
             return redirect()->route('login')->with('error', [
                 'message' => 'Please log in to check in.'
             ]);
+        }
+
+        if (!$oneOffEvent->isCheckInType()) {
+            abort(404);
         }
 
         // Check if already checked in
@@ -247,17 +410,22 @@ class OneOffEventController extends Controller
             ]);
         }
 
-        // Only allow check-in if now is within the event timeframe
+        // Only allow check-in if now is within the event timeframe.
+        // Events with no end time are open-ended, so there's no closing bound.
         $now = now();
         $hoursBeforeStart = $oneOffEvent->checkin_hours_before ?? 1;
         $hoursAfterEnd = $oneOffEvent->checkin_hours_after ?? 12;
-        
+
         $checkInStart = $oneOffEvent->start_time->copy()->subHours($hoursBeforeStart);
-        $checkInEnd = $oneOffEvent->end_time->copy()->addHours($hoursAfterEnd);
-        
-        if ($now->isBefore($checkInStart) || $now->isAfter($checkInEnd)) {
+        $checkInEnd = $oneOffEvent->end_time
+            ? $oneOffEvent->end_time->copy()->addHours($hoursAfterEnd)
+            : null;
+
+        if ($now->isBefore($checkInStart) || ($checkInEnd && $now->isAfter($checkInEnd))) {
             return back()->with('error', [
-                'message' => "Check-in is only available {$hoursBeforeStart} hour(s) before the event starts until {$hoursAfterEnd} hour(s) after it ends."
+                'message' => $checkInEnd
+                    ? "Check-in is only available {$hoursBeforeStart} hour(s) before the event starts until {$hoursAfterEnd} hour(s) after it ends."
+                    : "Check-in is only available starting {$hoursBeforeStart} hour(s) before the event starts."
             ]);
         }
 

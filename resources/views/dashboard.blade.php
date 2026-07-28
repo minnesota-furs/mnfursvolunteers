@@ -144,6 +144,49 @@
                         </div>
                     </dd>
                 </div>
+                @feature('one_off_events')
+                    <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow-lg sm:p-6">
+                        <dt class="text-xl font-bold mb-1 text-gray-500 dark:text-gray-400">Simple Volunteer Events You're Eligible For
+                            ({{ $eligibleSimpleEvents->count() }})</dt>
+                        <p class="text-sm text-gray-400 dark:text-gray-500 mb-3">Meetings, socials, and other simple events you can check in to or RSVP for.</p>
+                        <dd class="mt-1">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                @forelse($eligibleSimpleEvents as $event)
+                                    <a href="{{ route('simple-volunteer-events.show', $event) }}"
+                                       class="group flex items-center gap-2.5 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 px-2.5 py-1.5 hover:border-brand-green dark:hover:border-brand-green hover:bg-green-50 dark:hover:bg-brand-green/10 transition-all">
+                                        <div class="flex-shrink-0 text-center leading-tight rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 px-1.5 py-0.5 shadow-sm">
+                                            <div class="text-[10px] font-semibold uppercase text-brand-green">{{ $event->start_time->format('M') }}</div>
+                                            <div class="text-base font-bold text-gray-900 dark:text-gray-100 -mt-0.5">{{ $event->start_time->format('j') }}</div>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-brand-green transition-colors truncate">{{ $event->name }}</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                {{ $event->start_time->format('l, g:i A') }}
+                                                @if($event->location)
+                                                    · {{ $event->location }}
+                                                @endif
+                                            </p>
+                                        </div>
+                                        @if($event->isHappeningNow())
+                                            <span class="inline-flex items-center gap-1 rounded-full bg-red-100 dark:bg-red-900/30 px-2 py-0.5 text-[10px] font-medium text-red-700 dark:text-red-400 flex-shrink-0">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                                Now
+                                            </span>
+                                        @endif
+                                        @if($event->isRsvpType())
+                                            <span class="inline-flex items-center rounded-full bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 text-[10px] font-medium text-purple-700 dark:text-purple-400 flex-shrink-0">
+                                                RSVP
+                                            </span>
+                                        @endif
+                                        <x-heroicon-m-chevron-right class="w-4 h-4 flex-shrink-0 text-gray-300 dark:text-gray-600 group-hover:text-brand-green transition-colors"/>
+                                    </a>
+                                @empty
+                                    <p class="text-gray-300 dark:text-gray-500">No simple volunteer events you're eligible for right now.</p>
+                                @endforelse
+                            </div>
+                        </dd>
+                    </div>
+                @endfeature
             </dl>
         </div>
     </x-slot>

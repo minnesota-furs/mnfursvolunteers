@@ -56,7 +56,12 @@
                                                         {{ $event->name }}
                                                     </a>
                                                 </h3>
-                                                @if($event->auto_credit_hours)
+                                                @if($event->isRsvpType())
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300">
+                                                        <x-heroicon-s-hand-raised class="w-3 h-3 mr-1"/>
+                                                        RSVP
+                                                    </span>
+                                                @elseif($event->auto_credit_hours)
                                                     <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300">
                                                         <x-heroicon-s-check-circle class="w-3 h-3 mr-1"/>
                                                         Auto-credit
@@ -91,7 +96,11 @@
                                                 @endif
                                                 <div class="flex items-center text-gray-700 dark:text-gray-300">
                                                     <x-heroicon-m-user-group class="w-4 h-4 mr-1.5 text-gray-400"/>
-                                                    {{ $event->checkIns()->count() }} check-in{{ $event->checkIns()->count() !== 1 ? 's' : '' }}
+                                                    @if($event->isRsvpType())
+                                                        {{ $event->rsvps()->count() }} RSVP{{ $event->rsvps()->count() !== 1 ? 's' : '' }}
+                                                    @else
+                                                        {{ $event->checkIns()->count() }} check-in{{ $event->checkIns()->count() !== 1 ? 's' : '' }}
+                                                    @endif
                                                 </div>
                                                 <div class="flex items-center text-gray-500 dark:text-gray-400">
                                                     <x-heroicon-m-clock class="w-4 h-4 mr-1.5 text-gray-400"/>
@@ -106,11 +115,19 @@
                                                 <x-heroicon-o-eye class="w-4 h-4 mr-1"/>
                                                 View
                                             </a>
-                                            <a href="{{ route('simple-volunteer-events.check-ins', $event) }}"
-                                               class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-                                                <x-heroicon-o-user-group class="w-4 h-4 mr-1"/>
-                                                Check-ins
-                                            </a>
+                                            @if($event->isRsvpType())
+                                                <a href="{{ route('simple-volunteer-events.rsvps', $event) }}"
+                                                   class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                                                    <x-heroicon-o-user-group class="w-4 h-4 mr-1"/>
+                                                    RSVPs
+                                                </a>
+                                            @else
+                                                <a href="{{ route('simple-volunteer-events.check-ins', $event) }}"
+                                                   class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                                                    <x-heroicon-o-user-group class="w-4 h-4 mr-1"/>
+                                                    Check-ins
+                                                </a>
+                                            @endif
                                             <form action="{{ route('simple-volunteer-events.duplicate', $event) }}" method="POST" class="inline">
                                                 @csrf
                                                 <button type="submit"

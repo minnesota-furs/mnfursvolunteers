@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Department;
 use App\Models\Event;
 use App\Models\Election;
 use App\Models\JobApplication;
+use App\Models\OneOffEvent;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,6 +38,32 @@ class DashboardController extends Controller
             })
             ->take(5)
             ->values();
+
+        // Get upcoming simple volunteer events (check-in or RSVP) the user is eligible for
+        $eligibleSimpleEvents = collect();
+        if (feature_enabled('one_off_events')) {
+            $eligibleSimpleEvents = OneOffEvent::where(function ($query) use ($now) {
+                    $query->where('end_time', '>=', $now)->orWhereNull('end_time');
+                })
+                ->orderBy('start_time')
+                ->with('requiredUserTags', 'requiredDepartments', 'requiredSectors')
+                ->get()
+                ->filter(function ($event) use ($userTagIds, $userDeptIds) {
+                    $requiredTagIds = $event->requiredUserTags->pluck('id')->toArray();
+                    $hasAllTags = empty(array_diff($requiredTagIds, $userTagIds));
+
+                    $requiredDeptIds = $event->requiredDepartments->pluck('id')->toArray();
+                    $sectorDeptIds = Department::whereIn('sector_id', $event->requiredSectors->pluck('id'))->pluck('id')->toArray();
+                    $eligibleDeptIdPool = array_unique(array_merge($requiredDeptIds, $sectorDeptIds));
+
+                    $hasRequiredDept = empty($eligibleDeptIdPool)
+                        || !empty(array_intersect($eligibleDeptIdPool, $userDeptIds));
+
+                    return $hasAllTags && $hasRequiredDept;
+                })
+                ->take(6)
+                ->values();
+        }
 
         // Get the user's upcoming shifts
         $upcomingShifts = $user->shifts()
@@ -94,7 +122,7 @@ class DashboardController extends Controller
             ->orderByPivot('no_show_marked_at', 'desc')
             ->get();
 
-        return view('dashboard', compact('upcomingEvents', 'upcomingShifts', 'activeElections', 'claimedApplications', 'unclaimedPendingCount', 'recentNoShows'));
+        return view('dashboard', compact('upcomingEvents', 'eligibleSimpleEvents', 'upcomingShifts', 'activeElections', 'claimedApplications', 'unclaimedPendingCount', 'recentNoShows'));
     }
 
     public function dismissProfileNotice()

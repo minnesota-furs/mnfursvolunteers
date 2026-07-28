@@ -6,10 +6,17 @@
 
         <x-slot name="actions">
             @can('manage-events')
-                <a href="{{ route('simple-volunteer-events.check-ins', $oneOffEvent) }}"
-                    class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100">
-                    <x-heroicon-o-user-group class="w-4 inline"/> Check-ins ({{ $oneOffEvent->checkIns()->count() }})
-                </a>
+                @if($oneOffEvent->isRsvpType())
+                    <a href="{{ route('simple-volunteer-events.rsvps', $oneOffEvent) }}"
+                        class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100">
+                        <x-heroicon-o-user-group class="w-4 inline"/> RSVPs ({{ $oneOffEvent->rsvps()->count() }})
+                    </a>
+                @else
+                    <a href="{{ route('simple-volunteer-events.check-ins', $oneOffEvent) }}"
+                        class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100">
+                        <x-heroicon-o-user-group class="w-4 inline"/> Check-ins ({{ $oneOffEvent->checkIns()->count() }})
+                    </a>
+                @endif
                 <a href="{{ route('simple-volunteer-events.edit', $oneOffEvent) }}"
                     class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100">
                     <x-heroicon-m-pencil class="w-4 inline"/> Edit
@@ -37,14 +44,123 @@
                         </p>
                     </div>
 
-                    <!-- Check-in Status Card -->
+                    <!-- Check-in / RSVP Status Card -->
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                            <x-heroicon-o-check-circle class="w-5 h-5 mr-2 text-brand-green" />
-                            Check-in Status
+                            @if($oneOffEvent->isRsvpType())
+                                <x-heroicon-o-hand-raised class="w-5 h-5 mr-2 text-brand-green" />
+                                RSVP Status
+                            @else
+                                <x-heroicon-o-check-circle class="w-5 h-5 mr-2 text-brand-green" />
+                                Check-in Status
+                            @endif
                         </h2>
-                        
-                        @if ($checkIn)
+
+                        @if($oneOffEvent->isRsvpType())
+                            @if ($rsvp)
+                                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <x-heroicon-s-hand-raised class="w-6 h-6 text-green-600 dark:text-green-400" />
+                                            </div>
+                                            <div class="ml-3">
+                                                <h3 class="text-sm font-medium text-green-800 dark:text-green-200">
+                                                    You're RSVP'd!
+                                                </h3>
+                                                <p class="mt-1 text-sm text-green-700 dark:text-green-300">
+                                                    RSVP'd on {{ $rsvp->created_at->format('F j, Y \a\t g:i A') }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <form method="POST" action="{{ route('simple-volunteer-events.rsvp.cancel', $oneOffEvent) }}" class="mt-3"
+                                          onsubmit="return confirm('Cancel your RSVP for this event?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-sm font-medium text-green-800 dark:text-green-200 hover:underline">
+                                            Cancel RSVP
+                                        </button>
+                                    </form>
+                                </div>
+                            @elseif (!$isEligible)
+                                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <x-heroicon-s-no-symbol class="w-6 h-6 text-red-600 dark:text-red-400" />
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+                                                You're Not Eligible to RSVP
+                                            </h3>
+                                            @if(!empty($missingTagNames))
+                                                <p class="mt-1 text-sm text-red-700 dark:text-red-300">
+                                                    You must have the following tag(s): {{ implode(', ', $missingTagNames) }}
+                                                </p>
+                                            @endif
+                                            @if(!empty($eligibleDepartmentNames) || !empty($eligibleSectorNames))
+                                                <p class="mt-1 text-sm text-red-700 dark:text-red-300">
+                                                    You must be assigned to one of the following:
+                                                    {{ implode(', ', array_merge(
+                                                        $eligibleDepartmentNames,
+                                                        array_map(fn ($name) => "any department in the {$name} sector", $eligibleSectorNames)
+                                                    )) }}
+                                                </p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @elseif ($oneOffEvent->hasEnded())
+                                <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <x-heroicon-s-exclamation-triangle class="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                                                RSVPs Closed
+                                            </h3>
+                                            <p class="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
+                                                This event has already happened.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @elseif ($oneOffEvent->isRsvpFull())
+                                <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <x-heroicon-s-exclamation-triangle class="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                                                RSVPs Full
+                                            </h3>
+                                            <p class="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
+                                                This event has reached its maximum of {{ $oneOffEvent->max_rsvps }} RSVPs.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="space-y-4">
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                        Let us know you're coming! This event doesn't earn volunteer hours.
+                                        @if($oneOffEvent->rsvpSpotsRemaining() !== null)
+                                            <span class="block mt-1 text-xs text-gray-500 dark:text-gray-400">{{ $oneOffEvent->rsvpSpotsRemaining() }} {{ Str::plural('spot', $oneOffEvent->rsvpSpotsRemaining()) }} left</span>
+                                        @endif
+                                    </p>
+                                    <form method="POST" action="{{ route('simple-volunteer-events.rsvp', $oneOffEvent) }}">
+                                        @csrf
+                                        <button type="submit"
+                                            class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-brand-green hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-green transition-colors shadow-sm">
+                                            <x-heroicon-s-hand-raised class="w-5 h-5 mr-2" />
+                                            RSVP - I'm Going
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
+                        @elseif ($checkIn)
                             <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                                 <div class="flex items-start">
                                     <div class="flex-shrink-0">
@@ -66,8 +182,8 @@
                                 $hoursBeforeStart = $oneOffEvent->checkin_hours_before ?? 1;
                                 $hoursAfterEnd = $oneOffEvent->checkin_hours_after ?? 12;
                                 $checkInStart = $oneOffEvent->start_time->copy()->subHours($hoursBeforeStart);
-                                $checkInEnd = $oneOffEvent->end_time->copy()->addHours($hoursAfterEnd);
-                                $canCheckIn = $now->isBetween($checkInStart, $checkInEnd);
+                                $checkInEnd = $oneOffEvent->end_time ? $oneOffEvent->end_time->copy()->addHours($hoursAfterEnd) : null;
+                                $canCheckIn = $now->greaterThanOrEqualTo($checkInStart) && (!$checkInEnd || $now->lessThanOrEqualTo($checkInEnd));
                             @endphp
                             
                             @if (!$isEligible)
@@ -122,13 +238,17 @@
                                                 Check-in Not Available
                                             </h3>
                                             <p class="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
-                                                Check-in is only available {{ $hoursBeforeStart }} hour(s) before the event starts until {{ $hoursAfterEnd }} hour(s) after it ends.
+                                                @if($checkInEnd)
+                                                    Check-in is only available {{ $hoursBeforeStart }} hour(s) before the event starts until {{ $hoursAfterEnd }} hour(s) after it ends.
+                                                @else
+                                                    Check-in is only available starting {{ $hoursBeforeStart }} hour(s) before the event starts.
+                                                @endif
                                             </p>
                                             @if ($now->isBefore($checkInStart))
                                                 <p class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
                                                     Check-in opens at {{ $checkInStart->format('F j, Y \a\t g:i A') }}
                                                 </p>
-                                            @else
+                                            @elseif($checkInEnd)
                                                 <p class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
                                                     Check-in closed at {{ $checkInEnd->format('F j, Y \a\t g:i A') }}
                                                 </p>
@@ -184,9 +304,13 @@
                                 </dt>
                                 <dd class="text-sm text-gray-900 dark:text-white font-medium flex items-center">
                                     <x-heroicon-s-arrow-left-circle class="w-4 h-4 mr-2 text-red-600" />
-                                    {{ $oneOffEvent->end_time->format('M j, Y') }}
-                                    <span class="mx-1">•</span>
-                                    {{ $oneOffEvent->end_time->format('g:i A') }}
+                                    @if($oneOffEvent->end_time)
+                                        {{ $oneOffEvent->end_time->format('M j, Y') }}
+                                        <span class="mx-1">•</span>
+                                        {{ $oneOffEvent->end_time->format('g:i A') }}
+                                    @else
+                                        <span class="text-gray-500 dark:text-gray-400 font-normal">Open-ended (no end time set)</span>
+                                    @endif
                                 </dd>
                             </div>
 
@@ -197,33 +321,50 @@
                                 </dt>
                                 <dd class="text-sm text-gray-900 dark:text-white font-medium flex items-center">
                                     <x-heroicon-s-clock class="w-4 h-4 mr-2 text-blue-600" />
-                                    @php
-                                        $duration = $oneOffEvent->start_time->diffInMinutes($oneOffEvent->end_time);
-                                        $hours = floor($duration / 60);
-                                        $minutes = $duration % 60;
-                                        $durationText = '';
-                                        if ($hours > 0) {
-                                            $durationText .= $hours . ' ' . ($hours === 1 ? 'hour' : 'hours');
-                                        }
-                                        if ($minutes > 0) {
-                                            $durationText .= ($hours > 0 ? ' ' : '') . $minutes . ' ' . ($minutes === 1 ? 'minute' : 'minutes');
-                                        }
-                                    @endphp
-                                    {{ $durationText ?: 'Less than a minute' }}
+                                    @if($oneOffEvent->end_time)
+                                        @php
+                                            $duration = $oneOffEvent->start_time->diffInMinutes($oneOffEvent->end_time);
+                                            $hours = floor($duration / 60);
+                                            $minutes = $duration % 60;
+                                            $durationText = '';
+                                            if ($hours > 0) {
+                                                $durationText .= $hours . ' ' . ($hours === 1 ? 'hour' : 'hours');
+                                            }
+                                            if ($minutes > 0) {
+                                                $durationText .= ($hours > 0 ? ' ' : '') . $minutes . ' ' . ($minutes === 1 ? 'minute' : 'minutes');
+                                            }
+                                        @endphp
+                                        {{ $durationText ?: 'Less than a minute' }}
+                                    @else
+                                        <span class="text-gray-500 dark:text-gray-400 font-normal">Ongoing</span>
+                                    @endif
                                 </dd>
                             </div>
 
                             @can('manage-events')
-                                <!-- Total Check-ins -->
-                                <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-                                    <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-                                        Total Check-ins
-                                    </dt>
-                                    <dd class="text-sm text-gray-900 dark:text-white font-medium flex items-center">
-                                        <x-heroicon-s-user-group class="w-4 h-4 mr-2 text-purple-600" />
-                                        {{ $oneOffEvent->checkIns()->count() }} volunteer{{ $oneOffEvent->checkIns()->count() !== 1 ? 's' : '' }}
-                                    </dd>
-                                </div>
+                                @if($oneOffEvent->isRsvpType())
+                                    <!-- Total RSVPs -->
+                                    <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                        <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                                            Total RSVPs
+                                        </dt>
+                                        <dd class="text-sm text-gray-900 dark:text-white font-medium flex items-center">
+                                            <x-heroicon-s-user-group class="w-4 h-4 mr-2 text-purple-600" />
+                                            {{ $oneOffEvent->rsvps()->count() }}{{ $oneOffEvent->max_rsvps !== null ? ' / ' . $oneOffEvent->max_rsvps : '' }} volunteer{{ $oneOffEvent->rsvps()->count() !== 1 ? 's' : '' }}
+                                        </dd>
+                                    </div>
+                                @else
+                                    <!-- Total Check-ins -->
+                                    <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                        <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                                            Total Check-ins
+                                        </dt>
+                                        <dd class="text-sm text-gray-900 dark:text-white font-medium flex items-center">
+                                            <x-heroicon-s-user-group class="w-4 h-4 mr-2 text-purple-600" />
+                                            {{ $oneOffEvent->checkIns()->count() }} volunteer{{ $oneOffEvent->checkIns()->count() !== 1 ? 's' : '' }}
+                                        </dd>
+                                    </div>
+                                @endif
                             @endcan
                         </dl>
                     </div>
@@ -295,11 +436,19 @@
                                 All Events
                             </a>
                             @can('manage-events')
-                                <a href="{{ route('simple-volunteer-events.check-ins', $oneOffEvent) }}"
-                                   class="block w-full text-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-                                    <x-heroicon-o-user-group class="w-4 h-4 inline mr-1" />
-                                    View All Check-ins
-                                </a>
+                                @if($oneOffEvent->isRsvpType())
+                                    <a href="{{ route('simple-volunteer-events.rsvps', $oneOffEvent) }}"
+                                       class="block w-full text-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                                        <x-heroicon-o-user-group class="w-4 h-4 inline mr-1" />
+                                        View All RSVPs
+                                    </a>
+                                @else
+                                    <a href="{{ route('simple-volunteer-events.check-ins', $oneOffEvent) }}"
+                                       class="block w-full text-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                                        <x-heroicon-o-user-group class="w-4 h-4 inline mr-1" />
+                                        View All Check-ins
+                                    </a>
+                                @endif
                             @endcan
                         </div>
                     </div>

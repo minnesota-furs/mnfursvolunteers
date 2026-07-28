@@ -14,12 +14,18 @@
                     </span>
                     <span class="flex items-center gap-1">
                         <x-heroicon-m-clock class="w-4 h-4 flex-shrink-0"/>
-                        {{ $event->start_time->format('g:i A') }} &ndash; {{ $event->end_time->format('g:i A') }}
+                        @if($event->end_time)
+                            {{ $event->start_time->format('g:i A') }} &ndash; {{ $event->end_time->format('g:i A') }}
+                        @else
+                            {{ $event->start_time->format('g:i A') }} (ongoing)
+                        @endif
                     </span>
-                    <span class="flex items-center gap-1">
-                        <x-heroicon-m-clock class="w-4 h-4 flex-shrink-0"/>
-                        {{ $event->start_time->floatDiffInHours($event->end_time) }} hours
-                    </span>
+                    @if($event->isCheckInType() && $event->end_time)
+                        <span class="flex items-center gap-1">
+                            <x-heroicon-m-clock class="w-4 h-4 flex-shrink-0"/>
+                            {{ $event->start_time->floatDiffInHours($event->end_time) }} hours
+                        </span>
+                    @endif
                     @if($event->location)
                         <span class="flex items-center gap-1">
                             <x-heroicon-m-map-pin class="w-4 h-4 flex-shrink-0"/>
@@ -34,9 +40,15 @@
 
                 @can('manage-events')
                     <div class="mt-3 border-t border-gray-100 dark:border-gray-700 pt-3 flex flex-wrap items-center gap-4 text-xs">
-                        <a href="{{ route('simple-volunteer-events.check-ins', $event) }}" class="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline">
-                            <x-heroicon-m-user-group class="w-3.5 h-3.5"/> {{ $event->checkIns()->count() }} check-ins
-                        </a>
+                        @if($event->isRsvpType())
+                            <a href="{{ route('simple-volunteer-events.rsvps', $event) }}" class="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline">
+                                <x-heroicon-m-user-group class="w-3.5 h-3.5"/> {{ $event->rsvps()->count() }} RSVPs
+                            </a>
+                        @else
+                            <a href="{{ route('simple-volunteer-events.check-ins', $event) }}" class="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline">
+                                <x-heroicon-m-user-group class="w-3.5 h-3.5"/> {{ $event->checkIns()->count() }} check-ins
+                            </a>
+                        @endif
                         <form action="{{ route('simple-volunteer-events.duplicate', $event) }}" method="POST" class="inline">
                             @csrf
                             <button type="submit" class="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:underline">
@@ -51,7 +63,24 @@
             </div>
 
             <div class="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 flex-shrink-0 border-t sm:border-t-0 border-gray-100 dark:border-gray-700 pt-3 sm:pt-0">
-                @if($event->auto_credit_hours)
+                @if($event->isRsvpType())
+                    @if($event->isRsvpFull())
+                        <span class="inline-flex items-center gap-1 rounded-full bg-red-100 dark:bg-red-900/30 px-3 py-1 text-xs font-medium text-red-700 dark:text-red-400">
+                            <x-heroicon-m-x-circle class="w-3 h-3"/>
+                            RSVPs Full
+                        </span>
+                    @elseif($event->rsvpSpotsRemaining() !== null)
+                        <span class="inline-flex items-center gap-1 rounded-full bg-purple-100 dark:bg-purple-900/30 px-3 py-1 text-xs font-medium text-purple-700 dark:text-purple-400">
+                            <x-heroicon-m-hand-raised class="w-3 h-3"/>
+                            {{ $event->rsvpSpotsRemaining() }} {{ Str::plural('spot', $event->rsvpSpotsRemaining()) }} left
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1 rounded-full bg-purple-100 dark:bg-purple-900/30 px-3 py-1 text-xs font-medium text-purple-700 dark:text-purple-400">
+                            <x-heroicon-m-hand-raised class="w-3 h-3"/>
+                            RSVP
+                        </span>
+                    @endif
+                @elseif($event->auto_credit_hours)
                     <span class="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-xs font-medium text-green-700 dark:text-green-400">
                         <x-heroicon-m-check-circle class="w-3 h-3"/>
                         Auto-credit

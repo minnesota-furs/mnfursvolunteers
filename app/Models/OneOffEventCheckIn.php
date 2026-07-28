@@ -48,6 +48,12 @@ class OneOffEventCheckIn extends Model
         }
 
         $event = $this->event;
+
+        // Can't calculate a duration without an end time
+        if ($event->end_time === null) {
+            return null;
+        }
+
         $duration = $event->start_time->floatDiffInHours($event->end_time);
 
         // Get the current fiscal ledger

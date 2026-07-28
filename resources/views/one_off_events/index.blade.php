@@ -56,6 +56,10 @@
                                         <span class="inline-flex items-center ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 dark:bg-green-800/30 dark:text-green-400">
                                             Thanks! You checked in!
                                         </span>
+                                    @elseif(in_array($event->id, $rsvpedEventIds))
+                                        <span class="inline-flex items-center ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 dark:bg-green-800/30 dark:text-green-400">
+                                            Thanks! You RSVP'd!
+                                        </span>
                                     @endif
                                 </h3>
                                 <div class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500 dark:text-gray-400">
