@@ -129,8 +129,8 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::get('/user/{user}', [RecognitionController::class, 'showUserRecognitions'])->name('user-recognitions');
     });
 
-    // One Off Events
-    Route::prefix('one-off-events')->name('one-off-events.')->group(function () {
+    // Simple Volunteer Events
+    Route::prefix('simple-volunteer-events')->name('simple-volunteer-events.')->group(function () {
         Route::get('/', [OneOffEventController::class, 'index'])->name('index');
         Route::get('/archived', [OneOffEventController::class, 'archived'])->middleware('can:manage-events')->name('archived');
         Route::get('/create', [OneOffEventController::class, 'create'])->middleware('can:manage-events')->name('create');

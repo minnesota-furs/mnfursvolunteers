@@ -5,11 +5,11 @@
         </x-slot>
 
         <x-slot name="actions">
-            <a href="{{ route('one-off-events.edit', $oneOffEvent) }}"
+            <a href="{{ route('simple-volunteer-events.edit', $oneOffEvent) }}"
                 class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100">
                 <x-heroicon-m-pencil class="w-4 inline"/> Edit Event
             </a>
-            <a href="{{ route('one-off-events.show', $oneOffEvent) }}"
+            <a href="{{ route('simple-volunteer-events.show', $oneOffEvent) }}"
                 class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100">
                 <x-heroicon-o-arrow-left class="w-4 inline"/> Back to Event
             </a>
@@ -117,7 +117,7 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 @if(!$checkIn->hours_credited)
-                                                    <form method="POST" action="{{ route('one-off-events.check-ins.credit', [$oneOffEvent, $checkIn]) }}" class="inline">
+                                                    <form method="POST" action="{{ route('simple-volunteer-events.check-ins.credit', [$oneOffEvent, $checkIn]) }}" class="inline">
                                                         @csrf
                                                         <button type="submit" 
                                                                 class="text-brand-green hover:text-indigo-900 dark:hover:text-indigo-400"

@@ -1,11 +1,11 @@
 <x-app-layout>
     @auth
         <x-slot name="header">
-            {{ __('Edit One Off Event') }}
+            {{ __('Edit Simple Volunteer Event') }}
         </x-slot>
 
         <x-slot name="actions">
-            <a href="{{ route('one-off-events.check-ins', $oneOffEvent) }}"
+            <a href="{{ route('simple-volunteer-events.check-ins', $oneOffEvent) }}"
                 class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100">
                 <x-heroicon-o-user-group class="w-4 inline"/> View Check-ins
             </a>
@@ -13,7 +13,7 @@
 
         <div class="">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Edit One-Off Event</h1>
+                <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Edit Simple Volunteer Event</h1>
 
                 @if ($errors->any())
                     <div class="mb-4 p-4 bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-200 rounded">
@@ -26,7 +26,7 @@
                     </div>
                 @endif
             
-                <form method="POST" action="{{ route('one-off-events.update', $oneOffEvent) }}">
+                <form method="POST" action="{{ route('simple-volunteer-events.update', $oneOffEvent) }}">
                     @csrf
                     @method('PUT')
             
@@ -41,7 +41,13 @@
                         <textarea name="description" id="description" rows="3"
                             class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">{{ old('description', $oneOffEvent->description) }}</textarea>
                     </div>
-            
+
+                    <div class="mb-4">
+                        <label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                        <input type="text" name="location" id="location" value="{{ old('location', $oneOffEvent->location) }}"
+                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    </div>
+
                     <div class="mb-4">
                         <label for="start_time" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Time</label>
                         <input type="datetime-local" name="start_time" id="start_time" required 
@@ -82,9 +88,11 @@
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Volunteers can check in this many hours after the event ends</p>
                 </div>
             </div>
-    
+
+                    @include('one_off_events._restrictions-fields')
+
                     <div class="flex justify-end gap-3">
-                        <a href="{{ route('one-off-events.show', $oneOffEvent) }}"
+                        <a href="{{ route('simple-volunteer-events.show', $oneOffEvent) }}"
                            class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             Cancel
                         </a>
@@ -97,7 +105,7 @@
                 </form>
 
                 {{-- Delete Form (Outside Update Form) --}}
-                <form method="POST" action="{{ route('one-off-events.destroy', $oneOffEvent) }}" class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700"
+                <form method="POST" action="{{ route('simple-volunteer-events.destroy', $oneOffEvent) }}" class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700"
                       onsubmit="return confirm('Are you sure you want to delete this event? This will also delete all check-ins.');">
                     @csrf
                     @method('DELETE')

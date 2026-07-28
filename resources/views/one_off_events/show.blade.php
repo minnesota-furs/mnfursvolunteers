@@ -6,16 +6,16 @@
 
         <x-slot name="actions">
             @can('manage-events')
-                <a href="{{ route('one-off-events.check-ins', $oneOffEvent) }}"
+                <a href="{{ route('simple-volunteer-events.check-ins', $oneOffEvent) }}"
                     class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100">
                     <x-heroicon-o-user-group class="w-4 inline"/> Check-ins ({{ $oneOffEvent->checkIns()->count() }})
                 </a>
-                <a href="{{ route('one-off-events.edit', $oneOffEvent) }}"
+                <a href="{{ route('simple-volunteer-events.edit', $oneOffEvent) }}"
                     class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100">
                     <x-heroicon-m-pencil class="w-4 inline"/> Edit
                 </a>
             @endcan
-            <a href="{{ route('one-off-events.index') }}"
+            <a href="{{ route('simple-volunteer-events.index') }}"
                 class="block rounded-md px-3 py-2 text-center text-sm font-semibold text-white hover:bg-white/10">
                 <x-heroicon-o-arrow-left class="w-4 inline"/> Back
             </a>
@@ -70,12 +70,39 @@
                                 $canCheckIn = $now->isBetween($checkInStart, $checkInEnd);
                             @endphp
                             
-                            @if ($canCheckIn)
+                            @if (!$isEligible)
+                                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <x-heroicon-s-no-symbol class="w-6 h-6 text-red-600 dark:text-red-400" />
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+                                                You're Not Eligible to Check In
+                                            </h3>
+                                            @if(!empty($missingTagNames))
+                                                <p class="mt-1 text-sm text-red-700 dark:text-red-300">
+                                                    You must have the following tag(s): {{ implode(', ', $missingTagNames) }}
+                                                </p>
+                                            @endif
+                                            @if(!empty($eligibleDepartmentNames) || !empty($eligibleSectorNames))
+                                                <p class="mt-1 text-sm text-red-700 dark:text-red-300">
+                                                    You must be assigned to one of the following:
+                                                    {{ implode(', ', array_merge(
+                                                        $eligibleDepartmentNames,
+                                                        array_map(fn ($name) => "any department in the {$name} sector", $eligibleSectorNames)
+                                                    )) }}
+                                                </p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @elseif ($canCheckIn)
                                 <div class="space-y-4">
                                     <p class="text-gray-600 dark:text-gray-400 text-sm">
                                         Check in to record your attendance and earn volunteer hours for this event.
                                     </p>
-                                    <form method="POST" action="{{ route('one-off-events.check-in', $oneOffEvent) }}">
+                                    <form method="POST" action="{{ route('simple-volunteer-events.check-in', $oneOffEvent) }}">
                                         @csrf
                                         <button type="submit"
                                             class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-brand-green hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-green transition-colors shadow-sm">
@@ -124,6 +151,19 @@
                         </h2>
                         
                         <dl class="space-y-4">
+                            @if($oneOffEvent->location)
+                                <!-- Location -->
+                                <div>
+                                    <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                                        Location
+                                    </dt>
+                                    <dd class="text-sm text-gray-900 dark:text-white font-medium flex items-center">
+                                        <x-heroicon-s-map-pin class="w-4 h-4 mr-2 text-brand-green" />
+                                        {{ $oneOffEvent->location }}
+                                    </dd>
+                                </div>
+                            @endif
+
                             <!-- Start Time -->
                             <div>
                                 <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
@@ -188,19 +228,74 @@
                         </dl>
                     </div>
 
+                    @if($oneOffEvent->requiredUserTags->isNotEmpty() || $oneOffEvent->requiredDepartments->isNotEmpty() || $oneOffEvent->requiredSectors->isNotEmpty())
+                        <!-- Restrictions Card -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                                <x-heroicon-o-shield-check class="w-5 h-5 mr-2 text-brand-green" />
+                                Restrictions
+                            </h2>
+                            <div class="space-y-3">
+                                @if($oneOffEvent->requiredUserTags->isNotEmpty())
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">Required Tags</p>
+                                        <div class="flex flex-wrap gap-1.5">
+                                            @foreach($oneOffEvent->requiredUserTags as $tag)
+                                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                                      @if($tag->color)
+                                                          style="background-color: {{ $tag->color }}22; color: {{ $tag->color }}; border: 1px solid {{ $tag->color }}55;"
+                                                      @else
+                                                          style="background-color: #e5e7eb; color: #374151;"
+                                                      @endif>
+                                                    {{ $tag->name }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if($oneOffEvent->requiredSectors->isNotEmpty())
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">Eligible Sectors</p>
+                                        <div class="flex flex-wrap gap-1.5">
+                                            @foreach($oneOffEvent->requiredSectors as $sector)
+                                                <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">
+                                                    Any department in {{ $sector->name }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if($oneOffEvent->requiredDepartments->isNotEmpty())
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">Eligible Departments</p>
+                                        <div class="flex flex-wrap gap-1.5">
+                                            @foreach($oneOffEvent->requiredDepartments as $department)
+                                                <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">
+                                                    {{ $department->name }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Quick Actions Card -->
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                         <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
                             Quick Actions
                         </h3>
                         <div class="space-y-2">
-                            <a href="{{ route('one-off-events.index') }}"
+                            <a href="{{ route('simple-volunteer-events.index') }}"
                                class="block w-full text-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
                                 <x-heroicon-o-arrow-left class="w-4 h-4 inline mr-1" />
                                 All Events
                             </a>
                             @can('manage-events')
-                                <a href="{{ route('one-off-events.check-ins', $oneOffEvent) }}"
+                                <a href="{{ route('simple-volunteer-events.check-ins', $oneOffEvent) }}"
                                    class="block w-full text-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
                                     <x-heroicon-o-user-group class="w-4 h-4 inline mr-1" />
                                     View All Check-ins

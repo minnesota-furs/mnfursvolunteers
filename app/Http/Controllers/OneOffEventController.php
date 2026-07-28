@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Department;
 use App\Models\OneOffEvent;
 use App\Models\OneOffEventCheckIn;
+use App\Models\Sector;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,7 +16,16 @@ class OneOffEventController extends Controller
     public function index()
     {
         $events = OneOffEvent::where('end_time', '>=', now())->orderBy('start_time')->get();
-        return view('one_off_events.index', compact('events'));
+
+        $pastEvents = OneOffEvent::where('end_time', '<', now())
+            ->orderByDesc('start_time')
+            ->paginate(5, ['*'], 'past_page');
+
+        $checkedInEventIds = OneOffEventCheckIn::where('user_id', Auth::id())
+            ->pluck('one_off_event_id')
+            ->all();
+
+        return view('one_off_events.index', compact('events', 'pastEvents', 'checkedInEventIds'));
     }
 
     // Show list of archived/past events (admin only)
@@ -28,20 +40,34 @@ class OneOffEventController extends Controller
     // Show a single event
     public function show(OneOffEvent $oneOffEvent)
     {
+        $oneOffEvent->load('requiredUserTags', 'requiredDepartments', 'requiredSectors');
+
         $checkIn = null;
+        $isEligible = true;
+        $missingTagNames = [];
+        $eligibleDepartmentNames = [];
+        $eligibleSectorNames = [];
+
         if (Auth::check()) {
-            $checkIn = OneOffEventCheckIn::where('user_id', Auth::id())
+            $user = Auth::user();
+
+            $checkIn = OneOffEventCheckIn::where('user_id', $user->id)
                 ->where('one_off_event_id', $oneOffEvent->id)
                 ->first();
+
+            [$isEligible, $missingTagNames, $eligibleDepartmentNames, $eligibleSectorNames] = $this->checkEligibility($oneOffEvent, $user);
         }
 
-        return view('one_off_events.show', compact('oneOffEvent', 'checkIn'));
+        return view('one_off_events.show', compact('oneOffEvent', 'checkIn', 'isEligible', 'missingTagNames', 'eligibleDepartmentNames', 'eligibleSectorNames'));
     }
 
     // Show form to create an event (admin)
     public function create()
     {
-        return view('one_off_events.create');
+        $tags = Tag::forUsers()->orderBy('name')->get();
+        $sectors = Sector::with(['departments' => fn ($q) => $q->orderBy('name')])->orderBy('name')->get();
+
+        return view('one_off_events.create', compact('tags', 'sectors'));
     }
 
     // Store event (admin)
@@ -50,27 +76,42 @@ class OneOffEventController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'location' => 'nullable|string|max:255',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
             'checkin_hours_before' => 'nullable|integer|min:0|max:48',
             'checkin_hours_after' => 'nullable|integer|min:0|max:72',
+            'required_tags' => 'nullable|array',
+            'required_tags.*' => 'exists:tags,id',
+            'required_departments' => 'nullable|array',
+            'required_departments.*' => 'exists:departments,id',
+            'required_sectors' => 'nullable|array',
+            'required_sectors.*' => 'exists:sectors,id',
         ]);
 
         $validated['auto_credit_hours'] = $request->has('auto_credit_hours');
         $validated['checkin_hours_before'] = $validated['checkin_hours_before'] ?? 1;
         $validated['checkin_hours_after'] = $validated['checkin_hours_after'] ?? 12;
 
-        OneOffEvent::create($validated);
+        $event = OneOffEvent::create($validated);
 
-        return redirect()->route('one-off-events.index')->with('success', [
-                'message' => "One Off Event <span class=\"text-brand-green\">Created Successfully</span>"
+        $event->requiredTags()->sync($request->input('required_tags', []));
+        $event->requiredDepartments()->sync($request->input('required_departments', []));
+        $event->requiredSectors()->sync($request->input('required_sectors', []));
+
+        return redirect()->route('simple-volunteer-events.index')->with('success', [
+                'message' => "Simple Volunteer Event <span class=\"text-brand-green\">Created Successfully</span>"
             ]);
     }
 
     // Edit event (admin)
     public function edit(OneOffEvent $oneOffEvent)
     {
-        return view('one_off_events.edit', compact('oneOffEvent'));
+        $oneOffEvent->load('requiredTags', 'requiredDepartments', 'requiredSectors');
+        $tags = Tag::forUsers()->orderBy('name')->get();
+        $sectors = Sector::with(['departments' => fn ($q) => $q->orderBy('name')])->orderBy('name')->get();
+
+        return view('one_off_events.edit', compact('oneOffEvent', 'tags', 'sectors'));
     }
 
     // Update event (admin)
@@ -79,10 +120,17 @@ class OneOffEventController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'location' => 'nullable|string|max:255',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
             'checkin_hours_before' => 'nullable|integer|min:0|max:48',
             'checkin_hours_after' => 'nullable|integer|min:0|max:72',
+            'required_tags' => 'nullable|array',
+            'required_tags.*' => 'exists:tags,id',
+            'required_departments' => 'nullable|array',
+            'required_departments.*' => 'exists:departments,id',
+            'required_sectors' => 'nullable|array',
+            'required_sectors.*' => 'exists:sectors,id',
         ]);
 
         $validated['auto_credit_hours'] = $request->has('auto_credit_hours');
@@ -91,7 +139,11 @@ class OneOffEventController extends Controller
 
         $oneOffEvent->update($validated);
 
-        return redirect()->route('one-off-events.show', $oneOffEvent)->with('success', [
+        $oneOffEvent->requiredTags()->sync($request->input('required_tags', []));
+        $oneOffEvent->requiredDepartments()->sync($request->input('required_departments', []));
+        $oneOffEvent->requiredSectors()->sync($request->input('required_sectors', []));
+
+        return redirect()->route('simple-volunteer-events.show', $oneOffEvent)->with('success', [
                 'message' => "Event <span class=\"text-brand-green\">Updated Successfully</span>"
             ]);
     }
@@ -101,7 +153,7 @@ class OneOffEventController extends Controller
     {
         $oneOffEvent->delete();
 
-        return redirect()->route('one-off-events.index')->with('success', [
+        return redirect()->route('simple-volunteer-events.index')->with('success', [
                 'message' => "Event <span class=\"text-brand-green\">Deleted Successfully</span>"
             ]);
     }
@@ -113,7 +165,11 @@ class OneOffEventController extends Controller
         $newEvent->name = $oneOffEvent->name . ' (Copy)';
         $newEvent->save();
 
-        return redirect()->route('one-off-events.edit', $newEvent)->with('success', [
+        $newEvent->requiredTags()->sync($oneOffEvent->requiredTags->pluck('id'));
+        $newEvent->requiredDepartments()->sync($oneOffEvent->requiredDepartments->pluck('id'));
+        $newEvent->requiredSectors()->sync($oneOffEvent->requiredSectors->pluck('id'));
+
+        return redirect()->route('simple-volunteer-events.edit', $newEvent)->with('success', [
             'message' => "Event <span class=\"text-brand-green\">Duplicated Successfully</span> - Update the details below"
         ]);
     }
@@ -171,6 +227,26 @@ class OneOffEventController extends Controller
             ]);
         }
 
+        // Check eligibility restrictions (required tags / departments / sectors)
+        [$isEligible, $missingTagNames, $eligibleDepartmentNames, $eligibleSectorNames] = $this->checkEligibility($oneOffEvent, Auth::user());
+
+        if (!$isEligible) {
+            if (!empty($missingTagNames)) {
+                return back()->with('error', [
+                    'message' => 'You must have the following tag(s) to check in to this event: ' . implode(', ', $missingTagNames)
+                ]);
+            }
+
+            $groups = $eligibleDepartmentNames;
+            foreach ($eligibleSectorNames as $sectorName) {
+                $groups[] = "any department in the {$sectorName} sector";
+            }
+
+            return back()->with('error', [
+                'message' => 'You must be assigned to one of the following to check in to this event: ' . implode(', ', $groups)
+            ]);
+        }
+
         // Only allow check-in if now is within the event timeframe
         $now = now();
         $hoursBeforeStart = $oneOffEvent->checkin_hours_before ?? 1;
@@ -207,5 +283,59 @@ class OneOffEventController extends Controller
         return back()->with('success', [
             'message' => "You've been checked in successfully!"
         ]);
+    }
+
+    /**
+     * Determine whether a user meets an event's tag/department/sector restrictions.
+     * Mirrors ShiftSignupController's eligibility logic: all required tags
+     * must be present, and the user must belong to at least one required
+     * department OR to any department under a required sector.
+     *
+     * @return array{0: bool, 1: array<string>, 2: array<string>, 3: array<string>} [isEligible, missingTagNames, eligibleDepartmentNames, eligibleSectorNames]
+     */
+    private function checkEligibility(OneOffEvent $oneOffEvent, $user): array
+    {
+        $oneOffEvent->loadMissing('requiredUserTags', 'requiredDepartments', 'requiredSectors');
+
+        $missingTagNames = [];
+        if ($oneOffEvent->requiredUserTags->isNotEmpty()) {
+            $userTagIds = $user->tags()->pluck('tags.id')->toArray();
+            $requiredTagIds = $oneOffEvent->requiredUserTags->pluck('id')->toArray();
+
+            $missingTagIds = array_diff($requiredTagIds, $userTagIds);
+            if (!empty($missingTagIds)) {
+                $missingTagNames = $oneOffEvent->requiredUserTags->whereIn('id', $missingTagIds)->pluck('name')->toArray();
+            }
+        }
+
+        $eligibleDepartmentNames = [];
+        $eligibleSectorNames = [];
+        $meetsDepartmentRequirement = true;
+
+        $hasDepartmentRestriction = $oneOffEvent->requiredDepartments->isNotEmpty();
+        $hasSectorRestriction = $oneOffEvent->requiredSectors->isNotEmpty();
+
+        if ($hasDepartmentRestriction || $hasSectorRestriction) {
+            $userDeptIds = $user->departments()->pluck('departments.id')->toArray();
+            $requiredDeptIds = $oneOffEvent->requiredDepartments->pluck('id')->toArray();
+
+            // Anyone in a department under a required sector also qualifies,
+            // so expand the eligible pool to include those department ids.
+            $sectorDeptIds = $hasSectorRestriction
+                ? Department::whereIn('sector_id', $oneOffEvent->requiredSectors->pluck('id'))->pluck('id')->toArray()
+                : [];
+
+            $eligibleDeptIdPool = array_unique(array_merge($requiredDeptIds, $sectorDeptIds));
+
+            $meetsDepartmentRequirement = !empty(array_intersect($eligibleDeptIdPool, $userDeptIds));
+            if (!$meetsDepartmentRequirement) {
+                $eligibleDepartmentNames = $oneOffEvent->requiredDepartments->pluck('name')->toArray();
+                $eligibleSectorNames = $oneOffEvent->requiredSectors->pluck('name')->toArray();
+            }
+        }
+
+        $isEligible = empty($missingTagNames) && $meetsDepartmentRequirement;
+
+        return [$isEligible, $missingTagNames, $eligibleDepartmentNames, $eligibleSectorNames];
     }
 }

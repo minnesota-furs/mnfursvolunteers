@@ -133,7 +133,7 @@ class ApplicationSettingsSeeder extends Seeder
                 'key' => 'feature_one_off_events',
                 'value' => '0',
                 'type' => 'boolean',
-                'description' => 'Enable/disable one-off events module',
+                'description' => 'Enable/disable simple volunteer events module',
                 'group' => 'features',
             ],
             [

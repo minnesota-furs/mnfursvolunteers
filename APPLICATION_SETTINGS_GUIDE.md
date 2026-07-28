@@ -19,7 +19,7 @@ The Application Settings system provides a flexible way to configure various asp
 Enable or disable entire feature sets:
 - **Elections**: Board elections and voting system
 - **Job Listings**: Job postings and applications
-- **One-Off Events**: Simple event check-ins without shifts
+- **Simple Volunteer Events**: Simple event check-ins with flat-rate hours, without shifts
 - **Volunteer Events**: Full event management with shifts and signups
 
 ### Contact Information
@@ -146,7 +146,7 @@ ApplicationSetting::clearCache();
 ### Features Group
 - `feature_elections` (boolean): Enable elections module
 - `feature_job_listings` (boolean): Enable job listings module
-- `feature_one_off_events` (boolean): Enable one-off events module
+- `feature_one_off_events` (boolean): Enable simple volunteer events module
 - `feature_volunteer_events` (boolean): Enable volunteer events module
 
 ### Contact Group

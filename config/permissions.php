@@ -23,7 +23,7 @@ return [
     ],
     'manage-events' => [
         'label' => 'Manage Events',
-        'description' => 'Manage events and one-off events.',
+        'description' => 'Manage events and simple volunteer events.',
     ],
     'manage-elections' => [
         'label' => 'Manage Elections',

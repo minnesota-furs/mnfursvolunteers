@@ -434,7 +434,7 @@
 
                             <x-feature-toggle 
                                 feature="one_off_events" 
-                                label="One-Off Events" 
+                                label="Simple Volunteer Events"
                                 description="Simple event check-ins without shifts with fixed volunteer hours. This is great for people to check-in for volunteer hours for things with static hours like training, meetings, and other events."
                                 :beta="feature_is_beta('one_off_events')" />
 

@@ -143,8 +143,8 @@ return [
             'value' => true,
             'type' => 'boolean',
             'group' => 'feature_flags',
-            'label' => 'One-Off Events',
-            'description' => 'Enable or disable one-off event check-ins. Great for meetings or special events.',
+            'label' => 'Simple Volunteer Events',
+            'description' => 'Enable or disable simple volunteer event check-ins with flat-rate hours. Great for meetings or special events.',
             'beta' => false,
         ],
         'feature_perk_tracking' => [

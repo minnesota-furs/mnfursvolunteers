@@ -14,6 +14,7 @@ class OneOffEvent extends Model
     protected $fillable = [
         'name',
         'description',
+        'location',
         'start_time',
         'end_time',
         'auto_credit_hours',
@@ -45,5 +46,35 @@ class OneOffEvent extends Model
     public function checkIns()
     {
         return $this->hasMany(OneOffEventCheckIn::class);
+    }
+
+    public function requiredTags()
+    {
+        return $this->belongsToMany(Tag::class, 'one_off_event_tag')->withTimestamps();
+    }
+
+    /**
+     * Required tags scoped to user-eligible types (type = 'user' or null).
+     * Mirrors Event::requiredUserTags() so eligibility checks don't get
+     * gated by shift-only tags, which don't apply here.
+     */
+    public function requiredUserTags()
+    {
+        return $this->belongsToMany(Tag::class, 'one_off_event_tag')->withTimestamps()->forUsers();
+    }
+
+    public function requiredDepartments()
+    {
+        return $this->belongsToMany(Department::class, 'department_one_off_event')->withTimestamps();
+    }
+
+    /**
+     * Sectors whose departments are eligible to check in. Anyone in any
+     * department under a selected sector qualifies, so this stays in sync
+     * automatically as departments are added to/removed from the sector.
+     */
+    public function requiredSectors()
+    {
+        return $this->belongsToMany(Sector::class, 'sector_one_off_event')->withTimestamps();
     }
 }

@@ -42,7 +42,7 @@
                             })
                             ->exists();
                         $volunteerActive = request()->routeIs('volunteer.events.*')
-                            || request()->routeIs('one-off-events.*')
+                            || request()->routeIs('simple-volunteer-events.*')
                             || request()->routeIs('volunteer.perks.*')
                             || request()->routeIs('elections.*');
                     @endphp
@@ -91,8 +91,8 @@
                                 </a>
                                 @endfeature
                                 @feature('one_off_events')
-                                <a href="{{ route('one-off-events.index') }}"
-                                    class="group flex items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 {{ request()->routeIs('one-off-events.*') ? 'bg-gray-50 dark:bg-gray-700' : '' }}">
+                                <a href="{{ route('simple-volunteer-events.index') }}"
+                                    class="group flex items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 {{ request()->routeIs('simple-volunteer-events.*') ? 'bg-gray-50 dark:bg-gray-700' : '' }}">
                                     <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition duration-150"
                                         style="background-color: {{ $primaryBg10 }}; color: {{ $primaryColor }};"
                                         x-on:mouseenter="$el.style.backgroundColor='{{ $primaryBg20 }}'"
@@ -100,7 +100,7 @@
                                         <x-heroicon-o-check class="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">One-Off Events</p>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Simple Volunteer Events</p>
                                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Check in to standalone activities like meetings or training</p>
                                     </div>
                                 </a>
@@ -474,8 +474,8 @@
                     </x-responsive-nav-link>
                     @endfeature
                     @feature('one_off_events')
-                    <x-responsive-nav-link :href="route('one-off-events.index')" :active="request()->routeIs('one-off-events.*')">
-                        {{ __('One-Off Events') }}
+                    <x-responsive-nav-link :href="route('simple-volunteer-events.index')" :active="request()->routeIs('simple-volunteer-events.*')">
+                        {{ __('Simple Volunteer Events') }}
                     </x-responsive-nav-link>
                     @endfeature
                     @feature('perk_tracking')
