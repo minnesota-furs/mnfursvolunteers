@@ -97,6 +97,59 @@ if (!function_exists('app_timezone')) {
     }
 }
 
+if (!function_exists('user_timezone')) {
+    /**
+     * Get the effective timezone to display dates/times in for a user
+     * (defaults to the currently authenticated user). Falls back to the
+     * application timezone for guests or users without a saved preference.
+     *
+     * @param  \App\Models\User|null  $user
+     * @return string
+     */
+    function user_timezone(?\App\Models\User $user = null): string
+    {
+        $user ??= auth()->user();
+
+        return $user ? $user->effectiveTimezone() : app_timezone();
+    }
+}
+
+if (!function_exists('grouped_timezones')) {
+    /**
+     * All PHP timezone identifiers, grouped by region (e.g. "America"), for
+     * populating timezone <select> inputs.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    function grouped_timezones(): \Illuminate\Support\Collection
+    {
+        return collect(\DateTimeZone::listIdentifiers(\DateTimeZone::ALL))
+            ->groupBy(fn ($tz) => str_contains($tz, '/') ? explode('/', $tz, 2)[0] : 'Other');
+    }
+}
+
+if (!function_exists('common_timezones')) {
+    /**
+     * A short list of commonly-used US timezones, for pinning to the top of
+     * timezone <select> inputs above the full alphabetical region list.
+     *
+     * @return array<string>
+     */
+    function common_timezones(): array
+    {
+        return [
+            'America/New_York',
+            'America/Chicago',
+            'America/Denver',
+            'America/Phoenix',
+            'America/Los_Angeles',
+            'America/Anchorage',
+            'Pacific/Honolulu',
+            'UTC',
+        ];
+    }
+}
+
 if (!function_exists('feature_enabled')) {
     /**
      * Check if a feature is enabled.

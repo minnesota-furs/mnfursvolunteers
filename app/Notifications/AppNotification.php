@@ -13,14 +13,15 @@ class AppNotification extends Notification
     public function __construct(
         private string $title,
         private string $message,
-        private ?string $url = null
+        private ?string $url = null,
+        private bool $telegram = true
     ) {}
 
     public function via(object $notifiable): array
     {
         $channels = ['database'];
 
-        if (method_exists($notifiable, 'hasTelegramLinked') && $notifiable->hasTelegramLinked()) {
+        if ($this->telegram && method_exists($notifiable, 'hasTelegramLinked') && $notifiable->hasTelegramLinked()) {
             $channels[] = TelegramChannel::class;
         }
 

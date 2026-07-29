@@ -13,14 +13,14 @@
                 <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
                     <span class="flex items-center gap-1">
                         <x-heroicon-m-calendar class="w-4 h-4 flex-shrink-0"/>
-                        {{ $event->start_time->format('l, M j, Y') }}
+                        <x-user-time :time="$event->start_time" format="l, M j, Y" />
                     </span>
                     <span class="flex items-center gap-1">
                         <x-heroicon-m-clock class="w-4 h-4 flex-shrink-0"/>
                         @if($event->end_time)
-                            {{ $event->start_time->format('g:i A') }} &ndash; {{ $event->end_time->format('g:i A') }}
+                            <x-user-time :time="$event->start_time" format="g:i A" /> &ndash; <x-user-time :time="$event->end_time" format="g:i A" />
                         @else
-                            {{ $event->start_time->format('g:i A') }} (ongoing)
+                            <x-user-time :time="$event->start_time" format="g:i A" /> (ongoing)
                         @endif
                     </span>
                     @if($event->isCheckInType() && $event->end_time)

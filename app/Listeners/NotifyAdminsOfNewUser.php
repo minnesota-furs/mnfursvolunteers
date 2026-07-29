@@ -17,6 +17,7 @@ class NotifyAdminsOfNewUser
                 title: 'New user registered',
                 message: "{$newUser->name} ({$newUser->email}) has just created an account.",
                 url: route('users.show', $newUser->id),
+                telegram: false,
             ));
         });
     }

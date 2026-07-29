@@ -21,8 +21,7 @@ class SettingsController extends Controller
         $sysInfo = $this->gatherSystemInfo();
         $hostingInfo = hosting_info();
         $telegramInfo = $this->gatherTelegramInfo();
-        $timezones = collect(\DateTimeZone::listIdentifiers(\DateTimeZone::ALL))
-            ->groupBy(fn ($tz) => str_contains($tz, '/') ? explode('/', $tz, 2)[0] : 'Other');
+        $timezones = grouped_timezones();
 
         return view('settings.index', compact('settings', 'sysInfo', 'hostingInfo', 'telegramInfo', 'timezones'));
     }

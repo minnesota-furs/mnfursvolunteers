@@ -145,6 +145,11 @@
                             <select name="app_timezone" id="app_timezone"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                 <option value="">Use config default ({{ config('app.timezone_default', config('app.timezone')) }})</option>
+                                <optgroup label="Common">
+                                    @foreach(common_timezones() as $tz)
+                                        <option value="{{ $tz }}" {{ $selectedTimezone === $tz ? 'selected' : '' }}>{{ $tz }}</option>
+                                    @endforeach
+                                </optgroup>
                                 @foreach($timezones as $region => $zones)
                                     <optgroup label="{{ $region }}">
                                         @foreach($zones as $tz)

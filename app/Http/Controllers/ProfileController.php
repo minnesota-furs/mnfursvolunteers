@@ -20,9 +20,11 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
         $user = $request->user()->load('customFieldValues');
-        
+        $timezones = grouped_timezones();
+
         return view('profile.edit', [
             'user' => $user,
+            'timezones' => $timezones,
         ]);
     }
 
@@ -234,6 +236,22 @@ class ProfileController extends Controller
         ]);
 
         return Redirect::route('profile.edit')->with('email-preferences-status', 'preferences-updated');
+    }
+
+    /**
+     * Update the user's preferred timezone for viewing dates/times.
+     */
+    public function updateTimezone(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'timezone' => ['nullable', 'timezone'],
+        ]);
+
+        $request->user()->update([
+            'timezone' => $request->input('timezone') ?: null,
+        ]);
+
+        return Redirect::route('profile.edit')->with('timezone-status', 'timezone-updated');
     }
 
     /**

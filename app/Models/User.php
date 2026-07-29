@@ -46,6 +46,8 @@ class User extends Authenticatable
         'telegram_link_token',
         'telegram_link_token_expires_at',
         'telegram_linked_at',
+        'timezone',
+        'onboarded_at',
     ];
 
     /**
@@ -75,6 +77,7 @@ class User extends Authenticatable
         'calendar_token' => 'string',
         'telegram_link_token_expires_at' => 'datetime',
         'telegram_linked_at' => 'datetime',
+        'onboarded_at' => 'datetime',
     ];
 
     /**
@@ -93,6 +96,23 @@ class User extends Authenticatable
         }
 
         return $this->name;
+    }
+
+    /**
+     * Get the timezone this user views dates/times in, falling back to the
+     * application's configured timezone if they haven't set one.
+     */
+    public function effectiveTimezone(): string
+    {
+        return $this->timezone ?: app_timezone();
+    }
+
+    /**
+     * Whether this user still needs to go through the first-time onboarding wizard.
+     */
+    public function needsOnboarding(): bool
+    {
+        return is_null($this->onboarded_at);
     }
 
     public function volunteerHours()

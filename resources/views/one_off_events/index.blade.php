@@ -69,7 +69,7 @@
                                 <div class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500 dark:text-gray-400">
                                     <span class="flex items-center gap-1">
                                         <x-heroicon-m-calendar class="w-3.5 h-3.5 flex-shrink-0"/>
-                                        {{ $event->start_time->format('M j, Y') }}
+                                        <x-user-time :time="$event->start_time" format="M j, Y" />
                                     </span>
                                 </div>
                             </div>

@@ -71,7 +71,7 @@
                                                     You're RSVP'd!
                                                 </h3>
                                                 <p class="mt-1 text-sm text-green-700 dark:text-green-300">
-                                                    RSVP'd on {{ $rsvp->created_at->format('F j, Y') }}
+                                                    RSVP'd on <x-user-time :time="$rsvp->created_at" format="F j, Y" />
                                                 </p>
                                             </div>
                                         </div>
@@ -201,7 +201,7 @@
                                             You're checked in!
                                         </h3>
                                         <p class="mt-1 text-sm text-green-700 dark:text-green-300">
-                                            Checked in at {{ $checkIn->checked_in_at->format('F j, Y \a\t g:i A') }}
+                                            Checked in at <x-user-time :time="$checkIn->checked_in_at" format="F j, Y \a\t g:i A" />
                                         </p>
                                     </div>
                                 </div>
@@ -276,11 +276,11 @@
                                             </p>
                                             @if ($now->isBefore($checkInStart))
                                                 <p class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
-                                                    Check-in opens at {{ $checkInStart->format('F j, Y \a\t g:i A') }}
+                                                    Check-in opens at <x-user-time :time="$checkInStart" format="F j, Y \a\t g:i A" />
                                                 </p>
                                             @elseif($checkInEnd)
                                                 <p class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
-                                                    Check-in closed at {{ $checkInEnd->format('F j, Y \a\t g:i A') }}
+                                                    Check-in closed at <x-user-time :time="$checkInEnd" format="F j, Y \a\t g:i A" />
                                                 </p>
                                             @endif
                                         </div>
@@ -351,9 +351,9 @@
                                 </dt>
                                 <dd class="text-sm text-gray-900 dark:text-white font-medium flex items-center">
                                     <x-heroicon-s-arrow-right-circle class="w-4 h-4 mr-2 text-green-600" />
-                                    {{ $oneOffEvent->start_time->format('M j, Y') }}
+                                    <x-user-time :time="$oneOffEvent->start_time" format="M j, Y" />
                                     <span class="mx-1">•</span>
-                                    {{ $oneOffEvent->start_time->format('g:i A') }}
+                                    <x-user-time :time="$oneOffEvent->start_time" format="g:i A" />
                                 </dd>
                             </div>
 
@@ -365,9 +365,9 @@
                                 <dd class="text-sm text-gray-900 dark:text-white font-medium flex items-center">
                                     <x-heroicon-s-arrow-left-circle class="w-4 h-4 mr-2 text-red-600" />
                                     @if($oneOffEvent->end_time)
-                                        {{ $oneOffEvent->end_time->format('M j, Y') }}
+                                        <x-user-time :time="$oneOffEvent->end_time" format="M j, Y" />
                                         <span class="mx-1">•</span>
-                                        {{ $oneOffEvent->end_time->format('g:i A') }}
+                                        <x-user-time :time="$oneOffEvent->end_time" format="g:i A" />
                                     @else
                                         <span class="text-gray-500 dark:text-gray-400 font-normal">Open-ended (no end time set)</span>
                                     @endif

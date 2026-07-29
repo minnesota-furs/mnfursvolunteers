@@ -15,6 +15,7 @@ use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\UserPermissionController;
 use App\Http\Controllers\UserImportWizardController;
 use App\Http\Controllers\OneOffEventController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\Volunteer\ShiftSignupController;
 use App\Http\Controllers\Volunteer\CalendarController;
 use App\Http\Controllers\Admin\ShiftController;
@@ -92,13 +93,24 @@ Route::prefix('pub-elections')->name('elections-public.')->middleware('public.si
 
 // Dashboard (requires auth & verified)
 Route::get('/dashboard', DashboardController::class)
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'onboarding.complete'])
     ->name('dashboard');
 
 // Required fields (exempt from enforce.custom-fields to avoid redirect loops)
 Route::middleware('auth')->group(function () {
     Route::get('/required-fields', [ProfileController::class, 'requiredFields'])->name('profile.required-fields');
     Route::post('/required-fields', [ProfileController::class, 'saveRequiredFields'])->name('profile.required-fields.save');
+});
+
+// First-time onboarding wizard (exempt from enforce.custom-fields & onboarding.complete to avoid redirect loops)
+Route::middleware('auth')->prefix('onboarding')->name('onboarding.')->group(function () {
+    Route::get('/', [OnboardingController::class, 'index'])->name('index');
+    Route::post('/profile', [OnboardingController::class, 'updateProfile'])->name('profile');
+    Route::post('/timezone', [OnboardingController::class, 'updateTimezone'])->name('timezone');
+    Route::post('/calendar', [OnboardingController::class, 'generateCalendar'])->name('calendar');
+    Route::post('/link-telegram', [OnboardingController::class, 'linkTelegram'])->name('link-telegram');
+    Route::get('/telegram-status', [OnboardingController::class, 'telegramStatus'])->name('telegram-status');
+    Route::post('/finish', [OnboardingController::class, 'finish'])->name('finish');
 });
 
 // Dashboard actions
@@ -116,7 +128,7 @@ Route::middleware('auth')->prefix('notifications')->name('notifications.')->grou
 });
 
 // Authenticated routes
-Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
+Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->group(function () {
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');
@@ -124,6 +136,7 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::post('/link-wordpress', [ProfileController::class, 'linkWordPress'])->name('link-wordpress');
         Route::delete('/unlink-wordpress', [ProfileController::class, 'unlinkWordPress'])->name('unlink-wordpress');
         Route::patch('/email-preferences', [ProfileController::class, 'updateEmailPreferences'])->name('email-preferences');
+        Route::patch('/timezone', [ProfileController::class, 'updateTimezone'])->name('timezone');
         Route::post('/calendar-token', [CalendarController::class, 'regenerateToken'])->name('calendar-token');
         Route::post('/link-telegram', [ProfileController::class, 'linkTelegram'])->name('link-telegram');
         Route::delete('/unlink-telegram', [ProfileController::class, 'unlinkTelegram'])->name('unlink-telegram');

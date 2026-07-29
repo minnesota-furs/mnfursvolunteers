@@ -58,6 +58,7 @@ class Kernel extends HttpKernel
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'isAdmin' => \App\Http\Middleware\IsAdmin::class,
         'enforce.custom-fields' => \App\Http\Middleware\EnforceCustomFields::class,
+        'onboarding.complete' => \App\Http\Middleware\EnsureOnboardingComplete::class,
         'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
         'can' => \Illuminate\Auth\Middleware\Authorize::class,
