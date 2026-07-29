@@ -237,6 +237,39 @@ class ProfileController extends Controller
     }
 
     /**
+     * Generate a Telegram link token and show the deep link / QR code to the user.
+     */
+    public function linkTelegram(Request $request): RedirectResponse
+    {
+        $request->user()->generateTelegramLinkToken();
+
+        return Redirect::route('profile.edit')->with('status', 'telegram-link-generated');
+    }
+
+    /**
+     * Poll for whether the pending Telegram link has been completed
+     * (the user opened the deep link and pressed Start in Telegram).
+     */
+    public function telegramStatus(Request $request)
+    {
+        $user = $request->user()->fresh();
+
+        return response()->json([
+            'linked' => $user->hasTelegramLinked(),
+            'username' => $user->telegram_username,
+        ]);
+    }
+
+    public function unlinkTelegram(Request $request): RedirectResponse
+    {
+        $request->user()->unlinkTelegram();
+
+        return Redirect::route('profile.edit')->with('success', [
+            'message' => 'Telegram account unlinked.',
+        ]);
+    }
+
+    /**
      * Unsubscribe a user from election reminder emails
      */
     public function unsubscribeElections(User $user, string $token)

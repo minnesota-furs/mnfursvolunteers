@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Channels\TelegramChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
@@ -17,7 +18,13 @@ class AppNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        $channels = ['database'];
+
+        if (method_exists($notifiable, 'hasTelegramLinked') && $notifiable->hasTelegramLinked()) {
+            $channels[] = TelegramChannel::class;
+        }
+
+        return $channels;
     }
 
     public function toDatabase(object $notifiable): array
@@ -27,5 +34,20 @@ class AppNotification extends Notification
             'message' => $this->message,
             'url' => $this->url,
         ];
+    }
+
+    public function toTelegram(object $notifiable): string
+    {
+        $text = '<b>' . e($this->title) . '</b>';
+
+        if ($this->message) {
+            $text .= "\n" . e($this->message);
+        }
+
+        if ($this->url) {
+            $text .= "\n" . url($this->url);
+        }
+
+        return $text;
     }
 }

@@ -23,6 +23,14 @@
                 </div>
             </div>
 
+            @if(app_setting('telegram_bot_username'))
+            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                <div class="max-w-xl">
+                    @include('profile.partials.telegram-link')
+                </div>
+            </div>
+            @endif
+
             <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                 @if(!$user->wordpress_user_id)
                 <div class="max-w-xl">

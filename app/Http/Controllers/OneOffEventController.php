@@ -411,11 +411,15 @@ class OneOffEventController extends Controller
             ]);
         }
 
+        $canTelegram = Auth::user()->hasTelegramLinked();
+
         OneOffEventRsvp::create([
             'one_off_event_id' => $oneOffEvent->id,
             'user_id' => Auth::id(),
-            'remind_morning_of' => $request->boolean('remind_morning_of'),
-            'remind_hour_before' => $request->boolean('remind_hour_before'),
+            'remind_morning_of_email' => $request->boolean('remind_morning_of_email'),
+            'remind_morning_of_telegram' => $canTelegram && $request->boolean('remind_morning_of_telegram'),
+            'remind_hour_before_email' => $request->boolean('remind_hour_before_email'),
+            'remind_hour_before_telegram' => $canTelegram && $request->boolean('remind_hour_before_telegram'),
         ]);
 
         return back()->with('success', [
@@ -442,9 +446,13 @@ class OneOffEventController extends Controller
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
+        $canTelegram = Auth::user()->hasTelegramLinked();
+
         $rsvp->update([
-            'remind_morning_of' => $request->boolean('remind_morning_of'),
-            'remind_hour_before' => $request->boolean('remind_hour_before'),
+            'remind_morning_of_email' => $request->boolean('remind_morning_of_email'),
+            'remind_morning_of_telegram' => $canTelegram && $request->boolean('remind_morning_of_telegram'),
+            'remind_hour_before_email' => $request->boolean('remind_hour_before_email'),
+            'remind_hour_before_telegram' => $canTelegram && $request->boolean('remind_hour_before_telegram'),
         ]);
 
         return back()->with('success', [

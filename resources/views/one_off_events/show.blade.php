@@ -75,32 +75,15 @@
                                     <form method="POST" action="{{ route('simple-volunteer-events.rsvp.reminders', $oneOffEvent) }}" class="mt-4 pt-4 border-t border-green-200 dark:border-green-800">
                                         @csrf
                                         @method('PATCH')
-                                        <div class="flex items-center mb-2.5">
-                                            <x-heroicon-o-bell class="w-4 h-4 mr-1.5 text-green-700 dark:text-green-300" />
-                                            <p class="text-xs font-semibold uppercase tracking-wide text-green-800 dark:text-green-200">Email Reminders</p>
-                                        </div>
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                            <div class="flex items-center justify-between bg-white/60 dark:bg-black/10 rounded-lg px-3 py-2">
-                                                <div class="flex items-center">
-                                                    <x-heroicon-o-sun class="w-4 h-4 mr-2 text-green-600 dark:text-green-400 flex-shrink-0" />
-                                                    <span class="text-sm text-green-800 dark:text-green-200">Morning of the event</span>
-                                                </div>
-                                                <label class="relative inline-flex items-center cursor-pointer">
-                                                    <input type="checkbox" name="remind_morning_of" value="1" {{ $rsvp->remind_morning_of ? 'checked' : '' }} class="sr-only peer">
-                                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-green/20 dark:peer-focus:ring-brand-green/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-brand-green"></div>
-                                                </label>
-                                            </div>
-                                            <div class="flex items-center justify-between bg-white/60 dark:bg-black/10 rounded-lg px-3 py-2">
-                                                <div class="flex items-center">
-                                                    <x-heroicon-o-clock class="w-4 h-4 mr-2 text-green-600 dark:text-green-400 flex-shrink-0" />
-                                                    <span class="text-sm text-green-800 dark:text-green-200">1 hour before</span>
-                                                </div>
-                                                <label class="relative inline-flex items-center cursor-pointer">
-                                                    <input type="checkbox" name="remind_hour_before" value="1" {{ $rsvp->remind_hour_before ? 'checked' : '' }} class="sr-only peer">
-                                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-green/20 dark:peer-focus:ring-brand-green/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-brand-green"></div>
-                                                </label>
-                                            </div>
-                                        </div>
+                                        <x-reminder-grid
+                                            theme="active"
+                                            :morning-email="$rsvp->remind_morning_of_email"
+                                            :morning-telegram="$rsvp->remind_morning_of_telegram"
+                                            :hour-email="$rsvp->remind_hour_before_email"
+                                            :hour-telegram="$rsvp->remind_hour_before_telegram"
+                                            :telegram-available="(bool) app_setting('telegram_bot_username')"
+                                            :telegram-linked="Auth::user()->hasTelegramLinked()"
+                                        />
                                         <button type="submit" class="mt-3 inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-md bg-white dark:bg-gray-800 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors">
                                             Save Preferences
                                         </button>
@@ -184,32 +167,12 @@
                                     <form method="POST" action="{{ route('simple-volunteer-events.rsvp', $oneOffEvent) }}">
                                         @csrf
                                         <div class="mb-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 p-3">
-                                            <div class="flex items-center mb-2.5">
-                                                <x-heroicon-o-bell class="w-4 h-4 mr-1.5 text-gray-500 dark:text-gray-400" />
-                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400">Email Reminders (Optional)</p>
-                                            </div>
-                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                                <div class="flex items-center justify-between bg-white dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
-                                                    <div class="flex items-center">
-                                                        <x-heroicon-o-sun class="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
-                                                        <span class="text-sm text-gray-700 dark:text-gray-300">Morning of the event</span>
-                                                    </div>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" name="remind_morning_of" value="1" class="sr-only peer">
-                                                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-green/20 dark:peer-focus:ring-brand-green/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-brand-green"></div>
-                                                    </label>
-                                                </div>
-                                                <div class="flex items-center justify-between bg-white dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
-                                                    <div class="flex items-center">
-                                                        <x-heroicon-o-clock class="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
-                                                        <span class="text-sm text-gray-700 dark:text-gray-300">1 hour before</span>
-                                                    </div>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" name="remind_hour_before" value="1" class="sr-only peer">
-                                                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-green/20 dark:peer-focus:ring-brand-green/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-brand-green"></div>
-                                                    </label>
-                                                </div>
-                                            </div>
+                                            <x-reminder-grid
+                                                theme="pending"
+                                                :optional="true"
+                                                :telegram-available="(bool) app_setting('telegram_bot_username')"
+                                                :telegram-linked="Auth::user()->hasTelegramLinked()"
+                                            />
                                         </div>
                                         <button type="submit"
                                             class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-brand-green hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-green transition-colors shadow-sm">

@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\ApplicationSetting;
+use App\Services\TelegramService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class SettingsController extends Controller
 {
@@ -17,8 +20,26 @@ class SettingsController extends Controller
         $settings = ApplicationSetting::getAllGrouped();
         $sysInfo = $this->gatherSystemInfo();
         $hostingInfo = hosting_info();
+        $telegramInfo = $this->gatherTelegramInfo();
 
-        return view('settings.index', compact('settings', 'sysInfo', 'hostingInfo'));
+        return view('settings.index', compact('settings', 'sysInfo', 'hostingInfo', 'telegramInfo'));
+    }
+
+    /**
+     * Fetch live bot/webhook status from Telegram for the Integrations tab.
+     */
+    private function gatherTelegramInfo(): ?array
+    {
+        if (!ApplicationSetting::get('telegram_bot_token')) {
+            return null;
+        }
+
+        $service = app(TelegramService::class);
+
+        return [
+            'bot' => $service->getMe(),
+            'webhook' => $service->getWebhookInfo(),
+        ];
     }
 
     /**
@@ -158,6 +179,7 @@ class SettingsController extends Controller
             'advertise_registration_on_login' => 'boolean',
             'require_department_for_user_index' => 'boolean',
             'user_display_name' => 'nullable|string|in:alias,legal_name',
+            'telegram_bot_token' => 'nullable|string|max:255',
         ]);
 
         // Handle logo upload
@@ -264,9 +286,84 @@ class SettingsController extends Controller
         // Clear cache
         ApplicationSetting::clearCache();
 
+        // Telegram bot connection (separate flash so the Integrations tab can report success/failure precisely)
+        if ($request->filled('telegram_bot_token')) {
+            return $this->connectTelegram(trim($request->telegram_bot_token));
+        }
+
         return redirect()->route('settings.index')
             ->with('success', [
                 'message' => "Settings updated successfully",
+            ]);
+    }
+
+    /**
+     * Save a Telegram bot token, verify it, and point Telegram's webhook at this app.
+     */
+    private function connectTelegram(string $token)
+    {
+        ApplicationSetting::set('telegram_bot_token', $token, 'string', 'Telegram bot API token', 'integrations');
+        ApplicationSetting::clearCache();
+
+        $service = app(TelegramService::class);
+        $me = $service->getMe();
+
+        if (!$me || empty($me['username'])) {
+            return redirect()->route('settings.index')
+                ->with('error', 'Could not connect to Telegram with that bot token. Double-check it and try again.');
+        }
+
+        ApplicationSetting::set('telegram_bot_username', $me['username'], 'string', 'Telegram bot username', 'integrations');
+
+        $webhookSecret = ApplicationSetting::get('telegram_webhook_secret');
+        if (!$webhookSecret) {
+            $webhookSecret = Str::random(40);
+            ApplicationSetting::set('telegram_webhook_secret', $webhookSecret, 'string', 'Telegram webhook secret path segment', 'integrations');
+        }
+
+        ApplicationSetting::clearCache();
+
+        // Build the webhook URL from the configured APP_URL rather than route() — route()
+        // derives its scheme from however the current request reached this app (e.g. plain
+        // http on localhost even when a tunnel like ngrok fronts it with https), but Telegram
+        // requires the webhook itself to be https regardless of which host the admin used.
+        $webhookUrl = rtrim(config('app.url'), '/') . '/' . ltrim(route('telegram.webhook', $webhookSecret, false), '/');
+
+        if (!str_starts_with($webhookUrl, 'https://')) {
+            return redirect()->route('settings.index')
+                ->with('error', "Connected to @{$me['username']}, but the webhook needs an HTTPS APP_URL. Set APP_URL in .env to your public https:// URL (e.g. your ngrok URL) and save again.");
+        }
+
+        $webhookSet = $service->setWebhook($webhookUrl, $webhookSecret);
+
+        return redirect()->route('settings.index')
+            ->with('success', [
+                'message' => $webhookSet
+                    ? "Connected to @{$me['username']} and webhook registered."
+                    : "Connected to @{$me['username']}, but registering the webhook failed. This app's URL may not be reachable from the internet.",
+            ]);
+    }
+
+    /**
+     * Disconnect the Telegram bot: remove the webhook and forget the stored credentials.
+     */
+    public function disconnectTelegram()
+    {
+        if (ApplicationSetting::get('telegram_bot_token')) {
+            app(TelegramService::class)->deleteWebhook();
+        }
+
+        // clearCache() only forgets cache entries for keys still present in the table, so
+        // deleted keys must be forgotten explicitly first or the stale "connected" value
+        // keeps being served from cache for up to an hour.
+        foreach (['telegram_bot_token', 'telegram_bot_username', 'telegram_webhook_secret'] as $key) {
+            ApplicationSetting::where('key', $key)->delete();
+            Cache::forget("app_setting_{$key}");
+        }
+
+        return redirect()->route('settings.index')
+            ->with('success', [
+                'message' => 'Telegram bot disconnected.',
             ]);
     }
 

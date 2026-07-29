@@ -41,6 +41,11 @@ class User extends Authenticatable
         'hour_submission_token',
         'token_expires_at',
         'calendar_token',
+        'telegram_chat_id',
+        'telegram_username',
+        'telegram_link_token',
+        'telegram_link_token_expires_at',
+        'telegram_linked_at',
     ];
 
     /**
@@ -68,6 +73,8 @@ class User extends Authenticatable
         'email_election_reminders' => 'boolean',
         'token_expires_at' => 'datetime',
         'calendar_token' => 'string',
+        'telegram_link_token_expires_at' => 'datetime',
+        'telegram_linked_at' => 'datetime',
     ];
 
     /**
@@ -362,6 +369,66 @@ class User extends Authenticatable
     public function getIsStaffAttribute(): bool
     {
         return $this->hasDept();
+    }
+
+    /**
+     * Generate a fresh Telegram link token, valid for 15 minutes, and return the
+     * t.me deep link the user should open (or scan as a QR code) to link their account.
+     */
+    public function generateTelegramLinkToken(): string
+    {
+        $token = (string) \Illuminate\Support\Str::uuid();
+        $this->telegram_link_token = $token;
+        $this->telegram_link_token_expires_at = now()->addMinutes(15);
+        $this->save();
+
+        return $token;
+    }
+
+    public function hasValidTelegramLinkToken(): bool
+    {
+        return $this->telegram_link_token !== null
+            && $this->telegram_link_token_expires_at !== null
+            && $this->telegram_link_token_expires_at->isFuture();
+    }
+
+    public function getTelegramLinkUrl(): ?string
+    {
+        $botUsername = \App\Models\ApplicationSetting::get('telegram_bot_username');
+
+        if (!$botUsername || !$this->hasValidTelegramLinkToken()) {
+            return null;
+        }
+
+        return "https://t.me/{$botUsername}?start={$this->telegram_link_token}";
+    }
+
+    public function hasTelegramLinked(): bool
+    {
+        return !empty($this->telegram_chat_id);
+    }
+
+    /**
+     * Complete linking: attach the Telegram chat and clear the one-time token.
+     */
+    public function completeTelegramLink(string $chatId, ?string $username): void
+    {
+        $this->telegram_chat_id = $chatId;
+        $this->telegram_username = $username;
+        $this->telegram_linked_at = now();
+        $this->telegram_link_token = null;
+        $this->telegram_link_token_expires_at = null;
+        $this->save();
+    }
+
+    public function unlinkTelegram(): void
+    {
+        $this->telegram_chat_id = null;
+        $this->telegram_username = null;
+        $this->telegram_linked_at = null;
+        $this->telegram_link_token = null;
+        $this->telegram_link_token_expires_at = null;
+        $this->save();
     }
 
     /**

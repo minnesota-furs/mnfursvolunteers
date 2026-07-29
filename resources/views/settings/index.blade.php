@@ -30,6 +30,10 @@
         @csrf
         @method('DELETE')
     </form>
+    <form id="telegram-disconnect-form" action="{{ route('settings.telegram-disconnect') }}" method="POST" style="display: none;">
+        @csrf
+        @method('DELETE')
+    </form>
 
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8" x-data="settingsForm()">
         <!-- Tabs Navigation -->
@@ -47,6 +51,7 @@
                     <option value="security">Security</option>
                     <option value="import-export">Import/Export</option>
                     <option value="volunteers">Volunteers</option>
+                    <option value="integrations">External Integrations</option>
                     @if($hostingInfo)
                         <option value="hosting">Managed Hosting</option>
                     @endif
@@ -85,6 +90,11 @@
                     :class="activeTab === 'volunteers' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
                     class="whitespace-nowrap border-b-2 py-4 px-1 mr-8 text-sm font-medium flex-shrink-0">
                     Volunteers
+                </button>
+                <button @click="activeTab = 'integrations'" type="button"
+                    :class="activeTab === 'integrations' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                    class="whitespace-nowrap border-b-2 py-4 px-1 mr-8 text-sm font-medium flex-shrink-0">
+                    External Integrations
                 </button>
                 @if($hostingInfo)
                     <button @click="activeTab = 'hosting'" type="button"
@@ -728,6 +738,78 @@
                                 <x-heroicon-o-user-group class="w-5 h-5 text-brand-green" />
                                 Import Users
                             </a>
+                        </div>
+                    </div>
+
+                    <!-- External Integrations Tab -->
+                    <div x-show="activeTab === 'integrations'" x-cloak>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">External Integrations</h3>
+
+                        <div class="max-w-xl">
+                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-1">Telegram Bot</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                Let volunteers link their Telegram account from their profile page to receive their notifications there.
+                                Create a bot with <a href="https://t.me/BotFather" target="_blank" class="text-blue-500 hover:underline">@BotFather</a> and paste its token below.
+                                This app must be reachable over public HTTPS for Telegram to deliver messages.
+                            </p>
+
+                            @if($telegramInfo)
+                                <div class="mb-4 flex items-center justify-between gap-4 rounded-md border border-gray-200 dark:border-gray-700 px-4 py-3">
+                                    <div class="text-sm">
+                                        @if($telegramInfo['bot'])
+                                            <p class="text-gray-900 dark:text-gray-100">
+                                                <x-heroicon-s-check-circle class="w-4 h-4 inline text-green-600 dark:text-green-400 -mt-0.5" />
+                                                Connected as <span class="font-medium">{{ '@'.$telegramInfo['bot']['username'] }}</span>
+                                            </p>
+                                            @if($telegramInfo['webhook'])
+                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                    Webhook:
+                                                    @if(!empty($telegramInfo['webhook']['url']))
+                                                        registered
+                                                        @if(!empty($telegramInfo['webhook']['last_error_message']))
+                                                            <span class="text-red-600 dark:text-red-400">(last error: {{ $telegramInfo['webhook']['last_error_message'] }})</span>
+                                                        @endif
+                                                    @else
+                                                        <span class="text-red-600 dark:text-red-400">not registered</span>
+                                                    @endif
+                                                </p>
+                                            @endif
+                                        @else
+                                            <p class="text-red-600 dark:text-red-400">
+                                                <x-heroicon-s-x-circle class="w-4 h-4 inline -mt-0.5" />
+                                                Stored token could not reach Telegram. It may be invalid or revoked.
+                                            </p>
+                                        @endif
+                                    </div>
+                                    <button type="button" onclick="if(confirm('Disconnect the Telegram bot? Linked volunteers will stop receiving notifications there.')) document.getElementById('telegram-disconnect-form').submit();"
+                                        class="shrink-0 text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                        Disconnect
+                                    </button>
+                                </div>
+                            @endif
+
+                            <div class="mb-6">
+                                <label for="telegram_bot_token" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Bot Token
+                                </label>
+                                <input type="password" name="telegram_bot_token" id="telegram_bot_token"
+                                    autocomplete="off"
+                                    value="{{ old('telegram_bot_token') }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white font-mono text-sm"
+                                    placeholder="{{ $telegramInfo ? 'Leave blank to keep the current token' : '123456789:AAExampleTokenFromBotFather' }}">
+                                <p class="mt-1 text-xs text-gray-500">Saving a new token here (re)registers the webhook automatically.</p>
+                                @error('telegram_bot_token')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="pt-6 border-t border-gray-200 dark:border-gray-700 opacity-60">
+                                <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-1">Discord</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    <x-heroicon-o-clock class="w-4 h-4 inline -mt-0.5 mr-1" />
+                                    Coming soon &mdash; Discord notifications aren't available yet.
+                                </p>
+                            </div>
                         </div>
                     </div>
 

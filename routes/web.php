@@ -80,6 +80,10 @@ Route::get('/calendar/shifts/{token}', [CalendarController::class, 'feed'])->nam
 Route::get('/unsubscribe-elections/{user}/{token}', [ProfileController::class, 'unsubscribeElections'])
     ->name('unsubscribe.elections');
 
+// Public Telegram bot webhook (secret-protected, no auth required)
+Route::post('/telegram/webhook/{secret}', [\App\Http\Controllers\TelegramWebhookController::class, 'handle'])
+    ->name('telegram.webhook');
+
 // Public elections
 Route::prefix('pub-elections')->name('elections-public.')->middleware('public.site')->group(function () {
     Route::get('/', [ElectionController::class, 'guestIndex'])->name('index');
@@ -121,6 +125,9 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::delete('/unlink-wordpress', [ProfileController::class, 'unlinkWordPress'])->name('unlink-wordpress');
         Route::patch('/email-preferences', [ProfileController::class, 'updateEmailPreferences'])->name('email-preferences');
         Route::post('/calendar-token', [CalendarController::class, 'regenerateToken'])->name('calendar-token');
+        Route::post('/link-telegram', [ProfileController::class, 'linkTelegram'])->name('link-telegram');
+        Route::delete('/unlink-telegram', [ProfileController::class, 'unlinkTelegram'])->name('unlink-telegram');
+        Route::get('/telegram-status', [ProfileController::class, 'telegramStatus'])->name('telegram-status');
     });
 
     // Recognition & Awards
@@ -217,6 +224,7 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::get('/', [\App\Http\Controllers\SettingsController::class, 'index'])->name('index');
         Route::put('/', [\App\Http\Controllers\SettingsController::class, 'update'])->name('update');
         Route::delete('/reset-logo', [\App\Http\Controllers\SettingsController::class, 'resetLogo'])->name('reset-logo');
+        Route::delete('/telegram-disconnect', [\App\Http\Controllers\SettingsController::class, 'disconnectTelegram'])->name('telegram-disconnect');
         Route::delete('/reset-favicon', [\App\Http\Controllers\SettingsController::class, 'resetFavicon'])->name('reset-favicon');
 
         Route::view('/api-docs', 'settings.api-docs')->name('api-docs');
