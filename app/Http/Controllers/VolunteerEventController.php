@@ -91,6 +91,37 @@ class VolunteerEventController extends Controller
             }
         }
 
+        // Calculate the time range and overlap layout needed for the agenda view
+        $earliestHour = 24;
+        $latestHour = 0;
+
+        foreach ($shifts as $shift) {
+            $startHour = (int) $shift->start_time->format('G');
+            $endHour = (int) $shift->end_time->format('G');
+
+            if ($shift->end_time->format('i') > 0) {
+                $endHour++; // Round up if there are minutes
+            }
+
+            $earliestHour = min($earliestHour, $startHour);
+            $latestHour = max($latestHour, $endHour);
+        }
+
+        if ($shifts->isEmpty()) {
+            $earliestHour = 8;
+            $latestHour = 18;
+        }
+
+        $earliestHour = max(0, $earliestHour - 1);
+        $latestHour = min(24, $latestHour + 1);
+
+        $shiftPositions = [];
+        foreach ($shifts->groupBy(fn ($s) => $s->start_time->format('Y-m-d')) as $dayShifts) {
+            foreach ($this->assignShiftColumns($dayShifts) as $shiftId => $position) {
+                $shiftPositions[$shiftId] = $position;
+            }
+        }
+
         return view('events.show', [
             'event' => $event,
             'shifts' => $shifts,
@@ -98,7 +129,62 @@ class VolunteerEventController extends Controller
             'shiftConflicts' => $shiftConflicts,
             'favoritedIds' => auth()->user()->favoritedUsers()->pluck('users.id')->all(),
             'avoidedIds' => auth()->user()->avoidedUsers()->pluck('users.id')->all(),
+            'earliestHour' => $earliestHour,
+            'latestHour' => $latestHour,
+            'shiftPositions' => $shiftPositions,
         ]);
+    }
+
+    /**
+     * Assign column positions to overlapping shifts within a single day so the
+     * agenda view can lay them out side-by-side instead of stacking them.
+     */
+    protected function assignShiftColumns($shifts)
+    {
+        $sortedShifts = $shifts->sortBy('start_time')->values();
+
+        $columns = [];
+        $shiftPositions = [];
+
+        foreach ($sortedShifts as $shift) {
+            $placed = false;
+
+            foreach ($columns as $columnIndex => $columnShifts) {
+                $hasConflict = false;
+
+                foreach ($columnShifts as $existingShift) {
+                    // 1-minute buffer allows back-to-back shifts to share a column
+                    if ($shift->start_time->lt($existingShift->end_time->copy()->subMinute()) &&
+                        $shift->end_time->gt($existingShift->start_time->copy()->addMinute())) {
+                        $hasConflict = true;
+                        break;
+                    }
+                }
+
+                if (!$hasConflict) {
+                    $columns[$columnIndex][] = $shift;
+                    $placed = true;
+                    break;
+                }
+            }
+
+            if (!$placed) {
+                $columns[] = [$shift];
+            }
+        }
+
+        $maxColumns = count($columns);
+
+        foreach ($columns as $columnIndex => $columnShifts) {
+            foreach ($columnShifts as $shift) {
+                $shiftPositions[$shift->id] = [
+                    'column' => $columnIndex,
+                    'columns' => $maxColumns,
+                ];
+            }
+        }
+
+        return $shiftPositions;
     }
 
     public function showShift(Event $event, Shift $shift)

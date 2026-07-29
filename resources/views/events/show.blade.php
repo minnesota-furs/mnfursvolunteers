@@ -24,6 +24,138 @@
         </a>
     </x-slot>
 
+    <style>
+        .va-agenda-grid {
+            display: grid;
+            grid-template-columns: 70px 1fr;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .dark .va-agenda-grid {
+            background: #1f2937;
+            border-color: #374151;
+        }
+
+        .va-time-label {
+            grid-column: 1;
+            padding: 8px;
+            font-size: 0.7rem;
+            color: #6b7280;
+            border-right: 1px solid #e5e7eb;
+            border-bottom: 1px solid #f3f4f6;
+            text-align: right;
+            font-weight: 500;
+            background: #f9fafb;
+        }
+
+        .dark .va-time-label {
+            background: #111827;
+            color: #9ca3af;
+            border-color: #374151;
+        }
+
+        .va-day-header {
+            padding: 8px 12px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            border-bottom: 2px solid #d1d5db;
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .dark .va-day-header {
+            background: #374151;
+            color: #f3f4f6;
+            border-color: #4b5563;
+        }
+
+        .va-time-slot {
+            border-bottom: 1px solid #f3f4f6;
+            position: relative;
+            min-height: 70px;
+        }
+
+        .dark .va-time-slot {
+            border-color: #374151;
+        }
+
+        .va-shift-block {
+            position: absolute;
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .va-shift-block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            z-index: 50 !important;
+        }
+
+        .va-shift-open {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 2px solid #10b981;
+            color: #065f46;
+        }
+
+        .dark .va-shift-open {
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+            border-color: #10b981;
+            color: #d1fae5;
+        }
+
+        .va-shift-full {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border: 2px solid #9ca3af;
+            color: #4b5563;
+            opacity: 0.75;
+        }
+
+        .dark .va-shift-full {
+            background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+            border-color: #6b7280;
+            color: #9ca3af;
+            opacity: 0.75;
+        }
+
+        .va-shift-signedup {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border: 2px solid #3b82f6;
+            color: #1e3a8a;
+        }
+
+        .dark .va-shift-signedup {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            border-color: #60a5fa;
+            color: #dbeafe;
+        }
+
+        .va-shift-name {
+            font-weight: 600;
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+
+        .va-shift-time {
+            font-size: 0.62rem;
+            opacity: 0.85;
+            margin-bottom: 2px;
+        }
+
+        .va-shift-meta {
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+    </style>
+
     @php
         $userTagIds    = auth()->user()->tags()->pluck('tags.id')->toArray();
         $requiredTagIds = $event->requiredTags->pluck('id')->toArray();
@@ -207,6 +339,7 @@
 
         {{-- ── Openings, grouped by day ─────────────────────────────────── --}}
         <div x-data="{
+            view: 'list',
             hideFull: true,
             maxHours: 0,
             filterDay: '',
@@ -237,8 +370,31 @@
                 this.filterDay = '';
             }
         }">
-            <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center justify-between mb-3 gap-3 flex-wrap">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Available Assignments</h2>
+
+                @if($shifts->isNotEmpty())
+                    <div class="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shrink-0">
+                        <button type="button"
+                            x-on:click="view = 'list'"
+                            :class="view === 'list'
+                                ? 'bg-brand-green text-white'
+                                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors">
+                            <x-heroicon-m-list-bullet class="w-3.5 h-3.5"/>
+                            List
+                        </button>
+                        <button type="button"
+                            x-on:click="view = 'agenda'"
+                            :class="view === 'agenda'
+                                ? 'bg-brand-green text-white'
+                                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors border-l border-gray-200 dark:border-gray-700">
+                            <x-heroicon-m-calendar-days class="w-3.5 h-3.5"/>
+                            Agenda
+                        </button>
+                    </div>
+                @endif
             </div>
 
             @if($shifts->isEmpty())
@@ -328,8 +484,8 @@
                     <button x-on:click="clearFilters()" class="mt-2 text-xs text-brand-green hover:underline font-medium">Clear filters</button>
                 </div>
 
-                {{-- Shift groups by day --}}
-                <div class="space-y-8">
+                {{-- Shift groups by day (List view) --}}
+                <div x-show="view === 'list'" class="space-y-8">
                     @foreach($shiftsByDay as $dateKey => $dayShifts)
                         <div x-show="dayVisible('{{ $dateKey }}')"
                             x-transition:enter="transition ease-out duration-150"
@@ -500,6 +656,116 @@
                             </div>
                         </div>
                     @endforeach
+                </div>
+
+                {{-- Agenda view --}}
+                <div x-show="view === 'agenda'" class="space-y-4">
+                    <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="inline-block w-3 h-3 rounded-sm bg-emerald-100 dark:bg-emerald-900 border-2 border-emerald-500"></span>
+                            Open slots
+                        </span>
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="inline-block w-3 h-3 rounded-sm bg-blue-100 dark:bg-blue-900 border-2 border-blue-500"></span>
+                            You're signed up
+                        </span>
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="inline-block w-3 h-3 rounded-sm bg-gray-200 dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-500"></span>
+                            Full
+                        </span>
+                    </div>
+
+                    <div class="space-y-6">
+                        @foreach($shiftsByDay as $dateKey => $dayShifts)
+                            <div x-show="dayVisible('{{ $dateKey }}')"
+                                x-transition:enter="transition ease-out duration-150"
+                                x-transition:enter-start="opacity-0"
+                                x-transition:enter-end="opacity-100"
+                                class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                                <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                                    {{ \Carbon\Carbon::parse($dateKey)->format('l, F j') }}
+                                </h3>
+
+                                <div class="va-agenda-grid">
+                                    <div class="va-time-label" style="border-bottom: 2px solid #d1d5db;"></div>
+                                    <div class="va-day-header">Shifts</div>
+
+                                    @for($hour = $earliestHour; $hour < $latestHour; $hour++)
+                                        <div class="va-time-label">
+                                            {{ \Carbon\Carbon::createFromTime($hour, 0)->format('g:00 A') }}
+                                        </div>
+                                        <div class="va-time-slot">
+                                            @foreach($dayShifts as $shift)
+                                                @php
+                                                    $shiftStart = $shift->start_time;
+                                                    $shiftEnd = $shift->end_time;
+                                                    $slotStart = \Carbon\Carbon::parse($dateKey)->setTime($hour, 0, 0);
+                                                    $slotEnd = \Carbon\Carbon::parse($dateKey)->setTime($hour + 1, 0, 0);
+
+                                                    $overlaps = $shiftStart->lt($slotEnd) && $shiftEnd->gt($slotStart);
+
+                                                    $topPercent = 0;
+                                                    $heightPx = 0;
+                                                    $leftPercent = 0;
+                                                    $widthPercent = 100;
+                                                    $blockClass = '';
+
+                                                    $agendaIsFull   = $shift->users->count() >= $shift->max_volunteers;
+                                                    $agendaSignedUp = $shift->users->contains(auth()->id());
+                                                    $agendaOpen     = max(0, $shift->max_volunteers - $shift->users->count());
+
+                                                    if ($overlaps) {
+                                                        $startMinute = max(0, $shiftStart->diffInMinutes($slotStart));
+                                                        $topPercent = ($startMinute / 60) * 100;
+
+                                                        $totalDurationHours = $shiftEnd->diffInMinutes($shiftStart) / 60;
+                                                        $heightPx = $totalDurationHours * 70; // 70px per hour row
+
+                                                        if (isset($shiftPositions[$shift->id])) {
+                                                            $position = $shiftPositions[$shift->id];
+                                                            $columnCount = $position['columns'];
+                                                            $columnIndex = $position['column'];
+                                                            $widthPercent = (100 / $columnCount) - 0.5;
+                                                            $leftPercent = ($columnIndex / $columnCount) * 100;
+                                                        } else {
+                                                            $widthPercent = 99.5;
+                                                            $leftPercent = 0;
+                                                        }
+
+                                                        $blockClass = $agendaSignedUp
+                                                            ? 'va-shift-signedup'
+                                                            : ($agendaIsFull ? 'va-shift-full' : 'va-shift-open');
+                                                    }
+                                                @endphp
+
+                                                @if($overlaps && ($shiftStart->hour == $hour || ($shiftStart->lt($slotStart) && $hour == $earliestHour)))
+                                                    <div class="va-shift-block {{ $blockClass }}"
+                                                        x-show="shiftVisible({{ $shift->id }})"
+                                                        style="top: {{ $topPercent }}%; height: {{ $heightPx }}px; left: {{ $leftPercent }}%; width: {{ $widthPercent }}%;"
+                                                        onclick="window.location='{{ route('volunteer.shifts.show', [$event, $shift]) }}'">
+                                                        <div class="va-shift-name">{{ $shift->name }}</div>
+                                                        <div class="va-shift-time">{{ $shift->start_time->format('g:i A') }} – {{ $shift->end_time->format('g:i A') }}</div>
+                                                        <div class="va-shift-meta">
+                                                            @if($agendaSignedUp)
+                                                                <x-heroicon-m-check class="w-3 h-3 inline -mt-0.5"/> Signed up
+                                                            @elseif($agendaIsFull)
+                                                                Full
+                                                            @else
+                                                                {{ $shift->users->count() }}/{{ $shift->max_volunteers }} · {{ $agendaOpen }} open
+                                                            @endif
+                                                        </div>
+                                                        @if($shift->double_hours)
+                                                            <x-heroicon-m-star class="w-3 h-3 inline mt-1" title="Double Hours"/>
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    @endfor
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             @endif
         </div>
