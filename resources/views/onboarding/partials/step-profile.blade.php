@@ -3,7 +3,7 @@
         {{ __('Let\'s double-check your info') }}
     </h2>
     <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-        {{ __('We\'re almost done! But we just want to get a few things out of the way real fast.Do') }}
+        {{ __('We\'re almost done! But we just want to get a few things out of the way real fast. Don\'t worry, it won\'t take long.') }}
     </p>
     <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
         {{ __('Make sure your legal name and pronouns are correct. Staff use these when scheduling, printing name tags and other administrative functions.') }}
