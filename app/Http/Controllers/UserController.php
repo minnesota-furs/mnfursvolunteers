@@ -200,7 +200,9 @@ class UserController extends Controller
             'departments.sector',
             'sector',
             'userNotes.creator',
-            'tags'
+            'tags',
+            'oneOffEventRsvps.event',
+            'oneOffEventCheckIns.event',
         ])->findOrFail($id);
         
         // Get filter parameters
@@ -266,6 +268,35 @@ class UserController extends Controller
             ->where('end_date', '>=', now())
             ->first();
 
+        // Merge RSVPs and check-ins into a single "Simple Events" list, keyed by event
+        $simpleEvents = $user->oneOffEventRsvps
+            ->filter(fn ($rsvp) => $rsvp->event !== null)
+            ->keyBy('one_off_event_id')
+            ->map(fn ($rsvp) => [
+                'event' => $rsvp->event,
+                'rsvped' => true,
+                'checked_in' => false,
+                'checked_in_at' => null,
+            ]);
+
+        $user->oneOffEventCheckIns
+            ->filter(fn ($checkIn) => $checkIn->event !== null)
+            ->each(function ($checkIn) use ($simpleEvents) {
+                $existing = $simpleEvents->get($checkIn->one_off_event_id, [
+                    'event' => $checkIn->event,
+                    'rsvped' => false,
+                    'checked_in' => false,
+                    'checked_in_at' => null,
+                ]);
+
+                $existing['checked_in'] = true;
+                $existing['checked_in_at'] = $checkIn->checked_in_at;
+
+                $simpleEvents->put($checkIn->one_off_event_id, $existing);
+            });
+
+        $simpleEvents = $simpleEvents->sortByDesc(fn ($entry) => $entry['event']->start_time)->values();
+
         return view('users.show', [
             'user' => $user,
             'volunteerHours' => $volunteerHours,
@@ -276,6 +307,7 @@ class UserController extends Controller
             'currentLedger' => $currentLedger,
             'periodFilter' => $periodFilter,
             'dateFilter' => $dateFilter,
+            'simpleEvents' => $simpleEvents,
         ]);
     }
 

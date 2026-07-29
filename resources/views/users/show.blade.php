@@ -362,278 +362,381 @@
 
             </div>
             
-            <!-- Hour Log Section -->
+            <!-- Volunteer Activity Log Tabs -->
             @if($canViewSensitiveInfo)
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-6">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-6" x-data="{ activeTab: 'hours' }">
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-                        <div class="sm:flex sm:items-center sm:justify-between">
-                            <div class="sm:flex-auto">
-                                <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">Hour Log</h3>
-                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Recent volunteer hours logged for this user</p>
-                            </div>
-                            <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-2">
-                        @if (Auth::user()->isAdmin() || (Auth::user()->id == $user->id && (!app_setting('require_department_for_self_report', false) || Auth::user()->hasDept())))
-                            <a href="{{ route('hours.create', ['user' => $user->id]) }}"
-                                class="block rounded-md bg-brand-green px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                <x-heroicon-m-clock class="w-4 inline" /> New Hour Log
-                            </a>
-                        @endif
-                            
-                        @if(Auth::user()->isAdmin())
-                            @if($user->hasValidHourSubmissionToken())
-                                <button 
-                                    onclick="copyToClipboard('{{ $user->getHourSubmissionUrl() }}')"
-                                    class="block rounded-md bg-indigo-600 px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                                    title="Copy hour submission link to clipboard"
-                                >
-                                    <x-heroicon-m-link class="w-4 inline" /> Copy Hour Link
-                                </button>
-                            @else
-                                <form action="{{ route('hours.generate-token', ['user' => $user->id]) }}" method="POST" class="inline">
-                                    @csrf
-                                    <button 
-                                        type="submit"
-                                        class="block rounded-md bg-indigo-600 px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                                        title="Generate a unique link for hour submission"
-                                    >
-                                        <x-heroicon-m-link class="w-4 inline" /> Generate Hour Link
-                                    </button>
-                                </form>
-                            @endif
-                        @endif
-                    </div>
+                    <!-- Tabs Navigation -->
+                    <div class="border-b border-gray-200 dark:border-gray-700">
+                        {{-- Mobile: select dropdown --}}
+                        <div class="sm:hidden px-4 pt-3 pb-1">
+                            <label for="user-log-tab-select" class="sr-only">Select a tab</label>
+                            <select id="user-log-tab-select"
+                                x-model="activeTab"
+                                class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-sm focus:border-brand-green focus:outline-none focus:ring-brand-green">
+                                <option value="hours">Hour Log</option>
+                                @feature('volunteer_events')
+                                <option value="signups">Volunteer Signup Log</option>
+                                @endfeature
+                                @feature('one_off_events')
+                                <option value="simple-events">Simple Events</option>
+                                @endfeature
+                            </select>
                         </div>
+
+                        {{-- sm+: tab bar --}}
+                        <nav class="-mb-px hidden sm:flex overflow-x-auto px-4 sm:px-6" aria-label="Tabs">
+                            <button @click="activeTab = 'hours'" type="button"
+                                :class="activeTab === 'hours' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                                class="whitespace-nowrap border-b-2 py-4 px-1 mr-8 text-sm font-medium flex-shrink-0">
+                                Hour Log
+                            </button>
+                            @feature('volunteer_events')
+                            <button @click="activeTab = 'signups'" type="button"
+                                :class="activeTab === 'signups' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                                class="whitespace-nowrap border-b-2 py-4 px-1 mr-8 text-sm font-medium flex-shrink-0">
+                                Volunteer Signup Log
+                            </button>
+                            @endfeature
+                            @feature('one_off_events')
+                            <button @click="activeTab = 'simple-events'" type="button"
+                                :class="activeTab === 'simple-events' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                                class="whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium flex-shrink-0">
+                                Simple Events
+                            </button>
+                            @endfeature
+                        </nav>
                     </div>
-                    
-                    <!-- Filter Controls -->
-                    <div class="px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
-                        <form method="GET" action="{{ route('users.show', $user->id) }}" class="flex flex-wrap gap-3 items-center" id="hourFilterForm">
-                            <div class="flex items-center gap-2">
-                                <label for="period-filter" class="text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Filter by Period:</label>
-                                <select id="period-filter" name="period" 
-                                    onchange="saveScrollAndSubmit(this.form)"
-                                    class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 text-sm py-1 px-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="all" {{ $periodFilter === 'all' ? 'selected' : '' }}>All Periods</option>
-                                    <option value="current" {{ $periodFilter === 'current' ? 'selected' : '' }}>Current Period</option>
-                                    @foreach($fiscalLedgers as $ledger)
-                                        <option value="{{ $ledger->id }}" {{ $periodFilter == $ledger->id ? 'selected' : '' }}>
-                                            {{ $ledger->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            
-                            <div class="flex items-center gap-2">
-                                <label for="date-filter" class="text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Date Range:</label>
-                                <select id="date-filter" name="date" 
-                                    onchange="saveScrollAndSubmit(this.form)"
-                                    class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 text-sm py-1 px-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="all" {{ $dateFilter === 'all' ? 'selected' : '' }}>All Time</option>
-                                    <option value="14days" {{ $dateFilter === '14days' ? 'selected' : '' }}>Last 14 Days</option>
-                                    <option value="30days" {{ $dateFilter === '30days' ? 'selected' : '' }}>Last 30 Days</option>
-                                </select>
-                            </div>
-                            
-                            @if($periodFilter !== 'all' || $dateFilter !== 'all')
-                                <a href="{{ route('users.show', $user->id) }}" 
-                                   class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
-                                    Clear Filters
+
+                    <!-- Hour Log Tab -->
+                    <div x-show="activeTab === 'hours'" x-cloak>
+                        <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+                            <div class="sm:flex sm:items-center sm:justify-between">
+                                <div class="sm:flex-auto">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Recent volunteer hours logged for this user</p>
+                                </div>
+                                <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-2">
+                            @if (Auth::user()->isAdmin() || (Auth::user()->id == $user->id && (!app_setting('require_department_for_self_report', false) || Auth::user()->hasDept())))
+                                <a href="{{ route('hours.create', ['user' => $user->id]) }}"
+                                    class="block rounded-md bg-brand-green px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                    <x-heroicon-m-clock class="w-4 inline" /> New Hour Log
                                 </a>
                             @endif
-                        </form>
-                    </div>
-                    
-                    <script>
-                        function saveScrollAndSubmit(form) {
-                            sessionStorage.setItem('userShowScrollPos', window.scrollY);
-                            form.submit();
-                        }
-                        
-                        // Restore scroll position after page load
-                        document.addEventListener('DOMContentLoaded', function() {
-                            const scrollPos = sessionStorage.getItem('userShowScrollPos');
-                            if (scrollPos) {
-                                window.scrollTo(0, parseInt(scrollPos));
-                                sessionStorage.removeItem('userShowScrollPos');
+
+                            @if(Auth::user()->isAdmin())
+                                @if($user->hasValidHourSubmissionToken())
+                                    <button
+                                        onclick="copyToClipboard('{{ $user->getHourSubmissionUrl() }}')"
+                                        class="block rounded-md bg-indigo-600 px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                                        title="Copy hour submission link to clipboard"
+                                    >
+                                        <x-heroicon-m-link class="w-4 inline" /> Copy Hour Link
+                                    </button>
+                                @else
+                                    <form action="{{ route('hours.generate-token', ['user' => $user->id]) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button
+                                            type="submit"
+                                            class="block rounded-md bg-indigo-600 px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                                            title="Generate a unique link for hour submission"
+                                        >
+                                            <x-heroicon-m-link class="w-4 inline" /> Generate Hour Link
+                                        </button>
+                                    </form>
+                                @endif
+                            @endif
+                        </div>
+                            </div>
+                        </div>
+
+                        <!-- Filter Controls -->
+                        <div class="px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+                            <form method="GET" action="{{ route('users.show', $user->id) }}" class="flex flex-wrap gap-3 items-center" id="hourFilterForm">
+                                <div class="flex items-center gap-2">
+                                    <label for="period-filter" class="text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Filter by Period:</label>
+                                    <select id="period-filter" name="period"
+                                        onchange="saveScrollAndSubmit(this.form)"
+                                        class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 text-sm py-1 px-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                        <option value="all" {{ $periodFilter === 'all' ? 'selected' : '' }}>All Periods</option>
+                                        <option value="current" {{ $periodFilter === 'current' ? 'selected' : '' }}>Current Period</option>
+                                        @foreach($fiscalLedgers as $ledger)
+                                            <option value="{{ $ledger->id }}" {{ $periodFilter == $ledger->id ? 'selected' : '' }}>
+                                                {{ $ledger->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <label for="date-filter" class="text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Date Range:</label>
+                                    <select id="date-filter" name="date"
+                                        onchange="saveScrollAndSubmit(this.form)"
+                                        class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 text-sm py-1 px-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                        <option value="all" {{ $dateFilter === 'all' ? 'selected' : '' }}>All Time</option>
+                                        <option value="14days" {{ $dateFilter === '14days' ? 'selected' : '' }}>Last 14 Days</option>
+                                        <option value="30days" {{ $dateFilter === '30days' ? 'selected' : '' }}>Last 30 Days</option>
+                                    </select>
+                                </div>
+
+                                @if($periodFilter !== 'all' || $dateFilter !== 'all')
+                                    <a href="{{ route('users.show', $user->id) }}"
+                                       class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
+                                        Clear Filters
+                                    </a>
+                                @endif
+                            </form>
+                        </div>
+
+                        <script>
+                            function saveScrollAndSubmit(form) {
+                                sessionStorage.setItem('userShowScrollPos', window.scrollY);
+                                form.submit();
                             }
-                        });
-                    </script>
-                    
-                    <div class="px-4 py-4 sm:px-6">
+
+                            // Restore scroll position after page load
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const scrollPos = sessionStorage.getItem('userShowScrollPos');
+                                if (scrollPos) {
+                                    window.scrollTo(0, parseInt(scrollPos));
+                                    sessionStorage.removeItem('userShowScrollPos');
+                                }
+                            });
+                        </script>
+
+                        <div class="px-4 py-4 sm:px-6">
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col"
+                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">
+                                                Short Description</th>
+                                            <th scope="col"
+                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 hidden md:table-cell">
+                                                Sector, Department</th>
+                                            <th scope="col"
+                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">
+                                                Amount</th>
+                                            <th scope="col"
+                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32 hidden sm:table-cell">
+                                                Task Date</th>
+                                            <th scope="col"
+                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-16 hidden sm:table-cell">
+                                                Notes</th>
+                                            <th scope="col" class="relative w-16 whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
+                                                <span class="sr-only">Edit</span>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        @forelse ($volunteerHours as $volunteerHour)
+                                            <tr class="even:bg-gray-50 even:dark:bg-gray-800/25">
+                                                <td
+                                                    class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">
+                                                    <a href="{{ route('hours.show', $volunteerHour->id) }}"
+                                                        class="text-slate-500">
+                                                        @if ($volunteerHour->description)
+                                                            {{ $volunteerHour->description }}
+                                                        @else
+                                                            <span class="text-xs text-gray-300">Description Not Provided</span>
+                                                        @endif
+                                                    </a>
+                                                </td>
+                                                <td
+                                                    class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-400 dark:text-gray-300 hidden md:table-cell">
+                                                    @if ($volunteerHour->hasDepartment())
+                                                        {{ $volunteerHour->department->sector->name ?? '-' }} /
+                                                        {{ $volunteerHour->department->name ?? '' }}
+                                                    @else
+                                                        <span class="text-xs text-gray-300">Department Not Provided</span>
+                                                    @endif
+                                                </td>
+                                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300"
+                                                    title="{{ $volunteerHour->fiscalLedger->name ?? '???' }}">
+                                                    {{ format_hours($volunteerHour->hours) }} hrs
+                                                </td>
+                                                <td
+                                                    class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">
+                                                    @if (isset($volunteerHour->volunteer_date))
+                                                        {{ $volunteerHour->volunteer_date->diffForHumans() ?? '-' }}
+                                                    @else
+                                                        <span class="text-xs text-gray-300">Date not logged</span>
+                                                    @endif
+                                                </td>
+                                                <td
+                                                    class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">
+                                                    @if ($volunteerHour->hasNotes())
+                                                        <x-heroicon-o-check title="{{ $volunteerHour->notes ?? '' }}"
+                                                            class="w-4" />
+                                                    @else
+                                                        <span class="text-xs text-gray-300">-</span>
+                                                    @endif
+                                                </td>
+                                                <td
+                                                    class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                                                    <a href="{{ route('hours.show', $volunteerHour->id) }}"
+                                                        class="text-blue-400 hover:text-blue-500 px-1">View<span
+                                                            class="sr-only"></span></a>
+                                                    @if (Auth::user()->isAdmin() || (Auth::user()->id == $volunteerHour->user_id && (!app_setting('require_department_for_self_report', false) || Auth::user()->hasDept())))
+                                                        <a href="{{ route('hours.edit', $volunteerHour->id) }}"
+                                                            class="text-blue-400 hover:text-blue-500 px-1">Edit<span
+                                                                class="sr-only"></span></a>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center"
+                                                    colspan="6">No hours logged for this user...</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                                {{ $volunteerHours->links('components.compact-pagination') }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Volunteer Signup Log Tab -->
+                    @feature('volunteer_events')
+                    <div x-show="activeTab === 'signups'" x-cloak>
+                        <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Shift signups and volunteer slots for this user</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col"
+                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">
+                                                Event/Task Name</th>
+                                            <th scope="col"
+                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">
+                                                Duration</th>
+                                            <th scope="col"
+                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32 hidden sm:table-cell">
+                                                Start Time</th>
+                                            <th scope="col"
+                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32 hidden sm:table-cell">
+                                                End Time</th>
+                                            <th scope="col"
+                                                class="relative w-16 whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
+                                                <span class="sr-only">View</span>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        @forelse ($user->shifts->groupBy('event.name') as $eventName => $shifts)
+                                            {{-- Event Header Row --}}
+                                            <tr class="bg-gray-100 dark:bg-gray-800">
+                                                <td colspan="6" class="px-2 py-2 text-sm font-bold text-gray-700 dark:text-gray-100">
+                                                    {{ $eventName }}
+                                                </td>
+                                            </tr>
+
+                                            @foreach ($shifts as $shift)
+                                                <tr class="even:bg-gray-50 even:dark:bg-gray-800/25">
+                                                    <td class="whitespace-nowrap pl-10 pr-2 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">
+                                                        {{ $shift->name ?? 'Unnamed Shift' }}
+                                                    </td>
+                                                    <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300">
+                                                        {{ \Carbon\Carbon::parse($shift->start_time)->diffForHumans(\Carbon\Carbon::parse($shift->end_time), true) }}
+                                                    </td>
+                                                    <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">
+                                                        {{ \Carbon\Carbon::parse($shift->start_time)->format('M d, g:i A') }}
+                                                    </td>
+                                                    <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">
+                                                        {{ \Carbon\Carbon::parse($shift->end_time)->format('M d, g:i A') }}
+                                                    </td>
+                                                    <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                                                        {{-- <a href="{{ route('events.shifts.show', [$shift->event_id, $shift->id]) }}"
+                                                            class="text-blue-400 hover:text-blue-500 px-1">View</a> --}}
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        @empty
+                                            <tr class="dark:bg-gray-800">
+                                                <td colspan="6" class="px-2 py-2 text-sm text-center text-gray-700 dark:text-gray-100">
+                                                    No Slots Signed up
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                    </div>
+                    @endfeature
+
+                    <!-- Simple Events Tab -->
+                    @feature('one_off_events')
+                    <div x-show="activeTab === 'simple-events'" x-cloak>
+                        <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Simple events this user has RSVP'd for or checked in to</p>
+                        </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
                                 <thead>
                                     <tr>
                                         <th scope="col"
                                             class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">
-                                            Short Description</th>
+                                            Event Name</th>
                                         <th scope="col"
-                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 hidden md:table-cell">
-                                            Sector, Department</th>
-                                        <th scope="col"
-                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">
-                                            Amount</th>
+                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-40">
+                                            Status</th>
                                         <th scope="col"
                                             class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32 hidden sm:table-cell">
-                                            Task Date</th>
-                                        <th scope="col"
-                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-16 hidden sm:table-cell">
-                                            Notes</th>
+                                            Event Date</th>
                                         <th scope="col" class="relative w-16 whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
-                                            <span class="sr-only">Edit</span>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200">
-                                    @forelse ($volunteerHours as $volunteerHour)
-                                        <tr class="even:bg-gray-50 even:dark:bg-gray-800/25">
-                                            <td
-                                                class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">
-                                                <a href="{{ route('hours.show', $volunteerHour->id) }}"
-                                                    class="text-slate-500">
-                                                    @if ($volunteerHour->description)
-                                                        {{ $volunteerHour->description }}
-                                                    @else
-                                                        <span class="text-xs text-gray-300">Description Not Provided</span>
-                                                    @endif
-                                                </a>
-                                            </td>
-                                            <td
-                                                class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-400 dark:text-gray-300 hidden md:table-cell">
-                                                @if ($volunteerHour->hasDepartment())
-                                                    {{ $volunteerHour->department->sector->name ?? '-' }} /
-                                                    {{ $volunteerHour->department->name ?? '' }}
-                                                @else
-                                                    <span class="text-xs text-gray-300">Department Not Provided</span>
-                                                @endif
-                                            </td>
-                                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300"
-                                                title="{{ $volunteerHour->fiscalLedger->name ?? '???' }}">
-                                                {{ format_hours($volunteerHour->hours) }} hrs
-                                            </td>
-                                            <td
-                                                class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">
-                                                @if (isset($volunteerHour->volunteer_date))
-                                                    {{ $volunteerHour->volunteer_date->diffForHumans() ?? '-' }}
-                                                @else
-                                                    <span class="text-xs text-gray-300">Date not logged</span>
-                                                @endif
-                                            </td>
-                                            <td
-                                                class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">
-                                                @if ($volunteerHour->hasNotes())
-                                                    <x-heroicon-o-check title="{{ $volunteerHour->notes ?? '' }}"
-                                                        class="w-4" />
-                                                @else
-                                                    <span class="text-xs text-gray-300">-</span>
-                                                @endif
-                                            </td>
-                                            <td
-                                                class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                                <a href="{{ route('hours.show', $volunteerHour->id) }}"
-                                                    class="text-blue-400 hover:text-blue-500 px-1">View<span
-                                                        class="sr-only"></span></a>
-                                                @if (Auth::user()->isAdmin() || (Auth::user()->id == $volunteerHour->user_id && (!app_setting('require_department_for_self_report', false) || Auth::user()->hasDept())))
-                                                    <a href="{{ route('hours.edit', $volunteerHour->id) }}"
-                                                        class="text-blue-400 hover:text-blue-500 px-1">Edit<span
-                                                            class="sr-only"></span></a>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center"
-                                                colspan="6">No hours logged for this user...</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-                            {{ $volunteerHours->links('components.compact-pagination') }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @endif
-
-            <!-- Volunteer Signup Log Section -->
-            @feature('volunteer_events')
-            @if($canViewSensitiveInfo)
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-6">
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-                        <div class="sm:flex-auto">
-                            <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">Volunteer Signup Log</h3>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Shift signups and volunteer slots for this user</p>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
-                                <thead>
-                                    <tr>
-                                        <th scope="col"
-                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">
-                                            Event/Task Name</th>
-                                        <th scope="col"
-                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">
-                                            Duration</th>
-                                        <th scope="col"
-                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32 hidden sm:table-cell">
-                                            Start Time</th>
-                                        <th scope="col"
-                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32 hidden sm:table-cell">
-                                            End Time</th>
-                                        <th scope="col"
-                                            class="relative w-16 whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
                                             <span class="sr-only">View</span>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
-                                    @forelse ($user->shifts->groupBy('event.name') as $eventName => $shifts)
-                                        {{-- Event Header Row --}}
-                                        <tr class="bg-gray-100 dark:bg-gray-800">
-                                            <td colspan="6" class="px-2 py-2 text-sm font-bold text-gray-700 dark:text-gray-100">
-                                                {{ $eventName }}
+                                    @forelse ($simpleEvents as $entry)
+                                        <tr class="even:bg-gray-50 even:dark:bg-gray-800/25">
+                                            <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">
+                                                <a href="{{ route('simple-volunteer-events.show', $entry['event']) }}" class="text-slate-500 hover:text-brand-green">
+                                                    {{ $entry['event']->name }}
+                                                </a>
+                                            </td>
+                                            <td class="whitespace-nowrap px-2 py-2 text-sm">
+                                                @if ($entry['checked_in'])
+                                                    <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-green-800/30 px-2 py-1 text-xs font-medium text-slate-800 dark:text-green-400">
+                                                        <x-heroicon-m-check-circle class="w-3 h-3"/>
+                                                        Checked In
+                                                    </span>
+                                                @elseif ($entry['rsvped'])
+                                                    <span class="inline-flex items-center gap-1 rounded-full bg-purple-100 dark:bg-purple-900/30 px-2 py-1 text-xs font-medium text-purple-700 dark:text-purple-400">
+                                                        <x-heroicon-m-hand-raised class="w-3 h-3"/>
+                                                        RSVP'd
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">
+                                                {{ $entry['event']->start_time->format('M d, Y g:i A') }}
+                                            </td>
+                                            <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                                                <a href="{{ route('simple-volunteer-events.show', $entry['event']) }}"
+                                                    class="text-blue-400 hover:text-blue-500 px-1">View<span
+                                                        class="sr-only"></span></a>
                                             </td>
                                         </tr>
-                    
-                                        @foreach ($shifts as $shift)
-                                            <tr class="even:bg-gray-50 even:dark:bg-gray-800/25">
-                                                <td class="whitespace-nowrap pl-10 pr-2 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">
-                                                    {{ $shift->name ?? 'Unnamed Shift' }}
-                                                </td>
-                                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300">
-                                                    {{ \Carbon\Carbon::parse($shift->start_time)->diffForHumans(\Carbon\Carbon::parse($shift->end_time), true) }}
-                                                </td>
-                                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">
-                                                    {{ \Carbon\Carbon::parse($shift->start_time)->format('M d, g:i A') }}
-                                                </td>
-                                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">
-                                                    {{ \Carbon\Carbon::parse($shift->end_time)->format('M d, g:i A') }}
-                                                </td>
-                                                <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                                    {{-- <a href="{{ route('events.shifts.show', [$shift->event_id, $shift->id]) }}"
-                                                        class="text-blue-400 hover:text-blue-500 px-1">View</a> --}}
-                                                </td>
-                                            </tr>
-                                        @endforeach
                                     @empty
-                                        <tr class="dark:bg-gray-800">
-                                            <td colspan="6" class="px-2 py-2 text-sm text-center text-gray-700 dark:text-gray-100">
-                                                No Slots Signed up
-                                            </td>
+                                        <tr>
+                                            <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center"
+                                                colspan="4">No simple events RSVP'd or checked in to...</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                    @endfeature
                 </div>
             </div>
             @endif
-            @endfeature
         </div>
     @endauth
     

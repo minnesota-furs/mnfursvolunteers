@@ -120,6 +120,16 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function oneOffEventRsvps()
+    {
+        return $this->hasMany(OneOffEventRsvp::class);
+    }
+
+    public function oneOffEventCheckIns()
+    {
+        return $this->hasMany(OneOffEventCheckIn::class);
+    }
+
     public function communicationLogs()
     {
         return $this->hasMany(CommunicationLog::class);
