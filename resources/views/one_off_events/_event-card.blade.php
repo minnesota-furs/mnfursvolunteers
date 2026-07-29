@@ -63,6 +63,18 @@
             </div>
 
             <div class="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 flex-shrink-0 border-t sm:border-t-0 border-gray-100 dark:border-gray-700 pt-3 sm:pt-0">
+                @if(in_array($event->id, $checkedInEventIds ?? []))
+                    <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-green-800/30 px-3 py-1 text-xs font-medium text-slate-800 dark:text-green-400">
+                        <x-heroicon-m-check-circle class="w-3 h-3"/>
+                        Checked In
+                    </span>
+                @elseif(in_array($event->id, $rsvpedEventIds ?? []))
+                    <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-green-800/30 px-3 py-1 text-xs font-medium text-slate-800 dark:text-green-400">
+                        <x-heroicon-m-hand-raised class="w-3 h-3"/>
+                        RSVP'd
+                    </span>
+                @endif
+
                 @if($event->isRsvpType())
                     @if($event->isRsvpFull())
                         <span class="inline-flex items-center gap-1 rounded-full bg-red-100 dark:bg-red-900/30 px-3 py-1 text-xs font-medium text-red-700 dark:text-red-400">

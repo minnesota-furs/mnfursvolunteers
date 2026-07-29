@@ -296,6 +296,19 @@
             <!-- Settings Dropdown -->
             @auth
             <div class="hidden sm:flex sm:items-center gap-2">
+                @if(Auth::user()->vol_code)
+                <!-- Volunteer QR Code -->
+                <button type="button" x-data="" x-on:click="$dispatch('open-modal', 'volunteer-qr-code')"
+                    class="relative inline-flex items-center p-2 rounded-full text-white hover:bg-white/10 focus:outline-none transition ease-in-out duration-150"
+                    aria-label="Show my volunteer QR code">
+                    <x-heroicon-o-qr-code class="h-5 w-5" />
+                    {{-- <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z" />
+                    </svg> --}}
+                </button>
+                @endif
+
                 <!-- Notifications Bell -->
                 <div class="relative" x-data="{ open: false }" @click.outside="open = false">
                     <button @click="open = !open"
@@ -590,6 +603,13 @@
             </div>
 
             <div class="mt-3 space-y-1">
+                @if(Auth::user()->vol_code)
+                <x-responsive-nav-link href="#" x-data="" x-on:click.prevent="$dispatch('open-modal', 'volunteer-qr-code')">
+                    <x-heroicon-o-qr-code class="h-5 w-5 inline" />
+                    {{ __('My Volunteer QR Code') }}
+                </x-responsive-nav-link>
+                @endif
+
                 <x-responsive-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">
                     {{ __('Notifications') }}
                     @if($unreadNotificationsCount > 0)
@@ -631,3 +651,38 @@
         @endauth
     </div>
 </nav>
+
+@auth
+@if(Auth::user()->vol_code)
+<x-modal name="volunteer-qr-code" maxWidth="sm" focusable>
+    <div class="p-6 text-center"
+        x-data="{
+            render() {
+                QRCode.toCanvas(this.$refs.qrCanvas, '{{ Auth::user()->vol_code }}', { width: 240, margin: 2 });
+            }
+        }"
+        x-init="render()">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+            {{ __('My Volunteer QR Code') }}
+        </h2>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            {{ __('Show this to staff to quickly look up your volunteer profile.') }}
+        </p>
+
+        <div class="mt-4 flex justify-center">
+            <canvas x-ref="qrCanvas"></canvas>
+        </div>
+
+        <div class="mt-2 font-mono text-xl tracking-widest text-gray-900 dark:text-gray-100">
+            {{ Auth::user()->vol_code }}
+        </div>
+
+        <div class="mt-6 flex justify-center">
+            <x-secondary-button x-on:click="$dispatch('close')">
+                {{ __('Close') }}
+            </x-secondary-button>
+        </div>
+    </div>
+</x-modal>
+@endif
+@endauth

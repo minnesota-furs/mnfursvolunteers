@@ -25,7 +25,7 @@
                 </h2>
 
                 @forelse($events as $event)
-                    @include('one_off_events._event-card', ['event' => $event])
+                    @include('one_off_events._event-card', ['event' => $event, 'checkedInEventIds' => $checkedInEventIds, 'rsvpedEventIds' => $rsvpedEventIds])
                 @empty
                     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-10 text-center">
                         <x-heroicon-o-calendar-days class="w-10 h-10 mx-auto text-gray-300 dark:text-gray-600 mb-3"/>
