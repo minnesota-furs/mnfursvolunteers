@@ -46,14 +46,23 @@
                     x-data=""
                     x-on:click.prevent="$dispatch('open-modal', 'show-trashed')">
                 <x-heroicon-o-trash class="w-4 inline"/> Show Trash</button>
-                <a href="{{route('users.export', request()->query())}}"
-                    class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                    <x-heroicon-s-arrow-down-on-square-stack class="w-4 inline"/> Export CSV
-                </a>
-                <a href="{{route('users.import')}}"
-                    class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                    <x-heroicon-s-cloud-arrow-up class="w-4 inline"/> Import
-                </a>
+
+                <x-tailwind-dropdown label="More" id="1"
+                    buttonClass="inline-flex items-center gap-x-1 rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                    <div class="py-1" role="none">
+                        <x-tailwind-dropdown-item href="#" title="Scan a volunteer's QR code"
+                            onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-modal', { detail: 'qr-scanner' }));">
+                            <x-heroicon-o-qr-code class="w-4 inline"/> QR Code Scanner
+                        </x-tailwind-dropdown-item>
+                        <x-tailwind-dropdown-item href="{{route('users.export', request()->query())}}">
+                            <x-heroicon-s-arrow-down-on-square-stack class="w-4 inline"/> Export CSV
+                        </x-tailwind-dropdown-item>
+                        <x-tailwind-dropdown-item href="{{route('users.import')}}">
+                            <x-heroicon-s-cloud-arrow-up class="w-4 inline"/> Import
+                        </x-tailwind-dropdown-item>
+                    </div>
+                </x-tailwind-dropdown>
+
                 <a href="{{route('users.create')}}"
                     class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                     <x-heroicon-s-user class="w-4 inline"/> Create New User
@@ -421,6 +430,61 @@
         </div>
     @endauth
 </x-app-layout>
+
+<x-modal name="qr-scanner" maxWidth="sm" focusable>
+    <div class="p-6"
+        x-data="{
+            scanner: null,
+            error: null,
+            start() {
+                this.error = null;
+                if (typeof QrScanner === 'undefined') {
+                    this.error = 'QR scanner failed to load.';
+                    return;
+                }
+                this.scanner = new QrScanner(this.$refs.video, (result) => this.onDecode(result), {
+                    highlightScanRegion: true,
+                    highlightCodeOutline: true,
+                });
+                this.scanner.start().catch((err) => {
+                    this.error = 'Could not access camera: ' + err.message;
+                });
+            },
+            stop() {
+                if (this.scanner) {
+                    this.scanner.stop();
+                    this.scanner.destroy();
+                    this.scanner = null;
+                }
+            },
+            onDecode(result) {
+                const code = (result.data || '').trim();
+                if (!code) return;
+                this.stop();
+                window.location.href = '{{ route('users.index') }}?search=' + encodeURIComponent(code);
+            }
+        }"
+        x-effect="show ? start() : stop()">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+            {{ __('QR Code Scanner') }}
+        </h2>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            {{ __('Point the camera at a volunteer\'s QR code to look up their profile.') }}
+        </p>
+
+        <div class="mt-4 relative">
+            <video x-ref="video" class="w-full rounded-md bg-black aspect-square object-cover"></video>
+        </div>
+
+        <p x-show="error" x-cloak x-text="error" class="mt-2 text-sm text-red-600"></p>
+
+        <div class="mt-6 flex justify-end">
+            <x-secondary-button x-on:click="stop(); $dispatch('close')">
+                {{ __('Close') }}
+            </x-secondary-button>
+        </div>
+    </div>
+</x-modal>
 
 <x-modal name="show-trashed" class="p-6" focusable>
     <div class="p-6">
