@@ -181,6 +181,60 @@ class ShiftController extends Controller
             ]);
     }
 
+    public function bulkUpdate(Request $request, Event $event)
+    {
+        $request->validate([
+            'shift_ids'             => 'required|array|min:1',
+            'shift_ids.*'           => 'integer|exists:shifts,id',
+            'apply_max_volunteers'  => 'nullable|boolean',
+            'max_volunteers'        => 'nullable|required_if:apply_max_volunteers,1|integer|min:1',
+            'apply_description'     => 'nullable|boolean',
+            'description'           => 'nullable|string',
+            'apply_double_hours'    => 'nullable|boolean',
+            'double_hours'          => 'nullable|boolean',
+        ]);
+
+        $updateData = [];
+
+        if ($request->boolean('apply_max_volunteers')) {
+            $updateData['max_volunteers'] = $request->input('max_volunteers');
+        }
+
+        if ($request->boolean('apply_description')) {
+            $updateData['description'] = $request->input('description');
+        }
+
+        if ($request->boolean('apply_double_hours')) {
+            $updateData['double_hours'] = $request->boolean('double_hours');
+        }
+
+        if (empty($updateData)) {
+            return back()->with('error', [
+                'message' => 'No fields were selected to update.',
+            ]);
+        }
+
+        $shifts = $event->shifts()->whereIn('id', $request->input('shift_ids'))->get();
+        $count  = $shifts->count();
+
+        foreach ($shifts as $shift) {
+            $shift->update($updateData);
+        }
+
+        AuditLog::create([
+            'action'         => 'shift_bulk_update',
+            'auditable_type' => Event::class,
+            'auditable_id'   => $event->id,
+            'comment'        => 'User ' . auth()->user()->name . " bulk updated {$count} shift(s): " . implode(', ', array_keys($updateData)),
+            'user_id'        => auth()->id(),
+        ]);
+
+        return redirect()->route('admin.events.shifts.index', $event)
+            ->with('success', [
+                'message' => "{$count} shift(s) updated successfully",
+            ]);
+    }
+
     public function duplicate(Event $event, Shift $shift)
     {
         $newShift = $shift->replicate();

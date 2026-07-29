@@ -133,6 +133,10 @@
                                         <x-heroicon-o-trash class="w-3.5 h-3.5 mr-1"/> Delete Selected
                                     </button>
                                 </form>
+                                <button type="button" onclick="openBulkEditModal()"
+                                    class="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 focus:outline-none">
+                                    <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1"/> Bulk Edit
+                                </button>
                                 <button type="button" onclick="clearSelection()"
                                     class="text-xs text-gray-500 dark:text-gray-400 hover:underline">Clear</button>
                             </div>
@@ -414,6 +418,14 @@
             updateBulkBar();
         }
 
+        function openBulkEditModal() {
+            const checked = getCheckedBoxes();
+            if (checked.length === 0) return;
+
+            const ids = checked.map(cb => parseInt(cb.value, 10));
+            window.dispatchEvent(new CustomEvent('open-bulk-edit-modal', { detail: { ids } }));
+        }
+
         function confirmBulkDelete() {
             const checked = getCheckedBoxes();
             if (checked.length === 0) return false;
@@ -437,3 +449,5 @@
 
 {{-- Advanced Duplicate Modal - Outside layout to prevent constraints --}}
 @include('admin.shifts.advanced-duplicate-modal')
+{{-- Bulk Edit Modal - Outside layout to prevent constraints --}}
+@include('admin.shifts.bulk-edit-modal')

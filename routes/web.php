@@ -362,6 +362,7 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
         Route::post('events/{event}/shifts/store-series', [ShiftController::class, 'storeSeries'])->name('events.shifts.store-series');
         Route::post('events/{event}/shifts/import', [ShiftController::class, 'importCsv'])->name('events.shifts.import');
         Route::delete('events/{event}/shifts/bulk-destroy', [ShiftController::class, 'bulkDestroy'])->name('events.shifts.bulk-destroy');
+        Route::patch('events/{event}/shifts/bulk-update', [ShiftController::class, 'bulkUpdate'])->name('events.shifts.bulk-update');
         Route::resource('events.shifts', ShiftController::class)->except(['show']);
         Route::post('events/{event}/shifts/{shift}/duplicate', [ShiftController::class, 'duplicate'])->name('events.shifts.duplicate');
         Route::post('events/{event}/shifts/{shift}/advanced-duplicate', [ShiftController::class, 'advancedDuplicate'])->name('events.shifts.advanced-duplicate');
