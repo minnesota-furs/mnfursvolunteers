@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
+use App\Models\ApplicationSetting;
 use App\Models\User;
 use App\Models\Event;
 use App\Models\Shift;
@@ -30,8 +31,34 @@ class AppServiceProvider extends ServiceProvider
         Event::observe(AuditableObserver::class);
         Shift::observe(AuditableObserver::class);
 
+        $this->applyTimezoneOverride();
         $this->registerFeatureBladeDirectives();
         $this->registerViewComposers();
+    }
+
+    /**
+     * Apply the admin-configured timezone (Settings > Contact tab) in place of
+     * config/app.php's `timezone`, if one has been set. Runs in boot() rather than
+     * register() so the database connection is available. config('app.timezone_default')
+     * is kept as the unmodified config/app.php value so the settings UI can display it
+     * even after the override below has replaced 'app.timezone'.
+     */
+    protected function applyTimezoneOverride(): void
+    {
+        $configured = config('app.timezone', 'UTC');
+        config(['app.timezone_default' => $configured]);
+
+        try {
+            $override = ApplicationSetting::get('app_timezone');
+        } catch (\Throwable) {
+            // Settings table may not exist yet (e.g. before initial migration).
+            return;
+        }
+
+        if ($override && $override !== $configured) {
+            config(['app.timezone' => $override]);
+            date_default_timezone_set($override);
+        }
     }
 
     /**

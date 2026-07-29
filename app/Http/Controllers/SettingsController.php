@@ -21,8 +21,10 @@ class SettingsController extends Controller
         $sysInfo = $this->gatherSystemInfo();
         $hostingInfo = hosting_info();
         $telegramInfo = $this->gatherTelegramInfo();
+        $timezones = collect(\DateTimeZone::listIdentifiers(\DateTimeZone::ALL))
+            ->groupBy(fn ($tz) => str_contains($tz, '/') ? explode('/', $tz, 2)[0] : 'Other');
 
-        return view('settings.index', compact('settings', 'sysInfo', 'hostingInfo', 'telegramInfo'));
+        return view('settings.index', compact('settings', 'sysInfo', 'hostingInfo', 'telegramInfo', 'timezones'));
     }
 
     /**
@@ -169,6 +171,7 @@ class SettingsController extends Controller
             'feature_recognition' => 'boolean',
             'contact_email' => 'nullable|email',
             'contact_phone' => 'nullable|string|max:20',
+            'app_timezone' => 'nullable|timezone',
             'checkin_hours_before' => 'nullable|numeric|min:0|max:48',
             'checkin_hours_after' => 'nullable|numeric|min:0|max:72',
             'blacklist_emails' => 'nullable|string',
@@ -261,6 +264,14 @@ class SettingsController extends Controller
 
         if ($request->filled('contact_phone')) {
             ApplicationSetting::set('contact_phone', $request->contact_phone, 'string', 'Contact phone number', 'contact');
+        }
+
+        // Timezone override (blank clears it, reverting to config/app.php's timezone)
+        if ($request->filled('app_timezone')) {
+            ApplicationSetting::set('app_timezone', $request->app_timezone, 'string', 'Overrides config/app.php timezone for the whole application', 'general');
+        } else {
+            ApplicationSetting::where('key', 'app_timezone')->delete();
+            Cache::forget('app_setting_app_timezone');
         }
 
         // Event settings

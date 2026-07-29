@@ -74,6 +74,11 @@ class OneOffEvent extends Model
         return $this->hasMany(OneOffEventRsvp::class);
     }
 
+    public function reminders()
+    {
+        return $this->hasMany(OneOffEventReminder::class);
+    }
+
     public function isCheckInType(): bool
     {
         return $this->type === 'check_in';

@@ -112,10 +112,18 @@
         <div class="content">
             <p class="greeting">Hi {{ $user->name }},</p>
 
-            @if($timing === 'hour_before')
-                <p>Just a heads up, you're RSVP'd for an event starting in about an hour!</p>
+            @if($event->isRsvpType())
+                @if($timing === 'hour_before')
+                    <p>Just a heads up, you're RSVP'd for an event starting in about an hour!</p>
+                @else
+                    <p>Just a heads up, you're RSVP'd for an event happening today!</p>
+                @endif
             @else
-                <p>Just a heads up, you're RSVP'd for an event happening today!</p>
+                @if($timing === 'hour_before')
+                    <p>Just a heads up, don't forget to check in — your event starts in about an hour!</p>
+                @else
+                    <p>Just a heads up, don't forget to check in for today's event!</p>
+                @endif
             @endif
 
             <div class="event-card">

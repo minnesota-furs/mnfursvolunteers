@@ -54,6 +54,10 @@
                             @endif
                         </h2>
 
+                        @php
+                            $eventInProgressOrPast = $oneOffEvent->isHappeningNow() || $oneOffEvent->hasEnded();
+                        @endphp
+
                         @if($oneOffEvent->isRsvpType())
                             @if ($rsvp)
                                 <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
@@ -83,10 +87,13 @@
                                             :hour-telegram="$rsvp->remind_hour_before_telegram"
                                             :telegram-available="(bool) app_setting('telegram_bot_username')"
                                             :telegram-linked="Auth::user()->hasTelegramLinked()"
+                                            :disabled="$eventInProgressOrPast"
                                         />
-                                        <button type="submit" class="mt-3 inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-md bg-white dark:bg-gray-800 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors">
-                                            Save Preferences
-                                        </button>
+                                        @unless($eventInProgressOrPast)
+                                            <button type="submit" class="mt-3 inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-md bg-white dark:bg-gray-800 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors">
+                                                Save Preferences
+                                            </button>
+                                        @endunless
                                     </form>
                                     <form method="POST" action="{{ route('simple-volunteer-events.rsvp.cancel', $oneOffEvent) }}" class="mt-3"
                                           onsubmit="return confirm('Cancel your RSVP for this event?');">
@@ -172,6 +179,7 @@
                                                 :optional="true"
                                                 :telegram-available="(bool) app_setting('telegram_bot_username')"
                                                 :telegram-linked="Auth::user()->hasTelegramLinked()"
+                                                :disabled="$eventInProgressOrPast"
                                             />
                                         </div>
                                         <button type="submit"
@@ -277,6 +285,30 @@
                                             @endif
                                         </div>
                                     </div>
+                                </div>
+                            @endif
+
+                            @if ($isEligible)
+                                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <form method="POST" action="{{ route('simple-volunteer-events.reminders', $oneOffEvent) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <x-reminder-grid
+                                            theme="pending"
+                                            :morning-email="$reminder->remind_morning_of_email ?? false"
+                                            :morning-telegram="$reminder->remind_morning_of_telegram ?? false"
+                                            :hour-email="$reminder->remind_hour_before_email ?? false"
+                                            :hour-telegram="$reminder->remind_hour_before_telegram ?? false"
+                                            :telegram-available="(bool) app_setting('telegram_bot_username')"
+                                            :telegram-linked="Auth::user()->hasTelegramLinked()"
+                                            :disabled="$eventInProgressOrPast"
+                                        />
+                                        @unless($eventInProgressOrPast)
+                                            <button type="submit" class="mt-3 inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                                Save Preferences
+                                            </button>
+                                        @endunless
+                                    </form>
                                 </div>
                             @endif
                         @endif

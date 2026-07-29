@@ -7,6 +7,7 @@
     'telegramLinked' => false,
     'theme' => 'pending', // 'active' (already RSVP'd, green) or 'pending' (not yet RSVP'd, neutral)
     'optional' => false,
+    'disabled' => false, // event is happening now or has already passed, so reminders no longer make sense
 ])
 
 @php
@@ -24,7 +25,7 @@
         <p class="text-xs font-semibold uppercase tracking-wide {{ $headText }}">Reminders{{ $optional ? ' (Optional)' : '' }}</p>
     </div>
 
-    <div class="overflow-x-auto rounded-lg {{ $cellBg }}">
+    <div class="overflow-x-auto rounded-lg {{ $cellBg }} {{ $disabled ? 'opacity-50 pointer-events-none' : '' }}">
         <table class="w-full text-sm">
             <thead>
                 <tr>
@@ -45,17 +46,17 @@
                         <x-heroicon-o-sun class="w-4 h-4 inline mr-1.5 {{ $iconText }} -mt-0.5" />Morning of
                     </td>
                     <td class="px-3 py-2 text-center">
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="remind_morning_of_email" value="1" {{ $morningEmail ? 'checked' : '' }} class="sr-only peer">
+                        <label class="relative inline-flex items-center {{ $disabled ? 'cursor-not-allowed' : 'cursor-pointer' }}">
+                            <input type="checkbox" name="remind_morning_of_email" value="1" {{ $morningEmail ? 'checked' : '' }} {{ $disabled ? 'disabled' : '' }} class="sr-only peer">
                             <div class="{{ $toggle }}"></div>
                         </label>
                     </td>
                     @if($telegramAvailable)
                         <td class="px-3 py-2 text-center">
-                            <label class="relative inline-flex items-center {{ $telegramLinked ? 'cursor-pointer' : 'cursor-not-allowed' }}">
+                            <label class="relative inline-flex items-center {{ ($telegramLinked && !$disabled) ? 'cursor-pointer' : 'cursor-not-allowed' }}">
                                 <input type="checkbox" name="remind_morning_of_telegram" value="1"
                                     {{ $morningTelegram ? 'checked' : '' }}
-                                    {{ $telegramLinked ? '' : 'disabled' }}
+                                    {{ ($telegramLinked && !$disabled) ? '' : 'disabled' }}
                                     class="sr-only peer">
                                 <div class="{{ $toggle }}"></div>
                             </label>
@@ -67,17 +68,17 @@
                         <x-heroicon-o-clock class="w-4 h-4 inline mr-1.5 {{ $iconText }} -mt-0.5" />1 hour before
                     </td>
                     <td class="px-3 py-2 text-center">
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="remind_hour_before_email" value="1" {{ $hourEmail ? 'checked' : '' }} class="sr-only peer">
+                        <label class="relative inline-flex items-center {{ $disabled ? 'cursor-not-allowed' : 'cursor-pointer' }}">
+                            <input type="checkbox" name="remind_hour_before_email" value="1" {{ $hourEmail ? 'checked' : '' }} {{ $disabled ? 'disabled' : '' }} class="sr-only peer">
                             <div class="{{ $toggle }}"></div>
                         </label>
                     </td>
                     @if($telegramAvailable)
                         <td class="px-3 py-2 text-center">
-                            <label class="relative inline-flex items-center {{ $telegramLinked ? 'cursor-pointer' : 'cursor-not-allowed' }}">
+                            <label class="relative inline-flex items-center {{ ($telegramLinked && !$disabled) ? 'cursor-pointer' : 'cursor-not-allowed' }}">
                                 <input type="checkbox" name="remind_hour_before_telegram" value="1"
                                     {{ $hourTelegram ? 'checked' : '' }}
-                                    {{ $telegramLinked ? '' : 'disabled' }}
+                                    {{ ($telegramLinked && !$disabled) ? '' : 'disabled' }}
                                     class="sr-only peer">
                                 <div class="{{ $toggle }}"></div>
                             </label>
@@ -88,7 +89,12 @@
         </table>
     </div>
 
-    @if($telegramAvailable && !$telegramLinked)
+    @if($disabled)
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            <x-heroicon-o-information-circle class="w-3.5 h-3.5 inline -mt-0.5" />
+            Reminders aren't available once the event has started.
+        </p>
+    @elseif($telegramAvailable && !$telegramLinked)
         <p class="mt-2 text-xs {{ $active ? 'text-green-700 dark:text-green-300' : 'text-gray-500 dark:text-gray-400' }}">
             <x-heroicon-o-link class="w-3.5 h-3.5 inline -mt-0.5" />
             <a href="{{ route('profile.edit') }}" class="font-semibold underline hover:no-underline">Link your Telegram account</a>

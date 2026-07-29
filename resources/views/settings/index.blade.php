@@ -45,7 +45,7 @@
                     x-model="activeTab"
                     @change="if (activeTab === 'volunteers') initMDE()"
                     class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-sm focus:border-brand-green focus:outline-none focus:ring-brand-green">
-                    <option value="branding">Branding</option>
+                    <option value="branding">General</option>
                     <option value="features">Features</option>
                     <option value="contact">Contact</option>
                     <option value="security">Security</option>
@@ -64,7 +64,7 @@
                 <button @click="activeTab = 'branding'" type="button"
                     :class="activeTab === 'branding' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
                     class="whitespace-nowrap border-b-2 py-4 px-1 mr-8 text-sm font-medium flex-shrink-0">
-                    Branding
+                    General
                 </button>
                 <button @click="activeTab = 'features'" type="button"
                     :class="activeTab === 'features' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
@@ -118,10 +118,10 @@
                     @csrf
                     @method('PUT')
 
-                    <!-- Branding Tab -->
+                    <!-- General Tab -->
                     <div x-show="activeTab === 'branding'" x-cloak>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Branding</h3>
-                        
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">General</h3>
+
                         <!-- Application Name -->
                         <div class="mb-6">
                             <label for="app_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -132,6 +132,31 @@
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                 placeholder="MNFursVolunteers">
                             @error('app_name')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Timezone -->
+                        <div class="mb-6">
+                            <label for="app_timezone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Application Timezone
+                            </label>
+                            @php $selectedTimezone = old('app_timezone', app_setting('app_timezone')); @endphp
+                            <select name="app_timezone" id="app_timezone"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <option value="">Use config default ({{ config('app.timezone_default', config('app.timezone')) }})</option>
+                                @foreach($timezones as $region => $zones)
+                                    <optgroup label="{{ $region }}">
+                                        @foreach($zones as $tz)
+                                            <option value="{{ $tz }}" {{ $selectedTimezone === $tz ? 'selected' : '' }}>{{ $tz }}</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endforeach
+                            </select>
+                            <p class="mt-1 text-xs text-gray-500">
+                                Overrides the <code>timezone</code> setting in <code>config/app.php</code> for the whole application &mdash; dates, reminders, and email timestamps. Leave as "Use config default" to fall back to the value in <code>config/app.php</code>.
+                            </p>
+                            @error('app_timezone')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>

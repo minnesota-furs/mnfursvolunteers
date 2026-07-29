@@ -85,6 +85,18 @@ if (!function_exists('user_display_name')) {
     }
 }
 
+if (!function_exists('app_timezone')) {
+    /**
+     * Get the effective application timezone (admin override, falling back to config/app.php).
+     *
+     * @return string
+     */
+    function app_timezone(): string
+    {
+        return app_setting('app_timezone') ?: config('app.timezone', 'UTC');
+    }
+}
+
 if (!function_exists('feature_enabled')) {
     /**
      * Check if a feature is enabled.

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Mail\OneOffEventReminder;
 use App\Models\OneOffEvent;
+use App\Models\OneOffEventReminder as OneOffEventReminderModel;
 use App\Models\OneOffEventRsvp;
 use App\Models\User;
 use App\Services\TelegramService;
@@ -47,19 +48,28 @@ class SendOneOffEventReminders extends Command
         $today = now()->startOfDay();
         $endOfDay = now()->endOfDay();
 
+        $channelFilter = function ($query) {
+            $query->where('remind_morning_of_email', true)
+                ->orWhere('remind_morning_of_telegram', true);
+        };
+        $eventWindow = function ($query) use ($today, $endOfDay) {
+            $query->where('start_time', '>=', $today)
+                ->where('start_time', '<=', $endOfDay);
+        };
+
         $rsvps = OneOffEventRsvp::with(['user', 'event'])
-            ->where(function ($query) {
-                $query->where('remind_morning_of_email', true)
-                    ->orWhere('remind_morning_of_telegram', true);
-            })
+            ->where($channelFilter)
             ->whereNull('morning_reminder_sent_at')
-            ->whereHas('event', function ($query) use ($today, $endOfDay) {
-                $query->where('start_time', '>=', $today)
-                    ->where('start_time', '<=', $endOfDay);
-            })
+            ->whereHas('event', $eventWindow)
             ->get();
 
-        $this->sendReminders($rsvps, 'morning', 'morning_reminder_sent_at', 'remind_morning_of_email', 'remind_morning_of_telegram');
+        $reminders = OneOffEventReminderModel::with(['user', 'event'])
+            ->where($channelFilter)
+            ->whereNull('morning_reminder_sent_at')
+            ->whereHas('event', $eventWindow)
+            ->get();
+
+        $this->sendReminders($rsvps->concat($reminders), 'morning', 'morning_reminder_sent_at', 'remind_morning_of_email', 'remind_morning_of_telegram');
     }
 
     protected function sendHourBeforeReminders(): void
@@ -67,19 +77,28 @@ class SendOneOffEventReminders extends Command
         $now = now();
         $windowEnd = now()->addHour();
 
+        $channelFilter = function ($query) {
+            $query->where('remind_hour_before_email', true)
+                ->orWhere('remind_hour_before_telegram', true);
+        };
+        $eventWindow = function ($query) use ($now, $windowEnd) {
+            $query->where('start_time', '>=', $now)
+                ->where('start_time', '<=', $windowEnd);
+        };
+
         $rsvps = OneOffEventRsvp::with(['user', 'event'])
-            ->where(function ($query) {
-                $query->where('remind_hour_before_email', true)
-                    ->orWhere('remind_hour_before_telegram', true);
-            })
+            ->where($channelFilter)
             ->whereNull('hour_before_reminder_sent_at')
-            ->whereHas('event', function ($query) use ($now, $windowEnd) {
-                $query->where('start_time', '>=', $now)
-                    ->where('start_time', '<=', $windowEnd);
-            })
+            ->whereHas('event', $eventWindow)
             ->get();
 
-        $this->sendReminders($rsvps, 'hour_before', 'hour_before_reminder_sent_at', 'remind_hour_before_email', 'remind_hour_before_telegram');
+        $reminders = OneOffEventReminderModel::with(['user', 'event'])
+            ->where($channelFilter)
+            ->whereNull('hour_before_reminder_sent_at')
+            ->whereHas('event', $eventWindow)
+            ->get();
+
+        $this->sendReminders($rsvps->concat($reminders), 'hour_before', 'hour_before_reminder_sent_at', 'remind_hour_before_email', 'remind_hour_before_telegram');
     }
 
     protected function sendReminders($rsvps, string $timing, string $sentAtColumn, string $emailColumn, string $telegramColumn): void
@@ -137,9 +156,15 @@ class SendOneOffEventReminders extends Command
 
     protected function telegramReminderText(User $user, OneOffEvent $event, string $timing): string
     {
-        $intro = $timing === 'hour_before'
-            ? "You're RSVP'd for an event starting in about an hour!"
-            : "You're RSVP'd for an event happening today!";
+        if ($event->isRsvpType()) {
+            $intro = $timing === 'hour_before'
+                ? "You're RSVP'd for an event starting in about an hour!"
+                : "You're RSVP'd for an event happening today!";
+        } else {
+            $intro = $timing === 'hour_before'
+                ? "Don't forget to check in \u{2014} your event starts in about an hour!"
+                : "Don't forget to check in for today's event!";
+        }
 
         $text = "<b>Event Reminder</b>\n{$intro}\n\n<b>" . e($event->name) . '</b>';
         $text .= "\n" . $event->start_time->format('g:i A') . ($event->end_time ? ' - ' . $event->end_time->format('g:i A') : '');
@@ -153,15 +178,14 @@ class SendOneOffEventReminders extends Command
 
     protected function telegramReminderKeyboard(OneOffEvent $event): array
     {
-        return [
-            'inline_keyboard' => [
-                [
-                    ['text' => 'View Details', 'url' => route('simple-volunteer-events.show', $event)],
-                ],
-                [
-                    ['text' => 'Cancel RSVP', 'callback_data' => "cancel_rsvp:{$event->id}"],
-                ],
-            ],
+        $rows = [
+            [['text' => 'View Details', 'url' => route('simple-volunteer-events.show', $event)]],
         ];
+
+        $rows[] = $event->isRsvpType()
+            ? [['text' => 'Cancel RSVP', 'callback_data' => "cancel_rsvp:{$event->id}"]]
+            : [['text' => 'Stop Reminders', 'callback_data' => "stop_reminders:{$event->id}"]];
+
+        return ['inline_keyboard' => $rows];
     }
 }

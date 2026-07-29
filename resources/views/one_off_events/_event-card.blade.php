@@ -6,6 +6,9 @@
                     <a href="{{ route('simple-volunteer-events.show', $event) }}" class="group-hover:text-brand-green transition-colors">
                         {{ $event->name }}
                     </a>
+                    @if(in_array($event->id, $reminderEventIds ?? []))
+                        <x-heroicon-s-bell class="w-4 h-4 inline -mt-1 text-amber-500 dark:text-amber-400" title="You have reminders set up for this event"/>
+                    @endif
                 </h3>
                 <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
                     <span class="flex items-center gap-1">

@@ -154,6 +154,7 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::post('/{oneOffEvent}/check-ins/{checkIn}/credit', [OneOffEventController::class, 'manualCreditHours'])->middleware('can:manage-events')->name('check-ins.credit');
         Route::delete('/{oneOffEvent}/check-ins/{checkIn}', [OneOffEventController::class, 'destroyCheckIn'])->middleware('can:manage-events')->name('check-ins.destroy');
         Route::post('/{oneOffEvent}/check-in', [OneOffEventController::class, 'checkIn'])->name('check-in');
+        Route::patch('/{oneOffEvent}/reminders', [OneOffEventController::class, 'updateReminders'])->name('reminders');
         Route::post('/{oneOffEvent}/staff-check-in', [OneOffEventController::class, 'staffCheckIn'])->middleware('can:manage-events')->name('staff-check-in');
         Route::get('/{oneOffEvent}/rsvps', [OneOffEventController::class, 'rsvps'])->middleware('can:manage-events')->name('rsvps');
         Route::delete('/{oneOffEvent}/rsvps/{rsvp}', [OneOffEventController::class, 'destroyRsvp'])->middleware('can:manage-events')->name('rsvps.destroy');

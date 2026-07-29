@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ApplicationSetting;
 use App\Models\OneOffEvent;
+use App\Models\OneOffEventReminder;
 use App\Models\OneOffEventRsvp;
 use App\Models\User;
 use App\Services\TelegramService;
@@ -56,7 +57,8 @@ class TelegramWebhookController extends Controller
     }
 
     /**
-     * Handle an inline keyboard button tap. Currently only "Cancel RSVP" (cancel_rsvp:{eventId}).
+     * Handle an inline keyboard button tap: "Cancel RSVP" (cancel_rsvp:{eventId})
+     * or "Stop Reminders" (stop_reminders:{eventId}) on a check-in event.
      */
     private function handleCallbackQuery(array $callbackQuery): void
     {
@@ -69,14 +71,6 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        if (!Str::startsWith($data, 'cancel_rsvp:')) {
-            $this->telegram->answerCallbackQuery($callbackQueryId);
-
-            return;
-        }
-
-        $eventId = (int) Str::after($data, 'cancel_rsvp:');
-
         $user = User::where('telegram_chat_id', (string) $chatId)->first();
 
         if (!$user) {
@@ -85,6 +79,17 @@ class TelegramWebhookController extends Controller
             return;
         }
 
+        if (Str::startsWith($data, 'cancel_rsvp:')) {
+            $this->handleCancelRsvp($user, (int) Str::after($data, 'cancel_rsvp:'), $callbackQueryId, $chatId, $messageId);
+        } elseif (Str::startsWith($data, 'stop_reminders:')) {
+            $this->handleStopReminders($user, (int) Str::after($data, 'stop_reminders:'), $callbackQueryId, $chatId, $messageId);
+        } else {
+            $this->telegram->answerCallbackQuery($callbackQueryId);
+        }
+    }
+
+    private function handleCancelRsvp(User $user, int $eventId, string $callbackQueryId, string|int $chatId, ?int $messageId): void
+    {
         $event = OneOffEvent::find($eventId);
         $rsvp = $event ? OneOffEventRsvp::where('one_off_event_id', $eventId)->where('user_id', $user->id)->first() : null;
 
@@ -103,6 +108,35 @@ class TelegramWebhookController extends Controller
                 (string) $chatId,
                 $messageId,
                 "❌ <b>RSVP cancelled</b> for \"" . e($event->name) . '".'
+            );
+        }
+    }
+
+    private function handleStopReminders(User $user, int $eventId, string $callbackQueryId, string|int $chatId, ?int $messageId): void
+    {
+        $event = OneOffEvent::find($eventId);
+        $reminder = $event ? OneOffEventReminder::where('one_off_event_id', $eventId)->where('user_id', $user->id)->first() : null;
+
+        if (!$event || !$reminder) {
+            $this->telegram->answerCallbackQuery($callbackQueryId, 'No reminders were set for this event.', true);
+
+            return;
+        }
+
+        $reminder->update([
+            'remind_morning_of_email' => false,
+            'remind_morning_of_telegram' => false,
+            'remind_hour_before_email' => false,
+            'remind_hour_before_telegram' => false,
+        ]);
+
+        $this->telegram->answerCallbackQuery($callbackQueryId, 'Reminders turned off.');
+
+        if ($messageId) {
+            $this->telegram->editMessageText(
+                (string) $chatId,
+                $messageId,
+                "🔕 <b>Reminders turned off</b> for \"" . e($event->name) . '".'
             );
         }
     }

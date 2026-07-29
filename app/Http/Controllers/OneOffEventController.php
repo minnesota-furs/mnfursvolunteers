@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Department;
 use App\Models\OneOffEvent;
 use App\Models\OneOffEventCheckIn;
+use App\Models\OneOffEventReminder;
 use App\Models\OneOffEventRsvp;
 use App\Models\Sector;
 use App\Models\Tag;
@@ -35,7 +36,25 @@ class OneOffEventController extends Controller
             ->pluck('one_off_event_id')
             ->all();
 
-        return view('one_off_events.index', compact('events', 'pastEvents', 'checkedInEventIds', 'rsvpedEventIds'));
+        $anyReminderEnabled = function ($query) {
+            $query->where('remind_morning_of_email', true)
+                ->orWhere('remind_morning_of_telegram', true)
+                ->orWhere('remind_hour_before_email', true)
+                ->orWhere('remind_hour_before_telegram', true);
+        };
+
+        $reminderEventIds = OneOffEventRsvp::where('user_id', Auth::id())
+            ->where($anyReminderEnabled)
+            ->pluck('one_off_event_id')
+            ->merge(
+                OneOffEventReminder::where('user_id', Auth::id())
+                    ->where($anyReminderEnabled)
+                    ->pluck('one_off_event_id')
+            )
+            ->unique()
+            ->all();
+
+        return view('one_off_events.index', compact('events', 'pastEvents', 'checkedInEventIds', 'rsvpedEventIds', 'reminderEventIds'));
     }
 
     // Standby QR scanner for staff to look up volunteers and check them in on the spot (admin)
@@ -118,6 +137,7 @@ class OneOffEventController extends Controller
 
         $checkIn = null;
         $rsvp = null;
+        $reminder = null;
         $isEligible = true;
         $missingTagNames = [];
         $eligibleDepartmentNames = [];
@@ -130,6 +150,10 @@ class OneOffEventController extends Controller
                 $checkIn = OneOffEventCheckIn::where('user_id', $user->id)
                     ->where('one_off_event_id', $oneOffEvent->id)
                     ->first();
+
+                $reminder = OneOffEventReminder::where('user_id', $user->id)
+                    ->where('one_off_event_id', $oneOffEvent->id)
+                    ->first();
             } else {
                 $rsvp = OneOffEventRsvp::where('user_id', $user->id)
                     ->where('one_off_event_id', $oneOffEvent->id)
@@ -139,7 +163,7 @@ class OneOffEventController extends Controller
             [$isEligible, $missingTagNames, $eligibleDepartmentNames, $eligibleSectorNames] = $this->checkEligibility($oneOffEvent, $user);
         }
 
-        return view('one_off_events.show', compact('oneOffEvent', 'checkIn', 'rsvp', 'isEligible', 'missingTagNames', 'eligibleDepartmentNames', 'eligibleSectorNames'));
+        return view('one_off_events.show', compact('oneOffEvent', 'checkIn', 'rsvp', 'reminder', 'isEligible', 'missingTagNames', 'eligibleDepartmentNames', 'eligibleSectorNames'));
     }
 
     // Show form to create an event (admin)
@@ -446,6 +470,10 @@ class OneOffEventController extends Controller
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
+        if ($oneOffEvent->isHappeningNow() || $oneOffEvent->hasEnded()) {
+            abort(403);
+        }
+
         $canTelegram = Auth::user()->hasTelegramLinked();
 
         $rsvp->update([
@@ -454,6 +482,46 @@ class OneOffEventController extends Controller
             'remind_hour_before_email' => $request->boolean('remind_hour_before_email'),
             'remind_hour_before_telegram' => $canTelegram && $request->boolean('remind_hour_before_telegram'),
         ]);
+
+        return back()->with('success', [
+            'message' => 'Your reminder preferences have been updated.'
+        ]);
+    }
+
+    // Set reminder preferences for a check-in (non-RSVP) event, which has no
+    // commitment record of its own to hang reminder flags off of.
+    public function updateReminders(Request $request, OneOffEvent $oneOffEvent)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', [
+                'message' => 'Please log in to set reminders.'
+            ]);
+        }
+
+        if (!$oneOffEvent->isCheckInType()) {
+            abort(404);
+        }
+
+        [$isEligible] = $this->checkEligibility($oneOffEvent, Auth::user());
+
+        if (!$isEligible || $oneOffEvent->isHappeningNow() || $oneOffEvent->hasEnded()) {
+            abort(403);
+        }
+
+        $canTelegram = Auth::user()->hasTelegramLinked();
+
+        OneOffEventReminder::updateOrCreate(
+            [
+                'one_off_event_id' => $oneOffEvent->id,
+                'user_id' => Auth::id(),
+            ],
+            [
+                'remind_morning_of_email' => $request->boolean('remind_morning_of_email'),
+                'remind_morning_of_telegram' => $canTelegram && $request->boolean('remind_morning_of_telegram'),
+                'remind_hour_before_email' => $request->boolean('remind_hour_before_email'),
+                'remind_hour_before_telegram' => $canTelegram && $request->boolean('remind_hour_before_telegram'),
+            ]
+        );
 
         return back()->with('success', [
             'message' => 'Your reminder preferences have been updated.'
