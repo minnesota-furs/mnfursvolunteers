@@ -6,6 +6,10 @@
 
         <x-slot name="actions">
             @can('manage-events')
+                <a href="{{ route('simple-volunteer-events.scanner') }}"
+                    class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <x-heroicon-o-qr-code class="w-4 inline"/> Scanner
+                </a>
                 <a href="{{ route('simple-volunteer-events.archived') }}"
                     class="block rounded-md px-3 py-2 text-center text-sm font-semibold text-white hover:bg-white/10">
                     <x-heroicon-o-archive-box class="w-4 inline"/> Archived Events

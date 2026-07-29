@@ -58,12 +58,21 @@
                         <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                         <textarea name="description" id="description" rows="3"
                             class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">{{ old('description') }}</textarea>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Supports Markdown formatting (e.g., **bold**, *italic*, [links](url), etc.)</p>
                     </div>
 
                     <div class="mb-4">
                         <label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
                         <input type="text" name="location" id="location" value="{{ old('location') }}"
                             class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">URL (optional)</label>
+                        <input type="url" name="url" id="url" value="{{ old('url') }}" placeholder="https://zoom.us/j/..."
+                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">For virtual meetings. If set, the location will link here.</p>
+                        <x-form-validation for="url" />
                     </div>
 
                     <div class="mb-4" x-show="type === 'rsvp'" x-cloak>

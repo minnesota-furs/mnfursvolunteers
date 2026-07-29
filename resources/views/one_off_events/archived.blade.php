@@ -75,7 +75,7 @@
 
                                             @if($event->description)
                                                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
-                                                    {{ $event->description }}
+                                                    {{ $event->plainTextDescription }}
                                                 </p>
                                             @endif
 
@@ -91,7 +91,13 @@
                                                 @if($event->location)
                                                     <div class="flex items-center text-gray-700 dark:text-gray-300">
                                                         <x-heroicon-m-map-pin class="w-4 h-4 mr-1.5 text-gray-400"/>
-                                                        {{ $event->location }}
+                                                        @if($event->url)
+                                                            <a href="{{ $event->url }}" target="_blank" rel="noopener noreferrer" class="hover:text-brand-green hover:underline">
+                                                                {{ $event->location }}
+                                                            </a>
+                                                        @else
+                                                            {{ $event->location }}
+                                                        @endif
                                                     </div>
                                                 @endif
                                                 <div class="flex items-center text-gray-700 dark:text-gray-300">

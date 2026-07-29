@@ -8,6 +8,7 @@ use App\Models\OneOffEventCheckIn;
 use App\Models\OneOffEventRsvp;
 use App\Models\Sector;
 use App\Models\Tag;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,6 +36,70 @@ class OneOffEventController extends Controller
             ->all();
 
         return view('one_off_events.index', compact('events', 'pastEvents', 'checkedInEventIds', 'rsvpedEventIds'));
+    }
+
+    // Standby QR scanner for staff to look up volunteers and check them in on the spot (admin)
+    public function scanner()
+    {
+        return view('one_off_events.scanner');
+    }
+
+    // Look up a volunteer by their vol_code and list the Simple Events they're RSVP'd for (admin)
+    public function scannerLookup(Request $request)
+    {
+        $validated = $request->validate([
+            'code' => 'required|string|max:20',
+        ]);
+
+        $code = strtoupper(trim($validated['code']));
+
+        $user = User::where('vol_code', $code)->first();
+
+        if (!$user) {
+            return response()->json([
+                'found' => false,
+                'message' => "No volunteer found for code \"{$code}\".",
+            ], 404);
+        }
+
+        $rsvpedEvents = OneOffEvent::whereHas('rsvps', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->where(function ($query) {
+                $query->whereNull('end_time')->orWhere('end_time', '>=', now()->subDay());
+            })
+            ->orderBy('start_time')
+            ->get();
+
+        $checkedInEventIds = OneOffEventCheckIn::where('user_id', $user->id)
+            ->whereIn('one_off_event_id', $rsvpedEvents->pluck('id'))
+            ->pluck('one_off_event_id')
+            ->all();
+
+        return response()->json([
+            'found' => true,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->displayName(),
+                'pronouns' => $user->pronouns,
+                'vol_code' => $user->vol_code,
+                'department' => $user->department?->name,
+                'profile_url' => route('users.show', $user),
+            ],
+            'events' => $rsvpedEvents->map(function ($event) use ($checkedInEventIds) {
+                return [
+                    'id' => $event->id,
+                    'name' => $event->name,
+                    'location' => $event->location,
+                    'start_time_human' => $event->start_time->format('D, M j \a\t g:i A'),
+                    'is_happening_now' => $event->isHappeningNow(),
+                    'has_ended' => $event->hasEnded(),
+                    'checked_in' => in_array($event->id, $checkedInEventIds),
+                    'check_in_url' => route('simple-volunteer-events.staff-check-in', $event),
+                    'show_url' => route('simple-volunteer-events.show', $event),
+                ];
+            })->values(),
+        ]);
     }
 
     // Show list of archived/past events (admin only)
@@ -93,6 +158,7 @@ class OneOffEventController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'location' => 'nullable|string|max:255',
+            'url' => 'nullable|url|max:2048',
             'type' => 'required|in:check_in,rsvp',
             'max_rsvps' => 'nullable|integer|min:1',
             'start_time' => 'required|date',
@@ -145,6 +211,7 @@ class OneOffEventController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'location' => 'nullable|string|max:255',
+            'url' => 'nullable|url|max:2048',
             'type' => 'required|in:check_in,rsvp',
             'max_rsvps' => 'nullable|integer|min:1',
             'start_time' => 'required|date',
@@ -295,7 +362,7 @@ class OneOffEventController extends Controller
     }
 
     // RSVP to an event
-    public function rsvp(OneOffEvent $oneOffEvent)
+    public function rsvp(Request $request, OneOffEvent $oneOffEvent)
     {
         if (!Auth::check()) {
             return redirect()->route('login')->with('error', [
@@ -347,6 +414,8 @@ class OneOffEventController extends Controller
         OneOffEventRsvp::create([
             'one_off_event_id' => $oneOffEvent->id,
             'user_id' => Auth::id(),
+            'remind_morning_of' => $request->boolean('remind_morning_of'),
+            'remind_hour_before' => $request->boolean('remind_hour_before'),
         ]);
 
         return back()->with('success', [
@@ -363,6 +432,23 @@ class OneOffEventController extends Controller
 
         return back()->with('success', [
             'message' => 'Your RSVP has been cancelled.'
+        ]);
+    }
+
+    // Update a user's own reminder preferences for their RSVP
+    public function updateRsvpReminders(Request $request, OneOffEvent $oneOffEvent)
+    {
+        $rsvp = OneOffEventRsvp::where('one_off_event_id', $oneOffEvent->id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $rsvp->update([
+            'remind_morning_of' => $request->boolean('remind_morning_of'),
+            'remind_hour_before' => $request->boolean('remind_hour_before'),
+        ]);
+
+        return back()->with('success', [
+            'message' => 'Your reminder preferences have been updated.'
         ]);
     }
 
@@ -450,6 +536,39 @@ class OneOffEventController extends Controller
 
         return back()->with('success', [
             'message' => "You've been checked in successfully!"
+        ]);
+    }
+
+    // Staff-assisted check-in for another volunteer, e.g. from the QR scanner (admin)
+    public function staffCheckIn(Request $request, OneOffEvent $oneOffEvent)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $user = User::findOrFail($validated['user_id']);
+
+        $existingCheckIn = OneOffEventCheckIn::where('one_off_event_id', $oneOffEvent->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existingCheckIn) {
+            return response()->json([
+                'ok' => false,
+                'message' => "{$user->displayName()} is already checked in to this event.",
+            ], 422);
+        }
+
+        OneOffEventCheckIn::create([
+            'one_off_event_id' => $oneOffEvent->id,
+            'user_id' => $user->id,
+            'checked_in_at' => now(),
+            'hours_credited' => false,
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'message' => "{$user->displayName()} has been checked in.",
         ]);
     }
 

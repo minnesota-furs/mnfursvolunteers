@@ -17,6 +17,9 @@ class Kernel extends ConsoleKernel
         
         // Send shift reminder emails every morning at 8am
         $schedule->command('shifts:send-reminders')->dailyAt('08:00');
+
+        // Send Simple Volunteer Event reminders (morning-of and hour-before, opt-in)
+        $schedule->command('simple-events:send-reminders')->everyFifteenMinutes();
     }
 
     /**

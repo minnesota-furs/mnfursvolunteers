@@ -36,7 +36,7 @@ class DepartmentProvider extends BaseProvider
         'Site Selection',
         'Sponsorship',
         'Treasury',
-        'Video',
+        'Video',When
         'Web',
         'Writing',
         'Youth',

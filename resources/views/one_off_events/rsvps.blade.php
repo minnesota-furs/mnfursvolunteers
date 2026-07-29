@@ -30,7 +30,13 @@
                             @endif
                         </p>
                         @if($oneOffEvent->location)
-                            <p><strong>Location:</strong> {{ $oneOffEvent->location }}</p>
+                            <p><strong>Location:</strong>
+                                @if($oneOffEvent->url)
+                                    <a href="{{ $oneOffEvent->url }}" target="_blank" rel="noopener noreferrer" class="text-brand-green hover:underline">{{ $oneOffEvent->location }}</a>
+                                @else
+                                    {{ $oneOffEvent->location }}
+                                @endif
+                            </p>
                         @endif
                     </div>
                 </div>

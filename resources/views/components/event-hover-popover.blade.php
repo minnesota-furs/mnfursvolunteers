@@ -11,7 +11,7 @@
      @click.stop>
     <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $name }}</p>
     @if($description)
-        <p class="mt-1.5 text-xs text-gray-600 dark:text-gray-400 line-clamp-4">{{ Str::limit($description, 220) }}</p>
+        <p class="mt-1.5 text-xs text-gray-600 dark:text-gray-400 line-clamp-4">{{ Str::limit(strip_tags(\Parsedown::instance()->text($description)), 220) }}</p>
     @endif
     <div class="mt-2.5 space-y-1.5 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700 pt-2.5">
         {{ $slot }}

@@ -44,15 +44,15 @@
                 <button
                     class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                     x-data=""
-                    x-on:click.prevent="$dispatch('open-modal', 'show-trashed')">
-                <x-heroicon-o-trash class="w-4 inline"/> Show Trash</button>
+                    x-on:click.prevent="$dispatch('open-modal', 'qr-scanner')">
+                <x-heroicon-o-qr-code class="w-4 inline"/> Scanner</button>
 
                 <x-tailwind-dropdown label="More" id="1"
                     buttonClass="inline-flex items-center gap-x-1 rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                     <div class="py-1" role="none">
-                        <x-tailwind-dropdown-item href="#" title="Scan a volunteer's QR code"
-                            onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-modal', { detail: 'qr-scanner' }));">
-                            <x-heroicon-o-qr-code class="w-4 inline"/> QR Code Scanner
+                        <x-tailwind-dropdown-item href="#" title="Show trashed users"
+                            onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-modal', { detail: 'show-trashed' }));">
+                            <x-heroicon-o-trash class="w-4 inline"/> Show Trash
                         </x-tailwind-dropdown-item>
                         <x-tailwind-dropdown-item href="{{route('users.export', request()->query())}}">
                             <x-heroicon-s-arrow-down-on-square-stack class="w-4 inline"/> Export CSV
@@ -65,7 +65,7 @@
 
                 <a href="{{route('users.create')}}"
                     class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                    <x-heroicon-s-user class="w-4 inline"/> Create New User
+                    <x-heroicon-s-user class="w-4 inline"/> Create User
                 </a>
             @endcan
         </x-slot>
@@ -415,7 +415,7 @@
                                 </tr>
                                 @empty
                                     <tr>
-                                        <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center" colspan="3">No users found</td>
+                                        <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 text-center" colspan="5">No users found</td>
                                     </tr>
                                 @endforelse
                             </tbody>

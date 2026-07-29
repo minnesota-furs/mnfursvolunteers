@@ -135,6 +135,8 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::get('/archived', [OneOffEventController::class, 'archived'])->middleware('can:manage-events')->name('archived');
         Route::get('/create', [OneOffEventController::class, 'create'])->middleware('can:manage-events')->name('create');
         Route::post('/', [OneOffEventController::class, 'store'])->middleware('can:manage-events')->name('store');
+        Route::get('/scanner', [OneOffEventController::class, 'scanner'])->middleware('can:manage-events')->name('scanner');
+        Route::get('/scanner/lookup', [OneOffEventController::class, 'scannerLookup'])->middleware('can:manage-events')->name('scanner.lookup');
         Route::get('/{oneOffEvent}', [OneOffEventController::class, 'show'])->name('show');
         Route::get('/{oneOffEvent}/edit', [OneOffEventController::class, 'edit'])->middleware('can:manage-events')->name('edit');
         Route::put('/{oneOffEvent}', [OneOffEventController::class, 'update'])->middleware('can:manage-events')->name('update');
@@ -145,10 +147,12 @@ Route::middleware(['auth', 'enforce.custom-fields'])->group(function () {
         Route::post('/{oneOffEvent}/check-ins/{checkIn}/credit', [OneOffEventController::class, 'manualCreditHours'])->middleware('can:manage-events')->name('check-ins.credit');
         Route::delete('/{oneOffEvent}/check-ins/{checkIn}', [OneOffEventController::class, 'destroyCheckIn'])->middleware('can:manage-events')->name('check-ins.destroy');
         Route::post('/{oneOffEvent}/check-in', [OneOffEventController::class, 'checkIn'])->name('check-in');
+        Route::post('/{oneOffEvent}/staff-check-in', [OneOffEventController::class, 'staffCheckIn'])->middleware('can:manage-events')->name('staff-check-in');
         Route::get('/{oneOffEvent}/rsvps', [OneOffEventController::class, 'rsvps'])->middleware('can:manage-events')->name('rsvps');
         Route::delete('/{oneOffEvent}/rsvps/{rsvp}', [OneOffEventController::class, 'destroyRsvp'])->middleware('can:manage-events')->name('rsvps.destroy');
         Route::post('/{oneOffEvent}/rsvp', [OneOffEventController::class, 'rsvp'])->name('rsvp');
         Route::delete('/{oneOffEvent}/rsvp', [OneOffEventController::class, 'cancelRsvp'])->name('rsvp.cancel');
+        Route::patch('/{oneOffEvent}/rsvp/reminders', [OneOffEventController::class, 'updateRsvpReminders'])->name('rsvp.reminders');
     });
     
     // Users

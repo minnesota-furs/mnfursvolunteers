@@ -29,13 +29,19 @@
                     @if($event->location)
                         <span class="flex items-center gap-1">
                             <x-heroicon-m-map-pin class="w-4 h-4 flex-shrink-0"/>
-                            {{ $event->location }}
+                            @if($event->url)
+                                <a href="{{ $event->url }}" target="_blank" rel="noopener noreferrer" class="hover:text-brand-green hover:underline" onclick="event.stopPropagation()">
+                                    {{ $event->location }}
+                                </a>
+                            @else
+                                {{ $event->location }}
+                            @endif
                         </span>
                     @endif
                 </div>
 
                 @if($event->description)
-                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{{ $event->description }}</p>
+                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{{ $event->plainTextDescription }}</p>
                 @endif
 
                 @can('manage-events')

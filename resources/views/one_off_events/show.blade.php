@@ -39,9 +39,7 @@
                             <x-heroicon-o-information-circle class="w-5 h-5 mr-2 text-brand-green" />
                             About This Event
                         </h2>
-                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
-                            {{ $oneOffEvent->description }}
-                        </p>
+                        <div class="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed">{!! $oneOffEvent->htmlDescription !!}</div>
                     </div>
 
                     <!-- Check-in / RSVP Status Card -->
@@ -69,11 +67,44 @@
                                                     You're RSVP'd!
                                                 </h3>
                                                 <p class="mt-1 text-sm text-green-700 dark:text-green-300">
-                                                    RSVP'd on {{ $rsvp->created_at->format('F j, Y \a\t g:i A') }}
+                                                    RSVP'd on {{ $rsvp->created_at->format('F j, Y') }}
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
+                                    <form method="POST" action="{{ route('simple-volunteer-events.rsvp.reminders', $oneOffEvent) }}" class="mt-4 pt-4 border-t border-green-200 dark:border-green-800">
+                                        @csrf
+                                        @method('PATCH')
+                                        <div class="flex items-center mb-2.5">
+                                            <x-heroicon-o-bell class="w-4 h-4 mr-1.5 text-green-700 dark:text-green-300" />
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-green-800 dark:text-green-200">Email Reminders</p>
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                            <div class="flex items-center justify-between bg-white/60 dark:bg-black/10 rounded-lg px-3 py-2">
+                                                <div class="flex items-center">
+                                                    <x-heroicon-o-sun class="w-4 h-4 mr-2 text-green-600 dark:text-green-400 flex-shrink-0" />
+                                                    <span class="text-sm text-green-800 dark:text-green-200">Morning of the event</span>
+                                                </div>
+                                                <label class="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" name="remind_morning_of" value="1" {{ $rsvp->remind_morning_of ? 'checked' : '' }} class="sr-only peer">
+                                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-green/20 dark:peer-focus:ring-brand-green/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-brand-green"></div>
+                                                </label>
+                                            </div>
+                                            <div class="flex items-center justify-between bg-white/60 dark:bg-black/10 rounded-lg px-3 py-2">
+                                                <div class="flex items-center">
+                                                    <x-heroicon-o-clock class="w-4 h-4 mr-2 text-green-600 dark:text-green-400 flex-shrink-0" />
+                                                    <span class="text-sm text-green-800 dark:text-green-200">1 hour before</span>
+                                                </div>
+                                                <label class="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" name="remind_hour_before" value="1" {{ $rsvp->remind_hour_before ? 'checked' : '' }} class="sr-only peer">
+                                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-green/20 dark:peer-focus:ring-brand-green/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-brand-green"></div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="mt-3 inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-md bg-white dark:bg-gray-800 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors">
+                                            Save Preferences
+                                        </button>
+                                    </form>
                                     <form method="POST" action="{{ route('simple-volunteer-events.rsvp.cancel', $oneOffEvent) }}" class="mt-3"
                                           onsubmit="return confirm('Cancel your RSVP for this event?');">
                                         @csrf
@@ -152,6 +183,34 @@
                                     </p>
                                     <form method="POST" action="{{ route('simple-volunteer-events.rsvp', $oneOffEvent) }}">
                                         @csrf
+                                        <div class="mb-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 p-3">
+                                            <div class="flex items-center mb-2.5">
+                                                <x-heroicon-o-bell class="w-4 h-4 mr-1.5 text-gray-500 dark:text-gray-400" />
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400">Email Reminders (Optional)</p>
+                                            </div>
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                                <div class="flex items-center justify-between bg-white dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
+                                                    <div class="flex items-center">
+                                                        <x-heroicon-o-sun class="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
+                                                        <span class="text-sm text-gray-700 dark:text-gray-300">Morning of the event</span>
+                                                    </div>
+                                                    <label class="relative inline-flex items-center cursor-pointer">
+                                                        <input type="checkbox" name="remind_morning_of" value="1" class="sr-only peer">
+                                                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-green/20 dark:peer-focus:ring-brand-green/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-brand-green"></div>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center justify-between bg-white dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
+                                                    <div class="flex items-center">
+                                                        <x-heroicon-o-clock class="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
+                                                        <span class="text-sm text-gray-700 dark:text-gray-300">1 hour before</span>
+                                                    </div>
+                                                    <label class="relative inline-flex items-center cursor-pointer">
+                                                        <input type="checkbox" name="remind_hour_before" value="1" class="sr-only peer">
+                                                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-green/20 dark:peer-focus:ring-brand-green/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-brand-green"></div>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <button type="submit"
                                             class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-brand-green hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-green transition-colors shadow-sm">
                                             <x-heroicon-s-hand-raised class="w-5 h-5 mr-2" />
@@ -279,7 +338,13 @@
                                     </dt>
                                     <dd class="text-sm text-gray-900 dark:text-white font-medium flex items-center">
                                         <x-heroicon-s-map-pin class="w-4 h-4 mr-2 text-brand-green" />
-                                        {{ $oneOffEvent->location }}
+                                        @if($oneOffEvent->url)
+                                            <a href="{{ $oneOffEvent->url }}" target="_blank" rel="noopener noreferrer" class="text-brand-green hover:underline">
+                                                {{ $oneOffEvent->location }}
+                                            </a>
+                                        @else
+                                            {{ $oneOffEvent->location }}
+                                        @endif
                                     </dd>
                                 </div>
                             @endif
@@ -424,34 +489,6 @@
                         </div>
                     @endif
 
-                    <!-- Quick Actions Card -->
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                            Quick Actions
-                        </h3>
-                        <div class="space-y-2">
-                            <a href="{{ route('simple-volunteer-events.index') }}"
-                               class="block w-full text-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-                                <x-heroicon-o-arrow-left class="w-4 h-4 inline mr-1" />
-                                All Events
-                            </a>
-                            @can('manage-events')
-                                @if($oneOffEvent->isRsvpType())
-                                    <a href="{{ route('simple-volunteer-events.rsvps', $oneOffEvent) }}"
-                                       class="block w-full text-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-                                        <x-heroicon-o-user-group class="w-4 h-4 inline mr-1" />
-                                        View All RSVPs
-                                    </a>
-                                @else
-                                    <a href="{{ route('simple-volunteer-events.check-ins', $oneOffEvent) }}"
-                                       class="block w-full text-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-                                        <x-heroicon-o-user-group class="w-4 h-4 inline mr-1" />
-                                        View All Check-ins
-                                    </a>
-                                @endif
-                            @endcan
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

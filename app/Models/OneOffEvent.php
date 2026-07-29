@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Support\Str;
+use Parsedown;
 
 class OneOffEvent extends Model
 {
@@ -15,6 +16,7 @@ class OneOffEvent extends Model
         'name',
         'description',
         'location',
+        'url',
         'type',
         'max_rsvps',
         'start_time',
@@ -32,6 +34,22 @@ class OneOffEvent extends Model
         'checkin_hours_after' => 'integer',
         'max_rsvps' => 'integer',
     ];
+
+    /**
+     * Convert the Markdown description to HTML.
+     */
+    public function getHtmlDescriptionAttribute()
+    {
+        return $this->description ? Parsedown::instance()->text($this->description) : null;
+    }
+
+    /**
+     * Convert the Markdown description to plain text (strips all HTML), for previews.
+     */
+    public function getPlainTextDescriptionAttribute()
+    {
+        return $this->description ? strip_tags(Parsedown::instance()->text($this->description)) : null;
+    }
 
     protected static function booted()
     {
