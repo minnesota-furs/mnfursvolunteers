@@ -69,34 +69,55 @@
             />
 
             <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow-lg sm:p-6">
+                <div class="rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow-lg sm:p-6">
                     <dt class="text-xl font-bold mb-1 text-gray-500 dark:text-gray-400">Upcoming Volunteer Opportunities
                         ({{ $upcomingEvents->count() }})</dt>
                     <p class="text-sm text-gray-400 dark:text-gray-500 mb-3">These events and departments are looking for volunteers!</p>
                     <dd class="mt-1">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                             @forelse($upcomingEvents as $event)
-                                <a href="{{ route('volunteer.events.show', $event) }}"
-                                   class="group flex items-center gap-2.5 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 px-2.5 py-1.5 hover:border-brand-green dark:hover:border-brand-green hover:bg-green-50 dark:hover:bg-brand-green/10 transition-all">
-                                    <div class="flex-shrink-0 text-center leading-tight rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 px-1.5 py-0.5 shadow-sm">
-                                        <div class="text-[10px] font-semibold uppercase text-brand-green">{{ $event->start_date->format('M') }}</div>
-                                        <div class="text-base font-bold text-gray-900 dark:text-gray-100 -mt-0.5">{{ $event->start_date->format('j') }}</div>
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-brand-green transition-colors truncate">{{ $event->name }}</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                <div class="relative" x-data="{ show: false, timer: null }"
+                                     @mouseenter="timer = setTimeout(() => show = true, 300)"
+                                     @mouseleave="clearTimeout(timer); show = false">
+                                    <a href="{{ route('volunteer.events.show', $event) }}"
+                                       class="group flex items-center gap-2.5 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 px-2.5 py-1.5 hover:border-brand-green dark:hover:border-brand-green hover:bg-green-50 dark:hover:bg-brand-green/10 transition-all">
+                                        <div class="flex-shrink-0 text-center leading-tight rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 px-1.5 py-0.5 shadow-sm">
+                                            <div class="text-[10px] font-semibold uppercase text-brand-green">{{ $event->start_date->format('M') }}</div>
+                                            <div class="text-base font-bold text-gray-900 dark:text-gray-100 -mt-0.5">{{ $event->start_date->format('j') }}</div>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-brand-green transition-colors truncate">{{ $event->name }}</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                @if($event->isMultiDay())
+                                                    {{ $event->start_date->format('M j') }} – {{ $event->end_date->format('M j, Y') }}
+                                                @else
+                                                    {{ $event->start_date->format('l, g:i A') }}
+                                                @endif
+                                                @if($event->location)
+                                                    · {{ $event->location }}
+                                                @endif
+                                            </p>
+                                        </div>
+                                        <x-heroicon-m-chevron-right class="w-4 h-4 flex-shrink-0 text-gray-300 dark:text-gray-600 group-hover:text-brand-green transition-colors"/>
+                                    </a>
+
+                                    <x-event-hover-popover :name="$event->name" :description="$event->description">
+                                        <p class="flex items-center gap-1.5">
+                                            <x-heroicon-m-calendar class="w-3.5 h-3.5 flex-shrink-0"/>
                                             @if($event->isMultiDay())
-                                                {{ $event->start_date->format('M j') }} – {{ $event->end_date->format('M j, Y') }}
+                                                {{ $event->start_date->format('l, M j, Y g:i A') }} &ndash; {{ $event->end_date->format('l, M j, Y g:i A') }}
                                             @else
-                                                {{ $event->start_date->format('l, g:i A') }}
-                                            @endif
-                                            @if($event->location)
-                                                · {{ $event->location }}
+                                                {{ $event->start_date->format('l, M j, Y') }} at {{ $event->start_date->format('g:i A') }}
                                             @endif
                                         </p>
-                                    </div>
-                                    <x-heroicon-m-chevron-right class="w-4 h-4 flex-shrink-0 text-gray-300 dark:text-gray-600 group-hover:text-brand-green transition-colors"/>
-                                </a>
+                                        @if($event->location)
+                                            <p class="flex items-center gap-1.5">
+                                                <x-heroicon-m-map-pin class="w-3.5 h-3.5 flex-shrink-0"/>
+                                                {{ $event->location }}
+                                            </p>
+                                        @endif
+                                    </x-event-hover-popover>
+                                </div>
                             @empty
                                 <p class="text-gray-300 dark:text-gray-500">No upcoming events in need of volunteers.</p>
                             @endforelse
@@ -145,41 +166,75 @@
                     </dd>
                 </div>
                 @feature('one_off_events')
-                    <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow-lg sm:p-6">
+                    <div class="rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow-lg sm:p-6">
                         <dt class="text-xl font-bold mb-1 text-gray-500 dark:text-gray-400">Simple Volunteer Events You're Eligible For
                             ({{ $eligibleSimpleEvents->count() }})</dt>
                         <p class="text-sm text-gray-400 dark:text-gray-500 mb-3">Meetings, socials, and other simple events you can check in to or RSVP for.</p>
                         <dd class="mt-1">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                                 @forelse($eligibleSimpleEvents as $event)
-                                    <a href="{{ route('simple-volunteer-events.show', $event) }}"
-                                       class="group flex items-center gap-2.5 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 px-2.5 py-1.5 hover:border-brand-green dark:hover:border-brand-green hover:bg-green-50 dark:hover:bg-brand-green/10 transition-all">
-                                        <div class="flex-shrink-0 text-center leading-tight rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 px-1.5 py-0.5 shadow-sm">
-                                            <div class="text-[10px] font-semibold uppercase text-brand-green">{{ $event->start_time->format('M') }}</div>
-                                            <div class="text-base font-bold text-gray-900 dark:text-gray-100 -mt-0.5">{{ $event->start_time->format('j') }}</div>
-                                        </div>
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-brand-green transition-colors truncate">{{ $event->name }}</p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                                {{ $event->start_time->format('l, g:i A') }}
-                                                @if($event->location)
-                                                    · {{ $event->location }}
+                                    <div class="relative" x-data="{ show: false, timer: null }"
+                                         @mouseenter="timer = setTimeout(() => show = true, 300)"
+                                         @mouseleave="clearTimeout(timer); show = false">
+                                        <a href="{{ route('simple-volunteer-events.show', $event) }}"
+                                           class="group flex items-center gap-2.5 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 px-2.5 py-1.5 hover:border-brand-green dark:hover:border-brand-green hover:bg-green-50 dark:hover:bg-brand-green/10 transition-all">
+                                            <div class="flex-shrink-0 text-center leading-tight rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 px-1.5 py-0.5 shadow-sm">
+                                                <div class="text-[10px] font-semibold uppercase text-brand-green">{{ $event->start_time->format('M') }}</div>
+                                                <div class="text-base font-bold text-gray-900 dark:text-gray-100 -mt-0.5">{{ $event->start_time->format('j') }}</div>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-brand-green transition-colors truncate">{{ $event->name }}</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                    {{ $event->start_time->format('l, g:i A') }}
+                                                    @if($event->location)
+                                                        · {{ $event->location }}
+                                                    @endif
+                                                </p>
+                                            </div>
+                                            @if($event->isHappeningNow())
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-red-100 dark:bg-red-900/30 px-2 py-0.5 text-[10px] font-medium text-red-700 dark:text-red-400 flex-shrink-0">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                                    Now
+                                                </span>
+                                            @endif
+                                            @if($event->isRsvpType())
+                                                <span class="inline-flex items-center rounded-full bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 text-[10px] font-medium text-purple-700 dark:text-purple-400 flex-shrink-0">
+                                                    RSVP
+                                                </span>
+                                            @endif
+                                            <x-heroicon-m-chevron-right class="w-4 h-4 flex-shrink-0 text-gray-300 dark:text-gray-600 group-hover:text-brand-green transition-colors"/>
+                                        </a>
+
+                                        <x-event-hover-popover :name="$event->name" :description="$event->description">
+                                            <p class="flex items-center gap-1.5">
+                                                <x-heroicon-m-calendar class="w-3.5 h-3.5 flex-shrink-0"/>
+                                                {{ $event->start_time->format('l, M j, Y') }} at {{ $event->start_time->format('g:i A') }}
+                                                @if($event->end_time)
+                                                    &ndash; {{ $event->end_time->format('g:i A') }}
+                                                @else
+                                                    (ongoing)
                                                 @endif
                                             </p>
-                                        </div>
-                                        @if($event->isHappeningNow())
-                                            <span class="inline-flex items-center gap-1 rounded-full bg-red-100 dark:bg-red-900/30 px-2 py-0.5 text-[10px] font-medium text-red-700 dark:text-red-400 flex-shrink-0">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-                                                Now
-                                            </span>
-                                        @endif
-                                        @if($event->isRsvpType())
-                                            <span class="inline-flex items-center rounded-full bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 text-[10px] font-medium text-purple-700 dark:text-purple-400 flex-shrink-0">
-                                                RSVP
-                                            </span>
-                                        @endif
-                                        <x-heroicon-m-chevron-right class="w-4 h-4 flex-shrink-0 text-gray-300 dark:text-gray-600 group-hover:text-brand-green transition-colors"/>
-                                    </a>
+                                            @if($event->location)
+                                                <p class="flex items-center gap-1.5">
+                                                    <x-heroicon-m-map-pin class="w-3.5 h-3.5 flex-shrink-0"/>
+                                                    {{ $event->location }}
+                                                </p>
+                                            @endif
+                                            <p class="flex items-center gap-1.5">
+                                                @if($event->isRsvpType())
+                                                    <x-heroicon-m-hand-raised class="w-3.5 h-3.5 flex-shrink-0"/>
+                                                    RSVP event &mdash; no hours credited
+                                                    @if($event->rsvpSpotsRemaining() !== null)
+                                                        ({{ $event->rsvpSpotsRemaining() }} {{ Str::plural('spot', $event->rsvpSpotsRemaining()) }} left)
+                                                    @endif
+                                                @else
+                                                    <x-heroicon-m-check-circle class="w-3.5 h-3.5 flex-shrink-0"/>
+                                                    Check-in event &mdash; earns volunteer hours
+                                                @endif
+                                            </p>
+                                        </x-event-hover-popover>
+                                    </div>
                                 @empty
                                     <p class="text-gray-300 dark:text-gray-500">No simple volunteer events you're eligible for right now.</p>
                                 @endforelse
