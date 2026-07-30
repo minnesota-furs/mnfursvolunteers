@@ -179,6 +179,14 @@ return [
             'description' => 'Enable the favorite and avoid system for volunteers. Requires Volunteer Profiles to also be enabled.',
             'beta' => true,
         ],
+        'feature_accessibility_disclosures' => [
+            'value' => true,
+            'type' => 'boolean',
+            'group' => 'feature_flags',
+            'label' => 'Accessibility Disclosures',
+            'description' => 'Allow volunteers to disclose accessibility needs and show potential shift conflicts.',
+            'beta' => false,
+        ],
     ],
     'security' => [
         'blacklist_emails' => [

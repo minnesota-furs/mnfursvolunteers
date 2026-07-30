@@ -7,11 +7,18 @@
         @php
             $profileSections = [
                 ['id' => 'profile-information', 'label' => __('Profile Information'), 'icon' => 'heroicon-o-user'],
-                ['id' => 'accessibility-needs', 'label' => __('Accessibility Needs'), 'icon' => 'heroicon-o-hand-raised'],
                 ['id' => 'timezone', 'label' => __('Timezone'), 'icon' => 'heroicon-o-clock'],
                 ['id' => 'email-preferences', 'label' => __('Email Preferences'), 'icon' => 'heroicon-o-envelope'],
                 ['id' => 'calendar', 'label' => __('Calendar'), 'icon' => 'heroicon-o-calendar-days'],
             ];
+
+            if (feature_enabled('accessibility_disclosures')) {
+                array_splice($profileSections, 1, 0, [[
+                    'id' => 'accessibility-needs',
+                    'label' => __('Accessibility Needs'),
+                    'icon' => 'heroicon-o-hand-raised',
+                ]]);
+            }
 
             if (app_setting('telegram_bot_username')) {
                 $profileSections[] = ['id' => 'telegram', 'label' => __('Telegram'), 'icon' => 'heroicon-o-paper-airplane'];
@@ -51,11 +58,13 @@
                         </div>
                     </div>
 
-                    <div id="accessibility-needs" class="scroll-mt-6 p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                        <div class="max-w-xl">
-                            @include('profile.partials.accessibility-needs-form')
+                    @feature('accessibility_disclosures')
+                        <div id="accessibility-needs" class="scroll-mt-6 p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                            <div class="max-w-xl">
+                                @include('profile.partials.accessibility-needs-form')
+                            </div>
                         </div>
-                    </div>
+                    @endfeature
 
                     <div id="timezone" class="scroll-mt-6 p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                         @include('profile.partials.update-timezone-form')

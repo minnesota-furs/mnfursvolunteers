@@ -66,16 +66,20 @@ class VolunteerEventController extends Controller
 
         $userShifts = auth()->user()->shiftsForEvent($event->id)->sortBy('start_time');
 
-        $accessibilityConflicts = $shifts
-            ->mapWithKeys(function (Shift $shift) use ($user): array {
-                $conflicts = array_values(array_intersect(
-                    $user->accessibility_needs ?? [],
-                    $shift->accessibility_conflicts ?? []
-                ));
+        $accessibilityConflicts = collect();
 
-                return [$shift->id => $conflicts];
-            })
-            ->filter();
+        if (feature_enabled('accessibility_disclosures')) {
+            $accessibilityConflicts = $shifts
+                ->mapWithKeys(function (Shift $shift) use ($user): array {
+                    $conflicts = array_values(array_intersect(
+                        $user->accessibility_needs ?? [],
+                        $shift->accessibility_conflicts ?? []
+                    ));
+
+                    return [$shift->id => $conflicts];
+                })
+                ->filter();
+        }
 
         // Get all user's shifts (not just for this event) to check for conflicts
         $allUserShifts = auth()->user()->shifts()->with('event')->get();

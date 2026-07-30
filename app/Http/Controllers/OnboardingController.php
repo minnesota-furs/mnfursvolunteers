@@ -14,7 +14,14 @@ class OnboardingController extends Controller
      */
     protected function steps(): array
     {
-        $steps = ['profile', 'accessibility', 'timezone', 'calendar'];
+        $steps = ['profile'];
+
+        if (feature_enabled('accessibility_disclosures')) {
+            $steps[] = 'accessibility';
+        }
+
+        $steps[] = 'timezone';
+        $steps[] = 'calendar';
 
         if (app_setting('telegram_bot_username')) {
             $steps[] = 'telegram';
@@ -59,7 +66,9 @@ class OnboardingController extends Controller
 
         $request->user()->update($request->only('first_name', 'last_name', 'pronouns'));
 
-        return $this->redirectToStep(2);
+        return $this->redirectToStepKey(
+            feature_enabled('accessibility_disclosures') ? 'accessibility' : 'timezone'
+        );
     }
 
     /**
@@ -67,11 +76,13 @@ class OnboardingController extends Controller
      */
     public function updateAccessibilityNeeds(AccessibilityNeedsUpdateRequest $request): RedirectResponse
     {
+        abort_unless(feature_enabled('accessibility_disclosures'), 404);
+
         $request->user()->update([
             'accessibility_needs' => $request->validated('accessibility_needs'),
         ]);
 
-        return $this->redirectToStep(3);
+        return $this->redirectToStepKey('timezone');
     }
 
     /**
@@ -87,7 +98,7 @@ class OnboardingController extends Controller
             'timezone' => $request->input('timezone') ?: null,
         ]);
 
-        return $this->redirectToStep(4);
+        return $this->redirectToStepKey('calendar');
     }
 
     /**
@@ -97,7 +108,7 @@ class OnboardingController extends Controller
     {
         $request->user()->generateCalendarToken();
 
-        return $this->redirectToStep(4);
+        return $this->redirectToStepKey('calendar');
     }
 
     /**
@@ -107,7 +118,7 @@ class OnboardingController extends Controller
     {
         $request->user()->generateTelegramLinkToken();
 
-        return $this->redirectToStep(5, ['status' => 'telegram-link-generated']);
+        return $this->redirectToStepKey('telegram', ['status' => 'telegram-link-generated']);
     }
 
     /**
@@ -136,5 +147,14 @@ class OnboardingController extends Controller
     protected function redirectToStep(int $step, array $params = []): RedirectResponse
     {
         return redirect()->route('onboarding.index', array_merge(['step' => $step], $params));
+    }
+
+    protected function redirectToStepKey(string $step, array $params = []): RedirectResponse
+    {
+        $stepNumber = array_search($step, $this->steps(), true);
+
+        abort_if($stepNumber === false, 404);
+
+        return $this->redirectToStep($stepNumber + 1, $params);
     }
 }

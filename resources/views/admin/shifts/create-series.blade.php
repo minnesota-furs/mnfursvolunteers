@@ -135,8 +135,9 @@
                             </dd>
                         </div>
 
-                        {{-- Accessibility conflicts --}}
-                        <div class="px-6 py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+                        @feature('accessibility_disclosures')
+                            {{-- Accessibility conflicts --}}
+                            <div class="px-6 py-5 sm:grid sm:grid-cols-3 sm:gap-4">
                             <div>
                                 <dt class="form-label">Accessibility Conflicts</dt>
                                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -163,7 +164,8 @@
                                 <x-form-validation for="accessibility_conflicts" />
                                 <x-form-validation for="accessibility_conflicts.*" />
                             </dd>
-                        </div>
+                            </div>
+                        @endfeature
 
                     </div>
                 </div>

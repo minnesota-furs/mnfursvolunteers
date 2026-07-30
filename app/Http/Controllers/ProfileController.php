@@ -81,6 +81,8 @@ class ProfileController extends Controller
 
     public function updateAccessibilityNeeds(AccessibilityNeedsUpdateRequest $request): RedirectResponse
     {
+        abort_unless(feature_enabled('accessibility_disclosures'), 404);
+
         $request->user()->update([
             'accessibility_needs' => $request->validated('accessibility_needs'),
         ]);

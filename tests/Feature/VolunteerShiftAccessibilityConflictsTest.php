@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ApplicationSetting;
 use App\Models\Event;
 use App\Models\Shift;
 use App\Models\User;
@@ -38,6 +39,25 @@ it('does not show an accessibility warning when the shift does not conflict with
     $event = Event::factory()->upcoming()->create();
     Shift::factory()->for($event)->create([
         'accessibility_conflicts' => ['Service animal'],
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('volunteer.events.show', $event))
+        ->assertOk()
+        ->assertDontSee('Accessibility concerns identified')
+        ->assertDontSee('May conflict with your accessibility needs:');
+});
+
+it('hides accessibility conflicts when disclosures are disabled', function () {
+    ApplicationSetting::set('feature_accessibility_disclosures', false, 'boolean', group: 'feature_flags');
+
+    $user = User::factory()->create([
+        'onboarded_at' => now(),
+        'accessibility_needs' => ['Deaf'],
+    ]);
+    $event = Event::factory()->upcoming()->create();
+    Shift::factory()->for($event)->create([
+        'accessibility_conflicts' => ['Deaf'],
     ]);
 
     $this->actingAs($user)

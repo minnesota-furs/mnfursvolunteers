@@ -508,6 +508,12 @@
                                 description="User recognition and awards management system with privacy controls"
                                 :beta="feature_is_beta('recognition')" />
 
+                            <x-feature-toggle
+                                feature="accessibility_disclosures"
+                                label="Accessibility Disclosures"
+                                description="Allow volunteers to disclose accessibility needs and show potential shift conflicts."
+                                :beta="feature_is_beta('accessibility_disclosures')" />
+
                             <x-feature-toggle 
                                 feature="volunteer_relationships" 
                                 label="Volunteer Relationships (Favorite & Avoid)" 

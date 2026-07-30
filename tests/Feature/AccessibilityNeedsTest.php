@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ApplicationSetting;
 use App\Models\User;
 
 it('shows accessibility needs after the profile onboarding step', function () {
@@ -89,4 +90,42 @@ it('rejects unsupported accessibility needs', function () {
         ->assertSessionHasErrors('accessibility_needs.0');
 
     expect($user->refresh()->accessibility_needs)->toBeNull();
+});
+
+it('hides and rejects accessibility disclosures when the feature is disabled', function () {
+    ApplicationSetting::set('feature_accessibility_disclosures', false, 'boolean', group: 'feature_flags');
+
+    $user = User::factory()->create([
+        'onboarded_at' => null,
+        'accessibility_needs' => ['Deaf'],
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('onboarding.index', ['step' => 2]))
+        ->assertOk()
+        ->assertSee('Timezone')
+        ->assertDontSee('Accessibility needs')
+        ->assertDontSee('Wheelchair accessible');
+
+    $this->actingAs($user)
+        ->post(route('onboarding.accessibility-needs'), [
+            'has_accessibility_needs' => '0',
+        ])
+        ->assertNotFound();
+
+    $user->update(['onboarded_at' => now()]);
+
+    $this->actingAs($user)
+        ->get(route('profile.edit'))
+        ->assertOk()
+        ->assertDontSee('Accessibility Needs')
+        ->assertDontSee('id="accessibility-needs"', false);
+
+    $this->actingAs($user)
+        ->patch(route('profile.accessibility-needs'), [
+            'has_accessibility_needs' => '0',
+        ])
+        ->assertNotFound();
+
+    expect($user->refresh()->accessibility_needs)->toBe(['Deaf']);
 });

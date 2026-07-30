@@ -106,8 +106,9 @@
                                 </label>
                             </div>
 
-                            {{-- Accessibility Conflicts --}}
-                            <div class="bg-gray-50 p-4 dark:bg-gray-900">
+                            @feature('accessibility_disclosures')
+                                {{-- Accessibility Conflicts --}}
+                                <div class="bg-gray-50 p-4 dark:bg-gray-900">
                                 <label class="flex items-start">
                                     <input type="checkbox" name="apply_accessibility_conflicts" value="1"
                                            x-model="applyAccessibilityConflicts"
@@ -131,7 +132,8 @@
                                         </label>
                                     @endforeach
                                 </div>
-                            </div>
+                                </div>
+                            @endfeature
                         </div>
 
                         {{-- Footer --}}

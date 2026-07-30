@@ -22,7 +22,7 @@
             <form method="POST"
                 action="{{ isset($shift) ? route('admin.events.shifts.update', [$event, $shift]) : route('admin.events.shifts.store', $event) }}">
                 @csrf
-                @if (isset($shift))
+                @if (isset($shift) && feature_enabled('accessibility_disclosures'))
                     @method('PUT')
                 @endif
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">

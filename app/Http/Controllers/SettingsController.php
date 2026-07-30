@@ -168,6 +168,7 @@ class SettingsController extends Controller
             'feature_wordpress_integration' => 'boolean',
             'feature_user_tags' => 'boolean',
             'feature_recognition' => 'boolean',
+            'feature_accessibility_disclosures' => 'boolean',
             'contact_email' => 'nullable|email',
             'contact_phone' => 'nullable|string|max:20',
             'app_timezone' => 'nullable|timezone',
@@ -255,6 +256,7 @@ class SettingsController extends Controller
         ApplicationSetting::set('feature_wordpress_integration', $request->boolean('feature_wordpress_integration'), 'boolean', 'Enable/disable WordPress integration feature', 'feature_flags');
         ApplicationSetting::set('feature_user_tags', $request->boolean('feature_user_tags'), 'boolean', 'Enable/disable user tags feature', 'feature_flags');
         ApplicationSetting::set('feature_recognition', $request->boolean('feature_recognition'), 'boolean', 'Enable/disable recognition and awards module', 'feature_flags');
+        ApplicationSetting::set('feature_accessibility_disclosures', $request->boolean('feature_accessibility_disclosures'), 'boolean', 'Allow volunteers to disclose accessibility needs and show potential shift conflicts', 'feature_flags');
 
         // Contact information
         if ($request->filled('contact_email')) {
