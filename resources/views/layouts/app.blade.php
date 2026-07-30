@@ -118,8 +118,11 @@
                 </div>
             </main>
         @endif
-        @include('layouts.footer')
+    @include('layouts.footer')
     </div>
+    @auth
+        <x-command-palette />
+    @endauth
     <!-- Global notification live region, render this permanently at the end of the document -->
     @if(session('success'))
     <div id="toast-notification" aria-live="assertive" class="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6">

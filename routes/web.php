@@ -1,39 +1,44 @@
 <?php
 
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\VolunteerHoursController;
-use App\Http\Controllers\FiscalLedgerController;
-use App\Http\Controllers\DepartmentController;
-use App\Http\Controllers\SectorController;
-use App\Http\Controllers\JobListingController;
-use App\Http\Controllers\WordPressAuthController;
-use App\Http\Controllers\VolunteerEventController;
-use App\Http\Controllers\VolunteerGuestController;
-use App\Http\Controllers\ReportsController;
-use App\Http\Controllers\UserPermissionController;
-use App\Http\Controllers\UserImportWizardController;
-use App\Http\Controllers\OneOffEventController;
-use App\Http\Controllers\OnboardingController;
-use App\Http\Controllers\Volunteer\ShiftSignupController;
-use App\Http\Controllers\Volunteer\CalendarController;
-use App\Http\Controllers\Admin\ShiftController;
+use App\Http\Controllers\Admin\CustomFieldController;
 use App\Http\Controllers\Admin\EventController;
-use App\Http\Controllers\Admin\ShiftTagReportController;
-use App\Http\Controllers\ElectionController;
-use App\Http\Controllers\SetupWizardController;
-use App\Http\Controllers\FeatureController;
-use App\Http\Controllers\RecognitionController;
-use App\Http\Controllers\Admin\RecognitionController as AdminRecognitionController;
+use App\Http\Controllers\Admin\InviteCodeController;
 use App\Http\Controllers\Admin\ManagerDashboardController;
+use App\Http\Controllers\Admin\RecognitionController as AdminRecognitionController;
+use App\Http\Controllers\Admin\ShiftController;
+use App\Http\Controllers\Admin\ShiftTagReportController;
+use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\VolunteerPerkController as AdminVolunteerPerkController;
 use App\Http\Controllers\Admin\VolunteerPerkSetController as AdminVolunteerPerkSetController;
-use App\Http\Controllers\VolunteerPerkController;
+use App\Http\Controllers\CommandPaletteController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\ElectionController;
+use App\Http\Controllers\FiscalLedgerController;
+use App\Http\Controllers\JobListingController;
+use App\Http\Controllers\NoteController;
 use App\Http\Controllers\NotificationsController;
-use App\Http\Controllers\VolunteerProfileController;
+use App\Http\Controllers\OAuthSetupController;
+use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\OneOffEventController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RecognitionController;
+use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\SectorController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SetupWizardController;
+use App\Http\Controllers\TelegramWebhookController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserImportWizardController;
+use App\Http\Controllers\UserPermissionController;
 use App\Http\Controllers\UserRelationshipController;
-
+use App\Http\Controllers\Volunteer\CalendarController;
+use App\Http\Controllers\Volunteer\ShiftSignupController;
+use App\Http\Controllers\VolunteerEventController;
+use App\Http\Controllers\VolunteerGuestController;
+use App\Http\Controllers\VolunteerHoursController;
+use App\Http\Controllers\VolunteerPerkController;
+use App\Http\Controllers\VolunteerProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -82,7 +87,7 @@ Route::get('/unsubscribe-elections/{user}/{token}', [ProfileController::class, '
     ->name('unsubscribe.elections');
 
 // Public Telegram bot webhook (secret-protected, no auth required)
-Route::post('/telegram/webhook/{secret}', [\App\Http\Controllers\TelegramWebhookController::class, 'handle'])
+Route::post('/telegram/webhook/{secret}', [TelegramWebhookController::class, 'handle'])
     ->name('telegram.webhook');
 
 // Public elections
@@ -130,6 +135,8 @@ Route::middleware('auth')->prefix('notifications')->name('notifications.')->grou
 
 // Authenticated routes
 Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->group(function () {
+    Route::get('/command-palette/search', CommandPaletteController::class)->name('command-palette.search');
+
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');
@@ -177,19 +184,19 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
         Route::delete('/{oneOffEvent}/rsvp', [OneOffEventController::class, 'cancelRsvp'])->name('rsvp.cancel');
         Route::patch('/{oneOffEvent}/rsvp/reminders', [OneOffEventController::class, 'updateRsvpReminders'])->name('rsvp.reminders');
     });
-    
+
     // Users
     Route::middleware(['can:manage-users'])->group(function () {
         // Import wizard
-        Route::get('/users/import',                  [UserImportWizardController::class, 'step1'])->name('users.import');
-        Route::post('/users/import/upload',          [UserImportWizardController::class, 'upload'])->name('users.import.upload');
-        Route::get('/users/import/map',              [UserImportWizardController::class, 'map'])->name('users.import.map');
-        Route::post('/users/import/map',             [UserImportWizardController::class, 'storeMapping'])->name('users.import.store-mapping');
-        Route::get('/users/import/hours',            [UserImportWizardController::class, 'hoursConfig'])->name('users.import.hours');
-        Route::post('/users/import/hours',           [UserImportWizardController::class, 'storeHoursConfig'])->name('users.import.store-hours');
-        Route::get('/users/import/confirm',          [UserImportWizardController::class, 'confirm'])->name('users.import.confirm');
-        Route::post('/users/import/execute',         [UserImportWizardController::class, 'execute'])->name('users.import.execute');
-        Route::get('/users/import/results',          [UserImportWizardController::class, 'results'])->name('users.import.results');
+        Route::get('/users/import', [UserImportWizardController::class, 'step1'])->name('users.import');
+        Route::post('/users/import/upload', [UserImportWizardController::class, 'upload'])->name('users.import.upload');
+        Route::get('/users/import/map', [UserImportWizardController::class, 'map'])->name('users.import.map');
+        Route::post('/users/import/map', [UserImportWizardController::class, 'storeMapping'])->name('users.import.store-mapping');
+        Route::get('/users/import/hours', [UserImportWizardController::class, 'hoursConfig'])->name('users.import.hours');
+        Route::post('/users/import/hours', [UserImportWizardController::class, 'storeHoursConfig'])->name('users.import.store-hours');
+        Route::get('/users/import/confirm', [UserImportWizardController::class, 'confirm'])->name('users.import.confirm');
+        Route::post('/users/import/execute', [UserImportWizardController::class, 'execute'])->name('users.import.execute');
+        Route::get('/users/import/results', [UserImportWizardController::class, 'results'])->name('users.import.results');
         Route::get('/users/import/results/download', [UserImportWizardController::class, 'downloadFailed'])->name('users.import.results.download');
         Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
         Route::post('/users/{id}/restore', [UserController::class, 'restore'])->middleware('isAdmin')->name('users.restore');
@@ -207,15 +214,15 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
 
     // User Notes
     Route::prefix('users/{user}/notes')->name('users.notes.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\NoteController::class, 'index'])->name('index');
+        Route::get('/', [NoteController::class, 'index'])->name('index');
         Route::middleware(['can:manage-user-notes'])->group(function () {
-            Route::get('/create', [\App\Http\Controllers\NoteController::class, 'create'])->name('create');
-            Route::post('/', [\App\Http\Controllers\NoteController::class, 'store'])->name('store');
+            Route::get('/create', [NoteController::class, 'create'])->name('create');
+            Route::post('/', [NoteController::class, 'store'])->name('store');
         });
-        Route::put('/{note}', [\App\Http\Controllers\NoteController::class, 'update'])->name('update');
-        Route::delete('/{note}', [\App\Http\Controllers\NoteController::class, 'destroy'])->name('destroy');
-        Route::post('/{note}/comments', [\App\Http\Controllers\NoteController::class, 'storeComment'])->name('comments.store');
-        Route::delete('/{note}/comments/{comment}', [\App\Http\Controllers\NoteController::class, 'destroyComment'])->name('comments.destroy');
+        Route::put('/{note}', [NoteController::class, 'update'])->name('update');
+        Route::delete('/{note}', [NoteController::class, 'destroy'])->name('destroy');
+        Route::post('/{note}/comments', [NoteController::class, 'storeComment'])->name('comments.store');
+        Route::delete('/{note}/comments/{comment}', [NoteController::class, 'destroyComment'])->name('comments.destroy');
     });
 
     // Admin User Management
@@ -225,10 +232,10 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
 
     Route::middleware(['can:manage-users'])->prefix('admin')->name('admin.')->group(function () {
         // Bulk operations
-        Route::post('/users/bulk-log-hours', [\App\Http\Controllers\Admin\UserController::class, 'bulkLogHours'])->name('users.bulk-log-hours');
-        Route::post('/users/bulk-add-tags', [\App\Http\Controllers\Admin\UserController::class, 'bulkAddTags'])->name('users.bulk-add-tags');
-        Route::post('/users/bulk-remove-tags', [\App\Http\Controllers\Admin\UserController::class, 'bulkRemoveTags'])->name('users.bulk-remove-tags');
-        Route::post('/users/bulk-assign-department', [\App\Http\Controllers\Admin\UserController::class, 'bulkAssignDepartment'])->name('users.bulk-assign-department');
+        Route::post('/users/bulk-log-hours', [App\Http\Controllers\Admin\UserController::class, 'bulkLogHours'])->name('users.bulk-log-hours');
+        Route::post('/users/bulk-add-tags', [App\Http\Controllers\Admin\UserController::class, 'bulkAddTags'])->name('users.bulk-add-tags');
+        Route::post('/users/bulk-remove-tags', [App\Http\Controllers\Admin\UserController::class, 'bulkRemoveTags'])->name('users.bulk-remove-tags');
+        Route::post('/users/bulk-assign-department', [App\Http\Controllers\Admin\UserController::class, 'bulkAssignDepartment'])->name('users.bulk-assign-department');
     });
 
     // Org chart views
@@ -237,38 +244,38 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
 
     // Application Settings
     Route::middleware('isAdmin')->prefix('settings')->name('settings.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\SettingsController::class, 'index'])->name('index');
-        Route::put('/', [\App\Http\Controllers\SettingsController::class, 'update'])->name('update');
-        Route::delete('/reset-logo', [\App\Http\Controllers\SettingsController::class, 'resetLogo'])->name('reset-logo');
-        Route::delete('/telegram-disconnect', [\App\Http\Controllers\SettingsController::class, 'disconnectTelegram'])->name('telegram-disconnect');
-        Route::delete('/reset-favicon', [\App\Http\Controllers\SettingsController::class, 'resetFavicon'])->name('reset-favicon');
+        Route::get('/', [SettingsController::class, 'index'])->name('index');
+        Route::put('/', [SettingsController::class, 'update'])->name('update');
+        Route::delete('/reset-logo', [SettingsController::class, 'resetLogo'])->name('reset-logo');
+        Route::delete('/telegram-disconnect', [SettingsController::class, 'disconnectTelegram'])->name('telegram-disconnect');
+        Route::delete('/reset-favicon', [SettingsController::class, 'resetFavicon'])->name('reset-favicon');
 
         Route::view('/api-docs', 'settings.api-docs')->name('api-docs');
 
-        Route::get('/oauth-setup', [\App\Http\Controllers\OAuthSetupController::class, 'index'])->name('oauth-setup');
-        Route::post('/oauth-setup', [\App\Http\Controllers\OAuthSetupController::class, 'store'])->name('oauth-setup.store');
-        Route::delete('/oauth-setup/{client}', [\App\Http\Controllers\OAuthSetupController::class, 'destroy'])->name('oauth-setup.destroy');
-        Route::delete('/oauth-setup/{client}/tokens', [\App\Http\Controllers\OAuthSetupController::class, 'revokeTokens'])->name('oauth-setup.revoke-tokens');
-        Route::post('/oauth-setup/{client}/regenerate-secret', [\App\Http\Controllers\OAuthSetupController::class, 'regenerateSecret'])->name('oauth-setup.regenerate-secret');
+        Route::get('/oauth-setup', [OAuthSetupController::class, 'index'])->name('oauth-setup');
+        Route::post('/oauth-setup', [OAuthSetupController::class, 'store'])->name('oauth-setup.store');
+        Route::delete('/oauth-setup/{client}', [OAuthSetupController::class, 'destroy'])->name('oauth-setup.destroy');
+        Route::delete('/oauth-setup/{client}/tokens', [OAuthSetupController::class, 'revokeTokens'])->name('oauth-setup.revoke-tokens');
+        Route::post('/oauth-setup/{client}/regenerate-secret', [OAuthSetupController::class, 'regenerateSecret'])->name('oauth-setup.regenerate-secret');
     });
 
     // Tag Management (nested under settings)
     Route::middleware(['isAdmin', 'feature:user_tags'])->prefix('settings')->name('admin.')->group(function () {
-        Route::resource('tags', \App\Http\Controllers\Admin\TagController::class);
-        Route::get('tags/{tag}/emails', [\App\Http\Controllers\Admin\TagController::class, 'emails'])->name('tags.emails');
+        Route::resource('tags', TagController::class);
+        Route::get('tags/{tag}/emails', [TagController::class, 'emails'])->name('tags.emails');
     });
 
     // Invite Codes Management (nested under settings)
     Route::middleware('isAdmin')->prefix('settings')->name('admin.')->group(function () {
-        Route::resource('invite-codes', \App\Http\Controllers\Admin\InviteCodeController::class);
-        Route::post('invite-codes/{inviteCode}/regenerate', [\App\Http\Controllers\Admin\InviteCodeController::class, 'regenerate'])->name('invite-codes.regenerate');
+        Route::resource('invite-codes', InviteCodeController::class);
+        Route::post('invite-codes/{inviteCode}/regenerate', [InviteCodeController::class, 'regenerate'])->name('invite-codes.regenerate');
     });
 
     // Custom Fields Management (nested under settings)
     Route::middleware('isAdmin')->prefix('settings')->name('admin.')->group(function () {
-        Route::resource('custom-fields', \App\Http\Controllers\Admin\CustomFieldController::class);
-        Route::post('custom-fields/reorder', [\App\Http\Controllers\Admin\CustomFieldController::class, 'reorder'])->name('custom-fields.reorder');
-        Route::get('custom-fields-preview', [\App\Http\Controllers\Admin\CustomFieldController::class, 'previewForceSet'])->name('custom-fields.preview-force-set');
+        Route::resource('custom-fields', CustomFieldController::class);
+        Route::post('custom-fields/reorder', [CustomFieldController::class, 'reorder'])->name('custom-fields.reorder');
+        Route::get('custom-fields-preview', [CustomFieldController::class, 'previewForceSet'])->name('custom-fields.preview-force-set');
     });
 
     // Reports
@@ -313,7 +320,7 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
         Route::post('/job-listings/{id}/restore', [JobListingController::class, 'restore'])->name('job-listings.restore');
     });
     Route::resource('job-listings', JobListingController::class)->only(['index', 'show']);
-    
+
     // Authenticated User Applications
     Route::middleware('auth')->group(function () {
         Route::get('/job-listings/{jobListing}/apply', [JobListingController::class, 'showApplyForm'])->name('job-listings.apply');
@@ -403,7 +410,6 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
         Route::get('/my-relationships', [UserRelationshipController::class, 'index'])->name('relationships.index');
     });
 
-    
     // Shift Signups
     Route::post('/shifts/{shift}/quick-add', [ShiftSignupController::class, 'storeByVolCode'])->name('shifts.quick-add');
     Route::post('/shifts/{shift}/signup', [ShiftSignupController::class, 'store'])->name('shifts.signup');
@@ -411,21 +417,21 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
 
     // Board Elections - Admin Management
     Route::middleware('can:manage-elections')->prefix('admin')->name('admin.')->group(function () {
-        Route::resource('elections', \App\Http\Controllers\Admin\ElectionController::class);
-        Route::get('elections/{election}/candidates', [\App\Http\Controllers\Admin\ElectionController::class, 'candidates'])->name('elections.candidates');
-        Route::get('elections/{election}/candidates/create', [\App\Http\Controllers\Admin\ElectionController::class, 'createCandidate'])->name('elections.candidates.create');
-        Route::post('elections/{election}/candidates', [\App\Http\Controllers\Admin\ElectionController::class, 'storeCandidate'])->name('elections.candidates.store');
-        Route::get('elections/{election}/candidates/{candidate}/edit', [\App\Http\Controllers\Admin\ElectionController::class, 'editCandidate'])->name('elections.candidates.edit');
-        Route::put('elections/{election}/candidates/{candidate}', [\App\Http\Controllers\Admin\ElectionController::class, 'updateCandidate'])->name('elections.candidates.update');
-        Route::post('elections/{election}/candidates/{candidate}/approve', [\App\Http\Controllers\Admin\ElectionController::class, 'approveCandidate'])->name('elections.candidates.approve');
-        Route::post('elections/{election}/candidates/{candidate}/reject', [\App\Http\Controllers\Admin\ElectionController::class, 'rejectCandidate'])->name('elections.candidates.reject');
-        Route::delete('elections/{election}/candidates/{candidate}', [\App\Http\Controllers\Admin\ElectionController::class, 'removeCandidate'])->name('elections.candidates.destroy');
-        Route::get('elections/{election}/voters', [\App\Http\Controllers\Admin\ElectionController::class, 'voters'])->name('elections.voters');
-        Route::get('elections/{election}/eligible-voters', [\App\Http\Controllers\Admin\ElectionController::class, 'eligibleVoters'])->name('elections.eligible-voters');
-        Route::post('elections/{election}/send-reminders', [\App\Http\Controllers\Admin\ElectionController::class, 'sendVotingReminders'])->name('elections.send-reminders');
-        Route::get('elections/{election}/results', [\App\Http\Controllers\Admin\ElectionController::class, 'results'])->name('elections.results');
-        Route::get('elections/{election}/export-voter-turnout', [\App\Http\Controllers\Admin\ElectionController::class, 'exportVoterTurnout'])->name('elections.export-voter-turnout');
-        Route::get('elections/{election}/export-results-image', [\App\Http\Controllers\Admin\ElectionController::class, 'exportResultsImage'])->name('elections.export-results-image');
+        Route::resource('elections', App\Http\Controllers\Admin\ElectionController::class);
+        Route::get('elections/{election}/candidates', [App\Http\Controllers\Admin\ElectionController::class, 'candidates'])->name('elections.candidates');
+        Route::get('elections/{election}/candidates/create', [App\Http\Controllers\Admin\ElectionController::class, 'createCandidate'])->name('elections.candidates.create');
+        Route::post('elections/{election}/candidates', [App\Http\Controllers\Admin\ElectionController::class, 'storeCandidate'])->name('elections.candidates.store');
+        Route::get('elections/{election}/candidates/{candidate}/edit', [App\Http\Controllers\Admin\ElectionController::class, 'editCandidate'])->name('elections.candidates.edit');
+        Route::put('elections/{election}/candidates/{candidate}', [App\Http\Controllers\Admin\ElectionController::class, 'updateCandidate'])->name('elections.candidates.update');
+        Route::post('elections/{election}/candidates/{candidate}/approve', [App\Http\Controllers\Admin\ElectionController::class, 'approveCandidate'])->name('elections.candidates.approve');
+        Route::post('elections/{election}/candidates/{candidate}/reject', [App\Http\Controllers\Admin\ElectionController::class, 'rejectCandidate'])->name('elections.candidates.reject');
+        Route::delete('elections/{election}/candidates/{candidate}', [App\Http\Controllers\Admin\ElectionController::class, 'removeCandidate'])->name('elections.candidates.destroy');
+        Route::get('elections/{election}/voters', [App\Http\Controllers\Admin\ElectionController::class, 'voters'])->name('elections.voters');
+        Route::get('elections/{election}/eligible-voters', [App\Http\Controllers\Admin\ElectionController::class, 'eligibleVoters'])->name('elections.eligible-voters');
+        Route::post('elections/{election}/send-reminders', [App\Http\Controllers\Admin\ElectionController::class, 'sendVotingReminders'])->name('elections.send-reminders');
+        Route::get('elections/{election}/results', [App\Http\Controllers\Admin\ElectionController::class, 'results'])->name('elections.results');
+        Route::get('elections/{election}/export-voter-turnout', [App\Http\Controllers\Admin\ElectionController::class, 'exportVoterTurnout'])->name('elections.export-voter-turnout');
+        Route::get('elections/{election}/export-results-image', [App\Http\Controllers\Admin\ElectionController::class, 'exportResultsImage'])->name('elections.export-results-image');
     });
 
     // Board Elections - Public Voting
@@ -438,7 +444,6 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
         Route::post('/{election}/nominate', [ElectionController::class, 'storeNomination'])->name('nominate.store');
     });
 });
-
 
 if (app()->environment(['local', 'testing'])) {
     Route::get('/test-419', fn () => abort(419));
