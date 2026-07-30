@@ -135,6 +135,36 @@
                             </dd>
                         </div>
 
+                        {{-- Accessibility conflicts --}}
+                        <div class="px-6 py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+                            <div>
+                                <dt class="form-label">Accessibility Conflicts</dt>
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    Select any accessibility needs that may conflict with the duties or environment of every shift in this series.
+                                </p>
+                                <p class="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                                    These selections identify potential concerns and do not prevent a volunteer from signing up.
+                                </p>
+                            </div>
+                            <dd class="mt-1 sm:col-span-2 sm:mt-0">
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    @foreach ($accessibilityNeeds as $accessibilityNeed)
+                                        <label class="flex cursor-pointer items-start gap-2">
+                                            <input
+                                                type="checkbox"
+                                                name="accessibility_conflicts[]"
+                                                value="{{ $accessibilityNeed }}"
+                                                @checked(in_array($accessibilityNeed, old('accessibility_conflicts', []), true))
+                                                class="mt-0.5 rounded border-gray-300 text-brand-green shadow-sm focus:border-brand-green focus:ring focus:ring-green-200 focus:ring-opacity-50">
+                                            <span class="text-sm text-gray-800 dark:text-gray-200">{{ $accessibilityNeed }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                                <x-form-validation for="accessibility_conflicts" />
+                                <x-form-validation for="accessibility_conflicts.*" />
+                            </dd>
+                        </div>
+
                     </div>
                 </div>
 

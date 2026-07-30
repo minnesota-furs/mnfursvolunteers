@@ -4,6 +4,18 @@
         {{ __('Favorite & Avoid List') }}
     </x-slot>
 
+    <x-slot name="actions">
+        <button
+            type="button"
+            x-data
+            x-on:click="$dispatch('open-modal', 'relationship-help')"
+            class="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+        >
+            <x-heroicon-o-question-mark-circle class="w-4 h-4"/>
+            What is this?
+        </button>
+    </x-slot>
+
     <div class="space-y-6">
 
         {{-- ── Favorites ───────────────────────────────────────────────── --}}
@@ -96,3 +108,52 @@
 
     </div>
 </x-app-layout>
+
+<x-modal name="relationship-help" maxWidth="lg" focusable>
+    <div class="p-6">
+        <div class="flex items-start gap-3">
+            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-brand-green/10 dark:bg-brand-green/20">
+                <x-heroicon-o-user-group class="h-5 w-5 text-brand-green"/>
+            </div>
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    How Favorite & Avoid works
+                </h2>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    These private relationship markers help you make more informed choices when picking up shifts.
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-6 space-y-4 text-sm text-gray-600 dark:text-gray-300">
+            <div class="flex items-start gap-3">
+                <x-heroicon-s-star class="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-500"/>
+                <p>
+                    <span class="font-semibold text-gray-900 dark:text-gray-100">Favorite</span>
+                    people you get along with. When one of them is signed up for a shift, you will see a visual indicator before you pick it up.
+                </p>
+            </div>
+
+            <div class="flex items-start gap-3">
+                <x-heroicon-s-hand-raised class="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500"/>
+                <p>
+                    <span class="font-semibold text-gray-900 dark:text-gray-100">Avoid</span>
+                    people you do not work well with. You will see a private warning when one of them is on a shift you are considering.
+                </p>
+            </div>
+
+            <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
+                <h3 class="font-semibold text-gray-900 dark:text-gray-100">Avoid markers are anonymous</h3>
+                <p class="mt-1">
+                    A person will never be notified that you marked them as avoid, and your identity will not be shared with them. Leadership can see when someone has received a high number of avoid markers so they can look into possible conduct concerns. This review is always handled anonymously.
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+            <x-secondary-button x-on:click="$dispatch('close')">
+                {{ __('Close') }}
+            </x-secondary-button>
+        </div>
+    </div>
+</x-modal>

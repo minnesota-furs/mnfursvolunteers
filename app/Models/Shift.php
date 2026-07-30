@@ -21,11 +21,13 @@ class Shift extends Model
         'original_shift_id',
         'duplicate_series_id',
         'duplicate_sequence',
+        'accessibility_conflicts',
     ];
     
     protected $casts = [
         'start_time' => 'datetime',
         'end_time'   => 'datetime',
+        'accessibility_conflicts' => 'array',
     ];
 
     public function event()

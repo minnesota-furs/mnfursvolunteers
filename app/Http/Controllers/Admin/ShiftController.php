@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AdvancedDuplicateShiftRequest;
+use App\Http\Requests\BulkUpdateShiftRequest;
+use App\Http\Requests\StoreShiftSeriesRequest;
+use App\Http\Requests\UpdateShiftRequest;
 use App\Models\Event;
 use App\Models\Shift;
 use App\Models\Tag;
@@ -25,7 +28,9 @@ class ShiftController extends Controller
     public function index(Event $event)
     {
         $shifts = $event->shifts()->with(['users', 'tags'])->orderBy('start_time', 'asc')->get();
-        return view('admin.shifts.index', compact('event', 'shifts'));
+        $accessibilityNeeds = User::ACCESSIBILITY_NEEDS;
+
+        return view('admin.shifts.index', compact('event', 'shifts', 'accessibilityNeeds'));
     }
 
     /**
@@ -96,28 +101,25 @@ class ShiftController extends Controller
     public function edit(Event $event, Shift $shift)
     {
         $tags = Tag::forShifts()->orderBy('name')->get();
-        return view('admin.shifts.create', compact('event', 'shift', 'tags'));
+        $accessibilityNeeds = User::ACCESSIBILITY_NEEDS;
+
+        return view('admin.shifts.create', compact('event', 'shift', 'tags', 'accessibilityNeeds'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Event $event, Shift $shift)
+    public function update(UpdateShiftRequest $request, Event $event, Shift $shift)
     {
-        $request->validate([
-            'name'           => 'required|string|max:255',
-            'description'    => 'nullable|string',
-            'start_time'     => 'required|date',
-            'end_time'       => 'required|date|after:start_time',
-            'max_volunteers' => 'required|integer|min:1',
-            'double_hours'   => 'nullable|boolean',
-            'user_id'        => 'nullable|array',
-            'user_id.*'      => 'integer|exists:users,id',
-            'shift_tags'     => 'nullable|array',
-            'shift_tags.*'   => 'integer|exists:tags,id',
+        $updateData = $request->only([
+            'name',
+            'description',
+            'start_time',
+            'double_hours',
+            'end_time',
+            'max_volunteers',
+            'accessibility_conflicts',
         ]);
-
-        $updateData = $request->only(['name', 'description', 'start_time', 'double_hours', 'end_time', 'max_volunteers']);
         $updateData['double_hours'] = $request->has('double_hours');
 
         $shift->update($updateData);
@@ -181,19 +183,8 @@ class ShiftController extends Controller
             ]);
     }
 
-    public function bulkUpdate(Request $request, Event $event)
+    public function bulkUpdate(BulkUpdateShiftRequest $request, Event $event)
     {
-        $request->validate([
-            'shift_ids'             => 'required|array|min:1',
-            'shift_ids.*'           => 'integer|exists:shifts,id',
-            'apply_max_volunteers'  => 'nullable|boolean',
-            'max_volunteers'        => 'nullable|required_if:apply_max_volunteers,1|integer|min:1',
-            'apply_description'     => 'nullable|boolean',
-            'description'           => 'nullable|string',
-            'apply_double_hours'    => 'nullable|boolean',
-            'double_hours'          => 'nullable|boolean',
-        ]);
-
         $updateData = [];
 
         if ($request->boolean('apply_max_volunteers')) {
@@ -206,6 +197,10 @@ class ShiftController extends Controller
 
         if ($request->boolean('apply_double_hours')) {
             $updateData['double_hours'] = $request->boolean('double_hours');
+        }
+
+        if ($request->boolean('apply_accessibility_conflicts')) {
+            $updateData['accessibility_conflicts'] = $request->input('accessibility_conflicts', []);
         }
 
         if (empty($updateData)) {
@@ -519,30 +514,16 @@ class ShiftController extends Controller
     public function createSeries(Event $event)
     {
         $tags = Tag::forShifts()->orderBy('name')->get();
-        return view('admin.shifts.create-series', compact('event', 'tags'));
+        $accessibilityNeeds = User::ACCESSIBILITY_NEEDS;
+
+        return view('admin.shifts.create-series', compact('event', 'tags', 'accessibilityNeeds'));
     }
 
     /**
      * Store a newly created shift series in storage.
      */
-    public function storeSeries(Request $request, Event $event)
+    public function storeSeries(StoreShiftSeriesRequest $request, Event $event)
     {
-        $request->validate([
-            'name'             => 'required|string|max:255',
-            'naming_pattern'   => 'required|string|max:255',
-            'description'      => 'nullable|string',
-            'start_time'       => 'required|date',
-            'duration_hours'   => 'required|integer|min:0',
-            'duration_minutes' => 'required|integer|min:0|max:59',
-            'occurrences'      => 'required|integer|min:1|max:100',
-            'gap_hours'        => 'required|integer|min:0',
-            'gap_minutes'      => 'required|integer|min:0|max:59',
-            'max_volunteers'   => 'required|integer|min:1',
-            'double_hours'     => 'nullable|boolean',
-            'shift_tags'       => 'nullable|array',
-            'shift_tags.*'     => 'integer|exists:tags,id',
-        ]);
-
         $durationMinutes = ((int) $request->duration_hours * 60) + (int) $request->duration_minutes;
         $gapMinutes      = ((int) $request->gap_hours * 60) + (int) $request->gap_minutes;
 
@@ -553,6 +534,7 @@ class ShiftController extends Controller
         $seriesId    = Str::uuid()->toString();
         $startTime   = Carbon::parse($request->start_time);
         $tagIds      = $request->input('shift_tags', []);
+        $accessibilityConflicts = $request->input('accessibility_conflicts', []);
         $doubleHours = $request->boolean('double_hours');
         $createdShifts = [];
 
@@ -574,6 +556,7 @@ class ShiftController extends Controller
                 'end_time'             => $shiftEnd,
                 'max_volunteers'       => $request->max_volunteers,
                 'double_hours'         => $doubleHours,
+                'accessibility_conflicts' => $accessibilityConflicts,
                 'duplicate_series_id'  => $seriesId,
                 'duplicate_sequence'   => $i + 1,
             ]);

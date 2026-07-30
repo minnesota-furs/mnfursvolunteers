@@ -105,6 +105,33 @@
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Shift counts as double hours</span>
                                 </label>
                             </div>
+
+                            {{-- Accessibility Conflicts --}}
+                            <div class="bg-gray-50 p-4 dark:bg-gray-900">
+                                <label class="flex items-start">
+                                    <input type="checkbox" name="apply_accessibility_conflicts" value="1"
+                                           x-model="applyAccessibilityConflicts"
+                                           class="mt-0.5 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700">
+                                    <span class="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">Update Accessibility Conflicts</span>
+                                </label>
+                                <p class="ml-7 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    Selected conflicts will replace the current settings on every chosen shift. Leave all options unchecked to clear them.
+                                </p>
+                                <div class="ml-7 mt-3 grid gap-2 sm:grid-cols-2" :class="{ 'opacity-50': !applyAccessibilityConflicts }">
+                                    @foreach ($accessibilityNeeds as $accessibilityNeed)
+                                        <label class="flex items-start gap-2">
+                                            <input
+                                                type="checkbox"
+                                                name="accessibility_conflicts[]"
+                                                value="{{ $accessibilityNeed }}"
+                                                x-model="accessibilityConflicts"
+                                                :disabled="!applyAccessibilityConflicts"
+                                                class="mt-0.5 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:cursor-not-allowed dark:border-gray-600 dark:bg-gray-700">
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $accessibilityNeed }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
                         </div>
 
                         {{-- Footer --}}
@@ -138,6 +165,8 @@ function bulkEditModal() {
         description: '',
         applyDoubleHours: false,
         doubleHours: false,
+        applyAccessibilityConflicts: false,
+        accessibilityConflicts: [],
 
         openModal(detail) {
             this.shiftIds = detail.ids || [];
@@ -147,12 +176,14 @@ function bulkEditModal() {
             this.description = '';
             this.applyDoubleHours = false;
             this.doubleHours = false;
+            this.applyAccessibilityConflicts = false;
+            this.accessibilityConflicts = [];
             this.open = true;
         },
 
         get canSubmit() {
             return this.shiftIds.length > 0 &&
-                (this.applyMaxVolunteers || this.applyDescription || this.applyDoubleHours);
+                (this.applyMaxVolunteers || this.applyDescription || this.applyDoubleHours || this.applyAccessibilityConflicts);
         }
     }
 }

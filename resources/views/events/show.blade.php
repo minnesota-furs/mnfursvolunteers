@@ -218,6 +218,20 @@
             @endif
         </div>
 
+        @if($accessibilityConflicts->isNotEmpty())
+            <div class="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+                <x-heroicon-s-exclamation-triangle class="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400"/>
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold text-amber-800 dark:text-amber-200">Accessibility concerns identified</p>
+                    <p class="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                        {{ $accessibilityConflicts->count() }}
+                        {{ Str::plural('shift', $accessibilityConflicts->count()) }}
+                        may conflict with accessibility needs in your profile. Review the highlighted shift details before signing up.
+                    </p>
+                </div>
+            </div>
+        @endif
+
         {{-- ── Restriction / requirement banners ───────────────────────── --}}
         @if($event->requiredDepartments->isNotEmpty())
             <div class="flex items-start gap-3 rounded-xl border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 p-4">
@@ -521,6 +535,7 @@
                                         $shiftUserIds = $shift->users->pluck('id')->all();
                                         $hasFavorite = !empty(array_intersect($shiftUserIds, $favoritedIds ?? []));
                                         $hasAvoided  = !empty(array_intersect($shiftUserIds, $avoidedIds ?? []));
+                                        $shiftAccessibilityConflicts = $accessibilityConflicts->get($shift->id, []);
                                     @endphp
 
                                     <div class="ml-2 sm:ml-4 rounded-xl border shadow-sm transition-shadow hover:shadow-md
@@ -580,6 +595,16 @@
 
                                                 @if($shift->description)
                                                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-2 leading-snug">{{ $shift->description }}</p>
+                                                @endif
+
+                                                @if($shiftAccessibilityConflicts)
+                                                    <div class="mb-2 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+                                                        <x-heroicon-s-exclamation-triangle class="mt-0.5 h-4 w-4 flex-shrink-0"/>
+                                                        <p class="text-xs leading-snug">
+                                                            <span class="font-semibold">May conflict with your accessibility needs:</span>
+                                                            {{ implode(', ', $shiftAccessibilityConflicts) }}
+                                                        </p>
+                                                    </div>
                                                 @endif
 
                                                 {{-- Capacity bar --}}
@@ -713,6 +738,7 @@
                                                     $agendaIsFull   = $shift->users->count() >= $shift->max_volunteers;
                                                     $agendaSignedUp = $shift->users->contains(auth()->id());
                                                     $agendaOpen     = max(0, $shift->max_volunteers - $shift->users->count());
+                                                    $agendaAccessibilityConflicts = $accessibilityConflicts->get($shift->id, []);
 
                                                     if ($overlaps) {
                                                         $startMinute = max(0, $shiftStart->diffInMinutes($slotStart));
@@ -756,6 +782,11 @@
                                                         </div>
                                                         @if($shift->double_hours)
                                                             <x-heroicon-m-star class="w-3 h-3 inline mt-1" title="Double Hours"/>
+                                                        @endif
+                                                        @if($agendaAccessibilityConflicts)
+                                                            <x-heroicon-s-exclamation-triangle
+                                                                class="mt-1 inline h-3 w-3 text-amber-700 dark:text-amber-300"
+                                                                title="May conflict with your accessibility needs: {{ implode(', ', $agendaAccessibilityConflicts) }}"/>
                                                         @endif
                                                     </div>
                                                 @endif
