@@ -9,7 +9,35 @@ test('profile page is displayed', function () {
         ->actingAs($user)
         ->get('/profile');
 
-    $response->assertOk();
+    $response
+        ->assertOk()
+        ->assertSee('aria-label="Profile sections"', false)
+        ->assertSeeInOrder([
+            '<aside',
+            '</aside>',
+            '<main',
+            '</main>',
+        ], false)
+        ->assertSeeInOrder([
+            'href="#profile-information"',
+            'href="#accessibility-needs"',
+            'href="#timezone"',
+            'href="#email-preferences"',
+            'href="#calendar"',
+            'href="#password"',
+            'href="#delete-account"',
+        ], false)
+        ->assertSeeInOrder([
+            'id="profile-information"',
+            'id="accessibility-needs"',
+            'id="timezone"',
+            'id="email-preferences"',
+            'id="calendar"',
+            'id="password"',
+            'id="delete-account"',
+        ], false)
+        ->assertSee('href="'.route('onboarding.index', ['step' => 1]).'"', false)
+        ->assertSee('Run through the onboarding wizard again.');
 });
 
 test('profile information can be updated', function () {
