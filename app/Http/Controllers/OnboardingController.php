@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AccessibilityNeedsUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,7 +14,7 @@ class OnboardingController extends Controller
      */
     protected function steps(): array
     {
-        $steps = ['profile', 'timezone', 'calendar'];
+        $steps = ['profile', 'accessibility', 'timezone', 'calendar'];
 
         if (app_setting('telegram_bot_username')) {
             $steps[] = 'telegram';
@@ -62,7 +63,19 @@ class OnboardingController extends Controller
     }
 
     /**
-     * Step 2: confirm/change the timezone they view dates and times in.
+     * Step 2: optionally disclose accessibility needs.
+     */
+    public function updateAccessibilityNeeds(AccessibilityNeedsUpdateRequest $request): RedirectResponse
+    {
+        $request->user()->update([
+            'accessibility_needs' => $request->validated('accessibility_needs'),
+        ]);
+
+        return $this->redirectToStep(3);
+    }
+
+    /**
+     * Step 3: confirm/change the timezone they view dates and times in.
      */
     public function updateTimezone(Request $request): RedirectResponse
     {
@@ -74,27 +87,27 @@ class OnboardingController extends Controller
             'timezone' => $request->input('timezone') ?: null,
         ]);
 
-        return $this->redirectToStep(3);
+        return $this->redirectToStep(4);
     }
 
     /**
-     * Step 3: generate the user's personal iCal calendar feed.
+     * Step 4: generate the user's personal iCal calendar feed.
      */
     public function generateCalendar(Request $request): RedirectResponse
     {
         $request->user()->generateCalendarToken();
 
-        return $this->redirectToStep(3);
+        return $this->redirectToStep(4);
     }
 
     /**
-     * Step 4: generate a Telegram link token and show the deep link / QR code.
+     * Step 5: generate a Telegram link token and show the deep link / QR code.
      */
     public function linkTelegram(Request $request): RedirectResponse
     {
         $request->user()->generateTelegramLinkToken();
 
-        return $this->redirectToStep(4, ['status' => 'telegram-link-generated']);
+        return $this->redirectToStep(5, ['status' => 'telegram-link-generated']);
     }
 
     /**

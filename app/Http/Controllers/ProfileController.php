@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AccessibilityNeedsUpdateRequest;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -76,6 +77,15 @@ class ProfileController extends Controller
         }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    }
+
+    public function updateAccessibilityNeeds(AccessibilityNeedsUpdateRequest $request): RedirectResponse
+    {
+        $request->user()->update([
+            'accessibility_needs' => $request->validated('accessibility_needs'),
+        ]);
+
+        return Redirect::route('profile.edit')->with('accessibility-needs-status', 'accessibility-needs-updated');
     }
 
     /**

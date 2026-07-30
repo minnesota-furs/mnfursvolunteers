@@ -44,7 +44,7 @@
         </div>
 
         <div class="flex justify-between items-center">
-            <a href="{{ route('onboarding.index', ['step' => 3]) }}" class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+            <a href="{{ route('onboarding.index', ['step' => 4]) }}" class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                 {{ __('Skip for now') }}
             </a>
             <x-primary-button>{{ __('Save & Continue') }}</x-primary-button>

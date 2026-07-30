@@ -106,6 +106,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->prefix('onboarding')->name('onboarding.')->group(function () {
     Route::get('/', [OnboardingController::class, 'index'])->name('index');
     Route::post('/profile', [OnboardingController::class, 'updateProfile'])->name('profile');
+    Route::post('/accessibility-needs', [OnboardingController::class, 'updateAccessibilityNeeds'])->name('accessibility-needs');
     Route::post('/timezone', [OnboardingController::class, 'updateTimezone'])->name('timezone');
     Route::post('/calendar', [OnboardingController::class, 'generateCalendar'])->name('calendar');
     Route::post('/link-telegram', [OnboardingController::class, 'linkTelegram'])->name('link-telegram');
@@ -132,6 +133,7 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');
+        Route::patch('/accessibility-needs', [ProfileController::class, 'updateAccessibilityNeeds'])->name('accessibility-needs');
         Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
         Route::post('/link-wordpress', [ProfileController::class, 'linkWordPress'])->name('link-wordpress');
         Route::delete('/unlink-wordpress', [ProfileController::class, 'unlinkWordPress'])->name('unlink-wordpress');

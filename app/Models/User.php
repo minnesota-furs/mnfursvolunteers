@@ -15,6 +15,16 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes, GeneratesVolCode;
 
+    public const ACCESSIBILITY_NEEDS = [
+        'Wheelchair accessible',
+        'Limited standing/walking',
+        'Seating available during assignments',
+        'Cannot lift heavy objects',
+        'Deaf',
+        'Service animal',
+        'Visually impaired',
+    ];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -48,6 +58,7 @@ class User extends Authenticatable
         'telegram_linked_at',
         'timezone',
         'onboarded_at',
+        'accessibility_needs',
     ];
 
     /**
@@ -78,6 +89,7 @@ class User extends Authenticatable
         'telegram_link_token_expires_at' => 'datetime',
         'telegram_linked_at' => 'datetime',
         'onboarded_at' => 'datetime',
+        'accessibility_needs' => 'array',
     ];
 
     /**

@@ -13,6 +13,7 @@
                     @php
                         $labels = [
                             'profile' => 'Profile',
+                            'accessibility' => 'Accessibility',
                             'timezone' => 'Timezone',
                             'calendar' => 'Calendar',
                             'telegram' => 'Telegram',
@@ -20,7 +21,7 @@
                     @endphp
                     @foreach($steps as $i => $stepKey)
                         @php $stepNumber = $i + 1; @endphp
-                        <li class="flex-1 flex items-center {{ $loop->last ? '' : 'after:content-[\'\'] after:flex-1 after:h-0.5 after:mx-2 ' . ($stepNumber < $step ? 'after:bg-brand-green' : 'after:bg-gray-200 dark:after:bg-gray-700') }}">
+                        <li class="{{ $loop->last ? 'flex-none' : 'flex-1' }} flex items-center {{ $loop->last ? '' : 'after:content-[\'\'] after:flex-1 after:h-0.5 after:mx-2 ' . ($stepNumber < $step ? 'after:bg-brand-green' : 'after:bg-gray-200 dark:after:bg-gray-700') }}">
                             <div class="flex flex-col items-center gap-1 shrink-0">
                                 <span class="flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold
                                     {{ $stepNumber < $step ? 'bg-brand-green text-white' : ($stepNumber === $step ? 'bg-brand-green/10 text-brand-green border-2 border-brand-green' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500') }}">
@@ -43,6 +44,8 @@
                 <div class="p-6 sm:p-8">
                     @if($currentStep === 'profile')
                         @include('onboarding.partials.step-profile')
+                    @elseif($currentStep === 'accessibility')
+                        @include('onboarding.partials.step-accessibility')
                     @elseif($currentStep === 'timezone')
                         @include('onboarding.partials.step-timezone')
                     @elseif($currentStep === 'calendar')
