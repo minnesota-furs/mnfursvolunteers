@@ -28,7 +28,7 @@ class ReportsController extends Controller
         $users = User::query()
             ->where('active', true)
             ->has('departments', '>=', 2)
-            ->with(['departments' => fn ($query) => $query->orderBy('name')])
+            ->with(['departments' => fn ($query) => $query->with('sector')->orderBy('name')])
             ->withCount(['departments as department_count'])
             ->when($search, fn ($query) => $query->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
@@ -101,6 +101,8 @@ class ReportsController extends Controller
     public function customFields(CustomFieldReportRequest $request): View
     {
         $customFields = CustomField::active()->ordered()->get();
+        $sectors = Sector::query()->orderBy('name')->get();
+        $selectedSectorId = $request->filled('sector_id') ? $request->integer('sector_id') : null;
         $selectedField = $request->filled('custom_field_id')
             ? $customFields->firstWhere('id', $request->integer('custom_field_id'))
             : null;
@@ -110,12 +112,16 @@ class ReportsController extends Controller
         $users = null;
 
         if ($selectedField && $mode === 'count') {
-            $counts = $this->buildCustomFieldCounts($selectedField);
+            $counts = $this->buildCustomFieldCounts($selectedField, $selectedSectorId);
         }
 
         if ($selectedField && $mode === 'people') {
             $users = User::query()
                 ->where('active', true)
+                ->when($selectedSectorId, fn ($query) => $query->whereHas(
+                    'departments',
+                    fn ($query) => $query->where('sector_id', $selectedSectorId)
+                ))
                 ->with(['customFieldValues' => fn ($query) => $query
                     ->where('custom_field_id', $selectedField->id)])
                 ->when($search, fn ($query) => $query->where(function ($query) use ($search) {
@@ -128,15 +134,20 @@ class ReportsController extends Controller
         }
 
         return view('reports.custom-fields', compact(
-            'customFields', 'selectedField', 'mode', 'search', 'counts', 'users'
+            'customFields', 'sectors', 'selectedSectorId', 'selectedField', 'mode', 'search', 'counts', 'users'
         ));
     }
 
-    private function buildCustomFieldCounts(CustomField $customField): Collection
+    private function buildCustomFieldCounts(CustomField $customField, ?int $sectorId = null): Collection
     {
         $values = CustomFieldValue::query()
             ->where('custom_field_id', $customField->id)
-            ->whereHas('user', fn ($query) => $query->where('active', true))
+            ->whereHas('user', fn ($query) => $query
+                ->where('active', true)
+                ->when($sectorId, fn ($query) => $query->whereHas(
+                    'departments',
+                    fn ($query) => $query->where('sector_id', $sectorId)
+                )))
             ->pluck('value');
 
         $counts = $values
@@ -158,10 +169,22 @@ class ReportsController extends Controller
             ->where('custom_field_id', $customField->id)
             ->whereNotNull('value')
             ->where('value', '!=', '')
-            ->whereHas('user', fn ($query) => $query->where('active', true))
+            ->whereHas('user', fn ($query) => $query
+                ->where('active', true)
+                ->when($sectorId, fn ($query) => $query->whereHas(
+                    'departments',
+                    fn ($query) => $query->where('sector_id', $sectorId)
+                )))
             ->distinct('user_id')
             ->count('user_id');
-        $unansweredUserCount = User::query()->where('active', true)->count() - $answeredUserCount;
+        $activeUserCount = User::query()
+            ->where('active', true)
+            ->when($sectorId, fn ($query) => $query->whereHas(
+                'departments',
+                fn ($query) => $query->where('sector_id', $sectorId)
+            ))
+            ->count();
+        $unansweredUserCount = $activeUserCount - $answeredUserCount;
 
         if ($unansweredUserCount > 0) {
             $counts->put('Not provided', $unansweredUserCount);

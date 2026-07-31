@@ -28,8 +28,8 @@ it('lists active volunteers belonging to multiple departments', function () {
         ->get(route('report.volunteersWithMultipleDepartments'))
         ->assertOk()
         ->assertSee('Many Departments')
-        ->assertSee('Operations')
-        ->assertSee('Registration')
+        ->assertSee($firstDepartment->sector->name.': Operations')
+        ->assertSee($secondDepartment->sector->name.': Registration')
         ->assertDontSee('One Department')
         ->assertDontSee('Inactive Multiple');
 });

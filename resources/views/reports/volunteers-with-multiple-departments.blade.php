@@ -72,7 +72,7 @@
                                         @foreach($user->departments as $department)
                                             <a href="{{ route('departments.show', $department) }}"
                                                class="rounded-full bg-gray-100 dark:bg-gray-700 px-2.5 py-1 text-xs hover:text-brand-green">
-                                                {{ $department->name }}
+                                                {{ $department->sector->name }}: {{ $department->name }}
                                             </a>
                                         @endforeach
                                     </div>

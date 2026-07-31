@@ -22,6 +22,7 @@ class CustomFieldReportRequest extends FormRequest
             ],
             'mode' => ['nullable', Rule::in(['count', 'people'])],
             'search' => ['nullable', 'string', 'max:255'],
+            'sector_id' => ['nullable', 'integer', Rule::exists('sectors', 'id')],
         ];
     }
 }

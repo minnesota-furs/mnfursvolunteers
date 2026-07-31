@@ -17,7 +17,7 @@
                 Only active volunteers are included.
             </p>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-5 items-end">
                 <div>
                     <label for="custom_field_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Custom field
@@ -32,6 +32,22 @@
                         @endforeach
                     </select>
                     <x-input-error class="mt-2" :messages="$errors->get('custom_field_id')" />
+                </div>
+
+                <div>
+                    <label for="sector_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Sector
+                    </label>
+                    <select id="sector_id" name="sector_id"
+                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:ring-brand-green focus:border-brand-green text-sm">
+                        <option value="">All sectors</option>
+                        @foreach($sectors as $sector)
+                            <option value="{{ $sector->id }}" @selected($selectedSectorId === $sector->id)>
+                                {{ $sector->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <x-input-error class="mt-2" :messages="$errors->get('sector_id')" />
                 </div>
 
                 <div>
@@ -87,6 +103,9 @@
                   class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-5">
                 <input type="hidden" name="custom_field_id" value="{{ $selectedField->id }}">
                 <input type="hidden" name="mode" value="people">
+                @if($selectedSectorId)
+                    <input type="hidden" name="sector_id" value="{{ $selectedSectorId }}">
+                @endif
                 <div class="flex flex-col sm:flex-row items-end gap-3">
                     <div class="w-full">
                         <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search volunteers</label>
