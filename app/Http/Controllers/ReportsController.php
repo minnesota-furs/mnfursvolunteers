@@ -2,18 +2,174 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-
-use App\Models\User;
-use App\Models\Event;
-use App\Models\Shift;
+use App\Http\Requests\CustomFieldReportRequest;
+use App\Http\Requests\DepartmentReportRequest;
+use App\Models\CustomField;
+use App\Models\CustomFieldValue;
 use App\Models\Department;
+use App\Models\Event;
 use App\Models\FiscalLedger;
+use App\Models\Sector;
+use App\Models\Shift;
+use App\Models\User;
 use App\Models\UserRelationship;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\View\View;
 
 class ReportsController extends Controller
 {
+    public function volunteersWithMultipleDepartments(DepartmentReportRequest $request): View
+    {
+        $search = $request->input('search');
+        $sort = $request->input('sort', 'department_count');
+        $direction = $request->input('direction', 'desc');
+
+        $users = User::query()
+            ->where('active', true)
+            ->has('departments', '>=', 2)
+            ->with(['departments' => fn ($query) => $query->orderBy('name')])
+            ->withCount(['departments as department_count'])
+            ->when($search, fn ($query) => $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            }))
+            ->orderBy($sort, $direction)
+            ->paginate(25)
+            ->withQueryString();
+
+        return view('reports.volunteers-with-multiple-departments', compact(
+            'users', 'search', 'sort', 'direction'
+        ));
+    }
+
+    public function departmentMembership(DepartmentReportRequest $request): View
+    {
+        $monthCount = $request->integer('months', 12);
+        $selectedSectorId = $request->filled('sector_id') ? $request->integer('sector_id') : null;
+        $sectors = Sector::query()->orderBy('name')->get();
+        $months = collect(range($monthCount - 1, 0))
+            ->map(fn (int $monthsAgo) => now()->startOfMonth()->subMonths($monthsAgo));
+
+        $departments = Department::query()
+            ->when($selectedSectorId, fn ($query) => $query->where('sector_id', $selectedSectorId))
+            ->with('sector')
+            ->with(['users' => fn ($query) => $query->where('active', true)])
+            ->withCount(['users as active_users_count' => fn ($query) => $query->where('active', true)])
+            ->orderByDesc('active_users_count')
+            ->orderBy('name')
+            ->get()
+            ->each(function (Department $department) use ($months) {
+                $department->monthly_memberships = $months->mapWithKeys(
+                    fn ($month) => [
+                        $month->format('Y-m') => $department->users
+                            ->filter(fn (User $user) => $user->pivot->created_at?->isSameMonth($month))
+                            ->count(),
+                    ]
+                );
+            });
+
+        $activeVolunteerCount = User::query()
+            ->where('active', true)
+            ->whereHas('departments', fn ($query) => $query
+                ->when($selectedSectorId, fn ($query) => $query->where('sector_id', $selectedSectorId)))
+            ->count();
+        $activeMembershipCount = $departments->sum('active_users_count');
+        $monthlyTotals = $months->mapWithKeys(fn ($month) => [
+            $month->format('Y-m') => $departments->sum(
+                fn (Department $department) => $department->monthly_memberships->get($month->format('Y-m'), 0)
+            ),
+        ]);
+        $multipleDepartmentCount = User::query()
+            ->where('active', true)
+            ->whereHas(
+                'departments',
+                fn ($query) => $query
+                    ->when($selectedSectorId, fn ($query) => $query->where('sector_id', $selectedSectorId)),
+                '>=',
+                2
+            )
+            ->count();
+
+        return view('reports.department-membership', compact(
+            'departments', 'sectors', 'selectedSectorId', 'months', 'monthCount',
+            'activeVolunteerCount', 'activeMembershipCount', 'monthlyTotals',
+            'multipleDepartmentCount'
+        ));
+    }
+
+    public function customFields(CustomFieldReportRequest $request): View
+    {
+        $customFields = CustomField::active()->ordered()->get();
+        $selectedField = $request->filled('custom_field_id')
+            ? $customFields->firstWhere('id', $request->integer('custom_field_id'))
+            : null;
+        $mode = $request->input('mode', 'count');
+        $search = $request->input('search');
+        $counts = collect();
+        $users = null;
+
+        if ($selectedField && $mode === 'count') {
+            $counts = $this->buildCustomFieldCounts($selectedField);
+        }
+
+        if ($selectedField && $mode === 'people') {
+            $users = User::query()
+                ->where('active', true)
+                ->with(['customFieldValues' => fn ($query) => $query
+                    ->where('custom_field_id', $selectedField->id)])
+                ->when($search, fn ($query) => $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                }))
+                ->orderBy('name')
+                ->paginate(25)
+                ->withQueryString();
+        }
+
+        return view('reports.custom-fields', compact(
+            'customFields', 'selectedField', 'mode', 'search', 'counts', 'users'
+        ));
+    }
+
+    private function buildCustomFieldCounts(CustomField $customField): Collection
+    {
+        $values = CustomFieldValue::query()
+            ->where('custom_field_id', $customField->id)
+            ->whereHas('user', fn ($query) => $query->where('active', true))
+            ->pluck('value');
+
+        $counts = $values
+            ->flatMap(fn (?string $value) => $customField->field_type === 'checkbox'
+                ? array_filter(array_map('trim', explode(',', (string) $value)))
+                : [trim((string) $value)])
+            ->filter()
+            ->countBy();
+
+        if (in_array($customField->field_type, ['select', 'checkbox'])) {
+            $orderedCounts = collect($customField->options)
+                ->mapWithKeys(fn (string $option) => [$option => $counts->get($option, 0)]);
+            $counts = $orderedCounts->merge($counts->except($orderedCounts->keys()));
+        } else {
+            $counts = $counts->sortKeys();
+        }
+
+        $answeredUserCount = CustomFieldValue::query()
+            ->where('custom_field_id', $customField->id)
+            ->whereNotNull('value')
+            ->where('value', '!=', '')
+            ->whereHas('user', fn ($query) => $query->where('active', true))
+            ->distinct('user_id')
+            ->count('user_id');
+        $unansweredUserCount = User::query()->where('active', true)->count() - $answeredUserCount;
+
+        if ($unansweredUserCount > 0) {
+            $counts->put('Not provided', $unansweredUserCount);
+        }
+
+        return $counts;
+    }
+
     public function usersWithoutDepartments(Request $request)
     {
         $reportTitle = 'Users Without Departments';
@@ -34,10 +190,10 @@ class ReportsController extends Controller
             ->where('active', 1)
             ->paginate(15);
 
-        return view('reports.users', compact('users','sort','direction','search','reportTitle','reportDescription'));
+        return view('reports.users', compact('users', 'sort', 'direction', 'search', 'reportTitle', 'reportDescription'));
     }
 
-    public function usersWithoutHoursThisPeriod(request $request)
+    public function usersWithoutHoursThisPeriod(Request $request)
     {
         $reportTitle = 'Users Without Hours This Period';
         $reportDescription = 'This report lists all users who have not logged any hours in the current fiscal period.';
@@ -51,16 +207,16 @@ class ReportsController extends Controller
             ->where('end_date', '>=', now())
             ->first();
 
-        if (!$currentLedger) {
+        if (! $currentLedger) {
             return back()->with('error', 'No current fiscal ledger found.');
         }
 
         $users = User::whereDoesntHave('volunteerHours', function ($query) use ($currentLedger) {
             $query->where('fiscal_ledger_id', $currentLedger->id);
         })->where('active', 1)
-        ->paginate(15);
+            ->paginate(15);
 
-        return view('reports.users', compact('users', 'currentLedger', 'sort','direction','search','reportTitle','reportDescription'));
+        return view('reports.users', compact('users', 'currentLedger', 'sort', 'direction', 'search', 'reportTitle', 'reportDescription'));
     }
 
     public function eventShiftHoursReport(Request $request)
@@ -70,11 +226,11 @@ class ReportsController extends Controller
         $minHours = (float) $request->input('min_hours', 20);
         $results = collect();
 
-        if ($request->has('event_ids') && !empty($selectedEventIds)) {
+        if ($request->has('event_ids') && ! empty($selectedEventIds)) {
             $results = $this->buildShiftHoursResults($selectedEventIds, $minHours);
         }
 
-        $selectedEvents = !empty($selectedEventIds)
+        $selectedEvents = ! empty($selectedEventIds)
             ? Event::whereIn('id', $selectedEventIds)->orderBy('start_date')->get()
             : collect();
 
@@ -100,16 +256,17 @@ class ReportsController extends Controller
         $headers = ['Name', 'Email', 'Vol Code', 'Total Shift Hours', 'Shift Count', 'All Hours Credited', 'Shift Breakdown'];
 
         $rows = $results->map(function ($row) {
-            $user   = $row['user'];
+            $user = $row['user'];
             $shifts = collect($row['shifts'])->sortBy(fn ($s) => $s['shift']->start_time);
 
             $breakdown = $shifts->map(function ($entry) {
                 $shift = $entry['shift'];
-                $label = $shift->start_time->format('M j Y g:iA') . '-' . $shift->end_time->format('g:iA')
-                    . ' ' . $shift->name
-                    . ($shift->double_hours ? ' [2x]' : '')
-                    . ' (' . number_format($entry['hours'], 1) . 'h)'
-                    . ($entry['credited'] ? ' [credited]' : '');
+                $label = $shift->start_time->format('M j Y g:iA').'-'.$shift->end_time->format('g:iA')
+                    .' '.$shift->name
+                    .($shift->double_hours ? ' [2x]' : '')
+                    .' ('.number_format($entry['hours'], 1).'h)'
+                    .($entry['credited'] ? ' [credited]' : '');
+
                 return $label;
             })->join(' | ');
 
@@ -126,32 +283,32 @@ class ReportsController extends Controller
             ];
         });
 
-        $csv  = implode(',', array_map(fn ($h) => '"' . $h . '"', $headers)) . "\n";
+        $csv = implode(',', array_map(fn ($h) => '"'.$h.'"', $headers))."\n";
         foreach ($rows as $row) {
-            $csv .= implode(',', array_map(fn ($v) => '"' . str_replace('"', '""', $v) . '"', $row)) . "\n";
+            $csv .= implode(',', array_map(fn ($v) => '"'.str_replace('"', '""', $v).'"', $row))."\n";
         }
 
-        $filename = 'event-shift-hours-' . now()->format('Y-m-d') . '.csv';
+        $filename = 'event-shift-hours-'.now()->format('Y-m-d').'.csv';
 
         return response($csv, 200, [
-            'Content-Type'        => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
 
     /**
      * Shared query logic for eventShiftHoursReport and eventShiftHoursExportCsv.
      */
-    private function buildShiftHoursResults(array $selectedEventIds, float $minHours): \Illuminate\Support\Collection
+    private function buildShiftHoursResults(array $selectedEventIds, float $minHours): Collection
     {
         $shifts = Shift::with(['users' => function ($q) {
-                $q->withPivot('no_show', 'hours_logged_at');
-            }])
+            $q->withPivot('no_show', 'hours_logged_at');
+        }])
             ->whereIn('event_id', $selectedEventIds)
             ->get();
 
-        $userHours  = [];
-        $userMeta   = [];
+        $userHours = [];
+        $userMeta = [];
         $userShifts = [];
 
         foreach ($shifts as $shift) {
@@ -166,11 +323,11 @@ class ReportsController extends Controller
 
                 $uid = $user->id;
                 $userHours[$uid] = ($userHours[$uid] ?? 0) + $duration;
-                $userMeta[$uid]  = $user;
+                $userMeta[$uid] = $user;
                 $userShifts[$uid][] = [
-                    'shift'    => $shift,
-                    'hours'    => $duration,
-                    'credited' => !is_null($user->pivot->hours_logged_at),
+                    'shift' => $shift,
+                    'hours' => $duration,
+                    'credited' => ! is_null($user->pivot->hours_logged_at),
                 ];
             }
         }
@@ -179,9 +336,9 @@ class ReportsController extends Controller
             ->filter(fn ($hours) => $hours >= $minHours)
             ->sortByDesc(fn ($hours) => $hours)
             ->map(fn ($hours, $uid) => [
-                'user'        => $userMeta[$uid],
+                'user' => $userMeta[$uid],
                 'total_hours' => $hours,
-                'shifts'      => $userShifts[$uid],
+                'shifts' => $userShifts[$uid],
             ])
             ->values();
     }
@@ -195,10 +352,10 @@ class ReportsController extends Controller
 
         $allowedSorts = ['created_at', 'user_name', 'target_name', 'type'];
 
-        if (!in_array($sort, $allowedSorts)) {
+        if (! in_array($sort, $allowedSorts)) {
             $sort = 'created_at';
         }
-        if (!in_array($direction, ['asc', 'desc'])) {
+        if (! in_array($direction, ['asc', 'desc'])) {
             $direction = 'desc';
         }
 
@@ -222,12 +379,12 @@ class ReportsController extends Controller
 
         if ($sort === 'user_name') {
             $query->join('users as u', 'user_relationships.user_id', '=', 'u.id')
-                  ->orderBy('u.name', $direction)
-                  ->select('user_relationships.*');
+                ->orderBy('u.name', $direction)
+                ->select('user_relationships.*');
         } elseif ($sort === 'target_name') {
             $query->join('users as t', 'user_relationships.target_user_id', '=', 't.id')
-                  ->orderBy('t.name', $direction)
-                  ->select('user_relationships.*');
+                ->orderBy('t.name', $direction)
+                ->select('user_relationships.*');
         } else {
             $query->orderBy($sort, $direction);
         }
@@ -262,10 +419,10 @@ class ReportsController extends Controller
         $eventId = $request->input('event_id');
 
         $allowedSorts = ['no_show_count', 'name', 'email', 'latest_no_show'];
-        if (!in_array($sort, $allowedSorts)) {
+        if (! in_array($sort, $allowedSorts)) {
             $sort = 'no_show_count';
         }
-        if (!in_array($direction, ['asc', 'desc'])) {
+        if (! in_array($direction, ['asc', 'desc'])) {
             $direction = 'desc';
         }
 
@@ -295,7 +452,7 @@ class ReportsController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -352,13 +509,13 @@ class ReportsController extends Controller
         $allowedSorts = ['name', 'email', 'created_at'];
         $allowedDays = [30, 60, 90, 0];
 
-        if (!in_array($sort, $allowedSorts)) {
+        if (! in_array($sort, $allowedSorts)) {
             $sort = 'created_at';
         }
-        if (!in_array($direction, ['asc', 'desc'])) {
+        if (! in_array($direction, ['asc', 'desc'])) {
             $direction = 'desc';
         }
-        if (!in_array($days, $allowedDays)) {
+        if (! in_array($days, $allowedDays)) {
             $days = 30;
         }
 
@@ -374,7 +531,7 @@ class ReportsController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -407,10 +564,10 @@ class ReportsController extends Controller
         $direction = $request->input('direction', 'asc');
 
         $allowedSorts = ['name', 'created_at'];
-        if (!in_array($sort, $allowedSorts)) {
+        if (! in_array($sort, $allowedSorts)) {
             $sort = 'name';
         }
-        if (!in_array($direction, ['asc', 'desc'])) {
+        if (! in_array($direction, ['asc', 'desc'])) {
             $direction = 'asc';
         }
 

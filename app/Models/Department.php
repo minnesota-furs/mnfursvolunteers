@@ -18,7 +18,7 @@ class Department extends Model
         'name',
         'description',
         'sector_id',
-        'department_head_id'
+        'department_head_id',
     ];
 
     // public function users()
@@ -28,7 +28,7 @@ class Department extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'department_user');
+        return $this->belongsToMany(User::class, 'department_user')->withTimestamps();
     }
 
     public function sector()

@@ -201,6 +201,18 @@
                                             <x-heroicon-o-building-office class="w-4 h-4 shrink-0 text-gray-400"/>
                                             Departments Without Head
                                         </a>
+                                        <a href="{{ route('report.customFields') }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                                            <x-heroicon-o-adjustments-horizontal class="w-4 h-4 shrink-0 text-gray-400"/>
+                                            Custom Fields
+                                        </a>
+                                        <a href="{{ route('report.volunteersWithMultipleDepartments') }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                                            <x-heroicon-o-user-group class="w-4 h-4 shrink-0 text-gray-400"/>
+                                            Multiple Departments
+                                        </a>
+                                        <a href="{{ route('report.departmentMembership') }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                                            <x-heroicon-o-chart-bar class="w-4 h-4 shrink-0 text-gray-400"/>
+                                            Department Membership
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -542,6 +554,15 @@
                     </div>
                     <x-responsive-nav-link :href="route('report.departmentsWithoutHead')">
                         {{ __('Departments Without Head') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('report.customFields')">
+                        {{ __('Custom Fields') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('report.volunteersWithMultipleDepartments')">
+                        {{ __('Multiple Departments') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('report.departmentMembership')">
+                        {{ __('Department Membership') }}
                     </x-responsive-nav-link>
                 </div>
             </div>

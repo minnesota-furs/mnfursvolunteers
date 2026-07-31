@@ -289,6 +289,9 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
         Route::get('/no-shows', [ReportsController::class, 'noShows'])->name('noShows');
         Route::get('/new-signups-no-shifts', [ReportsController::class, 'newSignupsWithNoShifts'])->name('newSignupsWithNoShifts');
         Route::get('/departments-without-head', [ReportsController::class, 'departmentsWithoutHead'])->name('departmentsWithoutHead');
+        Route::get('/custom-fields', [ReportsController::class, 'customFields'])->name('customFields');
+        Route::get('/volunteers-with-multiple-departments', [ReportsController::class, 'volunteersWithMultipleDepartments'])->name('volunteersWithMultipleDepartments');
+        Route::get('/department-membership', [ReportsController::class, 'departmentMembership'])->name('departmentMembership');
     });
 
     // Departments
