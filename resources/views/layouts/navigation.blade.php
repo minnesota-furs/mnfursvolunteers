@@ -275,11 +275,6 @@
                                 {{ __('Sectors') }}
                             </x-dropdown-link>
                             @endif
-                            @foreach(Auth::user()->headDepartments()->orderBy('name')->get() as $managedDepartment)
-                            <x-dropdown-link :href="route('departments.manage', $managedDepartment)">
-                                {{ __('Manage :department', ['department' => $managedDepartment->name]) }}
-                            </x-dropdown-link>
-                            @endforeach
                             <x-dropdown-link :href="route('departments.index')">
                                 {{ __('Departments') }}
                             </x-dropdown-link>
@@ -411,6 +406,40 @@
                         <x-dropdown-link :href="route('users.show', Auth::user()->id)">
                             {{ __('My Volunteer Profile') }}
                         </x-dropdown-link>
+
+                        @if($managedDepartments->isNotEmpty())
+                            <div class="relative" x-data="{ departmentMenuOpen: false }"
+                                x-on:mouseenter="departmentMenuOpen = true"
+                                x-on:mouseleave="departmentMenuOpen = false">
+                                <button type="button"
+                                    x-on:click.stop="departmentMenuOpen = ! departmentMenuOpen"
+                                    x-on:keydown.right.prevent="departmentMenuOpen = true"
+                                    x-on:keydown.left.prevent="departmentMenuOpen = false"
+                                    class="flex w-full items-center justify-between px-4 py-2 text-start text-sm leading-5 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 focus:bg-gray-100 focus:outline-none dark:text-gray-300 dark:hover:bg-gray-800 dark:focus:bg-gray-800"
+                                    aria-haspopup="true"
+                                    x-bind:aria-expanded="departmentMenuOpen">
+                                    <span>{{ __('Manage Department') }}</span>
+                                    <x-heroicon-s-chevron-right class="h-4 w-4" />
+                                </button>
+
+                                <div x-show="departmentMenuOpen"
+                                    x-transition:enter="transition ease-out duration-100"
+                                    x-transition:enter-start="opacity-0 translate-x-1"
+                                    x-transition:enter-end="opacity-100 translate-x-0"
+                                    x-transition:leave="transition ease-in duration-75"
+                                    x-transition:leave-start="opacity-100 translate-x-0"
+                                    x-transition:leave-end="opacity-0 translate-x-1"
+                                    class="absolute left-full top-0 z-50 w-56 rounded-r-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-gray-700"
+                                    style="display: none;"
+                                    x-on:click.stop>
+                                    @foreach($managedDepartments as $managedDepartment)
+                                        <x-dropdown-link :href="route('departments.manage', $managedDepartment)">
+                                            {{ $managedDepartment->name }}
+                                        </x-dropdown-link>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
 
                         @feature('volunteer_relationships')
                         <x-dropdown-link :href="route('relationships.index')">
@@ -605,11 +634,6 @@
                         {{ __('Sectors') }}
                     </x-responsive-nav-link>
                     @endif
-                    @foreach(Auth::user()->headDepartments()->orderBy('name')->get() as $managedDepartment)
-                    <x-responsive-nav-link :href="route('departments.manage', $managedDepartment)">
-                        {{ __('Manage :department', ['department' => $managedDepartment->name]) }}
-                    </x-responsive-nav-link>
-                    @endforeach
                     <x-responsive-nav-link :href="route('departments.index')">
                         {{ __('Departments') }}
                     </x-responsive-nav-link>
@@ -650,6 +674,24 @@
                 <x-responsive-nav-link :href="route('users.show', Auth::user()->id)">
                     {{ __('My Volunteer Profile') }}
                 </x-responsive-nav-link>
+
+                @if($managedDepartments->isNotEmpty())
+                    <div x-data="{ departmentMenuOpen: false }">
+                        <button type="button"
+                            x-on:click="departmentMenuOpen = ! departmentMenuOpen"
+                            class="flex w-full items-center justify-between border-l-4 border-transparent py-2 pl-3 pr-4 text-left text-base font-medium text-gray-100 transition duration-150 ease-in-out hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 dark:text-gray-200 dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-100">
+                            <span>{{ __('Manage Department') }}</span>
+                            <x-heroicon-s-chevron-right class="h-4 w-4 transition-transform" x-bind:class="{ 'rotate-90': departmentMenuOpen }" />
+                        </button>
+                        <div x-show="departmentMenuOpen" class="space-y-1 bg-white/5 py-1" style="display: none;">
+                            @foreach($managedDepartments as $managedDepartment)
+                                <x-responsive-nav-link :href="route('departments.manage', $managedDepartment)" class="pl-8">
+                                    {{ $managedDepartment->name }}
+                                </x-responsive-nav-link>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
 
                 @feature('volunteer_relationships')
                 <x-responsive-nav-link :href="route('relationships.index')">

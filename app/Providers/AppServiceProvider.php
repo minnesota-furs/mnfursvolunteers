@@ -2,15 +2,15 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use App\Models\ApplicationSetting;
+use App\Models\Event;
+use App\Models\Shift;
+use App\Models\User;
+use App\Observers\AuditableObserver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
-use App\Models\ApplicationSetting;
-use App\Models\User;
-use App\Models\Event;
-use App\Models\Shift;
-use App\Observers\AuditableObserver;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -71,12 +71,14 @@ class AppServiceProvider extends ServiceProvider
                 $user = Auth::user();
                 $unreadNotificationsCount = $user->unreadNotifications()->count();
                 $recentNotifications = $user->unreadNotifications()->latest()->take(5)->get();
+                $managedDepartments = $user->headDepartments()->orderBy('name')->get();
             } else {
                 $unreadNotificationsCount = 0;
                 $recentNotifications = collect();
+                $managedDepartments = collect();
             }
 
-            $view->with(compact('unreadNotificationsCount', 'recentNotifications'));
+            $view->with(compact('unreadNotificationsCount', 'recentNotifications', 'managedDepartments'));
         });
     }
 
@@ -97,22 +99,24 @@ class AppServiceProvider extends ServiceProvider
                     return true;
                 }
             }
+
             return false;
         });
 
         // @featureAll(['feature1', 'feature2']) - Show only if all features are enabled
         Blade::if('featureAll', function (array $features) {
             foreach ($features as $feature) {
-                if (!feature_enabled($feature)) {
+                if (! feature_enabled($feature)) {
                     return false;
                 }
             }
+
             return true;
         });
 
         // @featureDisabled('feature-name') - Show content if feature is disabled
         Blade::if('featureDisabled', function (string $feature) {
-            return !feature_enabled($feature);
+            return ! feature_enabled($feature);
         });
     }
 }

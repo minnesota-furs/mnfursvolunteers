@@ -36,6 +36,7 @@ it('allows a department head to view only their department workspace', function 
     $this->actingAs($this->head)
         ->get(route('departments.manage', $this->department))
         ->assertOk()
+        ->assertSee('Manage Department')
         ->assertSee('Operations Volunteer')
         ->assertSee('operations@example.com')
         ->assertDontSee('Registration Volunteer')
