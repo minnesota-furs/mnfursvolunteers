@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\VolunteerPerkSetController as AdminVolunteerPerkS
 use App\Http\Controllers\CommandPaletteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\DepartmentManagementController;
 use App\Http\Controllers\ElectionController;
 use App\Http\Controllers\FiscalLedgerController;
 use App\Http\Controllers\JobListingController;
@@ -296,6 +297,8 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
 
     // Departments
     Route::get('/departments-by-sector', [DepartmentController::class, 'getDepartmentsBySector'])->name('get-departments-by-sector');
+    Route::get('/departments/{department}/manage', [DepartmentManagementController::class, 'show'])->name('departments.manage');
+    Route::get('/departments/{department}/staff-export', [DepartmentManagementController::class, 'export'])->name('departments.staff-export');
     Route::get('/departments/{id}/delete', [DepartmentController::class, 'delete'])->middleware('isAdmin')->name('departments.delete_confirm');
 
     Route::resource('departments', DepartmentController::class)->only(['create', 'edit', 'store', 'destroy', 'update'])->middleware(['isAdmin']);

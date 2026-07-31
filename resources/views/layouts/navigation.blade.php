@@ -275,6 +275,11 @@
                                 {{ __('Sectors') }}
                             </x-dropdown-link>
                             @endif
+                            @foreach(Auth::user()->headDepartments()->orderBy('name')->get() as $managedDepartment)
+                            <x-dropdown-link :href="route('departments.manage', $managedDepartment)">
+                                {{ __('Manage :department', ['department' => $managedDepartment->name]) }}
+                            </x-dropdown-link>
+                            @endforeach
                             <x-dropdown-link :href="route('departments.index')">
                                 {{ __('Departments') }}
                             </x-dropdown-link>
@@ -600,6 +605,11 @@
                         {{ __('Sectors') }}
                     </x-responsive-nav-link>
                     @endif
+                    @foreach(Auth::user()->headDepartments()->orderBy('name')->get() as $managedDepartment)
+                    <x-responsive-nav-link :href="route('departments.manage', $managedDepartment)">
+                        {{ __('Manage :department', ['department' => $managedDepartment->name]) }}
+                    </x-responsive-nav-link>
+                    @endforeach
                     <x-responsive-nav-link :href="route('departments.index')">
                         {{ __('Departments') }}
                     </x-responsive-nav-link>

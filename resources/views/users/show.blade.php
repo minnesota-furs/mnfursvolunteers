@@ -148,7 +148,7 @@
                                             address</dt>
                                         <dd
                                             class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
-                                            @if (Auth::user()->isAdmin())
+                                            @if (Auth::user()->canViewEmailOf($user))
                                                 {{ $user->email }}
                                             @else
                                                 ******

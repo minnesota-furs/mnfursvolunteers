@@ -330,6 +330,17 @@ class User extends Authenticatable
         return $this->admin;
     }
 
+    public function canViewEmailOf(User $user): bool
+    {
+        if ($this->isAdmin() || $this->is($user)) {
+            return true;
+        }
+
+        return $this->headDepartments()
+            ->whereHas('users', fn ($query) => $query->whereKey($user->getKey()))
+            ->exists();
+    }
+
     /**
      * Sanctum's HasApiTokens trait doesn't define this, but Passport's
      * scope-checking middleware (CheckScopes/CheckForAnyScope) requires it.
