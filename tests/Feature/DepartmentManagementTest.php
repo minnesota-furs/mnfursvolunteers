@@ -115,6 +115,131 @@ it('shows department activity and upcoming assignments', function () {
         ->assertSee('Active Volunteer');
 });
 
+it('creates a department-restricted staffing roster with heads as collaborators', function () {
+    $otherHead = User::factory()->create([
+        'name' => 'Other Department Head',
+        'onboarded_at' => now(),
+    ]);
+    $this->department->heads()->attach($otherHead);
+
+    $response = $this->actingAs($this->head)
+        ->post(route('departments.staffing-rosters.store', $this->department), [
+            'name' => 'Convention Coverage',
+            'description' => 'Department staffing plan',
+            'start_date' => now()->addWeek()->format('Y-m-d H:i:s'),
+            'end_date' => now()->addWeek()->addHours(8)->format('Y-m-d H:i:s'),
+            'location' => 'Main Hotel',
+            'visibility' => 'internal',
+        ]);
+
+    $event = Event::query()->where('name', 'Convention Coverage')->firstOrFail();
+
+    $response->assertRedirect(route('admin.events.shifts.index', $event));
+
+    expect($event->created_by)->toBe($this->head->id)
+        ->and($event->require_eligibility)->toBeTrue()
+        ->and($event->requiredDepartments()->whereKey($this->department->id)->exists())->toBeTrue()
+        ->and($event->requiredDepartments()->count())->toBe(1)
+        ->and($event->editors()->whereKey($otherHead->id)->exists())->toBeTrue()
+        ->and($event->editors()->whereKey($this->head->id)->exists())->toBeFalse();
+});
+
+it('shows roster creation as a full page to department heads', function () {
+    $otherHead = User::factory()->create([
+        'name' => 'Collaborating Head',
+        'onboarded_at' => now(),
+    ]);
+    $this->department->heads()->attach($otherHead);
+
+    $this->actingAs($this->head)
+        ->get(route('departments.staffing-rosters.create', $this->department))
+        ->assertOk()
+        ->assertSee('Create a Staffing Coverage Roster')
+        ->assertSee('Operations staffing roster')
+        ->assertSee('Collaborating Head')
+        ->assertSee(route('departments.staffing-rosters.store', $this->department), false);
+});
+
+it('prevents heads from creating a roster for another department', function () {
+    $otherDepartment = Department::factory()->create();
+
+    $this->actingAs($this->head)
+        ->get(route('departments.staffing-rosters.create', $otherDepartment))
+        ->assertForbidden();
+
+    $this->actingAs($this->head)
+        ->post(route('departments.staffing-rosters.store', $otherDepartment), [
+            'name' => 'Unauthorized Coverage',
+            'start_date' => now()->addWeek(),
+            'end_date' => now()->addWeek()->addHour(),
+            'visibility' => 'internal',
+        ])
+        ->assertForbidden();
+
+    expect(Event::query()->where('name', 'Unauthorized Coverage')->exists())->toBeFalse();
+});
+
+it('shows only events restricted to the managed department', function () {
+    $departmentEvent = Event::factory()->create([
+        'name' => 'Operations Coverage',
+        'created_by' => $this->head->id,
+    ]);
+    $otherEvent = Event::factory()->create(['name' => 'Registration Coverage']);
+    $otherDepartment = Department::factory()->create();
+    $departmentEvent->requiredDepartments()->attach($this->department);
+    $otherEvent->requiredDepartments()->attach($otherDepartment);
+
+    $this->actingAs($this->head)
+        ->get(route('departments.manage', $this->department))
+        ->assertOk()
+        ->assertSee('Operations Coverage')
+        ->assertDontSee('Registration Coverage');
+});
+
+it('allows roster owners and collaborators to manage shifts but denies unrelated users', function () {
+    $collaborator = User::factory()->create(['onboarded_at' => now()]);
+    $unrelatedUser = User::factory()->create(['onboarded_at' => now()]);
+    $event = Event::factory()->create(['created_by' => $this->head->id]);
+    $event->editors()->attach($collaborator);
+
+    $this->actingAs($this->head)
+        ->get(route('admin.events.shifts.index', $event))
+        ->assertOk();
+
+    $this->actingAs($collaborator)
+        ->get(route('admin.events.shifts.index', $event))
+        ->assertOk();
+
+    $this->actingAs($unrelatedUser)
+        ->get(route('admin.events.shifts.index', $event))
+        ->assertForbidden();
+});
+
+it('preserves global event management access', function () {
+    $eventManager = User::factory()->create([
+        'onboarded_at' => now(),
+        'permissions' => ['Manage Volunteer Events'],
+    ]);
+    $event = Event::factory()->create();
+
+    $this->actingAs($eventManager)
+        ->get(route('admin.events.shifts.index', $event))
+        ->assertOk();
+});
+
+it('limits quick rosters to internal or draft visibility', function () {
+    $this->actingAs($this->head)
+        ->post(route('departments.staffing-rosters.store', $this->department), [
+            'name' => 'Public Coverage',
+            'start_date' => now()->addWeek(),
+            'end_date' => now()->addWeek()->addHour(),
+            'visibility' => 'public',
+        ])
+        ->assertSessionHasErrors('visibility');
+
+    expect(Event::query()->where('name', 'Public Coverage')->exists())->toBeFalse();
+});
+
 it('exports a filtered department staff list without private fields and records an audit', function () {
     $includedMember = User::factory()->create([
         'name' => 'Included Volunteer',

@@ -8,6 +8,10 @@
             class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100">
             Department Profile
         </a>
+        <a href="{{ route('departments.staffing-rosters.create', $department) }}"
+            class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100">
+            <x-heroicon-s-plus class="inline w-4" /> Create Coverage Roster
+        </a>
         <a href="{{ route('departments.staff-export', array_merge(['department' => $department], request()->only(['search', 'status']))) }}"
             class="rounded-md bg-brand-green px-3 py-2 text-sm font-semibold text-white shadow-md hover:opacity-90">
             <x-heroicon-o-arrow-down-tray class="inline w-4" /> Export CSV
@@ -79,7 +83,7 @@
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-gray-900">
                         <tr>
-                            @foreach(['Staff member', 'Email', 'Status', 'Joined', 'Current hours', 'Lifetime hours', 'Last volunteered'] as $heading)
+                            @foreach(['Staff member', 'Email', 'Status', 'Joined', 'Current hours', 'Last volunteered'] as $heading)
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $heading }}</th>
                             @endforeach
                         </tr>
@@ -106,14 +110,13 @@
                                 </td>
                                 <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300">{{ $member->pivot->created_at?->format('M j, Y') ?? '—' }}</td>
                                 <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300">{{ format_hours($member->current_period_hours ?? 0) }}</td>
-                                <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300">{{ format_hours($member->lifetime_department_hours ?? 0) }}</td>
                                 <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
                                     {{ $member->last_volunteered_at ? \Illuminate\Support\Carbon::parse($member->last_volunteered_at)->format('M j, Y') : 'Never' }}
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-4 py-10 text-center text-sm text-gray-500 dark:text-gray-400">No staff match these filters.</td>
+                                <td colspan="6" class="px-4 py-10 text-center text-sm text-gray-500 dark:text-gray-400">No staff match these filters.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -122,6 +125,73 @@
             @if($members->hasPages())
                 <div class="border-t border-gray-200 p-4 dark:border-gray-700">{{ $members->links() }}</div>
             @endif
+        </div>
+
+        <div class="rounded-lg bg-white p-5 shadow dark:bg-gray-800">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Department staffing events</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Events restricted to {{ $department->name }}, including events created outside this workspace.
+                </p>
+            </div>
+
+            <div class="mt-4 grid gap-4 lg:grid-cols-2">
+                @forelse($departmentEvents as $event)
+                    @php
+                        $totalPositions = $event->shifts->sum('max_volunteers');
+                        $filledPositions = $event->shifts->sum(fn ($shift) => $shift->users->count());
+                        $coveragePercent = $totalPositions > 0 ? min(100, round(($filledPositions / $totalPositions) * 100)) : 0;
+                    @endphp
+                    <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="font-semibold text-gray-900 dark:text-white">{{ $event->name }}</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                    {{ $event->start_date->format('M j, Y g:i A') }}
+                                    @if($event->location) · {{ $event->location }} @endif
+                                </p>
+                            </div>
+                            <span class="rounded-full px-2 py-1 text-xs font-medium {{ $event->hasPast() ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200' : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' }}">
+                                {{ $event->hasPast() ? 'Past' : ucfirst($event->visibility) }}
+                            </span>
+                        </div>
+
+                        <div class="mt-4">
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                                <span>{{ $filledPositions }} of {{ $totalPositions }} positions filled</span>
+                                <span>{{ $coveragePercent }}%</span>
+                            </div>
+                            <div class="mt-1 h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                                <div class="h-full rounded-full bg-brand-green" style="width: {{ $coveragePercent }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
+                            <span class="text-gray-500 dark:text-gray-400">
+                                {{ $event->shifts_count }} shifts · Owner: {{ $event->creator?->displayName() ?? 'Unknown' }}
+                                @if($event->editors->isNotEmpty()) · {{ $event->editors->count() }} collaborator(s) @endif
+                            </span>
+                            @can('update', $event)
+                                <a href="{{ route('admin.events.shifts.index', $event) }}" class="font-semibold text-brand-green hover:underline">
+                                    Manage coverage
+                                </a>
+                            @else
+                                <a href="{{ route('volunteer.events.show', $event) }}" class="font-semibold text-brand-green hover:underline">
+                                    View event
+                                </a>
+                            @endcan
+                        </div>
+                    </div>
+                @empty
+                    <div class="rounded-lg border border-dashed border-gray-300 p-8 text-center dark:border-gray-600 lg:col-span-2">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">No staffing events are restricted to this department yet.</p>
+                        <a href="{{ route('departments.staffing-rosters.create', $department) }}"
+                            class="mt-3 text-sm font-semibold text-brand-green hover:underline">
+                            Create the first coverage roster
+                        </a>
+                    </div>
+                @endforelse
+            </div>
         </div>
 
         <div class="rounded-lg bg-white p-5 shadow dark:bg-gray-800">
@@ -143,4 +213,5 @@
             </div>
         </div>
     </div>
+
 </x-app-layout>

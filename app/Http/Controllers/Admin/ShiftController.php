@@ -7,16 +7,16 @@ use App\Http\Requests\AdvancedDuplicateShiftRequest;
 use App\Http\Requests\BulkUpdateShiftRequest;
 use App\Http\Requests\StoreShiftSeriesRequest;
 use App\Http\Requests\UpdateShiftRequest;
+use App\Models\AuditLog;
 use App\Models\Event;
 use App\Models\Shift;
 use App\Models\Tag;
 use App\Models\User;
-use App\Models\AuditLog;
 use App\Notifications\AppNotification;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 use League\Csv\Reader;
 use League\Csv\Statement;
 
@@ -39,6 +39,7 @@ class ShiftController extends Controller
     public function create(Event $event)
     {
         $tags = Tag::forShifts()->orderBy('name')->get();
+
         return view('admin.shifts.create', compact('event', 'tags'));
     }
 
@@ -48,16 +49,16 @@ class ShiftController extends Controller
     public function store(Request $request, Event $event)
     {
         $request->validate([
-            'name'           => 'required|string|max:255',
-            'description'    => 'nullable|string',
-            'start_time'     => 'required|date',
-            'end_time'       => 'required|date|after:start_time',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
             'max_volunteers' => 'required|integer|min:1',
-            'double_hours'   => 'nullable|boolean',
-            'user_id'        => 'nullable|array',
-            'user_id.*'      => 'integer|exists:users,id',
-            'shift_tags'     => 'nullable|array',
-            'shift_tags.*'   => 'integer|exists:tags,id',
+            'double_hours' => 'nullable|boolean',
+            'user_id' => 'nullable|array',
+            'user_id.*' => 'integer|exists:users,id',
+            'shift_tags' => 'nullable|array',
+            'shift_tags.*' => 'integer|exists:tags,id',
         ]);
 
         $shiftData = $request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers']);
@@ -73,7 +74,7 @@ class ShiftController extends Controller
             User::whereIn('id', $userIds)->each(function (User $user) use ($shift, $event) {
                 $user->notify(new AppNotification(
                     title: "You've been added to a shift",
-                    message: "You were added to the \"" . $shift->name . "\" shift for \"" . $event->name . "\".",
+                    message: 'You were added to the "'.$shift->name.'" shift for "'.$event->name.'".',
                     url: route('volunteer.events.show', $event),
                 ));
             });
@@ -133,11 +134,11 @@ class ShiftController extends Controller
 
             $shift->users()->syncWithoutDetaching($userIds);
 
-            if (!empty($newUserIds)) {
+            if (! empty($newUserIds)) {
                 User::whereIn('id', $newUserIds)->each(function (User $user) use ($shift, $event) {
                     $user->notify(new AppNotification(
                         title: "You've been added to a shift",
-                        message: "You were added to the \"" . $shift->name . "\" shift for \"" . $event->name . "\".",
+                        message: 'You were added to the "'.$shift->name.'" shift for "'.$event->name.'".',
                         url: route('volunteer.events.show', $event),
                     ));
                 });
@@ -158,6 +159,7 @@ class ShiftController extends Controller
     public function destroy(Event $event, Shift $shift)
     {
         $shift->delete();
+
         return back()->with('success', [
             'message' => "Shift <span class=\"text-brand-green\">{$shift->name}</span> deleted",
         ]);
@@ -166,12 +168,12 @@ class ShiftController extends Controller
     public function bulkDestroy(Request $request, Event $event)
     {
         $request->validate([
-            'shift_ids'   => 'required|array|min:1',
+            'shift_ids' => 'required|array|min:1',
             'shift_ids.*' => 'integer|exists:shifts,id',
         ]);
 
         $shifts = $event->shifts()->whereIn('id', $request->input('shift_ids'))->get();
-        $count  = $shifts->count();
+        $count = $shifts->count();
 
         foreach ($shifts as $shift) {
             $shift->delete();
@@ -210,18 +212,18 @@ class ShiftController extends Controller
         }
 
         $shifts = $event->shifts()->whereIn('id', $request->input('shift_ids'))->get();
-        $count  = $shifts->count();
+        $count = $shifts->count();
 
         foreach ($shifts as $shift) {
             $shift->update($updateData);
         }
 
         AuditLog::create([
-            'action'         => 'shift_bulk_update',
+            'action' => 'shift_bulk_update',
             'auditable_type' => Event::class,
-            'auditable_id'   => $event->id,
-            'comment'        => 'User ' . auth()->user()->name . " bulk updated {$count} shift(s): " . implode(', ', array_keys($updateData)),
-            'user_id'        => auth()->id(),
+            'auditable_id' => $event->id,
+            'comment' => 'User '.auth()->user()->name." bulk updated {$count} shift(s): ".implode(', ', array_keys($updateData)),
+            'user_id' => auth()->id(),
         ]);
 
         return redirect()->route('admin.events.shifts.index', $event)
@@ -233,7 +235,7 @@ class ShiftController extends Controller
     public function duplicate(Event $event, Shift $shift)
     {
         $newShift = $shift->replicate();
-        $newShift->name = $shift->name . ' (Copy)';
+        $newShift->name = $shift->name.' (Copy)';
         $newShift->start_time = $newShift->start_time->addHour();
         $newShift->end_time = $newShift->end_time->addHour(1);
         $newShift->save();
@@ -244,7 +246,7 @@ class ShiftController extends Controller
         return redirect()->route('admin.events.shifts.index', $event)
             ->with('success', [
                 'message' => "Shift <span class=\"text-brand-green\">{$shift->name}</span> duplicated successfully",
-            ]); 
+            ]);
     }
 
     public function removeVolunteer(Event $event, Shift $shift, User $user)
@@ -252,11 +254,11 @@ class ShiftController extends Controller
         $shift->users()->detach($user->id);
 
         AuditLog::create([
-            'action'         => 'shift_volunteer_removed',
+            'action' => 'shift_volunteer_removed',
             'auditable_type' => Event::class,
-            'auditable_id'   => $shift->event->id,
-            'comment'        => "User {$user->name} removed from {$shift->name} (ID: {$shift->id}) by " . auth()->user()->name,
-            'user_id'        => auth()->id(),
+            'auditable_id' => $shift->event->id,
+            'comment' => "User {$user->name} removed from {$shift->name} (ID: {$shift->id}) by ".auth()->user()->name,
+            'user_id' => auth()->id(),
         ]);
 
         // Return JSON for AJAX requests
@@ -264,23 +266,25 @@ class ShiftController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "{$user->name} has been removed from the shift.",
-                'shift_count' => $shift->users()->count()
+                'shift_count' => $shift->users()->count(),
             ]);
         }
 
         return redirect()->back()
             ->with('success', [
                 'message' => "<span class=\"text-brand-green\">{$user->name}</span> removed from shift",
-            ]); 
+            ]);
     }
 
     public function addVolunteer(Event $event, Shift $shift, User $user)
     {
+        abort_unless($shift->event_id === $event->id, 404);
+
         // Check if user is already assigned to this shift
         if ($shift->users()->where('user_id', $user->id)->exists()) {
             return response()->json([
                 'success' => false,
-                'message' => "{$user->name} is already assigned to this shift."
+                'message' => "{$user->name} is already assigned to this shift.",
             ], 400);
         }
 
@@ -288,7 +292,7 @@ class ShiftController extends Controller
         if ($shift->users()->count() >= $shift->max_volunteers) {
             return response()->json([
                 'success' => false,
-                'message' => "This shift is full ({$shift->max_volunteers} volunteers maximum)."
+                'message' => "This shift is full ({$shift->max_volunteers} volunteers maximum).",
             ], 400);
         }
 
@@ -304,11 +308,11 @@ class ShiftController extends Controller
 
         // Log the action
         AuditLog::create([
-            'action'         => 'shift_volunteer_added',
+            'action' => 'shift_volunteer_added',
             'auditable_type' => Event::class,
-            'auditable_id'   => $shift->event->id,
-            'comment'        => "User {$user->name} added to {$shift->name} (ID: {$shift->id}) by " . auth()->user()->name,
-            'user_id'        => auth()->id(),
+            'auditable_id' => $shift->event->id,
+            'comment' => "User {$user->name} added to {$shift->name} (ID: {$shift->id}) by ".auth()->user()->name,
+            'user_id' => auth()->id(),
         ]);
 
         return response()->json([
@@ -319,7 +323,7 @@ class ShiftController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
             ],
-            'shift_count' => $shift->users()->count()
+            'shift_count' => $shift->users()->count(),
         ]);
     }
 
@@ -361,11 +365,11 @@ class ShiftController extends Controller
         }
 
         AuditLog::create([
-            'action'         => $noShow ? 'shift_volunteer_no_show_marked' : 'shift_volunteer_no_show_cleared',
+            'action' => $noShow ? 'shift_volunteer_no_show_marked' : 'shift_volunteer_no_show_cleared',
             'auditable_type' => Event::class,
-            'auditable_id'   => $shift->event->id,
-            'comment'        => "User {$user->name} " . ($noShow ? 'marked as no show' : 'unmarked as no show') . " for {$shift->name} (ID: {$shift->id}) by " . auth()->user()->name,
-            'user_id'        => auth()->id(),
+            'auditable_id' => $shift->event->id,
+            'comment' => "User {$user->name} ".($noShow ? 'marked as no show' : 'unmarked as no show')." for {$shift->name} (ID: {$shift->id}) by ".auth()->user()->name,
+            'user_id' => auth()->id(),
         ]);
 
         return response()->json([
@@ -381,7 +385,7 @@ class ShiftController extends Controller
     public function advancedDuplicate(AdvancedDuplicateShiftRequest $request, Event $event, Shift $shift)
     {
         $validated = $request->validated();
-        
+
         $recurrence = $validated['recurrence'];
         $interval = $validated['interval'];
         $intervalUnit = $validated['interval_unit'];
@@ -394,7 +398,7 @@ class ShiftController extends Controller
 
         // Generate a unique series ID for tracking these duplicates together
         $seriesId = Str::uuid()->toString();
-        
+
         $createdShifts = [];
         $volunteers = $copyVolunteers ? $shift->users->pluck('id')->toArray() : [];
         $shift->load('tags');
@@ -403,10 +407,10 @@ class ShiftController extends Controller
         for ($i = 1; $i <= $recurrence; $i++) {
             // Calculate new times based on interval
             $timeOffset = $interval * $i;
-            
+
             $newStartTime = clone $shift->start_time;
             $newEndTime = clone $shift->end_time;
-            
+
             switch ($intervalUnit) {
                 case 'hours':
                     $newStartTime->addHours($timeOffset);
@@ -433,24 +437,24 @@ class ShiftController extends Controller
             $newShift->original_shift_id = $shift->id;
             $newShift->duplicate_series_id = $seriesId;
             $newShift->duplicate_sequence = $i;
-            
-            if (!$maintainCapacity) {
+
+            if (! $maintainCapacity) {
                 $newShift->max_volunteers = 1;
             }
-            
-            if (!$copyDescription) {
+
+            if (! $copyDescription) {
                 $newShift->description = null;
             }
-            
+
             $newShift->save();
 
             // Copy volunteer assignments if requested
-            if ($copyVolunteers && !empty($volunteers)) {
+            if ($copyVolunteers && ! empty($volunteers)) {
                 $newShift->users()->attach($volunteers, ['signed_up_at' => now()]);
             }
 
             // Copy tags
-            if (!empty($tagIds)) {
+            if (! empty($tagIds)) {
                 $newShift->tags()->sync($tagIds);
             }
 
@@ -459,11 +463,11 @@ class ShiftController extends Controller
 
         // Log the action
         AuditLog::create([
-            'action'         => 'shift_advanced_duplicate',
+            'action' => 'shift_advanced_duplicate',
             'auditable_type' => Event::class,
-            'auditable_id'   => $event->id,
-            'comment'        => "User " . auth()->user()->name . " created {$recurrence} duplicates of shift '{$shift->name}' (ID: {$shift->id}) with series ID {$seriesId}",
-            'user_id'        => auth()->id(),
+            'auditable_id' => $event->id,
+            'comment' => 'User '.auth()->user()->name." created {$recurrence} duplicates of shift '{$shift->name}' (ID: {$shift->id}) with series ID {$seriesId}",
+            'user_id' => auth()->id(),
         ]);
 
         return redirect()->route('admin.events.shifts.index', $event)
@@ -479,29 +483,29 @@ class ShiftController extends Controller
     {
         // Format start time for display (e.g., "2pm", "3pm")
         $formattedTime = $startTime ? $startTime->format('ga') : '';
-        
+
         switch ($pattern) {
             case 'sequence':
                 return "{$originalName} ({$sequence})";
-            
+
             case 'start_time':
                 return "{$originalName} ({$formattedTime})";
-            
+
             case 'prefix':
                 return "{$prefix} {$originalName}";
-            
+
             case 'suffix':
                 return "{$originalName} {$suffix}";
-            
+
             case 'prefix_sequence':
                 return "{$prefix} {$originalName} ({$sequence})";
-            
+
             case 'suffix_sequence':
                 return "{$originalName} ({$sequence}) {$suffix}";
-            
+
             case 'custom':
                 return str_replace(['{n}', '{name}', '{t}'], [$sequence, $originalName, $formattedTime], $prefix);
-            
+
             case 'none':
             default:
                 return $originalName;
@@ -525,22 +529,22 @@ class ShiftController extends Controller
     public function storeSeries(StoreShiftSeriesRequest $request, Event $event)
     {
         $durationMinutes = ((int) $request->duration_hours * 60) + (int) $request->duration_minutes;
-        $gapMinutes      = ((int) $request->gap_hours * 60) + (int) $request->gap_minutes;
+        $gapMinutes = ((int) $request->gap_hours * 60) + (int) $request->gap_minutes;
 
         if ($durationMinutes < 1) {
             return back()->withErrors(['duration_hours' => 'Total duration must be at least 1 minute.'])->withInput();
         }
 
-        $seriesId    = Str::uuid()->toString();
-        $startTime   = Carbon::parse($request->start_time);
-        $tagIds      = $request->input('shift_tags', []);
+        $seriesId = Str::uuid()->toString();
+        $startTime = Carbon::parse($request->start_time);
+        $tagIds = $request->input('shift_tags', []);
         $accessibilityConflicts = $request->input('accessibility_conflicts', []);
         $doubleHours = $request->boolean('double_hours');
         $createdShifts = [];
 
         for ($i = 0; $i < (int) $request->occurrences; $i++) {
             $shiftStart = $startTime->copy()->addMinutes(($durationMinutes + $gapMinutes) * $i);
-            $shiftEnd   = $shiftStart->copy()->addMinutes($durationMinutes);
+            $shiftEnd = $shiftStart->copy()->addMinutes($durationMinutes);
 
             $shiftName = $this->applySeriesNamingPattern(
                 $request->naming_pattern,
@@ -550,18 +554,18 @@ class ShiftController extends Controller
             );
 
             $shift = $event->shifts()->create([
-                'name'                 => $shiftName,
-                'description'          => $request->description,
-                'start_time'           => $shiftStart,
-                'end_time'             => $shiftEnd,
-                'max_volunteers'       => $request->max_volunteers,
-                'double_hours'         => $doubleHours,
+                'name' => $shiftName,
+                'description' => $request->description,
+                'start_time' => $shiftStart,
+                'end_time' => $shiftEnd,
+                'max_volunteers' => $request->max_volunteers,
+                'double_hours' => $doubleHours,
                 'accessibility_conflicts' => $accessibilityConflicts,
-                'duplicate_series_id'  => $seriesId,
-                'duplicate_sequence'   => $i + 1,
+                'duplicate_series_id' => $seriesId,
+                'duplicate_sequence' => $i + 1,
             ]);
 
-            if (!empty($tagIds)) {
+            if (! empty($tagIds)) {
                 $shift->tags()->sync($tagIds);
             }
 
@@ -569,16 +573,16 @@ class ShiftController extends Controller
         }
 
         AuditLog::create([
-            'action'         => 'shift_series_created',
+            'action' => 'shift_series_created',
             'auditable_type' => Event::class,
-            'auditable_id'   => $event->id,
-            'comment'        => 'User ' . auth()->user()->name . ' created a series of ' . count($createdShifts) . " shifts named \"{$request->name}\" (series ID: {$seriesId})",
-            'user_id'        => auth()->id(),
+            'auditable_id' => $event->id,
+            'comment' => 'User '.auth()->user()->name.' created a series of '.count($createdShifts)." shifts named \"{$request->name}\" (series ID: {$seriesId})",
+            'user_id' => auth()->id(),
         ]);
 
         return redirect()->route('admin.events.shifts.index', $event)
             ->with('success', [
-                'message' => 'Successfully created <span class="text-brand-green">' . count($createdShifts) . ' shifts</span> in the series.',
+                'message' => 'Successfully created <span class="text-brand-green">'.count($createdShifts).' shifts</span> in the series.',
             ]);
     }
 
@@ -607,15 +611,15 @@ class ShiftController extends Controller
         $csv = Reader::createFromPath($path, 'r');
         $csv->setHeaderOffset(0); // use first row as header
 
-        $records = (new Statement())->process($csv);
+        $records = (new Statement)->process($csv);
 
         $created = 0;
         foreach ($records as $record) {
             $validator = Validator::make($record, [
-                'name'       => 'required|string|max:255',
-                'start_time'  => 'required|date',
-                'end_time'    => 'required|date|after:start_time',
-                'max_volunteers'    => 'nullable|integer|min:1',
+                'name' => 'required|string|max:255',
+                'start_time' => 'required|date',
+                'end_time' => 'required|date|after:start_time',
+                'max_volunteers' => 'nullable|integer|min:1',
                 'description' => 'nullable|string',
                 'double_hours' => 'nullable|boolean',
 
@@ -623,31 +627,32 @@ class ShiftController extends Controller
 
             if ($validator->fails()) {
                 \Log::debug('failed validation', $validator->errors()->toArray());
+
                 continue; // you could also collect errors to show later
             }
 
             $event->shifts()->create([
-                'name'       => $record['name'],
-                'start_time'  => $record['start_time'],
-                'end_time'    => $record['end_time'],
-                'max_volunteers'    => $record['max_volunteers'] ?? 1,
+                'name' => $record['name'],
+                'start_time' => $record['start_time'],
+                'end_time' => $record['end_time'],
+                'max_volunteers' => $record['max_volunteers'] ?? 1,
                 'description' => $record['description'] ?? null,
-                'double_hours' => isset($record['double_hours']) ? (bool)$record['double_hours'] : false,
+                'double_hours' => isset($record['double_hours']) ? (bool) $record['double_hours'] : false,
             ]);
 
             $created++;
         }
 
         AuditLog::create([
-            'action'         => 'csv_import',
+            'action' => 'csv_import',
             'auditable_type' => Event::class,
-            'auditable_id'   => $event->id,
-            'comment'        => "User " . auth()->user()->name . " imported $created shifts from CSV",
-            'user_id'        => auth()->id(),
+            'auditable_id' => $event->id,
+            'comment' => 'User '.auth()->user()->name." imported $created shifts from CSV",
+            'user_id' => auth()->id(),
         ]);
 
         return redirect()->route('admin.events.shifts.index', $event)->with('success', [
-                'message' => "$created shifts imported successfully.",
-            ]);
+            'message' => "$created shifts imported successfully.",
+        ]);
     }
 }

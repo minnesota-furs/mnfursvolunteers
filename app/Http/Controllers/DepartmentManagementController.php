@@ -2,20 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreDepartmentRosterRequest;
 use App\Models\AuditLog;
 use App\Models\Department;
+use App\Models\Event;
 use App\Models\FiscalLedger;
 use App\Models\Shift;
 use App\Models\VolunteerHours;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DepartmentManagementController extends Controller
 {
+    public function createRoster(Department $department): View
+    {
+        $this->authorize('manage', $department);
+
+        $department->load([
+            'heads' => fn ($query) => $query->orderBy('name'),
+        ]);
+
+        return view('departments.rosters.create', compact('department'));
+    }
+
     public function show(Request $request, Department $department): View
     {
         $this->authorize('manage', $department);
@@ -54,12 +69,21 @@ class DepartmentManagementController extends Controller
             ->map(fn ($member): string => "{$member->displayName()} <{$member->email}>")
             ->join(', ');
 
+        $departmentEvents = Event::query()
+            ->with(['creator:id,name', 'editors:id,name', 'shifts.users:id'])
+            ->withCount('shifts')
+            ->whereHas('requiredDepartments', fn (Builder $query) => $query->whereKey($department->id))
+            ->orderByDesc('start_date')
+            ->limit(20)
+            ->get();
+
         return view('departments.manage', [
             'department' => $department,
             'members' => $members,
             'currentLedger' => $currentLedger,
             'upcomingShifts' => $upcomingShifts,
             'bccList' => $bccList,
+            'departmentEvents' => $departmentEvents,
             'summary' => [
                 'staff' => $department->users()->count(),
                 'active' => $department->users()->where('active', true)->count(),
@@ -69,6 +93,45 @@ class DepartmentManagementController extends Controller
                     : 0,
             ],
         ]);
+    }
+
+    public function storeRoster(
+        StoreDepartmentRosterRequest $request,
+        Department $department
+    ): RedirectResponse {
+        $this->authorize('manage', $department);
+
+        $event = DB::transaction(function () use ($request, $department): Event {
+            $event = Event::query()->create([
+                ...$request->safe()->only([
+                    'name',
+                    'description',
+                    'start_date',
+                    'end_date',
+                    'location',
+                    'visibility',
+                ]),
+                'require_eligibility' => true,
+                'created_by' => $request->user()->id,
+            ]);
+
+            $event->requiredDepartments()->sync([$department->id]);
+            $event->editors()->sync(
+                $department->heads()
+                    ->where('users.id', '!=', $request->user()->id)
+                    ->pluck('users.id')
+                    ->all()
+            );
+
+            return $event;
+        });
+
+        return redirect()->route('admin.events.shifts.index', $event)
+            ->with('success', [
+                'message' => "Staffing roster <span class=\"text-brand-green\">{$event->name}</span> created. Add coverage shifts below.",
+                'action_text' => 'Back to Department',
+                'action_url' => route('departments.manage', $department),
+            ]);
     }
 
     public function export(Request $request, Department $department): StreamedResponse

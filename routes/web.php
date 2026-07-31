@@ -299,6 +299,8 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
     Route::get('/departments-by-sector', [DepartmentController::class, 'getDepartmentsBySector'])->name('get-departments-by-sector');
     Route::get('/departments/{department}/manage', [DepartmentManagementController::class, 'show'])->name('departments.manage');
     Route::get('/departments/{department}/staff-export', [DepartmentManagementController::class, 'export'])->name('departments.staff-export');
+    Route::get('/departments/{department}/staffing-rosters/create', [DepartmentManagementController::class, 'createRoster'])->name('departments.staffing-rosters.create');
+    Route::post('/departments/{department}/staffing-rosters', [DepartmentManagementController::class, 'storeRoster'])->name('departments.staffing-rosters.store');
     Route::get('/departments/{id}/delete', [DepartmentController::class, 'delete'])->middleware('isAdmin')->name('departments.delete_confirm');
 
     Route::resource('departments', DepartmentController::class)->only(['create', 'edit', 'store', 'destroy', 'update'])->middleware(['isAdmin']);
@@ -369,31 +371,40 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
 
     // Volunteer Events
     Route::middleware('can:manage-volunteer-events')->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/events/{event}/shift-tag-report', [ShiftTagReportController::class, 'eventReport'])->name('events.shift-tag-report');
         Route::get('/shift-tag-report', [ShiftTagReportController::class, 'crossEventReport'])->name('shift-tag-report');
         Route::get('/manager-dashboard', [ManagerDashboardController::class, 'index'])->name('manager-dashboard');
-        Route::resource('events', EventController::class);
-        Route::get('events/{event}/shifts/create-series', [ShiftController::class, 'createSeries'])->name('events.shifts.create-series');
-        Route::post('events/{event}/shifts/store-series', [ShiftController::class, 'storeSeries'])->name('events.shifts.store-series');
-        Route::post('events/{event}/shifts/import', [ShiftController::class, 'importCsv'])->name('events.shifts.import');
-        Route::delete('events/{event}/shifts/bulk-destroy', [ShiftController::class, 'bulkDestroy'])->name('events.shifts.bulk-destroy');
-        Route::patch('events/{event}/shifts/bulk-update', [ShiftController::class, 'bulkUpdate'])->name('events.shifts.bulk-update');
-        Route::resource('events.shifts', ShiftController::class)->except(['show']);
-        Route::post('events/{event}/shifts/{shift}/duplicate', [ShiftController::class, 'duplicate'])->name('events.shifts.duplicate');
-        Route::post('events/{event}/shifts/{shift}/advanced-duplicate', [ShiftController::class, 'advancedDuplicate'])->name('events.shifts.advanced-duplicate');
-        Route::delete('events/{event}/shifts/{shift}/remove-volunteer/{user}', [ShiftController::class, 'removeVolunteer'])->name('events.shifts.remove-volunteer');
-        Route::post('events/{event}/shifts/{shift}/add-volunteer/{user}', [ShiftController::class, 'addVolunteer'])->name('events.shifts.add-volunteer');
-        Route::patch('events/{event}/shifts/{shift}/no-show/{user}', [ShiftController::class, 'setNoShow'])->name('events.shifts.no-show');
-        Route::post('events/{event}/advanced-duplicate', [EventController::class, 'advancedDuplicate'])->name('events.advanced-duplicate');
-        Route::get('/events/{event}/volunteers', [EventController::class, 'volunteerList'])->name('events.volunteers');
-        Route::get('/events/{event}/allShifts', [EventController::class, 'indexWithShifts'])->name('events.allShifts');
-        Route::get('/events/{event}/allShifts/print', [EventController::class, 'indexWithShiftsPrint'])->name('events.allShifts.print');
-        Route::get('/events/{event}/manager-dashboard', [EventController::class, 'managerDashboard'])->name('events.manager-dashboard');
-        Route::get('/events/{event}/agenda', [EventController::class, 'agenda'])->name('events.agenda');
-        Route::get('/events/{event}/log', [EventController::class, 'log'])->name('events.log');
-        Route::get('/events/{event}/editors', [EventController::class, 'editors'])->name('events.editors');
-        Route::post('/events/{event}/editors', [EventController::class, 'addEditor'])->name('events.editors.add');
-        Route::delete('/events/{event}/editors/{user}', [EventController::class, 'removeEditor'])->name('events.editors.remove');
+        Route::resource('events', EventController::class)->only(['index', 'create', 'store']);
+    });
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/events/{event}/edit', [EventController::class, 'edit'])->middleware('can:update,event')->name('events.edit');
+        Route::put('/events/{event}', [EventController::class, 'update'])->middleware('can:update,event')->name('events.update');
+        Route::delete('/events/{event}', [EventController::class, 'destroy'])->middleware('can:delete,event')->name('events.destroy');
+
+        Route::middleware('can:update,event')->group(function () {
+            Route::get('/events/{event}/shift-tag-report', [ShiftTagReportController::class, 'eventReport'])->name('events.shift-tag-report');
+            Route::get('events/{event}/shifts/create-series', [ShiftController::class, 'createSeries'])->name('events.shifts.create-series');
+            Route::post('events/{event}/shifts/store-series', [ShiftController::class, 'storeSeries'])->name('events.shifts.store-series');
+            Route::post('events/{event}/shifts/import', [ShiftController::class, 'importCsv'])->name('events.shifts.import');
+            Route::delete('events/{event}/shifts/bulk-destroy', [ShiftController::class, 'bulkDestroy'])->name('events.shifts.bulk-destroy');
+            Route::patch('events/{event}/shifts/bulk-update', [ShiftController::class, 'bulkUpdate'])->name('events.shifts.bulk-update');
+            Route::resource('events.shifts', ShiftController::class)->except(['show'])->scoped();
+            Route::post('events/{event}/shifts/{shift}/duplicate', [ShiftController::class, 'duplicate'])->scopeBindings()->name('events.shifts.duplicate');
+            Route::post('events/{event}/shifts/{shift}/advanced-duplicate', [ShiftController::class, 'advancedDuplicate'])->scopeBindings()->name('events.shifts.advanced-duplicate');
+            Route::delete('events/{event}/shifts/{shift}/remove-volunteer/{user}', [ShiftController::class, 'removeVolunteer'])->scopeBindings()->name('events.shifts.remove-volunteer');
+            Route::post('events/{event}/shifts/{shift}/add-volunteer/{user}', [ShiftController::class, 'addVolunteer'])->name('events.shifts.add-volunteer');
+            Route::patch('events/{event}/shifts/{shift}/no-show/{user}', [ShiftController::class, 'setNoShow'])->scopeBindings()->name('events.shifts.no-show');
+            Route::post('events/{event}/advanced-duplicate', [EventController::class, 'advancedDuplicate'])->name('events.advanced-duplicate');
+            Route::get('/events/{event}/volunteers', [EventController::class, 'volunteerList'])->name('events.volunteers');
+            Route::get('/events/{event}/allShifts', [EventController::class, 'indexWithShifts'])->name('events.allShifts');
+            Route::get('/events/{event}/allShifts/print', [EventController::class, 'indexWithShiftsPrint'])->name('events.allShifts.print');
+            Route::get('/events/{event}/manager-dashboard', [EventController::class, 'managerDashboard'])->name('events.manager-dashboard');
+            Route::get('/events/{event}/agenda', [EventController::class, 'agenda'])->name('events.agenda');
+            Route::get('/events/{event}/log', [EventController::class, 'log'])->name('events.log');
+            Route::get('/events/{event}/editors', [EventController::class, 'editors'])->name('events.editors');
+            Route::post('/events/{event}/editors', [EventController::class, 'addEditor'])->name('events.editors.add');
+            Route::delete('/events/{event}/editors/{user}', [EventController::class, 'removeEditor'])->name('events.editors.remove');
+        });
     });
 
     Route::prefix('volunteer')->name('volunteer.')->group(function () {

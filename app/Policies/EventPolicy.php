@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Event;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class EventPolicy
 {
@@ -13,7 +12,7 @@ class EventPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin() || $user->hasPermission('manage-events');
+        return $user->isAdmin() || $user->hasPermission('manage-volunteer-events');
     }
 
     /**
@@ -29,7 +28,7 @@ class EventPolicy
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->hasPermission('manage-events');
+        return $user->isAdmin() || $user->hasPermission('manage-volunteer-events');
     }
 
     /**
@@ -38,7 +37,7 @@ class EventPolicy
     public function update(User $user, Event $event): bool
     {
         // Admin or user with manage-events permission can edit any event
-        if ($user->isAdmin() || $user->hasPermission('manage-events')) {
+        if ($user->isAdmin() || $user->hasPermission('manage-volunteer-events')) {
             return true;
         }
 
@@ -57,7 +56,7 @@ class EventPolicy
     public function delete(User $user, Event $event): bool
     {
         // Admin or user with manage-events permission can delete any event
-        if ($user->isAdmin() || $user->hasPermission('manage-events')) {
+        if ($user->isAdmin() || $user->hasPermission('manage-volunteer-events')) {
             return true;
         }
 
@@ -71,7 +70,7 @@ class EventPolicy
     public function manageEditors(User $user, Event $event): bool
     {
         // Admin or user with manage-events permission can manage editors
-        if ($user->isAdmin() || $user->hasPermission('manage-events')) {
+        if ($user->isAdmin() || $user->hasPermission('manage-volunteer-events')) {
             return true;
         }
 
@@ -84,7 +83,7 @@ class EventPolicy
      */
     public function restore(User $user, Event $event): bool
     {
-        return $user->isAdmin() || $user->hasPermission('manage-events');
+        return $user->isAdmin() || $user->hasPermission('manage-volunteer-events');
     }
 
     /**
@@ -92,6 +91,6 @@ class EventPolicy
      */
     public function forceDelete(User $user, Event $event): bool
     {
-        return $user->isAdmin() || $user->hasPermission('manage-events');
+        return $user->isAdmin() || $user->hasPermission('manage-volunteer-events');
     }
 }
