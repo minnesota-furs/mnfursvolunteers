@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Department;
-use App\Models\Event;
 use App\Models\Election;
+use App\Models\Event;
 use App\Models\JobApplication;
 use App\Models\OneOffEvent;
 use Illuminate\Support\Carbon;
@@ -18,23 +18,19 @@ class DashboardController extends Controller
         $now = Carbon::now();
 
         // Get upcoming volunteer events the user is eligible for
-        $userTagIds  = $user->tags()->pluck('tags.id')->toArray();
+        $userTagIds = $user->tags()->pluck('tags.id')->toArray();
         $userDeptIds = $user->departments()->pluck('departments.id')->toArray();
 
         $upcomingEvents = Event::visibleToAuthUsers()
             ->where('end_date', '>=', $now)
             ->orderBy('start_date')
-            ->with('requiredUserTags', 'requiredDepartments')
+            ->with('requiredUserTags', 'requiredDepartments', 'requiredSectors')
             ->get()
-            ->filter(function ($event) use ($userTagIds, $userDeptIds) {
+            ->filter(function ($event) use ($user, $userTagIds) {
                 $requiredTagIds = $event->requiredUserTags->pluck('id')->toArray();
                 $hasAllTags = empty(array_diff($requiredTagIds, $userTagIds));
 
-                $requiredDeptIds = $event->requiredDepartments->pluck('id')->toArray();
-                $hasRequiredDept = empty($requiredDeptIds)
-                    || !empty(array_intersect($requiredDeptIds, $userDeptIds));
-
-                return $hasAllTags && $hasRequiredDept;
+                return $hasAllTags && $event->userMeetsDepartmentRequirement($user);
             })
             ->take(5)
             ->values();
@@ -43,8 +39,8 @@ class DashboardController extends Controller
         $eligibleSimpleEvents = collect();
         if (feature_enabled('one_off_events')) {
             $eligibleSimpleEvents = OneOffEvent::where(function ($query) use ($now) {
-                    $query->where('end_time', '>=', $now)->orWhereNull('end_time');
-                })
+                $query->where('end_time', '>=', $now)->orWhereNull('end_time');
+            })
                 ->orderBy('start_time')
                 ->with('requiredUserTags', 'requiredDepartments', 'requiredSectors')
                 ->get()
@@ -57,7 +53,7 @@ class DashboardController extends Controller
                     $eligibleDeptIdPool = array_unique(array_merge($requiredDeptIds, $sectorDeptIds));
 
                     $hasRequiredDept = empty($eligibleDeptIdPool)
-                        || !empty(array_intersect($eligibleDeptIdPool, $userDeptIds));
+                        || ! empty(array_intersect($eligibleDeptIdPool, $userDeptIds));
 
                     return $hasAllTags && $hasRequiredDept;
                 })
@@ -78,22 +74,22 @@ class DashboardController extends Controller
             $query->where(function ($q) use ($now) {
                 // Elections in nomination period
                 $q->where('nomination_start_date', '<=', $now)
-                  ->where('nomination_end_date', '>=', $now);
+                    ->where('nomination_end_date', '>=', $now);
             })->orWhere(function ($q) use ($now) {
                 // Elections in voting period
                 $q->where('start_date', '<=', $now)
-                  ->where('end_date', '>=', $now);
+                    ->where('end_date', '>=', $now);
             });
         })->get();
 
         // Convert markdown to HTML using Parsedown for dashboard elections
         // For dashboard, only show content until first line break
-        $parsedown = new \Parsedown();
+        $parsedown = new \Parsedown;
         foreach ($activeElections as $election) {
             $firstParagraph = explode("\n\n", $election->description)[0];
             $firstLine = explode("\n", $firstParagraph)[0];
             $election->parsedDescription = $parsedown->text($firstLine);
-            
+
             // Check if user has already voted in this election
             $election->userHasVoted = $election->votes()->where('user_id', $user->id)->exists();
         }
@@ -108,7 +104,7 @@ class DashboardController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->take(10)
                 ->get();
-            
+
             $unclaimedPendingCount = JobApplication::where('status', 'pending')
                 ->whereNull('claimed_by')
                 ->count();
@@ -129,7 +125,7 @@ class DashboardController extends Controller
     {
         // Store the dismissal in session for 14 days
         session(['profile_completion_dismissed_until' => now()->addDays(14)]);
-        
+
         return response()->json(['success' => true]);
     }
 }

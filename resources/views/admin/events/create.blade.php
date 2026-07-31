@@ -218,8 +218,8 @@
 
                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <div>
-                        <dt class="text-sm font-medium leading-6 text-gray-900">Department Restrictions</dt>
-                        <p class="text-gray-500 text-sm mt-1">Only users assigned to the selected department(s) may pick up shifts. Leave all unchecked to allow any user.</p>
+                        <dt class="text-sm font-medium leading-6 text-gray-900">Department / Sector Restrictions</dt>
+                        <p class="text-gray-500 text-sm mt-1">Check "Entire sector" to allow any department under it, or check individual departments. A volunteer qualifies if they match any one selection. Leave all unchecked to allow any user.</p>
                     </div>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         @if(isset($sectors) && $sectors->isNotEmpty())
@@ -227,8 +227,17 @@
                                 @foreach ($sectors as $sector)
                                     @if($sector->departments->isNotEmpty())
                                         <div>
-                                            <div class="px-3 py-1.5 bg-gray-50 dark:bg-gray-700/50 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                                                {{ $sector->name }}
+                                            <div class="flex items-center justify-between gap-3 px-3 py-1.5 bg-gray-50 dark:bg-gray-700/50">
+                                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ $sector->name }}</span>
+                                                <label class="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="required_sectors[]"
+                                                        value="{{ $sector->id }}"
+                                                        {{ (isset($event) && $event->requiredSectors->contains($sector->id)) || (is_array(old('required_sectors')) && in_array($sector->id, old('required_sectors'))) ? 'checked' : '' }}
+                                                        class="rounded border-gray-300 text-brand-green shadow-sm focus:border-brand-green focus:ring focus:ring-green-200 focus:ring-opacity-50">
+                                                    <span class="text-xs font-medium text-gray-600 dark:text-gray-300">Entire sector</span>
+                                                </label>
                                             </div>
                                             <div class="px-3 py-2 space-y-1.5">
                                                 @foreach ($sector->departments as $department)
@@ -251,6 +260,7 @@
                             <p class="text-xs text-gray-500 italic">No departments available.</p>
                         @endif
                         <x-form-validation for="required_departments" />
+                        <x-form-validation for="required_sectors" />
                     </dd>
                 </div>
 

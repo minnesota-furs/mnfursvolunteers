@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Carbon;
-use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Shift;
+use Illuminate\Support\Carbon;
 
 class VolunteerEventController extends Controller
 {
@@ -14,52 +13,49 @@ class VolunteerEventController extends Controller
         $events = Event::visibleToAuthUsers()
             ->where('start_date', '>=', Carbon::now())
             ->orderBy('start_date')
-            ->with(['requiredTags', 'requiredUserTags', 'requiredDepartments', 'shifts.users'])
+            ->with(['requiredTags', 'requiredUserTags', 'requiredDepartments', 'requiredSectors', 'shifts.users'])
             ->withCount(['perks as active_perks_count' => fn ($q) => $q->where('is_active', true)])
             ->get();
 
         $pastEvents = Event::visibleToAuthUsers()
             ->where('start_date', '<', Carbon::now())
             ->orderByDesc('start_date')
-            ->with(['requiredTags', 'requiredUserTags', 'requiredDepartments', 'shifts.users'])
+            ->with(['requiredTags', 'requiredUserTags', 'requiredDepartments', 'requiredSectors', 'shifts.users'])
             ->withCount(['perks as active_perks_count' => fn ($q) => $q->where('is_active', true)])
             ->paginate(5, ['*'], 'past_page');
 
         $user = auth()->user();
         $userTagIds = $user->tags()->pluck('tags.id')->all();
         $userDeptIds = $user->departments()->pluck('departments.id')->all();
+        $userSectorIds = $user->departments()->pluck('sector_id')->unique()->all();
         $workedEventIds = $user->shifts()->pluck('event_id')->unique()->all();
 
-        return view('events.index', compact('events', 'pastEvents', 'userTagIds', 'userDeptIds', 'workedEventIds'));
+        return view('events.index', compact('events', 'pastEvents', 'userTagIds', 'userDeptIds', 'userSectorIds', 'workedEventIds'));
     }
 
     public function show(Event $event)
     {
         // Load users for use in shift->users and required tags/departments
-        $event->load('shifts.users', 'requiredTags', 'requiredUserTags', 'requiredDepartments', 'perks');
+        $event->load('shifts.users', 'requiredTags', 'requiredUserTags', 'requiredDepartments', 'requiredSectors', 'perks');
         $user = auth()->user();
         $hasSignedUpForEvent = $user->shifts()->where('event_id', $event->id)->exists();
 
         // Block ineligible users from viewing shifts if the event requires eligibility.
         // Keep existing signups accessible even if eligibility requirements changed later.
-        if ($event->require_eligibility && !$hasSignedUpForEvent) {
-            $userTagIds      = $user->tags()->pluck('tags.id')->toArray();
-            $requiredTagIds  = $event->requiredUserTags->pluck('id')->toArray();
-            $hasAllTags      = empty(array_diff($requiredTagIds, $userTagIds));
+        if ($event->require_eligibility && ! $hasSignedUpForEvent) {
+            $userTagIds = $user->tags()->pluck('tags.id')->toArray();
+            $requiredTagIds = $event->requiredUserTags->pluck('id')->toArray();
+            $hasAllTags = empty(array_diff($requiredTagIds, $userTagIds));
 
-            $userDeptIds     = $user->departments()->pluck('departments.id')->toArray();
-            $requiredDeptIds = $event->requiredDepartments->pluck('id')->toArray();
-            $hasRequiredDept = empty($requiredDeptIds)
-                || !empty(array_intersect($requiredDeptIds, $userDeptIds));
+            $hasRequiredDept = $event->userMeetsDepartmentRequirement($user);
 
-            if (!$hasAllTags || !$hasRequiredDept) {
+            if (! $hasAllTags || ! $hasRequiredDept) {
                 abort(403, 'You are not eligible to view this event\'s shifts.');
             }
         }
 
         $shifts = $event->shifts
-            ->when($event->hide_past_shifts, fn ($shifts) =>
-                $shifts->filter(fn ($shift) => $shift->start_time->isFuture())
+            ->when($event->hide_past_shifts, fn ($shifts) => $shifts->filter(fn ($shift) => $shift->start_time->isFuture())
             )
             ->sortBy('start_time')
             ->values(); // reindex
@@ -87,20 +83,19 @@ class VolunteerEventController extends Controller
         // Build a map of shift conflicts
         $shiftConflicts = [];
         foreach ($shifts as $shift) {
-            $conflictingShifts = $allUserShifts->filter(function($userShift) use ($shift) {
+            $conflictingShifts = $allUserShifts->filter(function ($userShift) use ($shift) {
                 // Skip if it's the same shift (already signed up)
                 if ($userShift->id === $shift->id) {
                     return false;
                 }
-                
+
                 // Check for time overlap
-                return (
+                return
                     ($userShift->start_time <= $shift->start_time && $userShift->end_time > $shift->start_time) ||
                     ($userShift->start_time < $shift->end_time && $userShift->end_time >= $shift->end_time) ||
-                    ($userShift->start_time >= $shift->start_time && $userShift->end_time <= $shift->end_time)
-                );
+                    ($userShift->start_time >= $shift->start_time && $userShift->end_time <= $shift->end_time);
             });
-            
+
             if ($conflictingShifts->isNotEmpty()) {
                 $shiftConflicts[$shift->id] = $conflictingShifts;
             }
@@ -177,14 +172,14 @@ class VolunteerEventController extends Controller
                     }
                 }
 
-                if (!$hasConflict) {
+                if (! $hasConflict) {
                     $columns[$columnIndex][] = $shift;
                     $placed = true;
                     break;
                 }
             }
 
-            if (!$placed) {
+            if (! $placed) {
                 $columns[] = [$shift];
             }
         }
@@ -210,42 +205,39 @@ class VolunteerEventController extends Controller
         }
 
         $shift->load('users', 'tags');
-        $event->load('requiredTags', 'requiredUserTags', 'requiredDepartments');
+        $event->load('requiredTags', 'requiredUserTags', 'requiredDepartments', 'requiredSectors');
 
         $user = auth()->user();
 
-        $userTagIds     = $user->tags()->pluck('tags.id')->toArray();
+        $userTagIds = $user->tags()->pluck('tags.id')->toArray();
         $requiredTagIds = $event->requiredUserTags->pluck('id')->toArray();
-        $hasAllTags     = empty(array_diff($requiredTagIds, $userTagIds));
+        $hasAllTags = empty(array_diff($requiredTagIds, $userTagIds));
 
-        $userDeptIds           = $user->departments()->pluck('departments.id')->toArray();
-        $requiredDeptIds       = $event->requiredDepartments->pluck('id')->toArray();
-        $hasRequiredDepartment = $event->requiredDepartments->isEmpty()
-            || !empty(array_intersect($requiredDeptIds, $userDeptIds));
+        $hasRequiredDepartment = $event->userMeetsDepartmentRequirement($user);
 
         $canSignUp = $hasAllTags && $hasRequiredDepartment;
 
         // Check for schedule conflicts against all of the user's other shifts
-        $allUserShifts     = $user->shifts()->with('event')->get();
+        $allUserShifts = $user->shifts()->with('event')->get();
         $conflictingShifts = $allUserShifts->filter(function ($userShift) use ($shift) {
             if ($userShift->id === $shift->id) {
                 return false;
             }
-            return (
+
+            return
                 ($userShift->start_time <= $shift->start_time && $userShift->end_time > $shift->start_time) ||
-                ($userShift->start_time < $shift->end_time   && $userShift->end_time >= $shift->end_time)  ||
-                ($userShift->start_time >= $shift->start_time && $userShift->end_time <= $shift->end_time)
-            );
+                ($userShift->start_time < $shift->end_time && $userShift->end_time >= $shift->end_time) ||
+                ($userShift->start_time >= $shift->start_time && $userShift->end_time <= $shift->end_time);
         });
 
-        $signedUp    = $shift->users->contains($user->id);
-        $isFull      = $shift->users->count() >= $shift->max_volunteers;
-        $isPast      = $shift->start_time->isPast();
+        $signedUp = $shift->users->contains($user->id);
+        $isFull = $shift->users->count() >= $shift->max_volunteers;
+        $isPast = $shift->start_time->isPast();
         $hasConflict = $conflictingShifts->isNotEmpty();
 
         // Block ineligible users from viewing the shift if the event requires eligibility.
         // Keep access for users already signed up on this shift.
-        if ($event->require_eligibility && !$canSignUp && !$signedUp) {
+        if ($event->require_eligibility && ! $canSignUp && ! $signedUp) {
             abort(403, 'You are not eligible to view this shift.');
         }
 
@@ -282,7 +274,7 @@ class VolunteerEventController extends Controller
             return $shift->double_hours ? $shift->durationInHours() * 2 : $shift->durationInHours();
         });
 
-        $shiftsRemaining = $shifts->filter(fn($shift) => $shift->start_time->isFuture())->count();
+        $shiftsRemaining = $shifts->filter(fn ($shift) => $shift->start_time->isFuture())->count();
 
         return view('events.my-shifts', compact('event', 'shifts', 'futureShifts', 'totalVolunteerHours', 'shiftsRemaining'));
     }
@@ -297,21 +289,21 @@ class VolunteerEventController extends Controller
             ->orderBy('start_time')
             ->get();
 
-        $futureShifts = $shifts->filter(fn($shift) => $shift->start_time->isFuture());
+        $futureShifts = $shifts->filter(fn ($shift) => $shift->start_time->isFuture());
 
         // Add up hours across all shifts and double the shifts that have double_hours set
         $totalVolunteerHours = $shifts->sum(function ($shift) {
             return $shift->double_hours ? $shift->durationInHours() * 2 : $shift->durationInHours();
         });
 
-        $shiftsRemaining = $shifts->filter(fn($shift) => $shift->start_time->isFuture())->count();
+        $shiftsRemaining = $shifts->filter(fn ($shift) => $shift->start_time->isFuture())->count();
 
         return view('events.my-shifts-all', compact('shifts', 'futureShifts', 'totalVolunteerHours', 'shiftsRemaining'));
     }
 
     public function faq(Event $event)
     {
-        if (!$event->faq) {
+        if (! $event->faq) {
             abort(404);
         }
 

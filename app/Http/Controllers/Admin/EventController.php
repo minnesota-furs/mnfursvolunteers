@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Requests\AdvancedDuplicateEventRequest;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Event;
-use App\Models\User;
+use App\Http\Requests\AdvancedDuplicateEventRequest;
+use App\Http\Requests\SaveEventRequest;
 use App\Models\AuditLog;
+use App\Models\Event;
+use App\Models\Sector;
+use App\Models\Tag;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
@@ -18,19 +22,19 @@ class EventController extends Controller
     {
         $showPast = $request->boolean('show_past');
         $showMine = $request->boolean('show_mine');
-        
-        $query = Event::with(['creator', 'editors', 'requiredTags', 'requiredDepartments', 'shifts.users'])->orderBy('start_date', 'asc');
-        
-        if (!$showPast) {
+
+        $query = Event::with(['creator', 'editors', 'requiredTags', 'requiredDepartments', 'requiredSectors', 'shifts.users'])->orderBy('start_date', 'asc');
+
+        if (! $showPast) {
             $query->upcoming();
         }
-        
+
         if ($showMine) {
             $query->editableBy(auth()->id());
         }
-        
+
         $events = $query->get();
-        
+
         return view('admin.events.index', compact('events', 'showPast', 'showMine'));
     }
 
@@ -39,45 +43,29 @@ class EventController extends Controller
      */
     public function create()
     {
-        $tags = \App\Models\Tag::forUsers()->orderBy('name')->get();
-        $sectors = \App\Models\Sector::with(['departments' => fn($q) => $q->orderBy('name')])->orderBy('name')->get();
+        $tags = Tag::forUsers()->orderBy('name')->get();
+        $sectors = Sector::with(['departments' => fn ($q) => $q->orderBy('name')])->orderBy('name')->get();
+
         return view('admin.events.create', compact('tags', 'sectors'));
     }
-    
+
     public function log(Event $event)
     {
         $this->authorize('update', $event);
-        
+
         $logs = AuditLog::where('auditable_type', Event::class)
             ->where('auditable_id', $event->id)
             ->latest()
             ->paginate(20);
+
         return view('admin.events.log', compact('event', 'logs'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(SaveEventRequest $request)
     {
-        $request->validate([
-            'name'        => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'faq'         => 'nullable|string',
-            'start_date'  => 'required|date',
-            'end_date'    => 'required|date|after_or_equal:start_date',
-            'signup_open_date' => 'nullable|date|before_or_equal:end_date',
-            'location'    => 'nullable|string',
-            'visibility' => 'required|in:public,unlisted,internal,draft',
-            'hide_past_shifts' => 'nullable|boolean',
-            'auto_credit_hours' => 'nullable|boolean',
-            'require_eligibility' => 'nullable|boolean',
-            'required_tags' => 'nullable|array',
-            'required_tags.*' => 'exists:tags,id',
-            'required_departments' => 'nullable|array',
-            'required_departments.*' => 'exists:departments,id',
-        ]);
-
         // Normalize checkbox (unchecked checkboxes don't get sent)
         $validated['hide_past_shifts'] = $request->has('hide_past_shifts');
         $validated['auto_credit_hours'] = $request->has('auto_credit_hours');
@@ -94,6 +82,7 @@ class EventController extends Controller
 
         // Sync required departments
         $event->requiredDepartments()->sync($request->input('required_departments', []));
+        $event->requiredSectors()->sync($request->input('required_sectors', []));
 
         return redirect()->route('admin.events.index')
             ->with('success', [
@@ -115,52 +104,34 @@ class EventController extends Controller
     public function edit(Event $event)
     {
         $this->authorize('update', $event);
-        
-        $event->load('requiredTags', 'requiredDepartments');
-        $tags = \App\Models\Tag::forUsers()->orderBy('name')->get();
-        $sectors = \App\Models\Sector::with(['departments' => fn($q) => $q->orderBy('name')])->orderBy('name')->get();
+
+        $event->load('requiredTags', 'requiredDepartments', 'requiredSectors');
+        $tags = Tag::forUsers()->orderBy('name')->get();
+        $sectors = Sector::with(['departments' => fn ($q) => $q->orderBy('name')])->orderBy('name')->get();
+
         return view('admin.events.create', compact('event', 'tags', 'sectors'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Event $event)
+    public function update(SaveEventRequest $request, Event $event)
     {
         $this->authorize('update', $event);
-        
-        $request->validate([
-            'name'        => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'faq'         => 'nullable|string',
-            'start_date'  => 'required|date',
-            'end_date'    => 'required|date|after_or_equal:start_date',
-            'signup_open_date' => 'nullable|date|before_or_equal:end_date',
-            'location'    => 'nullable|string',
-            'visibility' => 'required|in:public,unlisted,internal,draft',
-            'hide_past_shifts' => 'nullable|boolean',
-            'auto_credit_hours' => 'nullable|boolean',
-            'require_eligibility' => 'nullable|boolean',
-            'created_by' => 'nullable|exists:users,id',
-            'required_tags' => 'nullable|array',
-            'required_tags.*' => 'exists:tags,id',
-            'required_departments' => 'nullable|array',
-            'required_departments.*' => 'exists:departments,id',
-        ]);
 
         // Build update data
         $updateData = $request->only(['name', 'description', 'faq', 'start_date', 'end_date', 'signup_open_date', 'location', 'visibility']);
-        
+
         // Normalize checkbox (unchecked checkboxes don't get sent)
         $updateData['hide_past_shifts'] = $request->has('hide_past_shifts');
         $updateData['auto_credit_hours'] = $request->has('auto_credit_hours');
         $updateData['require_eligibility'] = $request->has('require_eligibility');
-        
+
         // Only admins with manage-events permission can change the creator
         if ($request->has('created_by') && auth()->user()->isAdmin()) {
             $updateData['created_by'] = $request->created_by;
         }
-        
+
         $event->update($updateData);
 
         // Sync required tags
@@ -168,10 +139,11 @@ class EventController extends Controller
 
         // Sync required departments
         $event->requiredDepartments()->sync($request->input('required_departments', []));
+        $event->requiredSectors()->sync($request->input('required_sectors', []));
 
         return redirect()->route('admin.events.index')
             ->with('success', [
-                'message' => "Event <span class=\"text-brand-green\">{$event->name}</span> updated successfully"
+                'message' => "Event <span class=\"text-brand-green\">{$event->name}</span> updated successfully",
             ]);
     }
 
@@ -181,18 +153,18 @@ class EventController extends Controller
     public function destroy(Event $event)
     {
         $this->authorize('delete', $event);
-        
+
         $event->delete();
 
         return redirect()->route('admin.events.index')->with('success', [
-            'message' => "Event <span class=\"text-brand-green\">{$event->name}</span> deleted"
+            'message' => "Event <span class=\"text-brand-green\">{$event->name}</span> deleted",
         ]);
     }
 
     public function volunteerList(Event $event)
     {
         $this->authorize('update', $event);
-        
+
         $volunteers = $event->shifts()
             ->with('users')
             ->get()
@@ -201,42 +173,42 @@ class EventController extends Controller
             ->unique('id')
             ->values();
 
-        $bccList = $volunteers->map(fn($v) => "{$v->name}<{$v->email}>")->join(',');
+        $bccList = $volunteers->map(fn ($v) => "{$v->name}<{$v->email}>")->join(',');
 
         return view('admin.events.volunteers', compact('event', 'volunteers', 'bccList'));
     }
 
     public function indexWithShifts(Event $event)
-        {
-            $this->authorize('update', $event);
-            
-            $events = $event->shifts()
-                ->with('users')
-                ->orderBy('start_time')
-                ->get();
+    {
+        $this->authorize('update', $event);
 
-            $shifts = $events->groupBy(function ($shift) {
-                return $shift->start_time->format('Y-m-d');
-            });
+        $events = $event->shifts()
+            ->with('users')
+            ->orderBy('start_time')
+            ->get();
 
-            return view('admin.shifts.allShifts', compact('event', 'shifts'));
-        }
+        $shifts = $events->groupBy(function ($shift) {
+            return $shift->start_time->format('Y-m-d');
+        });
+
+        return view('admin.shifts.allShifts', compact('event', 'shifts'));
+    }
 
     public function indexWithShiftsPrint(Event $event)
-        {
-            $this->authorize('update', $event);
-            
-            $events = $event->shifts()
-                ->with('users')
-                ->orderBy('start_time')
-                ->get();
+    {
+        $this->authorize('update', $event);
 
-            $shifts = $events->groupBy(function ($shift) {
-                return $shift->start_time->format('Y-m-d');
-            });
+        $events = $event->shifts()
+            ->with('users')
+            ->orderBy('start_time')
+            ->get();
 
-            return view('admin.shifts.allShiftsPrint', compact('event', 'shifts'));
-        }
+        $shifts = $events->groupBy(function ($shift) {
+            return $shift->start_time->format('Y-m-d');
+        });
+
+        return view('admin.shifts.allShiftsPrint', compact('event', 'shifts'));
+    }
 
     /**
      * Display the live manager dashboard for a single event.
@@ -245,23 +217,23 @@ class EventController extends Controller
     {
         $this->authorize('update', $event);
 
-        $now            = \Carbon\Carbon::now();
+        $now = Carbon::now();
         $upcomingWindow = $now->copy()->addHours(3);
-        $recentWindow   = $now->copy()->subHours(2);
+        $recentWindow = $now->copy()->subHours(2);
 
         $allShifts = $event->shifts()
             ->with(['users', 'event'])
             ->orderBy('start_time')
             ->get();
 
-        $activeShifts   = $allShifts->filter(fn ($s) => $s->start_time->lte($now) && $s->end_time->gte($now));
+        $activeShifts = $allShifts->filter(fn ($s) => $s->start_time->lte($now) && $s->end_time->gte($now));
         $upcomingShifts = $allShifts->filter(fn ($s) => $s->start_time->gt($now) && $s->start_time->lte($upcomingWindow));
-        $recentShifts   = $allShifts->filter(fn ($s) => $s->end_time->lt($now) && $s->end_time->gte($recentWindow))
-                                    ->sortByDesc('end_time');
-        $laterShifts    = $allShifts->filter(fn ($s) => $s->start_time->gt($upcomingWindow))
-                                    ->sortBy('start_time');
+        $recentShifts = $allShifts->filter(fn ($s) => $s->end_time->lt($now) && $s->end_time->gte($recentWindow))
+            ->sortByDesc('end_time');
+        $laterShifts = $allShifts->filter(fn ($s) => $s->start_time->gt($upcomingWindow))
+            ->sortBy('start_time');
 
-        $totalSlots  = $allShifts->sum('max_volunteers');
+        $totalSlots = $allShifts->sum('max_volunteers');
         $filledSlots = $allShifts->sum(fn ($s) => $s->users->count());
         $coveragePct = $totalSlots > 0 ? round(($filledSlots / $totalSlots) * 100) : 0;
         $emptyShifts = $allShifts->filter(fn ($s) => $s->users->isEmpty())->count();
@@ -286,7 +258,7 @@ class EventController extends Controller
     public function agenda(Event $event)
     {
         $this->authorize('update', $event);
-        
+
         $shifts = $event->shifts()
             ->with('users')
             ->orderBy('start_time')
@@ -300,15 +272,15 @@ class EventController extends Controller
         // Calculate time range for the calendar (earliest to latest)
         $earliestHour = 24;
         $latestHour = 0;
-        
+
         foreach ($shifts as $shift) {
             $startHour = (int) $shift->start_time->format('G');
             $endHour = (int) $shift->end_time->format('G');
-            
+
             if ($shift->end_time->format('i') > 0) {
                 $endHour++; // Round up if there are minutes
             }
-            
+
             $earliestHour = min($earliestHour, $startHour);
             $latestHour = max($latestHour, $endHour);
         }
@@ -340,10 +312,10 @@ class EventController extends Controller
         }
 
         return view('admin.shifts.agenda', compact(
-            'event', 
-            'shifts', 
-            'shiftsByDate', 
-            'earliestHour', 
+            'event',
+            'shifts',
+            'shiftsByDate',
+            'earliestHour',
             'latestHour',
             'totalSlots',
             'filledSlots',
@@ -356,17 +328,17 @@ class EventController extends Controller
     {
         // Sort shifts by start time
         $sortedShifts = $shifts->sortBy('start_time')->values();
-        
+
         $columns = [];
         $shiftPositions = [];
-        
+
         foreach ($sortedShifts as $shift) {
             $placed = false;
-            
+
             // Try to place shift in an existing column
             foreach ($columns as $columnIndex => $columnShifts) {
                 $hasConflict = false;
-                
+
                 foreach ($columnShifts as $existingShift) {
                     // Check if shifts overlap (with 1-minute buffer to allow back-to-back)
                     if ($shift->start_time->lt($existingShift->end_time->copy()->subMinute()) &&
@@ -375,24 +347,24 @@ class EventController extends Controller
                         break;
                     }
                 }
-                
-                if (!$hasConflict) {
+
+                if (! $hasConflict) {
                     // Place in this column
                     $columns[$columnIndex][] = $shift;
                     $placed = true;
                     break;
                 }
             }
-            
-            if (!$placed) {
+
+            if (! $placed) {
                 // Create new column
                 $columns[] = [$shift];
             }
         }
-        
+
         // Calculate total columns needed (max columns at any time)
         $maxColumns = count($columns);
-        
+
         // Assign positions to each shift
         foreach ($columns as $columnIndex => $columnShifts) {
             foreach ($columnShifts as $shift) {
@@ -412,13 +384,13 @@ class EventController extends Controller
     public function editors(Event $event)
     {
         $this->authorize('manageEditors', $event);
-        
+
         $editors = $event->editors()->get();
         $availableUsers = User::whereNotIn('id', $editors->pluck('id'))
             ->where('id', '!=', $event->created_by)
             ->orderBy('name')
             ->get();
-        
+
         return view('admin.events.editors', compact('event', 'editors', 'availableUsers'));
     }
 
@@ -428,30 +400,31 @@ class EventController extends Controller
     public function addEditor(Request $request, Event $event)
     {
         $this->authorize('manageEditors', $event);
-        
+
         $request->validate([
             'user_id' => 'required|exists:users,id',
         ]);
-        
+
         // Prevent adding the creator as an editor (they already have full access)
         if ($request->user_id == $event->created_by) {
             return redirect()->back()->with('error', [
-                'message' => 'The event creator already has full edit permissions.'
+                'message' => 'The event creator already has full edit permissions.',
             ]);
         }
-        
+
         // Check if already an editor
         if ($event->editors()->where('user_id', $request->user_id)->exists()) {
             return redirect()->back()->with('error', [
-                'message' => 'This user already has edit permissions for this event.'
+                'message' => 'This user already has edit permissions for this event.',
             ]);
         }
-        
+
         $event->editors()->attach($request->user_id);
-        
+
         $user = User::find($request->user_id);
+
         return redirect()->back()->with('success', [
-            'message' => "Added <span class=\"text-brand-green\">{$user->name}</span> as an editor for this event."
+            'message' => "Added <span class=\"text-brand-green\">{$user->name}</span> as an editor for this event.",
         ]);
     }
 
@@ -461,11 +434,11 @@ class EventController extends Controller
     public function removeEditor(Event $event, User $user)
     {
         $this->authorize('manageEditors', $event);
-        
+
         $event->editors()->detach($user->id);
-        
+
         return redirect()->back()->with('success', [
-            'message' => "Removed <span class=\"text-brand-green\">{$user->name}</span> as an editor for this event."
+            'message' => "Removed <span class=\"text-brand-green\">{$user->name}</span> as an editor for this event.",
         ]);
     }
 
@@ -475,6 +448,7 @@ class EventController extends Controller
     public function showDuplicateModal(Event $event)
     {
         $this->authorize('update', $event);
+
         return response()->json([
             'event' => $event,
             'shifts_count' => $event->shifts()->count(),
@@ -487,7 +461,7 @@ class EventController extends Controller
     public function advancedDuplicate(AdvancedDuplicateEventRequest $request, Event $event)
     {
         $this->authorize('update', $event);
-        
+
         $validated = $request->validated();
 
         try {
@@ -501,7 +475,7 @@ class EventController extends Controller
             if ($validated['adjust_event_dates'] ?? false) {
                 $offsetValue = $validated['event_date_offset_value'] ?? 1;
                 $offsetUnit = $validated['event_date_offset_unit'] ?? 'days';
-                
+
                 $eventDateOffset = [
                     'value' => $offsetValue,
                     'unit' => $offsetUnit,
@@ -544,6 +518,8 @@ class EventController extends Controller
             // Always copy required departments
             $deptIds = $event->requiredDepartments()->pluck('departments.id')->toArray();
             $newEvent->requiredDepartments()->sync($deptIds);
+            $sectorIds = $event->requiredSectors()->pluck('sectors.id')->toArray();
+            $newEvent->requiredSectors()->sync($sectorIds);
 
             // Duplicate shifts without volunteers
             $shiftMapping = []; // Map old shift IDs to new shift IDs
@@ -588,20 +564,20 @@ class EventController extends Controller
 
             // Log the action
             AuditLog::create([
-                'action'         => 'event_advanced_duplicate',
+                'action' => 'event_advanced_duplicate',
                 'auditable_type' => Event::class,
-                'auditable_id'   => $newEvent->id,
-                'comment'        => "User " . auth()->user()->name . " duplicated event '{$event->name}' (ID: {$event->id}) as '{$newEvent->name}' with " . count($shiftMapping) . " shifts (no volunteers copied)",
-                'user_id'        => auth()->id(),
+                'auditable_id' => $newEvent->id,
+                'comment' => 'User '.auth()->user()->name." duplicated event '{$event->name}' (ID: {$event->id}) as '{$newEvent->name}' with ".count($shiftMapping).' shifts (no volunteers copied)',
+                'user_id' => auth()->id(),
             ]);
 
             return redirect()->route('admin.events.index')
                 ->with('success', [
-                    'message' => "Event <span class=\"text-brand-green\">{$validated['event_name']}</span> created with " . count($shiftMapping) . " shifts",
+                    'message' => "Event <span class=\"text-brand-green\">{$validated['event_name']}</span> created with ".count($shiftMapping).' shifts',
                 ]);
         } catch (\Exception $e) {
             return back()->with('error', [
-                'message' => 'Failed to duplicate event: ' . $e->getMessage(),
+                'message' => 'Failed to duplicate event: '.$e->getMessage(),
             ]);
         }
     }

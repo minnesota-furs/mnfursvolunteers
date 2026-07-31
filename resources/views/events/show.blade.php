@@ -161,10 +161,7 @@
         $requiredTagIds = $event->requiredTags->pluck('id')->toArray();
         $hasAllTags    = empty(array_diff($requiredTagIds, $userTagIds));
 
-        $userDeptIds        = auth()->user()->departments()->pluck('departments.id')->toArray();
-        $requiredDeptIds    = $event->requiredDepartments->pluck('id')->toArray();
-        $hasRequiredDepartment = $event->requiredDepartments->isEmpty()
-            || !empty(array_intersect($requiredDeptIds, $userDeptIds));
+        $hasRequiredDepartment = $event->userMeetsDepartmentRequirement(auth()->user());
 
         $canSignUp = $hasAllTags && $hasRequiredDepartment;
 
@@ -233,7 +230,7 @@
         @endif
 
         {{-- ── Restriction / requirement banners ───────────────────────── --}}
-        @if($event->requiredDepartments->isNotEmpty())
+        @if($event->requiredDepartments->isNotEmpty() || $event->requiredSectors->isNotEmpty())
             <div class="flex items-start gap-3 rounded-xl border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 p-4">
                 <x-heroicon-s-exclamation-triangle class="w-5 h-5 flex-shrink-0 mt-0.5 text-yellow-600 dark:text-yellow-400"/>
                 <div class="min-w-0">
@@ -245,10 +242,15 @@
                                 {{ $dept->name }}
                             </span>
                         @endforeach
+                        @foreach($event->requiredSectors as $sector)
+                            <span class="inline-flex items-center rounded-md bg-yellow-100 dark:bg-yellow-900/40 px-2.5 py-1 text-xs font-medium text-yellow-800 dark:text-yellow-200 ring-1 ring-inset ring-yellow-300 dark:ring-yellow-700">
+                                Any department in {{ $sector->name }}
+                            </span>
+                        @endforeach
                     </div>
                     @if(!$hasRequiredDepartment)
                         <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-2 font-medium">
-                            You are not assigned to any of the required departments and cannot sign up for shifts.
+                            You are not assigned to any of the required departments or sectors and cannot sign up for shifts.
                         </p>
                     @endif
                 </div>

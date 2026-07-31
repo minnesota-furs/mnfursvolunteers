@@ -93,6 +93,9 @@
                                                 @if($event->requiredDepartments->isNotEmpty())
                                                     <x-heroicon-s-building-office class="w-4 h-4 inline text-amber-500" title="Department limited ({{ $event->requiredDepartments->pluck('name')->join(', ') }})"/>
                                                 @endif
+                                                @if($event->requiredSectors->isNotEmpty())
+                                                    <x-heroicon-s-squares-2x2 class="w-4 h-4 inline text-amber-500" title="Sector limited ({{ $event->requiredSectors->pluck('name')->join(', ') }})"/>
+                                                @endif
                                                 @if ($event->hasPast())
                                                     <span>(Past Event)</span>
                                                 @endif

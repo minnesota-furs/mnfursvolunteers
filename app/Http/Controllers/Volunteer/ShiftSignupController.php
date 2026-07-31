@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Volunteer;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Shift;
 use App\Models\AuditLog;
 use App\Models\Event;
+use App\Models\Shift;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 class ShiftSignupController extends Controller
 {
@@ -24,69 +24,72 @@ class ShiftSignupController extends Controller
         }
 
         // Check if event has required tags
-        $event = $shift->event()->with('requiredUserTags', 'requiredDepartments')->first();
+        $event = $shift->event()->with('requiredUserTags', 'requiredDepartments', 'requiredSectors')->first();
         if ($event->requiredUserTags->isNotEmpty()) {
             $userTagIds = $user->tags()->pluck('tags.id')->toArray();
             $requiredTagIds = $event->requiredUserTags->pluck('id')->toArray();
-            
+
             // Check if user has ALL required tags
             $missingTags = array_diff($requiredTagIds, $userTagIds);
-            if (!empty($missingTags)) {
+            if (! empty($missingTags)) {
                 $missingTagNames = $event->requiredUserTags->whereIn('id', $missingTags)->pluck('name')->toArray();
-                return back()->with('error', 'You must have the following tag(s) to sign up for this event: ' . implode(', ', $missingTagNames));
+
+                return back()->with('error', 'You must have the following tag(s) to sign up for this event: '.implode(', ', $missingTagNames));
             }
         }
 
         // Check if event restricts to specific departments
-        if ($event->requiredDepartments->isNotEmpty()) {
-            $userDeptIds = $user->departments()->pluck('departments.id')->toArray();
-            $requiredDeptIds = $event->requiredDepartments->pluck('id')->toArray();
+        if (! $event->userMeetsDepartmentRequirement($user)) {
+            $departmentNames = $event->requiredDepartments->pluck('name');
+            $sectorNames = $event->requiredSectors->pluck('name')->map(
+                fn (string $name): string => "any department in {$name}"
+            );
 
-            // User must belong to at least one of the required departments
-            if (empty(array_intersect($requiredDeptIds, $userDeptIds))) {
-                $deptNames = $event->requiredDepartments->pluck('name')->join(', ');
-                return back()->with('error', 'You must be assigned to one of the following department(s) to sign up for shifts in this event: ' . $deptNames);
-            }
+            return back()->with(
+                'error',
+                'You must be assigned to one of the following departments or sectors to sign up for shifts in this event: '
+                .$departmentNames->merge($sectorNames)->join(', ')
+            );
         }
 
         // Check for conflicting shifts
         $conflictingShifts = $user->shifts()
-            ->where(function($query) use ($shift) {
+            ->where(function ($query) use ($shift) {
                 // Check if any of user's shifts overlap with the new shift
-                $query->where(function($q) use ($shift) {
+                $query->where(function ($q) use ($shift) {
                     // New shift starts during an existing shift
                     $q->where('start_time', '<=', $shift->start_time)
-                      ->where('end_time', '>', $shift->start_time);
+                        ->where('end_time', '>', $shift->start_time);
                 })
-                ->orWhere(function($q) use ($shift) {
-                    // New shift ends during an existing shift
-                    $q->where('start_time', '<', $shift->end_time)
-                      ->where('end_time', '>=', $shift->end_time);
-                })
-                ->orWhere(function($q) use ($shift) {
-                    // New shift completely contains an existing shift
-                    $q->where('start_time', '>=', $shift->start_time)
-                      ->where('end_time', '<=', $shift->end_time);
-                });
+                    ->orWhere(function ($q) use ($shift) {
+                        // New shift ends during an existing shift
+                        $q->where('start_time', '<', $shift->end_time)
+                            ->where('end_time', '>=', $shift->end_time);
+                    })
+                    ->orWhere(function ($q) use ($shift) {
+                        // New shift completely contains an existing shift
+                        $q->where('start_time', '>=', $shift->start_time)
+                            ->where('end_time', '<=', $shift->end_time);
+                    });
             })
             ->get();
 
         if ($conflictingShifts->isNotEmpty()) {
-            $conflictDetails = $conflictingShifts->map(function($s) {
+            $conflictDetails = $conflictingShifts->map(function ($s) {
                 return "{$s->event->name} - {$s->name} ({$s->start_time->format('M j, g:i A')} - {$s->end_time->format('g:i A')})";
             })->join(', ');
-            
+
             return back()->with('error', "You cannot sign up for this shift because it conflicts with: {$conflictDetails}");
         }
 
         $shift->users()->attach($user->id, ['signed_up_at' => now()]);
 
         AuditLog::create([
-            'action'         => 'shift_signup',
+            'action' => 'shift_signup',
             'auditable_type' => Event::class,
-            'auditable_id'   => $shift->event->id,
-            'comment'        => "Signed up for shift {$shift->name} (Shift ID: {$shift->id})",
-            'user_id'        => $user->id,
+            'auditable_id' => $shift->event->id,
+            'comment' => "Signed up for shift {$shift->name} (Shift ID: {$shift->id})",
+            'user_id' => $user->id,
         ]);
 
         return back()->with('success', [
@@ -101,11 +104,11 @@ class ShiftSignupController extends Controller
         $shift->users()->detach($user->id);
 
         AuditLog::create([
-            'action'         => 'shift_dropped',
+            'action' => 'shift_dropped',
             'auditable_type' => Event::class,
-            'auditable_id'   => $shift->event->id,
-            'comment'        => "Dropped shift {$shift->name} (Shift ID: {$shift->id})",
-            'user_id'        => $user->id,
+            'auditable_id' => $shift->event->id,
+            'comment' => "Dropped shift {$shift->name} (Shift ID: {$shift->id})",
+            'user_id' => $user->id,
         ]);
 
         return back()->with('success', [
@@ -198,10 +201,11 @@ class ShiftSignupController extends Controller
     /** Replace this with your real role/permission logic */
     private function canManageShift(?User $actor, Shift $shift): bool
     {
-        if (! $actor) return false;
+        if (! $actor) {
+            return false;
+        }
 
         // Minimal default:
         return method_exists($actor, 'isAdmin') ? $actor->isAdmin() : true;
     }
-
 }

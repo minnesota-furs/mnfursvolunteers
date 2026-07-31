@@ -1,5 +1,5 @@
 @php
-    $hasLimitations = $event->requiredTags->isNotEmpty() || $event->requiredDepartments->isNotEmpty();
+    $hasLimitations = $event->requiredTags->isNotEmpty() || $event->requiredDepartments->isNotEmpty() || $event->requiredSectors->isNotEmpty();
     $dimmed = $dimmed ?? false;
 @endphp
 
@@ -15,6 +15,11 @@
                 @foreach($event->requiredDepartments as $dept)
                     <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-400">
                         {{ $dept->name }}
+                    </span>
+                @endforeach
+                @foreach($event->requiredSectors as $sector)
+                    <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">
+                        {{ $sector->name }} sector
                     </span>
                 @endforeach
                 @foreach($event->requiredTags as $tag)

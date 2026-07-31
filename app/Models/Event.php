@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Event extends Model
 {
@@ -21,7 +22,7 @@ class Event extends Model
         'visibility',
         'hide_past_shifts',
         'require_eligibility',
-        'signup_open_date'
+        'signup_open_date',
     ];
 
     protected $casts = [
@@ -31,7 +32,6 @@ class Event extends Model
         'require_eligibility' => 'boolean',
         'signup_open_date' => 'datetime',
     ];
-    
 
     public function shifts()
     {
@@ -46,7 +46,7 @@ class Event extends Model
     public function editors()
     {
         return $this->belongsToMany(User::class, 'event_user')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 
     public function requiredTags()
@@ -67,6 +67,33 @@ class Event extends Model
     public function requiredDepartments()
     {
         return $this->belongsToMany(Department::class, 'department_event')->withTimestamps();
+    }
+
+    /**
+     * Sectors whose departments are eligible for this event.
+     */
+    public function requiredSectors(): BelongsToMany
+    {
+        return $this->belongsToMany(Sector::class)->withTimestamps();
+    }
+
+    public function userMeetsDepartmentRequirement(User $user): bool
+    {
+        $this->loadMissing('requiredDepartments', 'requiredSectors');
+
+        if ($this->requiredDepartments->isEmpty() && $this->requiredSectors->isEmpty()) {
+            return true;
+        }
+
+        $userDepartmentIds = $user->departments()->pluck('departments.id');
+
+        if ($userDepartmentIds->intersect($this->requiredDepartments->modelKeys())->isNotEmpty()) {
+            return true;
+        }
+
+        return $user->departments()
+            ->whereIn('sector_id', $this->requiredSectors->modelKeys())
+            ->exists();
     }
 
     public function perks()
@@ -129,9 +156,9 @@ class Event extends Model
     public function scopeEditableBy($query, $userId)
     {
         return $query->where('created_by', $userId)
-                     ->orWhereHas('editors', function ($q) use ($userId) {
-                         $q->where('user_id', $userId);
-                     });
+            ->orWhereHas('editors', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            });
     }
 
     public function isMultiDay(): bool
@@ -143,5 +170,4 @@ class Event extends Model
     {
         return $this->end_date < now();
     }
-
 }

@@ -1,15 +1,21 @@
 @php
     $spots = $event->remaining_volunteer_spots;
     $isSignupOpen = !$event->signup_open_date || $event->signup_open_date->isPast();
-    $hasLimitations = $event->requiredTags->isNotEmpty() || $event->requiredDepartments->isNotEmpty();
+    $hasLimitations = $event->requiredTags->isNotEmpty() || $event->requiredDepartments->isNotEmpty() || $event->requiredSectors->isNotEmpty();
     $dimmed = $dimmed ?? false;
 
     $userTagIds = $userTagIds ?? auth()->user()->tags()->pluck('tags.id')->all();
     $userDeptIds = $userDeptIds ?? auth()->user()->departments()->pluck('departments.id')->all();
+    $userSectorIds = $userSectorIds ?? auth()->user()->departments()->pluck('sector_id')->unique()->all();
     $requiredTagIds = $event->requiredUserTags->pluck('id')->all();
     $requiredDeptIds = $event->requiredDepartments->pluck('id')->all();
+    $requiredSectorIds = $event->requiredSectors->pluck('id')->all();
     $isEligible = empty(array_diff($requiredTagIds, $userTagIds))
-        && (empty($requiredDeptIds) || !empty(array_intersect($requiredDeptIds, $userDeptIds)));
+        && (
+            (empty($requiredDeptIds) && empty($requiredSectorIds))
+            || !empty(array_intersect($requiredDeptIds, $userDeptIds))
+            || !empty(array_intersect($requiredSectorIds, $userSectorIds))
+        );
 @endphp
 
 @php
@@ -62,8 +68,17 @@
                             @endforeach
                         @endif
 
+                        @if($event->requiredSectors->isNotEmpty())
+                            <span class="text-xs text-gray-400 dark:text-gray-500 mr-0.5 {{ $event->requiredDepartments->isNotEmpty() ? 'ml-2' : '' }}">Requires Sector:</span>
+                            @foreach($event->requiredSectors as $sector)
+                                <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">
+                                    {{ $sector->name }}
+                                </span>
+                            @endforeach
+                        @endif
+
                         @if($event->requiredTags->isNotEmpty())
-                            <span class="text-xs text-gray-400 dark:text-gray-500 mr-0.5 {{ $event->requiredDepartments->isNotEmpty() ? 'ml-2' : '' }}">Required:</span>
+                            <span class="text-xs text-gray-400 dark:text-gray-500 mr-0.5 {{ $event->requiredDepartments->isNotEmpty() || $event->requiredSectors->isNotEmpty() ? 'ml-2' : '' }}">Required:</span>
                             @foreach($event->requiredTags as $tag)
                                 <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
                                       @if($tag->color)
