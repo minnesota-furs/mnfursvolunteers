@@ -2,6 +2,8 @@
 
 use App\Models\CustomField;
 use App\Models\CustomFieldValue;
+use App\Models\Department;
+use App\Models\Sector;
 use App\Models\User;
 
 beforeEach(function () {
@@ -103,4 +105,79 @@ it('splits checkbox selections when counting responses', function () {
         'Setup' => 1,
         'Teardown' => 1,
     ]);
+});
+
+it('filters response counts by sector', function () {
+    $field = CustomField::query()->create([
+        'name' => 'T-Shirt Size',
+        'field_key' => 'tshirt_size',
+        'field_type' => 'select',
+        'options' => ['M', 'L'],
+        'is_active' => true,
+    ]);
+    $selectedSector = Sector::factory()->create(['name' => 'Furry Migration']);
+    $otherSector = Sector::factory()->create(['name' => 'Community']);
+    $selectedDepartment = Department::factory()->for($selectedSector)->create();
+    $otherDepartment = Department::factory()->for($otherSector)->create();
+    $selectedVolunteer = User::factory()->create(['active' => true]);
+    $withoutResponse = User::factory()->create(['active' => true]);
+    $otherVolunteer = User::factory()->create(['active' => true]);
+    $selectedDepartment->users()->attach([$selectedVolunteer->id, $withoutResponse->id]);
+    $otherDepartment->users()->attach($otherVolunteer);
+
+    CustomFieldValue::query()->create([
+        'user_id' => $selectedVolunteer->id,
+        'custom_field_id' => $field->id,
+        'value' => 'M',
+    ]);
+    CustomFieldValue::query()->create([
+        'user_id' => $otherVolunteer->id,
+        'custom_field_id' => $field->id,
+        'value' => 'L',
+    ]);
+
+    $response = $this->actingAs($this->reporter)
+        ->get(route('report.customFields', [
+            'custom_field_id' => $field->id,
+            'mode' => 'count',
+            'sector_id' => $selectedSector->id,
+        ]));
+
+    $response->assertOk()
+        ->assertSee('Furry Migration');
+
+    expect($response->viewData('counts')->all())->toBe([
+        'M' => 1,
+        'L' => 0,
+        'Not provided' => 1,
+    ]);
+});
+
+it('filters the people view by sector and preserves the filter', function () {
+    $field = CustomField::query()->create([
+        'name' => 'T-Shirt Size',
+        'field_key' => 'tshirt_size',
+        'field_type' => 'text',
+        'is_active' => true,
+    ]);
+    $selectedSector = Sector::factory()->create();
+    $otherSector = Sector::factory()->create();
+    $selectedDepartment = Department::factory()->for($selectedSector)->create();
+    $otherDepartment = Department::factory()->for($otherSector)->create();
+    $selectedVolunteer = User::factory()->create(['name' => 'Selected Volunteer', 'active' => true]);
+    $otherVolunteer = User::factory()->create(['name' => 'Other Volunteer', 'active' => true]);
+    $selectedDepartment->users()->attach($selectedVolunteer);
+    $otherDepartment->users()->attach($otherVolunteer);
+
+    $this->actingAs($this->reporter)
+        ->get(route('report.customFields', [
+            'custom_field_id' => $field->id,
+            'mode' => 'people',
+            'sector_id' => $selectedSector->id,
+        ]))
+        ->assertOk()
+        ->assertSee('Selected Volunteer')
+        ->assertDontSee('Other Volunteer')
+        ->assertSee('name="sector_id"', false)
+        ->assertSee('value="'.$selectedSector->id.'"', false);
 });
