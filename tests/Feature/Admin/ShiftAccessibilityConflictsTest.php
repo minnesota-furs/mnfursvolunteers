@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ApplicationSetting;
 use App\Models\Event;
 use App\Models\Shift;
 use App\Models\User;
@@ -17,6 +18,24 @@ it('shows accessibility conflict choices on the shift edit page', function () {
         ->assertSee('Accessibility Conflicts')
         ->assertSee('Wheelchair accessible')
         ->assertSee('Visually impaired');
+});
+
+it('renders a streamlined edit form with a reliable update method', function () {
+    ApplicationSetting::set('feature_accessibility_disclosures', false, 'boolean', group: 'feature_flags');
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.events.shifts.edit', [$this->event, $this->shift]));
+
+    $response
+        ->assertOk()
+        ->assertSee('Shift details')
+        ->assertSee('Schedule')
+        ->assertSee('Settings')
+        ->assertSee('Add volunteers')
+        ->assertSee('Assigned volunteers')
+        ->assertSee('Save changes')
+        ->assertSee('name="_method" value="PUT"', false)
+        ->assertDontSee('Accessibility Conflicts');
 });
 
 it('allows an admin to define accessibility conflicts for a shift', function () {

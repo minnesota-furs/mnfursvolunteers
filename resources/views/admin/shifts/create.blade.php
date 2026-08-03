@@ -1,59 +1,93 @@
 <x-app-layout>
-    @section('title', 'Manage Shift for ' . $event->name)
+    @section('title', (isset($shift) ? 'Edit Shift' : 'Create Shift') . ' — ' . $event->name)
     <x-slot name="header">
-        {{ isset($shift) ? 'Edit Shift' : 'Create Shift' }} for Event: {{ $event->name }}
+        {{ isset($shift) ? 'Edit Shift' : 'Create Shift' }}
     </x-slot>
 
     <x-slot name="actions">
         <a href="{{ route('admin.events.shifts.index', $event) }}"
-            class="block rounded-md px-3 py-2 text-center text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-            Cancel
+            class="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+            <x-heroicon-m-arrow-left class="h-4 w-4"/>
+            Back to shifts
         </a>
     </x-slot>
 
-    <div class="py-6d">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div>
+        <div class="mx-auto max-w-7xl">
+            <div class="mb-6">
+                <p class="text-sm font-medium text-brand-green">{{ $event->name }}</p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {{ isset($shift) ? 'Update the shift details and manage its volunteer roster.' : 'Add a volunteer opportunity to this event.' }}
+                </p>
+            </div>
+
             @if(isset($shift) && $shift->users->isNotEmpty())
-                <div class="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-400 text-yellow-700">
-                    ⚠️ Warning: Volunteers have already signed up for this shift. 
-                    Be cautious when changing shift times or deleting this shift.
+                <div class="mb-6 flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200" role="alert">
+                    <x-heroicon-m-exclamation-triangle class="mt-0.5 h-5 w-5 flex-none"/>
+                    <div>
+                        <p class="font-semibold">This shift has assigned volunteers</p>
+                        <p class="mt-1 text-sm">Changing the schedule may affect {{ $shift->users->count() }} {{ Str::plural('volunteer', $shift->users->count()) }}. Let them know if the time changes.</p>
+                    </div>
                 </div>
             @endif
+
+            @if ($errors->any())
+                <div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200" role="alert">
+                    <p class="font-semibold">Please fix the highlighted fields before saving.</p>
+                </div>
+            @endif
+
             <form method="POST"
                 action="{{ isset($shift) ? route('admin.events.shifts.update', [$event, $shift]) : route('admin.events.shifts.store', $event) }}">
                 @csrf
-                @if (isset($shift) && feature_enabled('accessibility_disclosures'))
+                @if (isset($shift))
                     @method('PUT')
                 @endif
-                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="form-label">Shift Name</dt>
+
+                <section aria-labelledby="shift-details-heading">
+                    <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
+                        <h2 id="shift-details-heading" class="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-100">
+                            <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-brand-green"/>
+                            Shift details
+                        </h2>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">What volunteers will see when deciding whether to sign up.</p>
+                    </div>
+
+                <div class="px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                    <label for="name" class="form-label">Shift name</label>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                        <x-text-input class="block w-64 text-sm" type="text" name="name" id="name"
+                        <x-text-input class="block w-full text-sm" type="text" name="name" id="name"
                             :value="old('name', $shift->name ?? '')" required />
                         <x-form-validation for="name" />
                     </dd>
                 </div>
 
-                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="form-label">Volunteers Neeed</dt>
+                <div class="border-t border-gray-100 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 dark:border-gray-800">
+                    <div>
+                        <label for="max_volunteers" class="form-label">Volunteers needed</label>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">The signup capacity for this shift.</p>
+                    </div>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                        <x-text-input class="block w-64 text-sm" type="number" name="max_volunteers"
+                        <x-text-input class="block w-32 text-sm" type="number" name="max_volunteers"
                             id="max_volunteers" min="1"
                             value="{{ old('max_volunteers', $shift->max_volunteers ?? 1) }}" required />
                         <x-form-validation for="max_volunteers" />
                     </dd>
                 </div>
 
-                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="form-label">Description</dt>
+                <div class="border-t border-gray-100 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 dark:border-gray-800">
+                    <div>
+                        <label for="description" class="form-label">Description</label>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Include duties, location, and anything volunteers should bring.</p>
+                    </div>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                        <x-textarea-input id="notes" rows="6" name="description"
+                        <x-textarea-input id="description" rows="5" name="description"
                             class="block w-full text-sm">{{ old('description', $shift->description ?? '') }}</x-textarea-input>
                         <x-form-validation for="description" />
                     </dd>
                 </div>
 
-                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <div class="border-t border-gray-100 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 dark:border-gray-800">
                     <div>
                         <dt class="form-label">Shift Tags</dt>
                         <p class="text-gray-500 text-sm mt-1">Categorize this shift for reporting (e.g., Cashier, BadgeChecker).</p>
@@ -93,34 +127,53 @@
                         <x-form-validation for="shift_tags" />
                     </dd>
                 </div>
+                </section>
 
                 @php
                     $defaultStart = isset($shift) ? $shift->start_time : $event->start_date;
                     $defaultEnd = isset($shift) ? $shift->end_time : $event->start_date->copy()->addHour();
                 @endphp
 
-                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="form-label">Start Date/Time</dt>
+                <section class="mt-8" aria-labelledby="shift-schedule-heading">
+                    <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
+                        <h2 id="shift-schedule-heading" class="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-100">
+                            <x-heroicon-o-calendar-days class="h-5 w-5 text-brand-green"/>
+                            Schedule
+                        </h2>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Times are shown in the event’s configured timezone.</p>
+                    </div>
+
+                <div class="px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                    <label for="start_time" class="form-label">Starts</label>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                        <x-text-input class="block w-64 text-sm" type="datetime-local" name="start_time" id="start_time"
+                        <x-text-input class="block w-full sm:w-72 text-sm" type="datetime-local" name="start_time" id="start_time"
                             value="{{ old('start_time', $defaultStart->format('Y-m-d\TH:i')) }}" required />
                         <x-form-validation for="start_time" />
                     </dd>
                 </div>
 
-                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                    <dt class="form-label">End Date/Time</dt>
+                <div class="border-t border-gray-100 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 dark:border-gray-800">
+                    <label for="end_time" class="form-label">Ends</label>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                        <x-text-input class="block w-64 text-sm" type="datetime-local" name="end_time" id="end_time"
+                        <x-text-input class="block w-full sm:w-72 text-sm" type="datetime-local" name="end_time" id="end_time"
                             value="{{ old('end_time', $defaultEnd->format('Y-m-d\TH:i')) }}" required />
                         <x-form-validation for="end_time" />
                     </dd>
                 </div>
+                </section>
 
-                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <section class="mt-8" aria-labelledby="shift-settings-heading">
+                    <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
+                        <h2 id="shift-settings-heading" class="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-100">
+                            <x-heroicon-o-adjustments-horizontal class="h-5 w-5 text-brand-green"/>
+                            Settings
+                        </h2>
+                    </div>
+
+                <div class="px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <div>
-                        <dt class="text-sm font-medium leading-6 text-gray-900">Double Hours</dt>
-                        <p class="text-gray-500 text-sm mt-1">When crediting volunteer hours, should these count as double</p>
+                        <label for="double_hours" class="form-label">Double hours</label>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Credit twice the scheduled hours to volunteers.</p>
                     </div>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <x-checkbox-input class="block w-64 text-sm" name="double_hours" id="double_hours"
@@ -129,8 +182,8 @@
                     </dd>
                 </div>
 
-                @if (isset($shift))
-                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                @if (isset($shift) && feature_enabled('accessibility_disclosures'))
+                <div class="border-t border-gray-100 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 dark:border-gray-800">
                     <div>
                         <dt class="form-label">Accessibility Conflicts</dt>
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -164,12 +217,22 @@
                         <x-form-validation for="accessibility_conflicts.*" />
                     </dd>
                 </div>
+                @endif
+                </section>
 
+                @if (isset($shift))
                 {{-- User Search Section - Only show when editing existing shift --}}
-                <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <section class="mt-8" aria-labelledby="add-volunteers-heading">
+                <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
+                    <h2 id="add-volunteers-heading" class="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-100">
+                        <x-heroicon-o-user-plus class="h-5 w-5 text-brand-green"/>
+                        Add volunteers
+                    </h2>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Search by name, email, or volunteer code. Selecting Add updates the roster immediately.</p>
+                </div>
+                <div class="px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <div>
-                        <dt class="text-sm font-medium leading-6 text-gray-900">Add Volunteers</dt>
-                        <p class="text-gray-500 text-sm mt-1">Search and instantly add volunteers to this shift</p>
+                        <label for="volunteer_search" class="form-label">Find a volunteer</label>
                     </div>
                     <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <div class="relative">
@@ -180,19 +243,19 @@
                         </div>
                         <div id="search_results" class="mt-2 hidden"></div>
                         <div id="search_message" class="mt-2 text-sm text-gray-500 hidden"></div>
-                        <p class="text-xs text-gray-400 mt-1">
-                            💡 Tip: Type at least 2 characters to search. Volunteers are added instantly when you click "Add". You can also look up volunteers by their volunteer code.
-                        </p>
+                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Enter at least 2 characters to search.</p>
                     </dd>
                 </div>
+                </section>
                 @endif
 
-                <div class="py-6 flex justify-end space-x-2">
-                    <a type="submit" id="submit" href="{{ url()->previous() }}"
-                        class="block rounded-md bg-gray-400 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400">Cancel</a>
+                <div class="sticky bottom-0 -mx-6 mt-8 flex items-center justify-end gap-3 border-t border-gray-200 bg-white/95 px-6 py-4 backdrop-blur dark:border-gray-700 dark:bg-slate-900/95">
+                    <a href="{{ route('admin.events.shifts.index', $event) }}"
+                        class="rounded-md px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:text-gray-200 dark:hover:bg-gray-800">Cancel</a>
                     <button type="submit"
-                        class="block rounded-md bg-brand-green px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">
-                        {{ isset($shift) ? 'Update Shift' : 'Create Shift' }}
+                        class="inline-flex items-center gap-2 rounded-md bg-brand-green px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">
+                        <x-heroicon-m-check class="h-4 w-4"/>
+                        {{ isset($shift) ? 'Save changes' : 'Create shift' }}
                     </button>
                 </div>
             </form>
@@ -200,41 +263,46 @@
     </div>
     <x-slot name="right">
         @if (isset($shift))
-        <div class="mb-6">
-            <h2 class="text-xl font-semibold mb-3 dark:text-white">
-                Volunteers Assigned 
-                <span class="text-sm bg-gray-100 px-2 py-1 rounded">{{ $shift->users->count() }} / {{ $shift->max_volunteers }}</span>
-            </h2>
-            <div class="volunteers-list">
+        <div>
+            <div class="mb-4 flex items-start justify-between gap-3">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Assigned volunteers</h2>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage attendance and roster access.</p>
+                </div>
+                <span id="volunteer-count" class="whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-1 text-sm font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                    {{ $shift->users->count() }} / {{ $shift->max_volunteers }}
+                </span>
+            </div>
+            <div class="volunteers-list flex flex-col gap-3">
                 @forelse ($shift->users as $user)
-                    <div class="volunteer-item flex items-center justify-between p-3 mb-2 bg-gray-50 rounded-lg border" data-user-id="{{ $user->id }}">
-                        <div class="flex items-center">
+                    <div class="volunteer-item rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/60" data-user-id="{{ $user->id }}">
+                        <div class="flex items-start gap-2">
                             @if($user->pivot->hours_logged_at)
-                                <x-heroicon-m-check-badge title="Hours Credited" class="w-5 mr-2 text-green-600"/> 
+                                <x-heroicon-m-check-badge title="Hours credited" class="mt-0.5 h-5 w-5 flex-none text-green-600"/>
                             @endif
-                            <div>
+                            <div class="min-w-0">
                                 @if($user->pivot->no_show)
-                                    <span class="no-show-badge inline-flex items-center rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-xs font-medium mb-1">No Show</span>
+                                    <span class="no-show-badge mb-1 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-200">No show</span>
                                 @else
-                                    <span class="no-show-badge hidden inline-flex items-center rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-xs font-medium mb-1">No Show</span>
+                                    <span class="no-show-badge mb-1 hidden inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-200">No show</span>
                                 @endif
-                                <div class="font-medium">
-                                    <a href="{{ route('users.show', $user->id) }}" class="text-blue-600 hover:underline">{{ $user->displayName() }}</a>
+                                <div class="truncate font-medium">
+                                    <a href="{{ route('users.show', $user->id) }}" class="text-blue-600 hover:underline dark:text-blue-300">{{ $user->displayName() }}</a>
                                 </div>
-                                <div class="text-xs text-gray-500">{{ $user->email }}</div>
+                                <div class="truncate text-xs text-gray-500 dark:text-gray-400">{{ $user->email }}</div>
                             </div>
                         </div>
-                        <div class="flex flex-col items-start gap-1">
+                        <div class="mt-3 flex flex-wrap gap-2 border-t border-gray-200 pt-2 dark:border-gray-700">
                             <button type="button"
-                                    class="no-show-toggle-btn text-amber-700 hover:bg-amber-50 px-2 py-1 rounded text-xs"
+                                    class="no-show-toggle-btn rounded px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-50 dark:text-amber-300 dark:hover:bg-amber-950"
                                     data-user-id="{{ $user->id }}"
                                     data-user-name="{{ $user->name }}"
                                     data-no-show="{{ $user->pivot->no_show ? 1 : 0 }}">
                                 <x-heroicon-m-exclamation-triangle class="w-4 inline mr-1"/>
                                 {{ $user->pivot->no_show ? 'Unmark No Show' : 'Mark No Show' }}
                             </button>
-                            <button type="button" 
-                                    class="remove-volunteer-btn text-red-600 hover:bg-red-50 px-2 py-1 rounded text-xs"
+                            <button type="button"
+                                    class="remove-volunteer-btn rounded px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-950"
                                     data-user-id="{{ $user->id }}"
                                     data-user-name="{{ $user->name }}">
                                 <x-heroicon-m-trash class="w-4 inline mr-1"/> Remove
@@ -242,10 +310,10 @@
                         </div>
                     </div>
                 @empty
-                    <div class="text-center py-8 text-gray-500">
-                        <x-heroicon-m-user-group class="w-12 h-12 mx-auto mb-2 text-gray-300"/>
-                        <p>No volunteers assigned yet</p>
-                        <p class="text-sm">Use the search above to add volunteers</p>
+                    <div class="rounded-lg border border-dashed border-gray-300 py-8 text-center text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                        <x-heroicon-m-user-group class="mx-auto mb-2 h-10 w-10 text-gray-300 dark:text-gray-600"/>
+                        <p class="font-medium">No volunteers assigned</p>
+                        <p class="mt-1 text-sm">Use the search form to add someone.</p>
                     </div>
                 @endforelse
             </div>
@@ -257,32 +325,13 @@
                 <p class="text-gray-500 dark:text-gray-400">Save the shift to start adding volunteers</p>
             </div>
         @endif
-        {{-- asds --}}
-        {{-- <form method="POST" action="{{ route('shifts.quick-add', $shift) }}" class="flex items-center gap-2">
-            @csrf
-            <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                <dt class="form-label">Shift Name</dt>
-                <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                    <x-text-input class="block w-full text-sm" type="text" name="vol_code" maxlength="6"
-                         placeholder="VOLCODE" oninput="this.value=this.value.toUpperCase()" required />
-                    <x-form-validation for="name" />
-                </dd>
-            </div>
-        </form> --}}
-
-        {{-- <form method="POST" action="{{ route('shifts.quick-add', $shift) }}" class="flex items-center gap-2">
-            @csrf
-            <input type="text" name="vol_code" maxlength="6" class="border rounded px-2 py-1 uppercase tracking-widest w-28"
-                    placeholder="VOLCODE" oninput="this.value=this.value.toUpperCase()" required />
-            <button class="bg-emerald-600 text-white rounded px-3 py-1">Quick add</button>
-        </form> --}}
     </x-slot>
 </x-app-layout>
 
 @if (isset($shift))
 <!-- Notification area -->
-<div id="notification" class="fixed top-4 right-4 z-50 hidden">
-    <div class="bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-sm">
+<div id="notification" class="fixed right-4 top-4 z-50 hidden" role="status" aria-live="polite">
+    <div class="max-w-sm rounded-lg border border-gray-200 bg-white p-4 shadow-lg">
         <div class="flex items-center">
             <div id="notification-icon" class="mr-3"></div>
             <div id="notification-message" class="text-sm"></div>
@@ -340,15 +389,15 @@ document.addEventListener('DOMContentLoaded', function () {
         
         searchTimeout = setTimeout(() => {
             const searchUrl = `{{ route('admin.users.search') }}?term=${encodeURIComponent(query)}`;
-            console.log('Searching for:', query, 'URL:', searchUrl);
-            
             fetch(searchUrl)
                 .then(response => {
-                    console.log('Search response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error('Search request failed');
+                    }
+
                     return response.json();
                 })
                 .then(users => {
-                    console.log('Search results:', users);
                     displaySearchResults(users);
                 })
                 .catch(error => {
@@ -369,21 +418,31 @@ document.addEventListener('DOMContentLoaded', function () {
         searchMessage.classList.add('hidden');
 
         const ul = document.createElement('ul');
-        ul.className = 'border border-gray-300 rounded-md bg-white shadow-lg max-h-60 overflow-y-auto';
+        ul.className = 'max-h-60 overflow-y-auto rounded-md border border-gray-300 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900';
 
         users.forEach(user => {
             const li = document.createElement('li');
-            li.className = 'p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 flex justify-between items-center';
-            
-            li.innerHTML = `
-                <div>
-                    <div class="font-medium">${user.name}</div>
-                    <div class="text-sm text-gray-500">${user.email}</div>
-                </div>
-                <button type="button" class="add-volunteer-btn bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700" data-user-id="${user.id}">
-                    Add
-                </button>
-            `;
+            li.className = 'flex items-center justify-between gap-3 border-b border-gray-200 p-3 last:border-b-0 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800';
+
+            const identity = document.createElement('div');
+            identity.className = 'min-w-0';
+
+            const name = document.createElement('div');
+            name.className = 'truncate font-medium text-gray-900 dark:text-gray-100';
+            name.textContent = user.name;
+
+            const email = document.createElement('div');
+            email.className = 'truncate text-sm text-gray-500 dark:text-gray-400';
+            email.textContent = user.email;
+
+            const addButton = document.createElement('button');
+            addButton.type = 'button';
+            addButton.className = 'add-volunteer-btn rounded bg-brand-green px-3 py-1.5 text-sm font-semibold text-white hover:bg-green-800 disabled:opacity-50';
+            addButton.dataset.userId = user.id;
+            addButton.textContent = 'Add';
+
+            identity.append(name, email);
+            li.append(identity, addButton);
 
             ul.appendChild(li);
         });
@@ -568,7 +627,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateVolunteerCount() {
         const volunteerItems = document.querySelectorAll('.volunteer-item');
-        const countSpan = document.querySelector('h2 span');
+        const countSpan = document.getElementById('volunteer-count');
         if (countSpan) {
             countSpan.textContent = `${volunteerItems.length} / {{ $shift->max_volunteers }}`;
         }
