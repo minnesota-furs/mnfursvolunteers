@@ -674,6 +674,21 @@
                                 @error('advertise_registration_on_login')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
+
+                                <div class="mt-6">
+                                    <label for="warning_email_domains" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Warning Email Domains
+                                    </label>
+                                    <textarea name="warning_email_domains" id="warning_email_domains" rows="3"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        placeholder="mnfurs.org, furrymigration.org">{{ old('warning_email_domains', app_setting('warning_email_domains', '')) }}</textarea>
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                        Comma- or line-separated domains. People registering with one of these domains must confirm that they intend to use an organization email address. Leave blank to disable.
+                                    </p>
+                                    @error('warning_email_domains')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
                             </div>
 
                             <!-- Self-Reporting Toggle -->

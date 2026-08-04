@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\ApplicationSetting;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class ApplicationSettingsSeeder extends Seeder
@@ -180,6 +179,15 @@ class ApplicationSettingsSeeder extends Seeder
                 'type' => 'string',
                 'description' => 'Contact phone number',
                 'group' => 'contact',
+            ],
+
+            // Registration
+            [
+                'key' => 'warning_email_domains',
+                'value' => '',
+                'type' => 'string',
+                'description' => 'Email domains that require registration confirmation',
+                'group' => 'volunteers',
             ],
 
             // Feature Flags

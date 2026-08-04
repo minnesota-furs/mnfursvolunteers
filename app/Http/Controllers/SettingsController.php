@@ -31,7 +31,7 @@ class SettingsController extends Controller
      */
     private function gatherTelegramInfo(): ?array
     {
-        if (!ApplicationSetting::get('telegram_bot_token')) {
+        if (! ApplicationSetting::get('telegram_bot_token')) {
             return null;
         }
 
@@ -51,18 +51,19 @@ class SettingsController extends Controller
         // --- Git info ---
         $gitInfo = ['available' => false];
         try {
-            $raw = shell_exec('git -C ' . escapeshellarg(base_path()) . ' log -1 --format="%H|||%h|||%ai|||%s" 2>/dev/null');
+            $raw = shell_exec('git -C '.escapeshellarg(base_path()).' log -1 --format="%H|||%h|||%ai|||%s" 2>/dev/null');
             if ($raw) {
                 $parts = explode('|||', trim($raw));
                 $gitInfo = [
-                    'available'    => true,
-                    'hash'         => $parts[0] ?? null,
-                    'short_hash'   => $parts[1] ?? null,
-                    'date'         => $parts[2] ?? null,
-                    'message'      => $parts[3] ?? null,
+                    'available' => true,
+                    'hash' => $parts[0] ?? null,
+                    'short_hash' => $parts[1] ?? null,
+                    'date' => $parts[2] ?? null,
+                    'message' => $parts[3] ?? null,
                 ];
             }
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         // --- PHP ---
         $phpExtensions = ['pdo', 'pdo_mysql', 'mbstring', 'openssl', 'tokenizer', 'xml', 'ctype', 'json', 'bcmath', 'gd', 'fileinfo', 'curl', 'zip', 'intl'];
@@ -72,14 +73,14 @@ class SettingsController extends Controller
         }
 
         // --- Mail ---
-        $mailDriver  = config('mail.default', 'not set');
-        $mailConfig  = config("mail.mailers.{$mailDriver}", []);
-        $mailHost    = $mailConfig['host'] ?? null;
-        $mailPort    = $mailConfig['port'] ?? null;
+        $mailDriver = config('mail.default', 'not set');
+        $mailConfig = config("mail.mailers.{$mailDriver}", []);
+        $mailHost = $mailConfig['host'] ?? null;
+        $mailPort = $mailConfig['port'] ?? null;
         $mailEncrypt = $mailConfig['encryption'] ?? null;
-        $mailUser    = $mailConfig['username'] ?? null;
-        $mailFrom    = config('mail.from.address');
-        $mailConfigured = !empty($mailHost) && !empty($mailUser);
+        $mailUser = $mailConfig['username'] ?? null;
+        $mailFrom = config('mail.from.address');
+        $mailConfigured = ! empty($mailHost) && ! empty($mailUser);
 
         // --- Database ---
         $dbDriver = config('database.default');
@@ -88,53 +89,55 @@ class SettingsController extends Controller
         try {
             DB::connection()->getPdo();
             $dbConnected = true;
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         // --- WordPress DB ---
-        $wpConfigured = !empty(config('database.connections.wordpress.host') ?? config('corcel.connection'));
-        $wpConnected  = false;
+        $wpConfigured = ! empty(config('database.connections.wordpress.host') ?? config('corcel.connection'));
+        $wpConnected = false;
         if ($wpConfigured) {
             try {
                 DB::connection('wordpress')->getPdo();
                 $wpConnected = true;
-            } catch (\Throwable) {}
+            } catch (\Throwable) {
+            }
         }
 
         // --- Storage ---
         $storageLinkExists = is_link(public_path('storage'));
 
         return [
-            'git'              => $gitInfo,
-            'php_version'      => PHP_VERSION,
-            'php_extensions'   => $loadedExtensions,
-            'laravel_version'  => app()->version(),
-            'app_env'          => app()->environment(),
-            'app_debug'        => config('app.debug'),
-            'app_timezone'     => config('app.timezone'),
-            'app_url'          => config('app.url'),
+            'git' => $gitInfo,
+            'php_version' => PHP_VERSION,
+            'php_extensions' => $loadedExtensions,
+            'laravel_version' => app()->version(),
+            'app_env' => app()->environment(),
+            'app_debug' => config('app.debug'),
+            'app_timezone' => config('app.timezone'),
+            'app_url' => config('app.url'),
             'mail' => [
-                'driver'      => $mailDriver,
-                'host'        => $mailHost,
-                'port'        => $mailPort,
-                'encryption'  => $mailEncrypt,
-                'username'    => $mailUser ? '(set)' : '(not set)',
-                'from'        => $mailFrom,
-                'configured'  => $mailConfigured,
+                'driver' => $mailDriver,
+                'host' => $mailHost,
+                'port' => $mailPort,
+                'encryption' => $mailEncrypt,
+                'username' => $mailUser ? '(set)' : '(not set)',
+                'from' => $mailFrom,
+                'configured' => $mailConfigured,
             ],
             'db' => [
-                'driver'    => $dbDriver,
-                'host'      => $dbConfig['host'] ?? null,
-                'database'  => $dbConfig['database'] ?? null,
+                'driver' => $dbDriver,
+                'host' => $dbConfig['host'] ?? null,
+                'database' => $dbConfig['database'] ?? null,
                 'connected' => $dbConnected,
             ],
             'wordpress_db' => [
                 'configured' => $wpConfigured,
-                'connected'  => $wpConnected,
+                'connected' => $wpConnected,
             ],
-            'queue_driver'       => config('queue.default'),
-            'cache_driver'       => config('cache.default'),
-            'storage_link'       => $storageLinkExists,
-            'app_version'        => config('app.version', '—'),
+            'queue_driver' => config('queue.default'),
+            'cache_driver' => config('cache.default'),
+            'storage_link' => $storageLinkExists,
+            'app_version' => config('app.version', '—'),
         ];
     }
 
@@ -176,6 +179,7 @@ class SettingsController extends Controller
             'checkin_hours_after' => 'nullable|numeric|min:0|max:72',
             'blacklist_emails' => 'nullable|string',
             'blacklist_names' => 'nullable|string',
+            'warning_email_domains' => 'nullable|string',
             'onboarding_agreement' => 'nullable|string',
             'require_department_for_self_report' => 'boolean',
             'require_invite_code' => 'boolean',
@@ -286,6 +290,7 @@ class SettingsController extends Controller
         // Security settings
         ApplicationSetting::set('blacklist_emails', $request->input('blacklist_emails', ''), 'string', 'Blacklisted email addresses', 'security');
         ApplicationSetting::set('blacklist_names', $request->input('blacklist_names', ''), 'string', 'Blacklisted full names', 'security');
+        ApplicationSetting::set('warning_email_domains', $request->input('warning_email_domains', ''), 'string', 'Email domains that require registration confirmation', 'volunteers');
 
         // Onboarding
         ApplicationSetting::set('onboarding_agreement', $request->input('onboarding_agreement', ''), 'string', 'Registration agreement text', 'onboarding');
@@ -305,7 +310,7 @@ class SettingsController extends Controller
 
         return redirect()->route('settings.index')
             ->with('success', [
-                'message' => "Settings updated successfully",
+                'message' => 'Settings updated successfully',
             ]);
     }
 
@@ -320,7 +325,7 @@ class SettingsController extends Controller
         $service = app(TelegramService::class);
         $me = $service->getMe();
 
-        if (!$me || empty($me['username'])) {
+        if (! $me || empty($me['username'])) {
             return redirect()->route('settings.index')
                 ->with('error', 'Could not connect to Telegram with that bot token. Double-check it and try again.');
         }
@@ -328,7 +333,7 @@ class SettingsController extends Controller
         ApplicationSetting::set('telegram_bot_username', $me['username'], 'string', 'Telegram bot username', 'integrations');
 
         $webhookSecret = ApplicationSetting::get('telegram_webhook_secret');
-        if (!$webhookSecret) {
+        if (! $webhookSecret) {
             $webhookSecret = Str::random(40);
             ApplicationSetting::set('telegram_webhook_secret', $webhookSecret, 'string', 'Telegram webhook secret path segment', 'integrations');
         }
@@ -339,9 +344,9 @@ class SettingsController extends Controller
         // derives its scheme from however the current request reached this app (e.g. plain
         // http on localhost even when a tunnel like ngrok fronts it with https), but Telegram
         // requires the webhook itself to be https regardless of which host the admin used.
-        $webhookUrl = rtrim(config('app.url'), '/') . '/' . ltrim(route('telegram.webhook', $webhookSecret, false), '/');
+        $webhookUrl = rtrim(config('app.url'), '/').'/'.ltrim(route('telegram.webhook', $webhookSecret, false), '/');
 
-        if (!str_starts_with($webhookUrl, 'https://')) {
+        if (! str_starts_with($webhookUrl, 'https://')) {
             return redirect()->route('settings.index')
                 ->with('error', "Connected to @{$me['username']}, but the webhook needs an HTTPS APP_URL. Set APP_URL in .env to your public https:// URL (e.g. your ngrok URL) and save again.");
         }
@@ -398,7 +403,7 @@ class SettingsController extends Controller
 
         return redirect()->route('settings.index')
             ->with('success', [
-                'message' => "Logo reset to default.",
+                'message' => 'Logo reset to default.',
             ]);
     }
 
@@ -421,7 +426,7 @@ class SettingsController extends Controller
 
         return redirect()->route('settings.index')
             ->with('success', [
-                'message' => "Favicon reset to default.",
+                'message' => 'Favicon reset to default.',
             ]);
     }
 }

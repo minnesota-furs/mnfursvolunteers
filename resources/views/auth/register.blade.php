@@ -20,6 +20,7 @@
     @php
         $onboardingAgreement = app_setting('onboarding_agreement');
         $inviteCodeRequired = app_setting('require_invite_code', false);
+        $warningEmailDomains = \App\Support\WarningEmailDomains::parse(app_setting('warning_email_domains', ''));
     @endphp
     <body class="font-sans text-gray-900 antialiased">
         <div class="min-h-screen flex flex-col justify-center items-center px-6 py-12 bg-gray-100 dark:bg-gray-900">
@@ -40,7 +41,15 @@
                 </div>
                 @endif
 
-                <form method="POST" action="{{ route('register') }}" class="mt-8">
+                <form method="POST" action="{{ route('register') }}" class="mt-8"
+                    x-data="{
+                        email: @js(old('email', '')),
+                        warningDomains: @js($warningEmailDomains),
+                        shouldWarn() {
+                            const domain = this.email.toLowerCase().trim().split('@').pop();
+                            return this.email.includes('@') && this.warningDomains.includes(domain);
+                        }
+                    }">
                     @csrf
 
                     <!-- Account -->
@@ -54,9 +63,23 @@
 
                         <div>
                             <x-input-label for="email" :value="__('Email')" />
-                            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
+                            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" x-model="email" />
                             <x-input-error :messages="$errors->get('email')" class="mt-2" />
                         </div>
+                    </div>
+
+                    <div x-show="shouldWarn()" x-cloak class="mt-4 rounded-md border border-yellow-300 bg-yellow-50 p-4 dark:border-yellow-700 dark:bg-yellow-900/20">
+                        <h3 class="text-sm font-semibold text-yellow-900 dark:text-yellow-100">{{ __('Are you sure?') }}</h3>
+                        <p class="mt-1 text-sm text-yellow-800 dark:text-yellow-200">
+                            {{ __('You should use a personal email address to create your account. This helps ensure you retain access to your volunteer records if you ever lose access to this organization domain. If you know what you are doing, you may continue, though you may be asked to change your email address.') }}
+                        </p>
+                        <label class="mt-3 flex items-start gap-2 text-sm text-yellow-900 dark:text-yellow-100">
+                            <input type="checkbox" name="warning_email_acknowledged" value="1" :required="shouldWarn()"
+                                {{ old('warning_email_acknowledged') ? 'checked' : '' }}
+                                class="mt-0.5 rounded border-yellow-400 text-brand-green focus:ring-brand-green">
+                            <span>{{ __('I understand and want to use this email address.') }}</span>
+                        </label>
+                        <x-input-error :messages="$errors->get('warning_email_acknowledged')" class="mt-2" />
                     </div>
 
                     <!-- Personal Info -->

@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\InviteCode;
 use App\Models\User;
-use App\Rules\NotBlacklisted;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
@@ -27,23 +26,10 @@ class RegisteredUserController extends Controller
     /**
      * Handle an incoming registration request.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(RegisterRequest $request): RedirectResponse
     {
-        $inviteCodeRequired = \App\Models\ApplicationSetting::get('require_invite_code', false);
-        $onboardingAgreement = \App\Models\ApplicationSetting::get('onboarding_agreement');
-
-        $request->validate([
-            'name'            => ['required', 'string', 'max:255'],
-            'first_name'      => ['required', 'string', 'max:255', new NotBlacklisted('name', $request->first_name, $request->last_name)],
-            'last_name'       => ['required', 'string', 'max:255'],
-            'email'           => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class, new NotBlacklisted('email')],
-            'password'        => ['required', 'confirmed', Rules\Password::defaults()],
-            'invite_code'     => [$inviteCodeRequired ? 'required' : 'nullable', 'string', 'max:32'],
-            'agree_to_terms'  => [$onboardingAgreement ? 'accepted' : 'nullable'],
-        ]);
-
         // Resolve invite code if provided
         $inviteCode = null;
         if ($request->filled('invite_code')) {
@@ -57,11 +43,11 @@ class RegisteredUserController extends Controller
         }
 
         $user = User::create([
-            'name'       => $request->name,
+            'name' => $request->name,
             'first_name' => $request->first_name,
-            'last_name'  => $request->last_name,
-            'email'      => $request->email,
-            'password'   => Hash::make($request->password),
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
         ]);
 
         // Apply tags from invite code
@@ -80,4 +66,3 @@ class RegisteredUserController extends Controller
         return redirect()->route('onboarding.index');
     }
 }
-
