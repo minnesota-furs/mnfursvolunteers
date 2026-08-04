@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('announcements', 'volunteers_only')) {
+            return;
+        }
+
         Schema::table('announcements', function (Blueprint $table) {
             $table->boolean('volunteers_only')->default(false)->index()->after('expires_at');
         });
@@ -15,6 +19,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasColumn('announcements', 'volunteers_only')) {
+            return;
+        }
+
         Schema::table('announcements', function (Blueprint $table) {
             $table->dropColumn('volunteers_only');
         });

@@ -15,7 +15,7 @@ beforeEach(function () {
 
 it('requires report permission', function () {
     $this->actingAs(User::factory()->create(['admin' => false, 'permissions' => []]))
-        ->get(route('report.staffCheckIn'))
+        ->get(route('report.staffCheckIn.paper'))
         ->assertForbidden();
 });
 
@@ -44,7 +44,7 @@ it('builds a sector check-in sheet with custom fields and checklist items', func
     ]);
 
     $this->actingAs($this->reporter)
-        ->get(route('report.staffCheckIn', [
+        ->get(route('report.staffCheckIn.paper', [
             'scope' => 'sector',
             'sector_id' => $selectedSector->id,
             'custom_fields' => [$shirtSize->id],
@@ -72,7 +72,7 @@ it('limits a check-in sheet to a selected department', function () {
     $otherStaff->departments()->attach($otherDepartment);
 
     $response = $this->actingAs($this->reporter)
-        ->get(route('report.staffCheckIn', [
+        ->get(route('report.staffCheckIn.paper', [
             'scope' => 'department',
             'department_id' => $selectedDepartment->id,
         ]));
@@ -87,7 +87,7 @@ it('limits a check-in sheet to a selected department', function () {
 
 it('validates the selected group and report columns', function () {
     $response = $this->actingAs($this->reporter)
-        ->get(route('report.staffCheckIn', [
+        ->get(route('report.staffCheckIn.paper', [
             'scope' => 'sector',
             'custom_fields' => [999999],
             'checklist_items' => array_fill(0, 13, 'Item'),
@@ -113,7 +113,7 @@ it('adds signatures and can display legal names grouped by legal last name', fun
     $department->users()->attach([$zebra->id, $adams->id]);
 
     $response = $this->actingAs($this->reporter)
-        ->get(route('report.staffCheckIn', [
+        ->get(route('report.staffCheckIn.paper', [
             'scope' => 'department',
             'department_id' => $department->id,
             'include_signature' => true,
@@ -137,7 +137,7 @@ it('validates the alphabetical grouping option', function () {
     $department = Department::factory()->create();
 
     $this->actingAs($this->reporter)
-        ->get(route('report.staffCheckIn', [
+        ->get(route('report.staffCheckIn.paper', [
             'scope' => 'department',
             'department_id' => $department->id,
             'group_alphabetically' => true,
@@ -158,7 +158,7 @@ it('links the generated report to a dedicated print layout', function () {
     ];
 
     $this->actingAs($this->reporter)
-        ->get(route('report.staffCheckIn', $query))
+        ->get(route('report.staffCheckIn.paper', $query))
         ->assertOk()
         ->assertSee(route('report.staffCheckIn.print'), false);
 

@@ -6,7 +6,7 @@
     </x-slot>
 
     <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8 print:max-w-none print:p-0">
-        <form method="GET" action="{{ route('report.staffCheckIn') }}"
+        <form method="GET" action="{{ route('report.staffCheckIn.paper') }}"
               class="space-y-5 rounded-lg bg-white p-6 shadow dark:bg-gray-800 print:hidden"
               x-data="{ scope: @js($scope), checklistItems: @js($checklistItems->isEmpty() ? [''] : $checklistItems->values()) }">
             <div>

@@ -24,6 +24,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportsController extends Controller
 {
+    public function staffCheckInExperience(): View
+    {
+        return view('reports.staff-check-in-experience');
+    }
+
     public function staffCheckIn(StaffCheckInReportRequest $request): View
     {
         return view('reports.staff-check-in', $this->buildStaffCheckInReportData($request));

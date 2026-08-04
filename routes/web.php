@@ -15,6 +15,7 @@ use App\Http\Controllers\CommandPaletteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DepartmentManagementController;
+use App\Http\Controllers\DigitalStaffCheckInController;
 use App\Http\Controllers\ElectionController;
 use App\Http\Controllers\FiscalLedgerController;
 use App\Http\Controllers\JobListingController;
@@ -287,8 +288,19 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
 
     // Reports
     Route::prefix('report')->name('report.')->middleware('can:view-reports')->group(function () {
-        Route::get('/staff-check-in', [ReportsController::class, 'staffCheckIn'])->name('staffCheckIn');
+        Route::get('/staff-check-in', [ReportsController::class, 'staffCheckInExperience'])->name('staffCheckIn');
+        Route::get('/staff-check-in/paper', [ReportsController::class, 'staffCheckIn'])->name('staffCheckIn.paper');
         Route::get('/staff-check-in/print', [ReportsController::class, 'staffCheckInPrint'])->name('staffCheckIn.print');
+        Route::prefix('/staff-check-in/digital')->name('staffCheckIn.digital.')->controller(DigitalStaffCheckInController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{staffCheckInSession}/edit', 'edit')->name('edit');
+            Route::put('/{staffCheckInSession}', 'update')->name('update');
+            Route::get('/{staffCheckInSession}', 'show')->name('show');
+            Route::get('/{staffCheckInSession}/staff/{user}', 'staff')->name('staff');
+            Route::put('/{staffCheckInSession}/staff/{user}', 'complete')->name('complete');
+        });
         Route::get('/users-without-departments', [ReportsController::class, 'usersWithoutDepartments'])->name('usersWithoutDepartments');
         Route::get('/users-without-hours', [ReportsController::class, 'usersWithoutHoursThisPeriod'])->name('usersWithoutHoursThisPeriod');
         Route::get('/event-shift-hours', [ReportsController::class, 'eventShiftHoursReport'])->name('eventShiftHours');
