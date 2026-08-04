@@ -140,29 +140,95 @@
                                             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                 <dt class="form-label">Departments</dt>
                                                 <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                                                    <select 
-                                                        name="departments[]" 
-                                                        id="departments" 
-                                                        size="16"
-                                                        multiple 
-                                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 sm:text-sm">
-                                                        @foreach ($sectors as $sector)
-                                                            <optgroup label="{{ $sector->name }}" class="font-bold text-gray-700">
-                                                                @foreach ($sector->departments as $department)
-                                                                    <option value="{{ $department->id }}"
-                                                                        {{ isset($user) && $user->departments->contains($department->id) ? 'selected' : '' }}>
-                                                                        {{ $department->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </optgroup>
-                                                        @endforeach
-                                                    </select>
-                                                    <p class="mt-2 text-xs text-gray-500">
-                                                        Hold down the Ctrl (Windows) or Command (Mac) key to select multiple departments.
-                                                    </p>
+                                                    @php
+                                                        $selectedDepartmentIds = collect(old('departments', $user->departments->modelKeys()))
+                                                            ->map(fn ($departmentId) => (string) $departmentId)
+                                                            ->values();
+                                                        $departmentSearchTerms = $sectors
+                                                            ->flatMap(fn ($sector) => $sector->departments->map(
+                                                                fn ($department) => strtolower($sector->name.' '.$department->name)
+                                                            ))
+                                                            ->values();
+                                                    @endphp
+
+                                                    <fieldset x-data="{ query: '', selectedDepartments: {{ Js::from($selectedDepartmentIds) }}, searchTerms: {{ Js::from($departmentSearchTerms) }} }">
+                                                        <legend class="sr-only">Select departments</legend>
+
+                                                        <div class="mb-2 flex items-center gap-2">
+                                                            <div class="relative min-w-0 flex-1">
+                                                                <x-heroicon-m-magnifying-glass class="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+                                                                <input type="search"
+                                                                    x-model.debounce.150ms="query"
+                                                                    placeholder="Search departments or sectors"
+                                                                    aria-label="Search departments or sectors"
+                                                                    class="block w-full rounded-md border-gray-300 py-1.5 pl-8 pr-8 text-sm shadow-sm focus:border-brand-green focus:ring-brand-green dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                <button type="button"
+                                                                    x-on:click="query = ''"
+                                                                    x-show="query"
+                                                                    x-cloak
+                                                                    aria-label="Clear department search"
+                                                                    class="absolute right-2 top-1/2 -translate-y-1/2 rounded text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-green dark:hover:text-gray-200">
+                                                                    <x-heroicon-m-x-mark class="h-4 w-4" aria-hidden="true" />
+                                                                </button>
+                                                            </div>
+                                                            <div class="flex shrink-0 items-center gap-2">
+                                                                <span class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-300">
+                                                                    <span x-text="selectedDepartments.length">{{ $selectedDepartmentIds->count() }}</span>
+                                                                    selected
+                                                                </span>
+                                                                <button type="button"
+                                                                    x-on:click="selectedDepartments = []"
+                                                                    x-show="selectedDepartments.length > 0"
+                                                                    x-cloak
+                                                                    class="text-xs font-medium text-gray-500 underline decoration-gray-300 underline-offset-2 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-brand-green dark:text-gray-400 dark:decoration-gray-600 dark:hover:text-red-400">
+                                                                    Clear
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div id="departments" class="max-h-80 space-y-3 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-900/30">
+                                                            @forelse ($sectors as $sector)
+                                                                @if ($sector->departments->isNotEmpty())
+                                                                    <section aria-labelledby="sector-{{ $sector->id }}-heading"
+                                                                        x-show="query === '' || {{ Js::from(strtolower($sector->name.' '.$sector->departments->pluck('name')->join(' '))) }}.includes(query.toLowerCase())">
+                                                                        <h4 id="sector-{{ $sector->id }}-heading" class="mb-1 px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                                                            {{ $sector->name }}
+                                                                        </h4>
+                                                                        <div class="grid gap-1 sm:grid-cols-2">
+                                                                            @foreach ($sector->departments as $department)
+                                                                                <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 transition hover:bg-green-50 dark:hover:bg-brand-green/10"
+                                                                                    x-show="query === '' || {{ Js::from(strtolower($sector->name.' '.$department->name)) }}.includes(query.toLowerCase())"
+                                                                                    x-bind:class="selectedDepartments.includes('{{ $department->id }}') ? 'bg-green-100 text-green-900 dark:bg-green-900/40 dark:text-green-100' : 'text-gray-900 dark:text-gray-100'">
+                                                                                    <input type="checkbox"
+                                                                                        name="departments[]"
+                                                                                        value="{{ $department->id }}"
+                                                                                        x-model="selectedDepartments"
+                                                                                        @checked($selectedDepartmentIds->contains((string) $department->id))
+                                                                                        class="rounded border-gray-300 text-brand-green shadow-sm focus:ring-brand-green dark:border-gray-600 dark:bg-gray-700">
+                                                                                    <span class="min-w-0 truncate text-sm font-medium leading-5">
+                                                                                        {{ $department->name }}
+                                                                                    </span>
+                                                                                </label>
+                                                                            @endforeach
+                                                                        </div>
+                                                                    </section>
+                                                                @endif
+                                                            @empty
+                                                                <p class="text-sm text-gray-500 dark:text-gray-400">No departments are available.</p>
+                                                            @endforelse
+                                                            <p x-show="query && ! searchTerms.some(term => term.includes(query.toLowerCase()))"
+                                                                x-cloak
+                                                                class="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                                                No departments match your search.
+                                                            </p>
+                                                        </div>
+                                                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                                            Choose every department this user staffs.
+                                                        </p>
+                                                    </fieldset>
                                                 </dd>
-                                                <x-form-validation for="primary_dept_id" />
-                                                <x-input-error class="mt-2" :messages="$errors->get('primary_dept_id')" />
+                                                <x-form-validation for="departments" />
+                                                <x-input-error class="mt-2" :messages="$errors->get('departments')" />
                                             </div>
                                             
                                             @if(app_setting('feature_user_tags', false))
