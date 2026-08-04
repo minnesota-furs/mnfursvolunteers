@@ -181,3 +181,107 @@ it('filters the people view by sector and preserves the filter', function () {
         ->assertSee('name="sector_id"', false)
         ->assertSee('value="'.$selectedSector->id.'"', false);
 });
+
+it('filters the people view by a response or missing response', function (string $response, string $visible, string $hidden) {
+    $field = CustomField::query()->create([
+        'name' => 'T-Shirt Size',
+        'field_key' => 'tshirt_size',
+        'field_type' => 'select',
+        'options' => ['Large', 'Small'],
+        'is_active' => true,
+    ]);
+    $largeVolunteer = User::factory()->create(['name' => 'Large Shirt Volunteer', 'active' => true]);
+    $withoutResponse = User::factory()->create(['name' => 'Missing Shirt Volunteer', 'active' => true]);
+    CustomFieldValue::query()->create([
+        'user_id' => $largeVolunteer->id,
+        'custom_field_id' => $field->id,
+        'value' => 'Large',
+    ]);
+
+    $this->actingAs($this->reporter)
+        ->get(route('report.customFields', [
+            'custom_field_id' => $field->id,
+            'mode' => 'people',
+            'response' => $response,
+        ]))
+        ->assertOk()
+        ->assertSee($visible)
+        ->assertDontSee($hidden);
+})->with([
+    'provided response' => ['Large', 'Large Shirt Volunteer', 'Missing Shirt Volunteer'],
+    'not provided' => ['Not provided', 'Missing Shirt Volunteer', 'Large Shirt Volunteer'],
+]);
+
+it('exports only the filtered people results as csv', function () {
+    $field = CustomField::query()->create([
+        'name' => 'T-Shirt Size',
+        'field_key' => 'tshirt_size',
+        'field_type' => 'select',
+        'options' => ['Large', 'Small'],
+        'is_active' => true,
+    ]);
+    $largeVolunteer = User::factory()->create([
+        'name' => 'Large Shirt Volunteer',
+        'email' => 'large@example.com',
+        'active' => true,
+    ]);
+    $smallVolunteer = User::factory()->create([
+        'name' => 'Small Shirt Volunteer',
+        'email' => 'small@example.com',
+        'active' => true,
+    ]);
+    CustomFieldValue::query()->create([
+        'user_id' => $largeVolunteer->id,
+        'custom_field_id' => $field->id,
+        'value' => 'Large',
+    ]);
+    CustomFieldValue::query()->create([
+        'user_id' => $smallVolunteer->id,
+        'custom_field_id' => $field->id,
+        'value' => 'Small',
+    ]);
+
+    $response = $this->actingAs($this->reporter)
+        ->get(route('report.customFields.export', [
+            'custom_field_id' => $field->id,
+            'mode' => 'people',
+            'response' => 'Large',
+        ]));
+
+    $response->assertOk()
+        ->assertDownload('t-shirt-size-responses-'.now()->format('Y-m-d').'.csv');
+
+    expect($response->streamedContent())
+        ->toContain('Large Shirt Volunteer')
+        ->toContain('large@example.com')
+        ->not->toContain('Small Shirt Volunteer')
+        ->not->toContain('small@example.com');
+});
+
+it('exports response counts as csv', function () {
+    $field = CustomField::query()->create([
+        'name' => 'T-Shirt Size',
+        'field_key' => 'tshirt_size',
+        'field_type' => 'select',
+        'options' => ['Large'],
+        'is_active' => true,
+    ]);
+    $volunteer = User::factory()->create(['active' => true]);
+    CustomFieldValue::query()->create([
+        'user_id' => $volunteer->id,
+        'custom_field_id' => $field->id,
+        'value' => 'Large',
+    ]);
+
+    $response = $this->actingAs($this->reporter)
+        ->get(route('report.customFields.export', [
+            'custom_field_id' => $field->id,
+            'mode' => 'count',
+        ]));
+
+    $response->assertOk();
+
+    expect($response->streamedContent())
+        ->toContain('Response,Volunteers')
+        ->toContain('Large,1');
+});

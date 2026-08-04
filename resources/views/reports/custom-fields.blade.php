@@ -73,7 +73,13 @@
         @if($selectedField && $mode === 'count')
             <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h2 class="font-semibold text-gray-900 dark:text-gray-100">{{ $selectedField->name }} totals</h2>
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="font-semibold text-gray-900 dark:text-gray-100">{{ $selectedField->name }} totals</h2>
+                        <a href="{{ route('report.customFields.export', request()->query()) }}"
+                           class="rounded-md bg-gray-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500">
+                            Export CSV
+                        </a>
+                    </div>
                 </div>
                 @if($counts->isEmpty())
                     <p class="p-8 text-center text-sm text-gray-500 dark:text-gray-400">No active volunteers found.</p>
@@ -106,16 +112,30 @@
                 @if($selectedSectorId)
                     <input type="hidden" name="sector_id" value="{{ $selectedSectorId }}">
                 @endif
-                <div class="flex flex-col sm:flex-row items-end gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto] items-end gap-3">
                     <div class="w-full">
                         <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search volunteers</label>
                         <input type="text" id="search" name="search" value="{{ $search }}"
                                placeholder="Name or email..."
                                class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:ring-brand-green focus:border-brand-green text-sm">
                     </div>
+                    <div class="w-full">
+                        <label for="response" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Response</label>
+                        <select id="response" name="response"
+                                class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:ring-brand-green focus:border-brand-green text-sm">
+                            <option value="">All responses</option>
+                            @foreach($responseOptions as $responseOption)
+                                <option value="{{ $responseOption }}" @selected($responseFilter === $responseOption)>{{ $responseOption }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <button type="submit" class="rounded-md bg-brand-green px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-800">
                         Filter
                     </button>
+                    <a href="{{ route('report.customFields.export', request()->query()) }}"
+                       class="rounded-md bg-gray-700 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500">
+                        Export CSV
+                    </a>
                 </div>
             </form>
 

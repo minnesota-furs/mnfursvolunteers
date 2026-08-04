@@ -13,9 +13,11 @@ use App\Models\Sector;
 use App\Models\Shift;
 use App\Models\User;
 use App\Models\UserRelationship;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportsController extends Controller
 {
@@ -108,7 +110,9 @@ class ReportsController extends Controller
             : null;
         $mode = $request->input('mode', 'count');
         $search = $request->input('search');
+        $responseFilter = $request->input('response');
         $counts = collect();
+        $responseOptions = collect();
         $users = null;
 
         if ($selectedField && $mode === 'count') {
@@ -116,26 +120,108 @@ class ReportsController extends Controller
         }
 
         if ($selectedField && $mode === 'people') {
-            $users = User::query()
-                ->where('active', true)
-                ->when($selectedSectorId, fn ($query) => $query->whereHas(
-                    'departments',
-                    fn ($query) => $query->where('sector_id', $selectedSectorId)
-                ))
-                ->with(['customFieldValues' => fn ($query) => $query
-                    ->where('custom_field_id', $selectedField->id)])
-                ->when($search, fn ($query) => $query->where(function ($query) use ($search) {
-                    $query->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                }))
+            $responseOptions = $this->buildCustomFieldCounts($selectedField, $selectedSectorId)->keys();
+            $users = $this->buildCustomFieldPeopleQuery(
+                $selectedField,
+                $selectedSectorId,
+                $search,
+                $responseFilter
+            )
                 ->orderBy('name')
                 ->paginate(25)
                 ->withQueryString();
         }
 
         return view('reports.custom-fields', compact(
-            'customFields', 'sectors', 'selectedSectorId', 'selectedField', 'mode', 'search', 'counts', 'users'
+            'customFields', 'sectors', 'selectedSectorId', 'selectedField', 'mode', 'search', 'responseFilter',
+            'responseOptions', 'counts', 'users'
         ));
+    }
+
+    public function customFieldsExportCsv(CustomFieldReportRequest $request): StreamedResponse
+    {
+        $customField = CustomField::active()->findOrFail($request->integer('custom_field_id'));
+        $sectorId = $request->filled('sector_id') ? $request->integer('sector_id') : null;
+        $mode = $request->input('mode', 'count');
+        $filename = (string) str($customField->name)->slug()->append('-responses-', now()->format('Y-m-d'), '.csv');
+
+        if ($mode === 'count') {
+            $counts = $this->buildCustomFieldCounts($customField, $sectorId);
+
+            return response()->streamDownload(function () use ($counts): void {
+                $output = fopen('php://output', 'w');
+                fputcsv($output, ['Response', 'Volunteers']);
+
+                foreach ($counts as $response => $count) {
+                    fputcsv($output, [$response, $count]);
+                }
+
+                fclose($output);
+            }, $filename, ['Content-Type' => 'text/csv']);
+        }
+
+        $users = $this->buildCustomFieldPeopleQuery(
+            $customField,
+            $sectorId,
+            $request->input('search'),
+            $request->input('response')
+        )->orderBy('name')->get();
+
+        return response()->streamDownload(function () use ($customField, $users): void {
+            $output = fopen('php://output', 'w');
+            fputcsv($output, ['Volunteer', 'Email', $customField->name]);
+
+            foreach ($users as $user) {
+                fputcsv($output, [
+                    $user->name,
+                    $user->email,
+                    $user->customFieldValues->first()?->value ?: 'Not provided',
+                ]);
+            }
+
+            fclose($output);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    private function buildCustomFieldPeopleQuery(
+        CustomField $customField,
+        ?int $sectorId,
+        ?string $search,
+        ?string $responseFilter
+    ): Builder {
+        return User::query()
+            ->where('active', true)
+            ->when($sectorId, fn ($query) => $query->whereHas(
+                'departments',
+                fn ($query) => $query->where('sector_id', $sectorId)
+            ))
+            ->with(['customFieldValues' => fn ($query) => $query
+                ->where('custom_field_id', $customField->id)])
+            ->when($search, fn ($query) => $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            }))
+            ->when($responseFilter === 'Not provided', fn ($query) => $query->whereDoesntHave(
+                'customFieldValues',
+                fn ($query) => $query
+                    ->where('custom_field_id', $customField->id)
+                    ->whereNotNull('value')
+                    ->where('value', '!=', '')
+            ))
+            ->when($responseFilter && $responseFilter !== 'Not provided', function ($query) use ($customField, $responseFilter) {
+                $query->whereHas('customFieldValues', function ($query) use ($customField, $responseFilter) {
+                    $query->where('custom_field_id', $customField->id)
+                        ->where(function ($query) use ($customField, $responseFilter) {
+                            $query->where('value', $responseFilter);
+
+                            if ($customField->field_type === 'checkbox') {
+                                $query->orWhere('value', 'like', $responseFilter.',%')
+                                    ->orWhere('value', 'like', '%,'.$responseFilter)
+                                    ->orWhere('value', 'like', '%,'.$responseFilter.',%');
+                            }
+                        });
+                });
+            });
     }
 
     private function buildCustomFieldCounts(CustomField $customField, ?int $sectorId = null): Collection
