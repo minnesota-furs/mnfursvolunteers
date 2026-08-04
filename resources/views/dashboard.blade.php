@@ -34,15 +34,29 @@
                 <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow-lg sm:p-6">
                     <dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Your Department(s)</dt>
                     @if (Auth::user()->hasDept())
-                        {{-- <dd class="mt-1 text-2xl font-semibold tracking-tight text-gray-900">{{Auth::user()->department->name ?? 'NO_DEPARTMENT'}} for {{Auth::user()->sector->name ?? 'NO_SECTOR'}}</dd> --}}
-                        <dd class="mt-1 text-2xl tracking-tight text-gray-900 dark:text-gray-100">
-                            @foreach (Auth::user()->departments as $department)
-                                <span class="font-semibold">{{ $department->name }}</span> for <span
-                                    class="font-semibold">{{ $department->sector->name }}</span>
-                                @if (!$loop->last)
-                                    ,
-                                @endif
-                            @endforeach
+                        @php($departments = Auth::user()->departments)
+                        <dd class="mt-2" @if ($departments->count() > 2) x-data="{ expanded: false }" @endif>
+                            <ul id="additional-departments" class="space-y-1.5" aria-label="Your departments">
+                                @foreach ($departments as $department)
+                                    <li @if ($loop->index >= 2) x-show="expanded" x-cloak @endif
+                                        class="flex min-w-0 items-center gap-2 text-sm text-gray-900 dark:text-gray-100">
+                                        <span class="min-w-0 truncate font-semibold">{{ $department->name }}</span>
+                                        <span class="flex-shrink-0 text-gray-400 dark:text-gray-500" aria-hidden="true">&middot;</span>
+                                        <span class="min-w-0 truncate text-gray-500 dark:text-gray-400">{{ $department->sector->name }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+
+                            @if ($departments->count() > 2)
+                                <button type="button"
+                                    class="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-green hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
+                                    x-on:click="expanded = ! expanded"
+                                    x-bind:aria-expanded="expanded"
+                                    aria-controls="additional-departments">
+                                    <span x-text="expanded ? 'Show fewer' : 'Show {{ $departments->count() - 2 }} more'">Show {{ $departments->count() - 2 }} more</span>
+                                    <x-heroicon-m-chevron-down class="h-4 w-4 transition-transform" x-bind:class="expanded && 'rotate-180'" />
+                                </button>
+                            @endif
                         </dd>
                     @else
                         <dd class="mt-1 text-xl font-semibold tracking-tight text-gray-300 dark:text-gray-500">No Department Assigned</dd>

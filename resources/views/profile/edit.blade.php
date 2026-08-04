@@ -7,13 +7,14 @@
         @php
             $profileSections = [
                 ['id' => 'profile-information', 'label' => __('Profile Information'), 'icon' => 'heroicon-o-user'],
+                ['id' => 'departments', 'label' => __('Your Departments'), 'icon' => 'heroicon-o-building-office-2'],
                 ['id' => 'timezone', 'label' => __('Timezone'), 'icon' => 'heroicon-o-clock'],
                 ['id' => 'email-preferences', 'label' => __('Email Preferences'), 'icon' => 'heroicon-o-envelope'],
                 ['id' => 'calendar', 'label' => __('Calendar'), 'icon' => 'heroicon-o-calendar-days'],
             ];
 
             if (feature_enabled('accessibility_disclosures')) {
-                array_splice($profileSections, 1, 0, [[
+                array_splice($profileSections, 2, 0, [[
                     'id' => 'accessibility-needs',
                     'label' => __('Accessibility Needs'),
                     'icon' => 'heroicon-o-hand-raised',
@@ -57,6 +58,55 @@
                             @include('profile.partials.update-profile-information-form')
                         </div>
                     </div>
+
+                    <section id="departments" class="scroll-mt-6 bg-white p-4 shadow dark:bg-gray-800 sm:rounded-lg sm:p-8" aria-labelledby="departments-heading">
+                        <div class="max-w-xl">
+                            <header>
+                                <h2 id="departments-heading" class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                    {{ __('Your Departments') }}
+                                </h2>
+                            </header>
+
+                            @if ($user->departments->isNotEmpty())
+                                <ul class="mt-6 space-y-2" aria-label="{{ __('Your department assignments') }}">
+                                    @foreach ($user->departments as $department)
+                                        @php($isDepartmentHead = $user->headDepartments->contains($department))
+                                        <li>
+                                            <a href="{{ route('departments.show', $department) }}"
+                                                @if ($isDepartmentHead) data-department-head="true" @endif
+                                                class="group flex items-center gap-3 rounded-lg border px-4 py-3 transition focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 {{ $isDepartmentHead
+                                                    ? 'border-amber-300 bg-amber-50 hover:border-amber-400 hover:bg-amber-100 focus:ring-amber-500 dark:border-amber-700 dark:bg-amber-900/20 dark:hover:border-amber-600 dark:hover:bg-amber-900/30'
+                                                    : 'border-gray-200 hover:border-brand-green hover:bg-green-50 focus:ring-brand-green dark:border-gray-700 dark:hover:border-brand-green dark:hover:bg-brand-green/10' }}">
+                                                @if ($isDepartmentHead)
+                                                    <x-heroicon-s-star class="h-5 w-5 shrink-0 text-amber-500 dark:text-amber-400" aria-hidden="true" />
+                                                @else
+                                                    <x-heroicon-o-building-office-2 class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-brand-green dark:group-hover:text-green-400" aria-hidden="true" />
+                                                @endif
+                                                <span class="min-w-0 flex-1">
+                                                    <span class="flex items-center gap-2">
+                                                        <span class="truncate font-medium {{ $isDepartmentHead ? 'text-amber-900 dark:text-amber-100' : 'text-gray-900 dark:text-gray-100' }}">{{ $department->name }}</span>
+                                                        @if ($isDepartmentHead)
+                                                            <span class="shrink-0 rounded-full bg-amber-200 px-2 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-800 dark:text-amber-100">{{ __('Department Head') }}</span>
+                                                        @endif
+                                                    </span>
+                                                    <span class="block truncate text-sm {{ $isDepartmentHead ? 'text-amber-700 dark:text-amber-300' : 'text-gray-500 dark:text-gray-400' }}">{{ $department->sector->name }}</span>
+                                                </span>
+                                                <x-heroicon-m-chevron-right class="h-5 w-5 shrink-0 transition group-hover:translate-x-0.5 {{ $isDepartmentHead ? 'text-amber-500 dark:text-amber-400' : 'text-gray-400 group-hover:text-brand-green dark:group-hover:text-green-400' }}" aria-hidden="true" />
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                                    {{ __('You have no staffing commitments to any departments') }}
+                                </p>
+                            @endif
+
+                            <p class="mt-6 text-sm text-gray-500 dark:text-gray-400">
+                                {{ __('If your departments are missing or incorrect, please reach out to a staff administrator.') }}
+                            </p>
+                        </div>
+                    </section>
 
                     @feature('accessibility_disclosures')
                         <div id="accessibility-needs" class="scroll-mt-6 p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">

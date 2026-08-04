@@ -4,14 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AccessibilityNeedsUpdateRequest;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\CustomField;
+use App\Models\CustomFieldValue;
 use App\Models\User;
+use Corcel\Model\User as WordPressUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
-
-use Corcel\Model\User as WordPressUser;
 
 class ProfileController extends Controller
 {
@@ -20,7 +21,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        $user = $request->user()->load('customFieldValues');
+        $user = $request->user()->load(['customFieldValues', 'departments.sector', 'headDepartments:id']);
         $timezones = grouped_timezones();
 
         return view('profile.edit', [
@@ -35,7 +36,7 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-        
+
         // Update basic profile fields
         $user->fill($request->validated());
 
@@ -46,25 +47,25 @@ class ProfileController extends Controller
         $user->save();
 
         // Handle user-editable custom fields
-        $customFields = \App\Models\CustomField::active()->userEditable()->get();
-        
+        $customFields = CustomField::active()->userEditable()->get();
+
         foreach ($customFields as $field) {
-            $fieldKey = 'custom_field_' . $field->id;
+            $fieldKey = 'custom_field_'.$field->id;
             $value = $request->input($fieldKey);
-            
+
             // Handle checkbox fields (convert array to comma-separated string)
             if ($field->field_type === 'checkbox' && is_array($value)) {
                 $value = implode(',', $value);
             }
-            
+
             // If value is empty or null, delete the custom field value
             if (is_null($value) || $value === '' || (is_array($value) && empty($value))) {
-                \App\Models\CustomFieldValue::where('user_id', $user->id)
+                CustomFieldValue::where('user_id', $user->id)
                     ->where('custom_field_id', $field->id)
                     ->delete();
             } else {
                 // Otherwise, update or create the custom field value
-                \App\Models\CustomFieldValue::updateOrCreate(
+                CustomFieldValue::updateOrCreate(
                     [
                         'user_id' => $user->id,
                         'custom_field_id' => $field->id,
@@ -118,11 +119,11 @@ class ProfileController extends Controller
     {
         $user = $request->user()->load('customFieldValues');
 
-        $fields = \App\Models\CustomField::active()
+        $fields = CustomField::active()
             ->where('force_set', true)
             ->ordered()
             ->get()
-            ->filter(function (\App\Models\CustomField $field) use ($user) {
+            ->filter(function (CustomField $field) use ($user) {
                 $value = $user->customFieldValues
                     ->firstWhere('custom_field_id', $field->id)
                     ?->value;
@@ -146,11 +147,11 @@ class ProfileController extends Controller
         $user = $request->user()->load('customFieldValues');
 
         // Only process fields that are still missing a value — same filter as the GET view
-        $fields = \App\Models\CustomField::active()
+        $fields = CustomField::active()
             ->where('force_set', true)
             ->ordered()
             ->get()
-            ->filter(function (\App\Models\CustomField $field) use ($user) {
+            ->filter(function (CustomField $field) use ($user) {
                 $value = $user->customFieldValues
                     ->firstWhere('custom_field_id', $field->id)
                     ?->value;
@@ -161,22 +162,22 @@ class ProfileController extends Controller
         // Build validation rules for each missing force_set field
         $rules = [];
         foreach ($fields as $field) {
-            $fieldKey = 'custom_field_' . $field->id;
+            $fieldKey = 'custom_field_'.$field->id;
             $rules[$fieldKey] = 'required';
         }
 
         $request->validate($rules);
 
         foreach ($fields as $field) {
-            $fieldKey = 'custom_field_' . $field->id;
+            $fieldKey = 'custom_field_'.$field->id;
             $value = $request->input($fieldKey);
 
             if ($field->field_type === 'checkbox' && is_array($value)) {
                 $value = implode(',', $value);
             }
 
-            if (!is_null($value) && $value !== '') {
-                \App\Models\CustomFieldValue::updateOrCreate(
+            if (! is_null($value) && $value !== '') {
+                CustomFieldValue::updateOrCreate(
                     ['user_id' => $user->id, 'custom_field_id' => $field->id],
                     ['value' => $value]
                 );
@@ -197,8 +198,9 @@ class ProfileController extends Controller
         // Attempt to find WordPress user
         $wpUser = WordPressUser::where('user_email', $request->wordpress_email)->first();
 
-        if (!$wpUser || !app('hash')->check($request->wordpress_password, $wpUser->user_pass)) {
+        if (! $wpUser || ! app('hash')->check($request->wordpress_password, $wpUser->user_pass)) {
             \Log::debug('errors 1');
+
             return back()->withErrors(['wordpress_email' => 'Invalid WordPress credentials.']);
         }
 
@@ -238,7 +240,7 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
-        
+
         // Checkboxes not checked won't be in the request, so we need to handle that
         $user->update([
             'email_shift_reminders' => $request->has('email_shift_reminders'),
@@ -305,8 +307,8 @@ class ProfileController extends Controller
     public function unsubscribeElections(User $user, string $token)
     {
         // Verify the token matches the user's email (simple security measure)
-        $expectedToken = md5($user->email . config('app.key'));
-        
+        $expectedToken = md5($user->email.config('app.key'));
+
         if ($token !== $expectedToken) {
             abort(403, 'Invalid unsubscribe link');
         }

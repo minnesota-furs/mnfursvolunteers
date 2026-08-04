@@ -16,6 +16,7 @@ class DashboardController extends Controller
     public function __invoke()
     {
         $user = Auth::user();
+        $user->loadMissing('departments.sector');
         $now = Carbon::now();
 
         // Get upcoming volunteer events the user is eligible for
