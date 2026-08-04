@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ShiftTagReportController;
 use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\VolunteerPerkController as AdminVolunteerPerkController;
 use App\Http\Controllers\Admin\VolunteerPerkSetController as AdminVolunteerPerkSetController;
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\CommandPaletteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
@@ -137,6 +138,11 @@ Route::middleware('auth')->prefix('notifications')->name('notifications.')->grou
 // Authenticated routes
 Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->group(function () {
     Route::get('/command-palette/search', CommandPaletteController::class)->name('command-palette.search');
+
+    Route::middleware('can:manage-announcements')->group(function () {
+        Route::resource('announcements', AnnouncementController::class)->except('show');
+    });
+    Route::get('announcements/{announcement}', [AnnouncementController::class, 'show'])->name('announcements.show');
 
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');

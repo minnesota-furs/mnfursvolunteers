@@ -267,6 +267,12 @@
                             @endcan
                             @endfeature
 
+                            @can('manage-announcements')
+                            <x-dropdown-link :href="route('announcements.index')">
+                                {{ __('Announcements') }}
+                            </x-dropdown-link>
+                            @endcan
+
                             @if( Auth::check() && Auth::user()->isAdmin() )
                             <x-dropdown-link :href="route('ledger.index')" data-tour="tour-ledgers-link">
                                 {{ __('Ledgers') }}
@@ -623,6 +629,12 @@
                     @can('manage-elections')
                     <x-responsive-nav-link :href="route('admin.elections.index')">
                         {{ __('Elections') }}
+                    </x-responsive-nav-link>
+                    @endcan
+
+                    @can('manage-announcements')
+                    <x-responsive-nav-link :href="route('announcements.index')" :active="request()->routeIs('announcements.*')">
+                        {{ __('Announcements') }}
                     </x-responsive-nav-link>
                     @endcan
 

@@ -61,6 +61,8 @@
 
             <x-no-show-warning :recentNoShows="$recentNoShows" />
 
+            <x-announcements-dashboard-notice :announcements="$announcements" />
+
             <x-elections-dashboard-notice :activeElections="$activeElections" />
 
             <x-applications-dashboard-notice 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Announcement;
 use App\Models\Department;
 use App\Models\Election;
 use App\Models\Event;
@@ -20,6 +21,12 @@ class DashboardController extends Controller
         // Get upcoming volunteer events the user is eligible for
         $userTagIds = $user->tags()->pluck('tags.id')->toArray();
         $userDeptIds = $user->departments()->pluck('departments.id')->toArray();
+
+        $announcements = Announcement::query()
+            ->active()
+            ->visibleTo($user)
+            ->latest()
+            ->get();
 
         $upcomingEvents = Event::visibleToAuthUsers()
             ->where('end_date', '>=', $now)
@@ -118,7 +125,7 @@ class DashboardController extends Controller
             ->orderByPivot('no_show_marked_at', 'desc')
             ->get();
 
-        return view('dashboard', compact('upcomingEvents', 'eligibleSimpleEvents', 'upcomingShifts', 'activeElections', 'claimedApplications', 'unclaimedPendingCount', 'recentNoShows'));
+        return view('dashboard', compact('announcements', 'upcomingEvents', 'eligibleSimpleEvents', 'upcomingShifts', 'activeElections', 'claimedApplications', 'unclaimedPendingCount', 'recentNoShows'));
     }
 
     public function dismissProfileNotice()

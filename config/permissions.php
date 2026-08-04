@@ -41,8 +41,11 @@ return [
         'label' => 'Manage Recognition',
         'description' => 'Create, edit, and delete user recognition and awards. Can view private recognition.',
     ],
+    'manage-announcements' => [
+        'label' => 'Manage Announcements',
+        'description' => 'Create, edit, and delete dashboard announcements and choose their audiences.',
+    ],
 ];
-
 
 // return [
 //     'Manage Users',
