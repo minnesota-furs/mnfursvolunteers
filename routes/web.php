@@ -287,6 +287,8 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
 
     // Reports
     Route::prefix('report')->name('report.')->middleware('can:view-reports')->group(function () {
+        Route::get('/staff-check-in', [ReportsController::class, 'staffCheckIn'])->name('staffCheckIn');
+        Route::get('/staff-check-in/print', [ReportsController::class, 'staffCheckInPrint'])->name('staffCheckIn.print');
         Route::get('/users-without-departments', [ReportsController::class, 'usersWithoutDepartments'])->name('usersWithoutDepartments');
         Route::get('/users-without-hours', [ReportsController::class, 'usersWithoutHoursThisPeriod'])->name('usersWithoutHoursThisPeriod');
         Route::get('/event-shift-hours', [ReportsController::class, 'eventShiftHoursReport'])->name('eventShiftHours');

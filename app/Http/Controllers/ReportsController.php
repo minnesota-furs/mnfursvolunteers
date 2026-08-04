@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CustomFieldReportRequest;
 use App\Http\Requests\DepartmentReportRequest;
+use App\Http\Requests\StaffCheckInReportRequest;
 use App\Models\CustomField;
 use App\Models\CustomFieldValue;
 use App\Models\Department;
@@ -14,13 +15,112 @@ use App\Models\Shift;
 use App\Models\User;
 use App\Models\UserRelationship;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportsController extends Controller
 {
+    public function staffCheckIn(StaffCheckInReportRequest $request): View
+    {
+        return view('reports.staff-check-in', $this->buildStaffCheckInReportData($request));
+    }
+
+    public function staffCheckInPrint(StaffCheckInReportRequest $request): View|RedirectResponse
+    {
+        $reportData = $this->buildStaffCheckInReportData($request);
+
+        if ($reportData['staff'] === null) {
+            return redirect()->route('report.staffCheckIn')
+                ->with('error', 'Please generate a staff check-in report before printing.');
+        }
+
+        return view('reports.staff-check-in-print', $reportData);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildStaffCheckInReportData(StaffCheckInReportRequest $request): array
+    {
+        $scope = $request->input('scope', '');
+        $selectedSectorId = $request->filled('sector_id') ? $request->integer('sector_id') : null;
+        $selectedDepartmentId = $request->filled('department_id') ? $request->integer('department_id') : null;
+        $selectedCustomFieldIds = collect($request->input('custom_fields', []))->map(fn ($id) => (int) $id);
+        $checklistItems = collect($request->input('checklist_items', []))
+            ->map(fn (?string $item) => trim((string) $item))
+            ->filter()
+            ->values();
+        $includeSignature = $request->boolean('include_signature');
+        $groupAlphabetically = $request->boolean('group_alphabetically');
+        $alphabeticalBy = $request->input('alphabetical_by', 'name');
+        $listLegalName = $request->boolean('list_legal_name');
+        $sectors = Sector::query()->orderBy('name')->get();
+        $departments = Department::query()->with('sector')->orderBy('name')->get();
+        $customFields = CustomField::active()->ordered()->get();
+        $selectedCustomFields = $customFields->whereIn('id', $selectedCustomFieldIds)->values();
+        $staff = null;
+        $staffGroups = null;
+        $reportGroupName = null;
+
+        if ($scope === 'sector' && $selectedSectorId) {
+            $sector = $sectors->firstWhere('id', $selectedSectorId);
+            $reportGroupName = $sector?->name;
+            $staff = $this->buildStaffCheckInQuery($selectedCustomFieldIds, $scope, $selectedSectorId, $alphabeticalBy)
+                ->whereHas('departments', fn ($query) => $query->where('sector_id', $selectedSectorId))
+                ->get();
+        }
+
+        if ($scope === 'department' && $selectedDepartmentId) {
+            $department = $departments->firstWhere('id', $selectedDepartmentId);
+            $reportGroupName = $department ? $department->sector->name.': '.$department->name : null;
+            $staff = $this->buildStaffCheckInQuery($selectedCustomFieldIds, $scope, $selectedDepartmentId, $alphabeticalBy)
+                ->whereHas('departments', fn ($query) => $query->whereKey($selectedDepartmentId))
+                ->get();
+        }
+
+        if ($staff !== null) {
+            $staffGroups = $groupAlphabetically
+                ? $staff->groupBy(fn (User $user) => Str::upper(Str::substr(
+                    (string) ($user->{$alphabeticalBy} ?: $user->name),
+                    0,
+                    1
+                )))
+                : collect(['' => $staff]);
+        }
+
+        return compact(
+            'scope', 'selectedSectorId', 'selectedDepartmentId', 'selectedCustomFieldIds', 'checklistItems',
+            'includeSignature', 'groupAlphabetically', 'alphabeticalBy', 'listLegalName', 'sectors',
+            'departments', 'customFields', 'selectedCustomFields', 'staff', 'staffGroups', 'reportGroupName'
+        );
+    }
+
+    private function buildStaffCheckInQuery(
+        Collection $customFieldIds,
+        string $scope,
+        int $groupId,
+        string $alphabeticalBy
+    ): Builder {
+        return User::query()
+            ->where('active', true)
+            ->with([
+                'departments' => fn ($query) => $query
+                    ->when(
+                        $scope === 'sector',
+                        fn ($query) => $query->where('sector_id', $groupId),
+                        fn ($query) => $query->whereKey($groupId)
+                    )
+                    ->orderBy('name'),
+                'customFieldValues' => fn ($query) => $query->whereIn('custom_field_id', $customFieldIds),
+            ])
+            ->orderBy($alphabeticalBy)
+            ->orderBy('name');
+    }
+
     public function volunteersWithMultipleDepartments(DepartmentReportRequest $request): View
     {
         $search = $request->input('search');

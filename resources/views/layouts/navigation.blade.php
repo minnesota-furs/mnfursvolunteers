@@ -205,6 +205,10 @@
                                             <x-heroicon-o-adjustments-horizontal class="w-4 h-4 shrink-0 text-gray-400"/>
                                             Custom Fields
                                         </a>
+                                        <a href="{{ route('report.staffCheckIn') }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                                            <x-heroicon-o-clipboard-document-check class="w-4 h-4 shrink-0 text-gray-400"/>
+                                            Staff Check-in
+                                        </a>
                                         <a href="{{ route('report.volunteersWithMultipleDepartments') }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
                                             <x-heroicon-o-user-group class="w-4 h-4 shrink-0 text-gray-400"/>
                                             Multiple Departments
@@ -597,6 +601,9 @@
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('report.customFields')">
                         {{ __('Custom Fields') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('report.staffCheckIn')">
+                        {{ __('Staff Check-in') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('report.volunteersWithMultipleDepartments')">
                         {{ __('Multiple Departments') }}
