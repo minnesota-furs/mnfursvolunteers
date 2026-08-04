@@ -29,6 +29,8 @@ class WarningEmailDomains
 
         $emailDomain = strtolower((string) str($email)->afterLast('@'));
 
-        return in_array($emailDomain, self::parse($domains), true);
+        return collect(self::parse($domains))->contains(
+            fn (string $domain): bool => $emailDomain === $domain || str_ends_with($emailDomain, ".{$domain}")
+        );
     }
 }

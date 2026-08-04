@@ -47,7 +47,9 @@
                         warningDomains: @js($warningEmailDomains),
                         shouldWarn() {
                             const domain = this.email.toLowerCase().trim().split('@').pop();
-                            return this.email.includes('@') && this.warningDomains.includes(domain);
+                            return this.email.includes('@') && this.warningDomains.some(
+                                warningDomain => domain === warningDomain || domain.endsWith(`.${warningDomain}`)
+                            );
                         }
                     }">
                     @csrf

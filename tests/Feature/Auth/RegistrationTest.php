@@ -46,6 +46,36 @@ test('users must acknowledge a configured warning email domain', function () {
     $this->assertAuthenticated();
 });
 
+test('users must acknowledge a subdomain of a configured warning email domain', function () {
+    ApplicationSetting::set('warning_email_domains', 'mnfurs.org');
+
+    $this->post('/register', [
+        'name' => 'Test User',
+        'first_name' => 'Test',
+        'last_name' => 'User',
+        'email' => 'volunteer@staff.mnfurs.org',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ])->assertSessionHasErrors('warning_email_acknowledged');
+
+    $this->assertGuest();
+});
+
+test('lookalike domains do not trigger the warning', function () {
+    ApplicationSetting::set('warning_email_domains', 'mnfurs.org');
+
+    $this->post('/register', [
+        'name' => 'Test User',
+        'first_name' => 'Test',
+        'last_name' => 'User',
+        'email' => 'volunteer@notmnfurs.org',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ])->assertRedirect(route('onboarding.index'));
+
+    $this->assertAuthenticated();
+});
+
 test('warning email domains are disabled when the setting is blank', function () {
     ApplicationSetting::set('warning_email_domains', '');
 
