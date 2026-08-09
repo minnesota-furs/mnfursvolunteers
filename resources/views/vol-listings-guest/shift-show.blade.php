@@ -189,10 +189,10 @@
                     ->withCount(['users as filled_count'])
                     ->where('id', '!=', $shift->id)
                     ->when($event->hide_past_shifts, fn($query) => $query->where('start_time', '>=', now()))
-                    ->havingRaw('filled_count < max_volunteers')
                     ->orderBy('start_time')
-                    ->limit(5)
-                    ->get();
+                    ->get()
+                    ->filter(fn ($relatedShift) => $relatedShift->filled_count < $relatedShift->max_volunteers)
+                    ->take(5);
                 @endphp
 
                 @if($relatedShifts->count() > 0)

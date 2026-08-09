@@ -28,10 +28,6 @@ class ShiftController extends Controller
             $query->where('start_time', '<=', now()->addMinutes($minutes));
         }
 
-        if ($request->boolean('openSlotsOnly')) {
-            $query->havingRaw('users_count < max_volunteers');
-        }
-
         if ($request->filled('date')) {
             $query->whereDate('start_time', $request->input('date'));
         }
@@ -46,7 +42,13 @@ class ShiftController extends Controller
             $query->where('name', 'like', '%' . $request->input('search') . '%');
         }
 
-        $shifts = $query->limit($limit)->get();
+        $shifts = $query->get();
+
+        if ($request->boolean('openSlotsOnly')) {
+            $shifts = $shifts->filter(fn ($shift) => $shift->users_count < $shift->max_volunteers)->values();
+        }
+
+        $shifts = $shifts->take($limit);
 
         $descriptionLength = $request->filled('descriptionLength')
             ? max(0, (int) $request->input('descriptionLength'))

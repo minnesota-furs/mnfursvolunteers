@@ -48,7 +48,9 @@ class VolunteerGuestController extends Controller
                 });
             })
             ->when($request->filled('day'), fn ($q) => $q->whereDate('start_time', $request->input('day')))
-            ->when($request->input('availability') === 'open', fn ($q) => $q->havingRaw('filled_count < max_volunteers'))
+            ->when($request->input('availability') === 'open', fn ($q) => $q->whereRaw(
+                '(select count(*) from shift_signups where shift_signups.shift_id = shifts.id) < shifts.max_volunteers'
+            ))
             ->orderBy('start_time')
             ->paginate(10)
             ->appends($request->query());
