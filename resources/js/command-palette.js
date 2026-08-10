@@ -13,6 +13,10 @@ export default function commandPalette(availableFeatures, userSearchUrl) {
         init() {
             window.addEventListener('keydown', (event) => {
                 if (event.shiftKey && event.code === 'Space') {
+                    if (!this.isOpen && this.isTextFieldFocused(event.target)) {
+                        return;
+                    }
+
                     event.preventDefault();
 
                     if (event.repeat) {
@@ -29,6 +33,30 @@ export default function commandPalette(availableFeatures, userSearchUrl) {
                     }
                 }
             });
+        },
+
+        isTextFieldFocused(target) {
+            if (!target) {
+                return false;
+            }
+
+            if (target.isContentEditable) {
+                return true;
+            }
+
+            const tagName = target.tagName;
+
+            if (tagName === 'TEXTAREA' || tagName === 'SELECT') {
+                return true;
+            }
+
+            if (tagName === 'INPUT') {
+                const nonTextTypes = ['checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'color', 'file'];
+
+                return !nonTextTypes.includes(target.type);
+            }
+
+            return false;
         },
 
         get matchingFeatures() {
