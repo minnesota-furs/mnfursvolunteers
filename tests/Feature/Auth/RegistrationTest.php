@@ -136,8 +136,9 @@ test('an error is shown when a required invite code is missing', function () {
     $this->assertGuest();
 });
 
-test('an error is shown when an invalid invite code is given', function () {
+test('an error is shown when an invalid invite code is given and one is required', function () {
     User::factory()->create();
+    ApplicationSetting::set('require_invite_code', '1', 'boolean');
 
     $this->post('/register', [
         'name' => 'Test User',
@@ -150,6 +151,22 @@ test('an error is shown when an invalid invite code is given', function () {
     ])->assertSessionHasErrors('invite_code');
 
     $this->assertGuest();
+});
+
+test('an invalid invite code does not block registration when one is not required', function () {
+    User::factory()->create();
+
+    $this->post('/register', [
+        'name' => 'Test User',
+        'first_name' => 'Test',
+        'last_name' => 'User',
+        'email' => 'test@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'invite_code' => 'BOGUSCODE',
+    ])->assertRedirect(route('onboarding.index'));
+
+    $this->assertAuthenticated();
 });
 
 test('a valid invite code allows registration', function () {
