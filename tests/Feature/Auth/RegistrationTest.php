@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\ApplicationSetting;
+use App\Models\InviteCode;
 use App\Models\User;
 
 test('registration screen can be rendered', function () {
@@ -117,4 +118,54 @@ test('an admin can configure multiple warning email domains', function () {
 
     expect(ApplicationSetting::get('warning_email_domains'))
         ->toBe("mnfurs.org\nfurrymigration.org");
+});
+
+test('an error is shown when a required invite code is missing', function () {
+    User::factory()->create();
+    ApplicationSetting::set('require_invite_code', '1', 'boolean');
+
+    $this->post('/register', [
+        'name' => 'Test User',
+        'first_name' => 'Test',
+        'last_name' => 'User',
+        'email' => 'test@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ])->assertSessionHasErrors('invite_code');
+
+    $this->assertGuest();
+});
+
+test('an error is shown when an invalid invite code is given', function () {
+    User::factory()->create();
+
+    $this->post('/register', [
+        'name' => 'Test User',
+        'first_name' => 'Test',
+        'last_name' => 'User',
+        'email' => 'test@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'invite_code' => 'BOGUSCODE',
+    ])->assertSessionHasErrors('invite_code');
+
+    $this->assertGuest();
+});
+
+test('a valid invite code allows registration', function () {
+    User::factory()->create();
+    $inviteCode = InviteCode::create(['code' => 'VALIDCODE', 'is_active' => true]);
+
+    $this->post('/register', [
+        'name' => 'Test User',
+        'first_name' => 'Test',
+        'last_name' => 'User',
+        'email' => 'test@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'invite_code' => 'validcode',
+    ])->assertRedirect(route('onboarding.index'));
+
+    $this->assertAuthenticated();
+    expect($inviteCode->fresh()->uses_count)->toBe(1);
 });
