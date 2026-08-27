@@ -176,3 +176,55 @@ it('does not show the category filter dropdown when no shift has a category', fu
         ->assertOk()
         ->assertDontSee('All categories');
 });
+
+it('bulk-adds a category to shifts without disturbing categories they already have', function () {
+    actingAsEventManager();
+    $event = Event::factory()->create();
+    $badgeChecker = EventCategory::factory()->for($event)->create(['name' => 'Badge Checker']);
+    $setup = EventCategory::factory()->for($event)->create(['name' => 'Setup']);
+
+    $shiftOne = Shift::factory()->for($event)->create();
+    $shiftOne->categories()->attach($setup);
+    $shiftTwo = Shift::factory()->for($event)->create();
+
+    $this->patch(route('admin.events.shifts.bulk-update', $event), [
+        'shift_ids' => [$shiftOne->id, $shiftTwo->id],
+        'add_category_ids' => [$badgeChecker->id],
+    ])->assertRedirect(route('admin.events.shifts.index', $event));
+
+    expect($shiftOne->fresh()->categories->pluck('id')->sort()->values()->all())
+        ->toBe(collect([$setup->id, $badgeChecker->id])->sort()->values()->all());
+    expect($shiftTwo->fresh()->categories->pluck('id')->all())->toBe([$badgeChecker->id]);
+});
+
+it('bulk-removes a category from shifts without touching their other categories', function () {
+    actingAsEventManager();
+    $event = Event::factory()->create();
+    $badgeChecker = EventCategory::factory()->for($event)->create(['name' => 'Badge Checker']);
+    $setup = EventCategory::factory()->for($event)->create(['name' => 'Setup']);
+
+    $shift = Shift::factory()->for($event)->create();
+    $shift->categories()->attach([$badgeChecker->id, $setup->id]);
+
+    $this->patch(route('admin.events.shifts.bulk-update', $event), [
+        'shift_ids' => [$shift->id],
+        'remove_category_ids' => [$badgeChecker->id],
+    ])->assertRedirect(route('admin.events.shifts.index', $event));
+
+    expect($shift->fresh()->categories->pluck('id')->all())->toBe([$setup->id]);
+});
+
+it('rejects a bulk category id belonging to a different event', function () {
+    actingAsEventManager();
+    $event = Event::factory()->create();
+    $otherEvent = Event::factory()->create();
+    $foreignCategory = EventCategory::factory()->for($otherEvent)->create();
+    $shift = Shift::factory()->for($event)->create();
+
+    $this->patch(route('admin.events.shifts.bulk-update', $event), [
+        'shift_ids' => [$shift->id],
+        'add_category_ids' => [$foreignCategory->id],
+    ])->assertSessionHasErrors('add_category_ids.0');
+
+    expect($shift->fresh()->categories)->toBeEmpty();
+});

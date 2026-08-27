@@ -31,10 +31,11 @@ class ShiftController extends Controller
     {
         $shifts = $event->shifts()->with(['users', 'tags', 'categories'])->orderBy('start_time', 'asc')->get();
         $accessibilityNeeds = User::ACCESSIBILITY_NEEDS;
+        $categories = $event->categories;
         $recentSeries = $this->recentUndoableSeries($event);
         $recentSeriesHistory = $this->recentSeriesHistory($event);
 
-        return view('admin.shifts.index', compact('event', 'shifts', 'accessibilityNeeds', 'recentSeries', 'recentSeriesHistory'));
+        return view('admin.shifts.index', compact('event', 'shifts', 'accessibilityNeeds', 'categories', 'recentSeries', 'recentSeriesHistory'));
     }
 
     /**
@@ -366,7 +367,10 @@ class ShiftController extends Controller
             $updateData['accessibility_conflicts'] = $request->input('accessibility_conflicts', []);
         }
 
-        if (empty($updateData)) {
+        $addCategoryIds = $request->input('add_category_ids', []);
+        $removeCategoryIds = $request->input('remove_category_ids', []);
+
+        if (empty($updateData) && empty($addCategoryIds) && empty($removeCategoryIds)) {
             return back()->with('error', [
                 'message' => 'No fields were selected to update.',
             ]);
@@ -376,14 +380,32 @@ class ShiftController extends Controller
         $count = $shifts->count();
 
         foreach ($shifts as $shift) {
-            $shift->update($updateData);
+            if (! empty($updateData)) {
+                $shift->update($updateData);
+            }
+
+            if (! empty($addCategoryIds)) {
+                $shift->categories()->syncWithoutDetaching($addCategoryIds);
+            }
+
+            if (! empty($removeCategoryIds)) {
+                $shift->categories()->detach($removeCategoryIds);
+            }
+        }
+
+        $changedFields = array_keys($updateData);
+        if (! empty($addCategoryIds)) {
+            $changedFields[] = 'categories added';
+        }
+        if (! empty($removeCategoryIds)) {
+            $changedFields[] = 'categories removed';
         }
 
         AuditLog::create([
             'action' => 'shift_bulk_update',
             'auditable_type' => Event::class,
             'auditable_id' => $event->id,
-            'comment' => 'User '.auth()->user()->name." bulk updated {$count} shift(s): ".implode(', ', array_keys($updateData)),
+            'comment' => 'User '.auth()->user()->name." bulk updated {$count} shift(s): ".implode(', ', $changedFields),
             'user_id' => auth()->id(),
         ]);
 

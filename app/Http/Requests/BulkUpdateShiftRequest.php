@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\User;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,7 +15,7 @@ class BulkUpdateShiftRequest extends FormRequest
     }
 
     /**
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -30,6 +31,10 @@ class BulkUpdateShiftRequest extends FormRequest
             'apply_accessibility_conflicts' => ['nullable', 'boolean'],
             'accessibility_conflicts' => ['array'],
             'accessibility_conflicts.*' => ['string', Rule::in(User::ACCESSIBILITY_NEEDS)],
+            'add_category_ids' => ['array'],
+            'add_category_ids.*' => ['integer', Rule::exists('event_categories', 'id')->where('event_id', $this->route('event')->id)],
+            'remove_category_ids' => ['array'],
+            'remove_category_ids.*' => ['integer', Rule::exists('event_categories', 'id')->where('event_id', $this->route('event')->id)],
         ];
     }
 
@@ -37,6 +42,8 @@ class BulkUpdateShiftRequest extends FormRequest
     {
         $this->merge([
             'accessibility_conflicts' => $this->input('accessibility_conflicts', []),
+            'add_category_ids' => $this->input('add_category_ids', []),
+            'remove_category_ids' => $this->input('remove_category_ids', []),
         ]);
     }
 }

@@ -134,6 +134,41 @@
                                 </div>
                                 </div>
                             @endfeature
+
+                            {{-- Categories --}}
+                            @if($categories->isNotEmpty())
+                                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                                    <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Manage Categories</span>
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                        Click a category to cycle it.
+                                    </p>
+                                    <div class="mt-3 flex flex-wrap gap-2">
+                                        @foreach ($categories as $category)
+                                            <button type="button"
+                                                @click="cycleCategory({{ $category->id }})"
+                                                class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors"
+                                                :class="{
+                                                    'border-green-400 dark:border-green-700 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300': categoryState[{{ $category->id }}] === 'add',
+                                                    'border-red-400 dark:border-red-700 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300': categoryState[{{ $category->id }}] === 'remove',
+                                                    'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500': !categoryState[{{ $category->id }}],
+                                                }">
+                                                <x-heroicon-s-plus-circle class="w-4 h-4 text-green-600 dark:text-green-400" x-show="categoryState[{{ $category->id }}] === 'add'" x-cloak/>
+                                                <x-heroicon-s-minus-circle class="w-4 h-4 text-red-600 dark:text-red-400" x-show="categoryState[{{ $category->id }}] === 'remove'" x-cloak/>
+                                                <span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" x-show="!categoryState[{{ $category->id }}]" x-cloak
+                                                    style="background-color: {{ $category->color ?: '#9CA3AF' }}"></span>
+                                                {{ $category->name }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+
+                                    <template x-for="id in Object.keys(categoryState).filter(id => categoryState[id] === 'add')" :key="'add-' + id">
+                                        <input type="hidden" name="add_category_ids[]" :value="id">
+                                    </template>
+                                    <template x-for="id in Object.keys(categoryState).filter(id => categoryState[id] === 'remove')" :key="'remove-' + id">
+                                        <input type="hidden" name="remove_category_ids[]" :value="id">
+                                    </template>
+                                </div>
+                            @endif
                         </div>
 
                         {{-- Footer --}}
@@ -169,6 +204,7 @@ function bulkEditModal() {
         doubleHours: false,
         applyAccessibilityConflicts: false,
         accessibilityConflicts: [],
+        categoryState: {},
 
         openModal(detail) {
             this.shiftIds = detail.ids || [];
@@ -180,12 +216,26 @@ function bulkEditModal() {
             this.doubleHours = false;
             this.applyAccessibilityConflicts = false;
             this.accessibilityConflicts = [];
+            this.categoryState = {};
             this.open = true;
+        },
+
+        // Cycles a category through unchanged -> add -> remove -> unchanged.
+        cycleCategory(id) {
+            const current = this.categoryState[id] || null;
+            const next = current === null ? 'add' : (current === 'add' ? 'remove' : null);
+
+            if (next === null) {
+                delete this.categoryState[id];
+            } else {
+                this.categoryState[id] = next;
+            }
         },
 
         get canSubmit() {
             return this.shiftIds.length > 0 &&
-                (this.applyMaxVolunteers || this.applyDescription || this.applyDoubleHours || this.applyAccessibilityConflicts);
+                (this.applyMaxVolunteers || this.applyDescription || this.applyDoubleHours || this.applyAccessibilityConflicts
+                    || Object.keys(this.categoryState).length > 0);
         }
     }
 }
