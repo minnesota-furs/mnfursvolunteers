@@ -73,6 +73,17 @@
                                 {{ $tag->name }}
                             </span>
                         @endforeach
+
+                        {{-- Event categories --}}
+                        @foreach($shift->categories as $category)
+                            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset"
+                                style="background-color:{{ $category->color }}22; color:{{ $category->color }}; border-color:{{ $category->color }}44;">
+                                @if($category->color)
+                                    <span class="inline-block w-2 h-2 rounded-full mr-1.5" style="background-color:{{ $category->color }}"></span>
+                                @endif
+                                {{ $category->name }}
+                            </span>
+                        @endforeach
                     </div>
                 </div>
 

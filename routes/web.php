@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CustomFieldController;
+use App\Http\Controllers\Admin\EventCategoryController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\InviteCodeController;
 use App\Http\Controllers\Admin\ManagerDashboardController;
@@ -406,10 +407,13 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
             Route::get('/events/{event}/shift-tag-report', [ShiftTagReportController::class, 'eventReport'])->name('events.shift-tag-report');
             Route::get('events/{event}/shifts/create-series', [ShiftController::class, 'createSeries'])->name('events.shifts.create-series');
             Route::post('events/{event}/shifts/store-series', [ShiftController::class, 'storeSeries'])->name('events.shifts.store-series');
+            Route::post('events/{event}/shifts/undo-series/{auditLog}', [ShiftController::class, 'undoSeries'])->name('events.shifts.undo-series');
+            Route::post('events/{event}/shifts/dismiss-series/{auditLog}', [ShiftController::class, 'dismissSeries'])->name('events.shifts.dismiss-series');
             Route::post('events/{event}/shifts/import', [ShiftController::class, 'importCsv'])->name('events.shifts.import');
             Route::delete('events/{event}/shifts/bulk-destroy', [ShiftController::class, 'bulkDestroy'])->name('events.shifts.bulk-destroy');
             Route::patch('events/{event}/shifts/bulk-update', [ShiftController::class, 'bulkUpdate'])->name('events.shifts.bulk-update');
             Route::resource('events.shifts', ShiftController::class)->except(['show'])->scoped();
+            Route::resource('events.categories', EventCategoryController::class)->except(['show'])->scoped();
             Route::post('events/{event}/shifts/{shift}/duplicate', [ShiftController::class, 'duplicate'])->scopeBindings()->name('events.shifts.duplicate');
             Route::post('events/{event}/shifts/{shift}/advanced-duplicate', [ShiftController::class, 'advancedDuplicate'])->scopeBindings()->name('events.shifts.advanced-duplicate');
             Route::delete('events/{event}/shifts/{shift}/remove-volunteer/{user}', [ShiftController::class, 'removeVolunteer'])->scopeBindings()->name('events.shifts.remove-volunteer');

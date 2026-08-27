@@ -125,6 +125,23 @@
                           <option value="open" {{ request('availability') == 'open' ? 'selected' : '' }}>Open Slots Only</option>
                         </select>
 
+                        @if($availableCategories->isNotEmpty())
+                          {{-- Category Filter --}}
+                          <select
+                            name="category"
+                            id="category"
+                            class="w-full rounded-md border-0 py-2.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:w-auto sm:text-sm sm:leading-6"
+                            onchange="this.form.submit()"
+                          >
+                            <option value="">All Categories</option>
+                            @foreach($availableCategories as $category)
+                              <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                              </option>
+                            @endforeach
+                          </select>
+                        @endif
+
                         {{-- Search Button --}}
                         <button
                           type="submit"
@@ -135,7 +152,7 @@
                       </div>
 
                       {{-- Active Filters & Reset --}}
-                      @if(request()->hasAny(['search', 'day', 'availability']))
+                      @if(request()->hasAny(['search', 'day', 'availability', 'category']))
                         <div class="flex flex-col gap-2 pt-2 sm:flex-row sm:items-center sm:justify-between">
                           <div class="flex flex-wrap gap-2">
                             @if(request('search'))
@@ -166,6 +183,18 @@
                                 <a href="{{ route('vol-listings-public.show', array_merge(['event' => $event], array_diff_key(request()->query(), ['availability' => '']))) }}" class="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-purple-200">
                                   <span class="sr-only">Remove</span>
                                   <svg viewBox="0 0 14 14" class="h-3.5 w-3.5 stroke-purple-700/50 group-hover:stroke-purple-700/75">
+                                    <path d="M4 4l6 6m0-6l-6 6" />
+                                  </svg>
+                                </a>
+                              </span>
+                            @endif
+                            @if(request('category'))
+                              @php $activeCategory = $availableCategories->firstWhere('id', (int) request('category')); @endphp
+                              <span class="inline-flex items-center gap-x-1.5 rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-700">
+                                Category: {{ $activeCategory->name ?? request('category') }}
+                                <a href="{{ route('vol-listings-public.show', array_merge(['event' => $event], array_diff_key(request()->query(), ['category' => '']))) }}" class="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-yellow-200">
+                                  <span class="sr-only">Remove</span>
+                                  <svg viewBox="0 0 14 14" class="h-3.5 w-3.5 stroke-yellow-700/50 group-hover:stroke-yellow-700/75">
                                     <path d="M4 4l6 6m0-6l-6 6" />
                                   </svg>
                                 </a>
@@ -206,6 +235,15 @@
                               @endif
                                 {{ $shift->start_time->format('g:i A') }}
                               </span>
+                            @foreach($shift->categories as $category)
+                              <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ml-1"
+                                style="background-color:{{ $category->color }}22; color:{{ $category->color }}; border-color:{{ $category->color }}44;">
+                                @if($category->color)
+                                  <span class="inline-block w-2 h-2 rounded-full mr-1" style="background-color:{{ $category->color }}"></span>
+                                @endif
+                                {{ $category->name }}
+                              </span>
+                            @endforeach
                           </p>
                           <div class="flex flex-col mt-1 gap-x-2 text-xs/5 {{ $isFull ? 'text-gray-400' : 'text-gray-500' }}">
                             @if($shift->double_hours)
@@ -230,7 +268,7 @@
                     <li class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-nowrap">
                       <div>
                         <p class="text-sm/6 mt-4">
-                          @if(request()->hasAny(['search', 'day', 'availability']))
+                          @if(request()->hasAny(['search', 'day', 'availability', 'category']))
                             <span class="text-gray-400">No slots match your search or filters.</span>
                             <a href="{{ route('vol-listings-public.show', $event) }}" class="text-blue-700 no-underline">Clear all filters</a>
                           @else

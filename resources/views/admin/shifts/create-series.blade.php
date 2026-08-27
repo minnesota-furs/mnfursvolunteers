@@ -135,6 +135,37 @@
                             </dd>
                         </div>
 
+                        {{-- Event Categories --}}
+                        <div class="px-6 py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+                            <div>
+                                <dt class="form-label">Event Categories</dt>
+                                <p class="text-xs text-gray-500 mt-1">Applied to every shift in the series. Shown to volunteers on the shift sign-up page.</p>
+                            </div>
+                            <dd class="mt-1 sm:col-span-2 sm:mt-0">
+                                @if(isset($categories) && $categories->isNotEmpty())
+                                    <div class="flex flex-wrap gap-3">
+                                        @foreach ($categories as $category)
+                                            <label class="flex items-center space-x-2 cursor-pointer">
+                                                <input type="checkbox" name="event_category_ids[]" value="{{ $category->id }}"
+                                                    {{ is_array(old('event_category_ids')) && in_array($category->id, old('event_category_ids')) ? 'checked' : '' }}
+                                                    class="rounded border-gray-300 text-brand-green shadow-sm focus:border-brand-green focus:ring focus:ring-green-200 focus:ring-opacity-50">
+                                                <span class="inline-flex items-center text-sm text-gray-800 dark:text-gray-200">
+                                                    @if($category->color)
+                                                        <span class="inline-block w-3 h-3 rounded mr-1" style="background-color: {{ $category->color }}"></span>
+                                                    @endif
+                                                    {{ $category->name }}
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <p class="text-xs text-gray-500 italic">
+                                        No event categories available. <a href="{{ route('admin.events.categories.create', $event) }}" class="text-brand-green hover:underline">Create a category</a>
+                                    </p>
+                                @endif
+                            </dd>
+                        </div>
+
                         @feature('accessibility_disclosures')
                             {{-- Accessibility conflicts --}}
                             <div class="px-6 py-5 sm:grid sm:grid-cols-3 sm:gap-4">

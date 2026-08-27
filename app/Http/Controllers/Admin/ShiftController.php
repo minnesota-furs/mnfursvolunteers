@@ -15,8 +15,10 @@ use App\Models\User;
 use App\Notifications\AppNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use League\Csv\Reader;
 use League\Csv\Statement;
 
@@ -27,10 +29,163 @@ class ShiftController extends Controller
      */
     public function index(Event $event)
     {
-        $shifts = $event->shifts()->with(['users', 'tags'])->orderBy('start_time', 'asc')->get();
+        $shifts = $event->shifts()->with(['users', 'tags', 'categories'])->orderBy('start_time', 'asc')->get();
         $accessibilityNeeds = User::ACCESSIBILITY_NEEDS;
+        $recentSeries = $this->recentUndoableSeries($event);
+        $recentSeriesHistory = $this->recentSeriesHistory($event);
 
-        return view('admin.shifts.index', compact('event', 'shifts', 'accessibilityNeeds'));
+        return view('admin.shifts.index', compact('event', 'shifts', 'accessibilityNeeds', 'recentSeries', 'recentSeriesHistory'));
+    }
+
+    /**
+     * Shift series created within the last 6 hours that still have shifts
+     * left to undo, for the "recently created" banner on the shift index.
+     *
+     * @return Collection<int, object>
+     */
+    protected function recentUndoableSeries(Event $event)
+    {
+        return AuditLog::query()
+            ->where('action', 'shift_series_created')
+            ->where('auditable_type', Event::class)
+            ->where('auditable_id', $event->id)
+            ->where('created_at', '>=', now()->subHours(6))
+            ->latest('id')
+            ->get()
+            ->reject(fn (AuditLog $log) => (bool) ($log->changes['dismissed'] ?? false))
+            ->map(fn (AuditLog $log) => $this->describeSeriesLog($log, $event))
+            ->filter(fn ($series) => $series->remaining_count > 0)
+            ->values();
+    }
+
+    /**
+     * The last N shift series created for this event, regardless of age or
+     * dismissal, for the "Recent Series Creations" modal — each annotated
+     * with whether it can still be undone from here.
+     *
+     * @return Collection<int, object>
+     */
+    protected function recentSeriesHistory(Event $event, int $limit = 10)
+    {
+        return AuditLog::query()
+            ->where('action', 'shift_series_created')
+            ->where('auditable_type', Event::class)
+            ->where('auditable_id', $event->id)
+            ->with('user:id,name')
+            ->latest('id')
+            ->limit($limit)
+            ->get()
+            ->map(fn (AuditLog $log) => $this->describeSeriesLog($log, $event));
+    }
+
+    /**
+     * Build the display/undo-eligibility summary for a single
+     * 'shift_series_created' audit log entry.
+     */
+    protected function describeSeriesLog(AuditLog $log, Event $event): object
+    {
+        $shiftIds = $log->changes['shift_ids'] ?? [];
+        $existingShifts = $event->shifts()->whereIn('id', $shiftIds)->withCount('users')->get();
+        $remainingCount = $existingShifts->count();
+        $hasSignups = $existingShifts->sum('users_count') > 0;
+        $withinWindow = $log->created_at->gte(now()->subHours(6));
+        $dismissed = (bool) ($log->changes['dismissed'] ?? false);
+
+        return (object) [
+            'log_id' => $log->id,
+            'name' => $log->changes['name'] ?? 'Untitled series',
+            'created_shift_count' => $log->changes['count'] ?? count($shiftIds),
+            'remaining_count' => $remainingCount,
+            'has_signups' => $hasSignups,
+            'within_window' => $withinWindow,
+            'dismissed' => $dismissed,
+            'created_by' => $log->user->name ?? 'Unknown',
+            'created_at' => $log->created_at,
+            'can_undo' => $remainingCount > 0 && $withinWindow && ! $hasSignups,
+        ];
+    }
+
+    /**
+     * Delete every shift created by a shift-series audit log entry, as long
+     * as it's within the 6-hour undo window and none of the shifts have
+     * volunteers signed up.
+     */
+    public function undoSeries(Event $event, AuditLog $auditLog)
+    {
+        abort_unless(
+            $auditLog->action === 'shift_series_created'
+                && $auditLog->auditable_type === Event::class
+                && (int) $auditLog->auditable_id === $event->id,
+            404
+        );
+
+        if ($auditLog->created_at->lt(now()->subHours(6))) {
+            return back()->with('error', [
+                'message' => 'This series can no longer be undone — it was created more than 6 hours ago.',
+            ]);
+        }
+
+        $shiftIds = $auditLog->changes['shift_ids'] ?? [];
+        $shifts = $event->shifts()->whereIn('id', $shiftIds)->withCount('users')->get();
+
+        if ($shifts->isEmpty()) {
+            return back()->with('error', [
+                'message' => 'Nothing to undo — those shifts have already been removed.',
+            ]);
+        }
+
+        if ($shifts->sum('users_count') > 0) {
+            return back()->with('error', [
+                'message' => 'Cannot undo — one or more shifts in this series already have volunteers signed up. Remove those signups or delete the shifts individually instead.',
+            ]);
+        }
+
+        $name = $auditLog->changes['name'] ?? 'series';
+        $count = $shifts->count();
+
+        foreach ($shifts as $shift) {
+            $shift->delete();
+        }
+
+        AuditLog::create([
+            'action' => 'shift_series_undone',
+            'auditable_type' => Event::class,
+            'auditable_id' => $event->id,
+            'changes' => [
+                'series_id' => $auditLog->changes['series_id'] ?? null,
+                'shift_ids' => $shiftIds,
+                'name' => $name,
+                'count' => $count,
+            ],
+            'comment' => 'User '.auth()->user()->name." undid the \"{$name}\" series, removing {$count} shift(s)",
+            'user_id' => auth()->id(),
+        ]);
+
+        return redirect()->route('admin.events.shifts.index', $event)
+            ->with('success', [
+                'message' => "Undid the \"{$name}\" series — {$count} shift(s) removed.",
+            ]);
+    }
+
+    /**
+     * Hide a shift-series "recently created" banner entry without touching
+     * its shifts. The series can no longer be undone from the banner once
+     * dismissed, but the shifts themselves are untouched.
+     */
+    public function dismissSeries(Event $event, AuditLog $auditLog)
+    {
+        abort_unless(
+            $auditLog->action === 'shift_series_created'
+                && $auditLog->auditable_type === Event::class
+                && (int) $auditLog->auditable_id === $event->id,
+            404
+        );
+
+        $auditLog->update([
+            'changes' => array_merge($auditLog->changes ?? [], ['dismissed' => true]),
+        ]);
+
+        return back();
     }
 
     /**
@@ -39,8 +194,9 @@ class ShiftController extends Controller
     public function create(Event $event)
     {
         $tags = Tag::forShifts()->orderBy('name')->get();
+        $categories = $event->categories;
 
-        return view('admin.shifts.create', compact('event', 'tags'));
+        return view('admin.shifts.create', compact('event', 'tags', 'categories'));
     }
 
     /**
@@ -59,6 +215,8 @@ class ShiftController extends Controller
             'user_id.*' => 'integer|exists:users,id',
             'shift_tags' => 'nullable|array',
             'shift_tags.*' => 'integer|exists:tags,id',
+            'event_category_ids' => 'nullable|array',
+            'event_category_ids.*' => ['integer', Rule::exists('event_categories', 'id')->where('event_id', $event->id)],
         ]);
 
         $shiftData = $request->only(['name', 'description', 'start_time', 'end_time', 'max_volunteers']);
@@ -81,6 +239,7 @@ class ShiftController extends Controller
         }
 
         $shift->tags()->sync($request->input('shift_tags', []));
+        $shift->categories()->sync($request->input('event_category_ids', []));
 
         return redirect()->route('admin.events.shifts.index', $event)
             ->with('success', [
@@ -102,9 +261,10 @@ class ShiftController extends Controller
     public function edit(Event $event, Shift $shift)
     {
         $tags = Tag::forShifts()->orderBy('name')->get();
+        $categories = $event->categories;
         $accessibilityNeeds = User::ACCESSIBILITY_NEEDS;
 
-        return view('admin.shifts.create', compact('event', 'shift', 'tags', 'accessibilityNeeds'));
+        return view('admin.shifts.create', compact('event', 'shift', 'tags', 'categories', 'accessibilityNeeds'));
     }
 
     /**
@@ -146,6 +306,7 @@ class ShiftController extends Controller
         }
 
         $shift->tags()->sync($request->input('shift_tags', []));
+        $shift->categories()->sync($request->input('event_category_ids', []));
 
         return redirect()->route('admin.events.shifts.index', $event)
             ->with('success', [
@@ -242,6 +403,7 @@ class ShiftController extends Controller
 
         $event->shifts()->save($newShift);
         $newShift->tags()->sync($shift->tags->pluck('id'));
+        $newShift->categories()->sync($shift->categories->pluck('id'));
 
         return redirect()->route('admin.events.shifts.index', $event)
             ->with('success', [
@@ -401,8 +563,9 @@ class ShiftController extends Controller
 
         $createdShifts = [];
         $volunteers = $copyVolunteers ? $shift->users->pluck('id')->toArray() : [];
-        $shift->load('tags');
+        $shift->load('tags', 'categories');
         $tagIds = $shift->tags->pluck('id')->toArray();
+        $categoryIds = $shift->categories->pluck('id')->toArray();
 
         for ($i = 1; $i <= $recurrence; $i++) {
             // Calculate new times based on interval
@@ -456,6 +619,11 @@ class ShiftController extends Controller
             // Copy tags
             if (! empty($tagIds)) {
                 $newShift->tags()->sync($tagIds);
+            }
+
+            // Copy categories
+            if (! empty($categoryIds)) {
+                $newShift->categories()->sync($categoryIds);
             }
 
             $createdShifts[] = $newShift;
@@ -518,9 +686,10 @@ class ShiftController extends Controller
     public function createSeries(Event $event)
     {
         $tags = Tag::forShifts()->orderBy('name')->get();
+        $categories = $event->categories;
         $accessibilityNeeds = User::ACCESSIBILITY_NEEDS;
 
-        return view('admin.shifts.create-series', compact('event', 'tags', 'accessibilityNeeds'));
+        return view('admin.shifts.create-series', compact('event', 'tags', 'categories', 'accessibilityNeeds'));
     }
 
     /**
@@ -538,6 +707,7 @@ class ShiftController extends Controller
         $seriesId = Str::uuid()->toString();
         $startTime = Carbon::parse($request->start_time);
         $tagIds = $request->input('shift_tags', []);
+        $categoryIds = $request->input('event_category_ids', []);
         $accessibilityConflicts = $request->input('accessibility_conflicts', []);
         $doubleHours = $request->boolean('double_hours');
         $createdShifts = [];
@@ -569,6 +739,10 @@ class ShiftController extends Controller
                 $shift->tags()->sync($tagIds);
             }
 
+            if (! empty($categoryIds)) {
+                $shift->categories()->sync($categoryIds);
+            }
+
             $createdShifts[] = $shift;
         }
 
@@ -576,6 +750,12 @@ class ShiftController extends Controller
             'action' => 'shift_series_created',
             'auditable_type' => Event::class,
             'auditable_id' => $event->id,
+            'changes' => [
+                'series_id' => $seriesId,
+                'shift_ids' => collect($createdShifts)->pluck('id')->all(),
+                'name' => $request->name,
+                'count' => count($createdShifts),
+            ],
             'comment' => 'User '.auth()->user()->name.' created a series of '.count($createdShifts)." shifts named \"{$request->name}\" (series ID: {$seriesId})",
             'user_id' => auth()->id(),
         ]);

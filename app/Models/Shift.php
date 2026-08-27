@@ -23,10 +23,10 @@ class Shift extends Model
         'duplicate_sequence',
         'accessibility_conflicts',
     ];
-    
+
     protected $casts = [
         'start_time' => 'datetime',
-        'end_time'   => 'datetime',
+        'end_time' => 'datetime',
         'accessibility_conflicts' => 'array',
     ];
 
@@ -38,9 +38,9 @@ class Shift extends Model
     public function users()
     {
         return $this->belongsToMany(User::class, 'shift_signups')
-                ->withPivot(['hours_logged_at', 'no_show', 'no_show_marked_at'])
-                ->withTimestamps();
-                
+            ->withPivot(['hours_logged_at', 'no_show', 'no_show_marked_at'])
+            ->withTimestamps();
+
         return $this->belongsToMany(User::class, 'shift_signups')->withTimestamps();
     }
 
@@ -52,5 +52,10 @@ class Shift extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class)->withTimestamps();
+    }
+
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(EventCategory::class)->withTimestamps();
     }
 }

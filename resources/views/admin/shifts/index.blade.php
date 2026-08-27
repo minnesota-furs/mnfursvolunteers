@@ -72,6 +72,12 @@
                         role="menuitem">
                         <x-heroicon-s-plus class="w-4 h-4 mr-2"/> Create New Shift
                     </a>
+                    <button type="button"
+                        onclick="closeDropdown(document.getElementById('optDropdown9901')); window.__currentOpenDropdown = null; window.dispatchEvent(new CustomEvent('open-recent-series-modal')); event.stopPropagation();"
+                        class="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                        role="menuitem">
+                        <x-heroicon-s-clock class="w-4 h-4 mr-2"/> Recent Series Creations
+                    </button>
                 </div>
             </div>
         </div>
@@ -80,6 +86,44 @@
     <div class="">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="px-4 sm:px-6 lg:px-8">
+                @if($recentSeries->isNotEmpty())
+                    <div class="mb-4 space-y-2">
+                        @foreach($recentSeries as $series)
+                            <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 px-4 py-3">
+                                <div class="flex items-center gap-2 text-sm text-blue-800 dark:text-blue-200">
+                                    <x-heroicon-o-clock class="w-4 h-4 flex-shrink-0"/>
+                                    <span>
+                                        You created <strong>{{ $series->remaining_count }}</strong> {{ Str::plural('shift', $series->remaining_count) }}
+                                        as "<strong>{{ $series->name }}</strong>" {{ $series->created_at->diffForHumans() }}.
+                                        @if($series->has_signups)
+                                            <span class="text-blue-700 dark:text-blue-300">(some already have volunteers signed up)</span>
+                                        @endif
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <form action="{{ route('admin.events.shifts.undo-series', [$event, $series->log_id]) }}" method="POST"
+                                        onsubmit="return confirm('Undo the &quot;{{ addslashes($series->name) }}&quot; series? This will permanently delete {{ $series->remaining_count }} shift(s).')">
+                                        @csrf
+                                        <button type="submit"
+                                            class="inline-flex items-center gap-1.5 rounded-md bg-white dark:bg-gray-800 px-3 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-300 shadow-sm ring-1 ring-inset ring-blue-300 dark:ring-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/40">
+                                            <x-heroicon-m-arrow-uturn-left class="w-3.5 h-3.5"/>
+                                            Undo
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('admin.events.shifts.dismiss-series', [$event, $series->log_id]) }}" method="POST">
+                                        @csrf
+                                        <button type="submit"
+                                            class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40"
+                                            title="Hide this notice">
+                                            <x-heroicon-m-x-mark class="w-3.5 h-3.5"/>
+                                            Dismiss
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
                 {{-- <div class="sm:flex sm:items-center">
                     <div class="sm:flex-auto">
                         <h1 class="text-base font-semibold leading-6 text-gray-900">Events</h1>
@@ -218,6 +262,9 @@
                                                     <a class="font-medium text-blue-700 dark:text-blue-200 hover:underline" href="{{ route('admin.events.shifts.edit', [$event, $shift]) }}">
                                                         {{$shift->name}}
                                                     </a>
+                                                    @if($shift->categories->isNotEmpty())
+                                                        <x-heroicon-s-tag class="w-3.5 h-3.5 inline -mt-0.5 text-brand-green" title="Category: {{ $shift->categories->pluck('name')->join(', ') }}"/>
+                                                    @endif
                                                     {{-- Mobile: show time + tags inline under name --}}
                                                     <div class="sm:hidden mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
                                                         <span class="whitespace-nowrap">
@@ -225,6 +272,9 @@
                                                             {{ $shift->start_time->format('g:i A') }} – {{ $shift->end_time->format('g:i A') }}
                                                             @if($shift->double_hours)
                                                                 <x-heroicon-m-star title="Double Hours" class="w-3 mb-0.5 inline text-yellow-500"/>
+                                                            @endif
+                                                            @if($shift->durationInHours() > 6)
+                                                                <x-heroicon-s-exclamation-triangle title="Longer than 6 hours — double check this isn't a mistake" class="w-3 mb-0.5 inline text-yellow-500"/>
                                                             @endif
                                                         </span>
                                                         @foreach ($shift->tags->sortBy('name') as $tag)
@@ -245,6 +295,9 @@
                                                     {{ $shift->end_time->format('g:i A') }}
                                                     @if($shift->double_hours)
                                                         <x-heroicon-m-star title="Double Hours" class="w-3 mb-1 inline"/>
+                                                    @endif
+                                                    @if($shift->durationInHours() > 6)
+                                                        <x-heroicon-s-exclamation-triangle title="Longer than 6 hours — double check this isn't a mistake" class="w-3 mb-1 inline text-yellow-500"/>
                                                     @endif
                                                 </td>
                                                 <td class="py-4 pl-3 pr-2 text-sm text-center {{ $textClass }}">
@@ -451,3 +504,5 @@
 @include('admin.shifts.advanced-duplicate-modal')
 {{-- Bulk Edit Modal - Outside layout to prevent constraints --}}
 @include('admin.shifts.bulk-edit-modal')
+{{-- Recent Series Creations Modal - Outside layout to prevent constraints --}}
+@include('admin.shifts.recent-series-modal')

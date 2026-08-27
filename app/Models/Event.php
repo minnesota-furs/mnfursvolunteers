@@ -38,6 +38,11 @@ class Event extends Model
         return $this->hasMany(Shift::class);
     }
 
+    public function categories()
+    {
+        return $this->hasMany(EventCategory::class)->ordered();
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

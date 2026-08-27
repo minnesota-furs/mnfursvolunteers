@@ -77,7 +77,20 @@ class User extends Authenticatable
      *
      * @var array<string, string>
      */
+    /**
+     * Default values, applied before any attributes are loaded from the
+     * database. Without this, a freshly instantiated User (e.g. one just
+     * created via factory, before a DB round-trip) has no 'admin' key at
+     * all, so the 'boolean' cast below never runs and isAdmin() throws.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'admin' => false,
+    ];
+
     protected $casts = [
+        'admin' => 'boolean',
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'permissions' => 'array',

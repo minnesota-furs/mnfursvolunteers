@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\User;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,7 +15,7 @@ class StoreShiftSeriesRequest extends FormRequest
     }
 
     /**
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -32,6 +33,8 @@ class StoreShiftSeriesRequest extends FormRequest
             'double_hours' => ['nullable', 'boolean'],
             'shift_tags' => ['nullable', 'array'],
             'shift_tags.*' => ['integer', 'exists:tags,id'],
+            'event_category_ids' => ['nullable', 'array'],
+            'event_category_ids.*' => ['integer', Rule::exists('event_categories', 'id')->where('event_id', $this->route('event')->id)],
             'accessibility_conflicts' => ['array'],
             'accessibility_conflicts.*' => ['string', Rule::in(User::ACCESSIBILITY_NEEDS)],
         ];

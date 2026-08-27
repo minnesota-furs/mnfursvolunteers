@@ -202,6 +202,7 @@
                                                         <div class="py-1" role="none">
                                                             <x-tailwind-dropdown-item href="{{route('admin.events.edit', $event->id)}}" title="Edit Event Details"><x-heroicon-o-pencil class="w-4 inline"/> Edit Event</x-tailwind-dropdown-item>
                                                             <x-tailwind-dropdown-item href="{{route('admin.events.shifts.index', $event->id)}}" title="Manage Shifts" data-tour="manage-shifts-link"><x-heroicon-o-clock class="w-4 inline"/> Manage Shifts</x-tailwind-dropdown-item>
+                                                            <x-tailwind-dropdown-item href="{{route('admin.events.categories.index', $event->id)}}" title="Manage Event Categories"><x-heroicon-o-tag class="w-4 inline"/> Manage Categories</x-tailwind-dropdown-item>
                                                             <button type="button"
                                                                 onclick="window.dispatchEvent(new CustomEvent('open-event-duplicate-modal', { detail: { id: {{ $event->id }}, name: '{{ addslashes($event->name) }}', shiftsCount: {{ $event->shifts->count() }}, startDate: '{{ $event->start_date->toIso8601String() }}', endDate: '{{ $event->end_date->toIso8601String() }}' } }))"
                                                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200">
@@ -234,6 +235,7 @@
                                                     <div class="py-1" role="none">
                                                         <x-tailwind-dropdown-item href="{{route('admin.events.edit', $event->id)}}" title="Edit Event Details"><x-heroicon-o-pencil class="w-4 inline"/> Edit Event</x-tailwind-dropdown-item>
                                                         <x-tailwind-dropdown-item href="{{route('admin.events.shifts.index', $event->id)}}" title="Create/Edit/View Event Shifts"><x-heroicon-o-clock class="w-4 inline"/> Manage Shifts</x-tailwind-dropdown-item>
+                                                        <x-tailwind-dropdown-item href="{{route('admin.events.categories.index', $event->id)}}" title="Manage Event Categories"><x-heroicon-o-tag class="w-4 inline"/> Manage Categories</x-tailwind-dropdown-item>
                                                         <button type="button" 
                                                             onclick="window.dispatchEvent(new CustomEvent('open-event-duplicate-modal', { detail: { id: {{ $event->id }}, name: '{{ addslashes($event->name) }}', shiftsCount: {{ $event->shifts->count() }}, startDate: '{{ $event->start_date->toIso8601String() }}', endDate: '{{ $event->end_date->toIso8601String() }}' } }))"
                                                             class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"

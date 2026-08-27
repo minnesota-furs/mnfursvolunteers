@@ -170,16 +170,19 @@
 
         // Serialised data for client-side filtering
         $filterShifts = $shifts->map(fn($s) => [
-            'id'    => $s->id,
-            'full'  => $s->users->count() >= $s->max_volunteers,
-            'hours' => round($s->durationInHours(), 2),
-            'day'   => $s->start_time->format('Y-m-d'),
+            'id'         => $s->id,
+            'full'       => $s->users->count() >= $s->max_volunteers,
+            'hours'      => round($s->durationInHours(), 2),
+            'day'        => $s->start_time->format('Y-m-d'),
+            'categories' => $s->categories->pluck('id')->all(),
         ])->values();
 
         $eventDays = $shiftsByDay->keys()->map(fn($d) => [
             'value' => $d,
             'label' => \Carbon\Carbon::parse($d)->format('l, M j'),
         ])->values();
+
+        $shiftCategories = $shifts->flatMap(fn($s) => $s->categories)->unique('id')->sortBy('name')->values();
     @endphp
 
     <div class="space-y-6">
@@ -359,6 +362,7 @@
             hideFull: true,
             maxHours: 0,
             filterDay: '',
+            filterCategory: '',
             shifts: {{ $filterShifts->toJson() }},
             shiftVisible(id) {
                 const s = this.shifts.find(x => x.id === id);
@@ -366,6 +370,7 @@
                 if (this.hideFull && s.full) return false;
                 if (this.maxHours > 0 && s.hours > this.maxHours) return false;
                 if (this.filterDay && s.day !== this.filterDay) return false;
+                if (this.filterCategory && !s.categories.includes(Number(this.filterCategory))) return false;
                 return true;
             },
             dayVisible(day) {
@@ -378,12 +383,13 @@
                 return this.shifts.filter(s => this.shiftVisible(s.id)).length;
             },
             get activeFilters() {
-                return (!this.hideFull ? 1 : 0) + (this.maxHours > 0 ? 1 : 0) + (this.filterDay ? 1 : 0);
+                return (!this.hideFull ? 1 : 0) + (this.maxHours > 0 ? 1 : 0) + (this.filterDay ? 1 : 0) + (this.filterCategory ? 1 : 0);
             },
             clearFilters() {
                 this.hideFull = true;
                 this.maxHours = 0;
                 this.filterDay = '';
+                this.filterCategory = '';
             }
         }">
             <div class="flex items-center justify-between mb-3 gap-3 flex-wrap">
@@ -463,6 +469,21 @@
                                     <option value="">All days</option>
                                     @foreach($eventDays as $day)
                                         <option value="{{ $day['value'] }}">{{ $day['label'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+
+                        {{-- Category filter — only shown if any shift has a category --}}
+                        @if($shiftCategories->isNotEmpty())
+                            <div class="hidden sm:block w-px h-4 bg-gray-200 dark:bg-gray-700"></div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Category:</span>
+                                <select x-model="filterCategory"
+                                    class="rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-xs text-gray-700 dark:text-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-green focus:border-transparent cursor-pointer">
+                                    <option value="">All categories</option>
+                                    @foreach($shiftCategories as $category)
+                                        <option value="{{ $category->id }}">{{ $category->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -593,6 +614,16 @@
                                                         </span>
                                                     @endif
                                                     @endfeature
+
+                                                    @foreach($shift->categories as $category)
+                                                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset"
+                                                            style="background-color:{{ $category->color }}22; color:{{ $category->color }}; border-color:{{ $category->color }}44;">
+                                                            @if($category->color)
+                                                                <span class="inline-block w-2 h-2 rounded-full mr-1" style="background-color:{{ $category->color }}"></span>
+                                                            @endif
+                                                            {{ $category->name }}
+                                                        </span>
+                                                    @endforeach
                                                 </div>
 
                                                 @if($shift->description)
@@ -700,6 +731,16 @@
                             <span class="inline-block w-3 h-3 rounded-sm bg-gray-200 dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-500"></span>
                             Full
                         </span>
+
+                        @if($shiftCategories->isNotEmpty())
+                            <div class="hidden sm:block w-px h-4 bg-gray-200 dark:bg-gray-700"></div>
+                            @foreach($shiftCategories as $category)
+                                <span class="inline-flex items-center gap-1.5">
+                                    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background-color: {{ $category->color ?: '#9CA3AF' }}"></span>
+                                    {{ $category->name }}
+                                </span>
+                            @endforeach
+                        @endif
                     </div>
 
                     <div class="space-y-6">
@@ -789,6 +830,15 @@
                                                             <x-heroicon-s-exclamation-triangle
                                                                 class="mt-1 inline h-3 w-3 text-amber-700 dark:text-amber-300"
                                                                 title="May conflict with your accessibility needs: {{ implode(', ', $agendaAccessibilityConflicts) }}"/>
+                                                        @endif
+                                                        @if($shift->categories->isNotEmpty())
+                                                            <div class="flex flex-wrap gap-1 mt-1">
+                                                                @foreach($shift->categories as $category)
+                                                                    <span class="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                                                                        style="background-color: {{ $category->color ?: '#9CA3AF' }}"
+                                                                        title="{{ $category->name }}"></span>
+                                                                @endforeach
+                                                            </div>
                                                         @endif
                                                     </div>
                                                 @endif

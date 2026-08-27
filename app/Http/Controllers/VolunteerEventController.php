@@ -36,7 +36,7 @@ class VolunteerEventController extends Controller
     public function show(Event $event)
     {
         // Load users for use in shift->users and required tags/departments
-        $event->load('shifts.users', 'requiredTags', 'requiredUserTags', 'requiredDepartments', 'requiredSectors', 'perks');
+        $event->load('shifts.users', 'shifts.categories', 'requiredTags', 'requiredUserTags', 'requiredDepartments', 'requiredSectors', 'perks');
         $user = auth()->user();
         $hasSignedUpForEvent = $user->shifts()->where('event_id', $event->id)->exists();
 
@@ -204,7 +204,7 @@ class VolunteerEventController extends Controller
             abort(404);
         }
 
-        $shift->load('users', 'tags');
+        $shift->load('users', 'tags', 'categories');
         $event->load('requiredTags', 'requiredUserTags', 'requiredDepartments', 'requiredSectors');
 
         $user = auth()->user();
