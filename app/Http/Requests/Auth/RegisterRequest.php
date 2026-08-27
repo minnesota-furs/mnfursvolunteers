@@ -25,6 +25,7 @@ class RegisterRequest extends FormRequest
         $inviteCodeRequired = ApplicationSetting::get('require_invite_code', false);
         $onboardingAgreement = ApplicationSetting::get('onboarding_agreement');
         $warningEmailDomains = ApplicationSetting::get('warning_email_domains', '');
+        $warningEmailAcknowledgementRequired = WarningEmailDomains::includesEmail($warningEmailDomains, $this->email);
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -35,8 +36,8 @@ class RegisterRequest extends FormRequest
             'invite_code' => [$inviteCodeRequired ? 'required' : 'nullable', 'string', 'max:32'],
             'agree_to_terms' => [$onboardingAgreement ? 'accepted' : 'nullable'],
             'warning_email_acknowledged' => [
-                Rule::requiredIf(fn (): bool => WarningEmailDomains::includesEmail($warningEmailDomains, $this->email)),
-                'accepted',
+                Rule::requiredIf($warningEmailAcknowledgementRequired),
+                $warningEmailAcknowledgementRequired ? 'accepted' : 'nullable',
             ],
         ];
     }

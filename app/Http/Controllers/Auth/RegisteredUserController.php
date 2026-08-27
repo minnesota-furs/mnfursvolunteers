@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Models\ApplicationSetting;
 use App\Models\InviteCode;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
@@ -36,9 +37,13 @@ class RegisteredUserController extends Controller
             $inviteCode = InviteCode::where('code', strtoupper(trim($request->invite_code)))->first();
 
             if (! $inviteCode || ! $inviteCode->isUsable()) {
-                return back()
-                    ->withInput()
-                    ->withErrors(['invite_code' => 'This invite code is invalid or has expired.']);
+                if (ApplicationSetting::get('require_invite_code', false)) {
+                    return back()
+                        ->withInput()
+                        ->withErrors(['invite_code' => 'This invite code is invalid or has expired.']);
+                }
+
+                $inviteCode = null;
             }
         }
 
