@@ -11,7 +11,14 @@
         </a>
         <x-tailwind-dropdown label="More" id=1>
             <div class="py-1" role="none">
-                <x-tailwind-dropdown-item href="{{route('admin.events.edit', $event->id)}}"><x-heroicon-o-pencil class="w-4 inline"/>  Edit Event</x-tailwind-dropdown-item>
+                <x-tailwind-dropdown-item href="{{route('admin.events.edit', $event->id)}}" title="Edit Event Details"><x-heroicon-o-pencil class="w-4 inline"/> Edit Event</x-tailwind-dropdown-item>
+                <x-tailwind-dropdown-item href="{{route('admin.events.categories.index', $event->id)}}" title="Manage Event Categories"><x-heroicon-o-tag class="w-4 inline"/> Manage Categories</x-tailwind-dropdown-item>
+                <button type="button"
+                    onclick="window.dispatchEvent(new CustomEvent('open-event-duplicate-modal', { detail: { id: {{ $event->id }}, name: '{{ addslashes($event->name) }}', shiftsCount: {{ $event->shifts->count() }}, startDate: '{{ $event->start_date->toIso8601String() }}', endDate: '{{ $event->end_date->toIso8601String() }}' } }))"
+                    class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
+                    title="Create a duplicate event with all shifts">
+                    <x-heroicon-o-document-duplicate class="w-4 inline"/> Duplicate Event
+                </button>
                 <x-tailwind-dropdown-item href="{{route('admin.events.log', $event->id)}}" title="View Event Logs"><x-heroicon-o-list-bullet class="w-4 inline"/> View Logs</x-tailwind-dropdown-item>
             </div>
             <div class="py-1" role="none">
@@ -501,8 +508,10 @@
     </script>
 </x-app-layout>
 
-{{-- Advanced Duplicate Modal - Outside layout to prevent constraints --}}
+{{-- Advanced Duplicate Shift Modal - Outside layout to prevent constraints --}}
 @include('admin.shifts.advanced-duplicate-modal')
+{{-- Advanced Duplicate Event Modal (for the "Duplicate Event" item in the More dropdown) --}}
+@include('admin.events.advanced-duplicate-modal')
 {{-- Bulk Edit Modal - Outside layout to prevent constraints --}}
 @include('admin.shifts.bulk-edit-modal')
 {{-- Recent Series Creations Modal - Outside layout to prevent constraints --}}
