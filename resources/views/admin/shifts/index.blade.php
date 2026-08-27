@@ -290,6 +290,7 @@
                                                 </td>
                                                 <td class="hidden sm:table-cell whitespace-nowrap py-4 px-3 text-sm">
                                                     {{ $shift->start_time->format('g:i A') }}
+                                                    <span class="text-xs text-gray-400 dark:text-gray-500">({{ rtrim(rtrim(number_format($shift->durationInHours(), 1), '0'), '.') }}h)</span>
                                                 </td>
                                                 <td class="hidden sm:table-cell whitespace-nowrap py-4 px-3 text-sm">
                                                     {{ $shift->end_time->format('g:i A') }}
