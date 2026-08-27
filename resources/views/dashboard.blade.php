@@ -73,6 +73,8 @@
 
             <x-profile-completion-notice />
 
+            <x-concat-link-notice />
+
             <x-no-show-warning :recentNoShows="$recentNoShows" />
 
             <x-announcements-dashboard-notice :announcements="$announcements" />

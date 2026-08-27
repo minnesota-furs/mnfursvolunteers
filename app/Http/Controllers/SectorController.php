@@ -74,8 +74,8 @@ class SectorController extends Controller
      */
     public function show(string $id)
     {
-        $sector = Sector::with(['departments', 'users'])->findOrFail($id);
-    
+        $sector = Sector::with(['departments', 'users', 'concatRoleMapping'])->findOrFail($id);
+
         return view('sectors.show', compact('sector'));
     }
 

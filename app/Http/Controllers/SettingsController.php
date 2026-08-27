@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\ApplicationSetting;
+use App\Models\ConcatSectorRoleMapping;
+use App\Models\ConcatUserRoleGrant;
+use App\Services\ConcatService;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -21,9 +24,10 @@ class SettingsController extends Controller
         $sysInfo = $this->gatherSystemInfo();
         $hostingInfo = hosting_info();
         $telegramInfo = $this->gatherTelegramInfo();
+        $concatInfo = $this->gatherConcatInfo();
         $timezones = grouped_timezones();
 
-        return view('settings.index', compact('settings', 'sysInfo', 'hostingInfo', 'telegramInfo', 'timezones'));
+        return view('settings.index', compact('settings', 'sysInfo', 'hostingInfo', 'telegramInfo', 'concatInfo', 'timezones'));
     }
 
     /**
@@ -40,6 +44,21 @@ class SettingsController extends Controller
         return [
             'bot' => $service->getMe(),
             'webhook' => $service->getWebhookInfo(),
+        ];
+    }
+
+    /**
+     * Fetch live connectivity status from ConCat for the Integrations tab.
+     */
+    private function gatherConcatInfo(): ?array
+    {
+        if (! ApplicationSetting::get('concat_client_id')) {
+            return null;
+        }
+
+        return [
+            'base_url' => ApplicationSetting::get('concat_api_base_url'),
+            'reachable' => app(ConcatService::class)->testConnection(),
         ];
     }
 
@@ -187,6 +206,9 @@ class SettingsController extends Controller
             'require_department_for_user_index' => 'boolean',
             'user_display_name' => 'nullable|string|in:alias,legal_name',
             'telegram_bot_token' => 'nullable|string|max:255',
+            'concat_api_base_url' => 'nullable|url|max:255',
+            'concat_client_id' => 'nullable|string|max:255',
+            'concat_client_secret' => 'nullable|string|max:255',
         ]);
 
         // Handle logo upload
@@ -308,6 +330,15 @@ class SettingsController extends Controller
             return $this->connectTelegram(trim($request->telegram_bot_token));
         }
 
+        // ConCat connection: re-entering the client secret is always required to (re)connect
+        if ($request->filled('concat_client_secret')) {
+            return $this->connectConcat(
+                trim($request->input('concat_api_base_url', '')),
+                trim($request->input('concat_client_id', '')),
+                trim($request->concat_client_secret)
+            );
+        }
+
         return redirect()->route('settings.index')
             ->with('success', [
                 'message' => 'Settings updated successfully',
@@ -381,6 +412,63 @@ class SettingsController extends Controller
         return redirect()->route('settings.index')
             ->with('success', [
                 'message' => 'Telegram bot disconnected.',
+            ]);
+    }
+
+    /**
+     * Save ConCat OAuth credentials and verify them before treating the
+     * integration as connected.
+     */
+    private function connectConcat(string $baseUrl, string $clientId, string $clientSecret)
+    {
+        $settingKeys = ['concat_api_base_url', 'concat_client_id', 'concat_client_secret'];
+
+        ApplicationSetting::set('concat_api_base_url', rtrim($baseUrl, '/'), 'string', 'ConCat API base URL', 'integrations');
+        ApplicationSetting::set('concat_client_id', $clientId, 'string', 'ConCat OAuth client ID', 'integrations');
+        ApplicationSetting::set('concat_client_secret', $clientSecret, 'encrypted', 'ConCat OAuth client secret', 'integrations');
+        ApplicationSetting::clearCache();
+        Cache::forget('concat_access_token_'.md5(rtrim($baseUrl, '/').$clientId));
+
+        if (! app(ConcatService::class)->testConnection()) {
+            foreach ($settingKeys as $key) {
+                ApplicationSetting::where('key', $key)->delete();
+                Cache::forget("app_setting_{$key}");
+            }
+
+            return redirect()->route('settings.index')
+                ->with('error', 'Could not connect to ConCat with those credentials. Double-check the API base URL, client ID, and client secret and try again.');
+        }
+
+        return redirect()->route('settings.index')
+            ->with('success', [
+                'message' => 'Connected to ConCat.',
+            ]);
+    }
+
+    /**
+     * Disconnect ConCat: revoke every role this app granted, forget the
+     * sector mappings, and forget the stored credentials.
+     */
+    public function disconnectConcat()
+    {
+        if (ApplicationSetting::get('concat_client_id')) {
+            $service = app(ConcatService::class);
+            foreach (ConcatUserRoleGrant::all() as $grant) {
+                $service->revokeRole($grant->concat_user_id, $grant->concat_role_id);
+            }
+        }
+
+        ConcatUserRoleGrant::query()->delete();
+        ConcatSectorRoleMapping::query()->delete();
+
+        foreach (['concat_api_base_url', 'concat_client_id', 'concat_client_secret', 'concat_last_synced_at'] as $key) {
+            ApplicationSetting::where('key', $key)->delete();
+            Cache::forget("app_setting_{$key}");
+        }
+
+        return redirect()->route('settings.index')
+            ->with('success', [
+                'message' => 'ConCat disconnected and all synced roles were revoked.',
             ]);
     }
 

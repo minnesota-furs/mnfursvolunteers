@@ -34,6 +34,10 @@
         @csrf
         @method('DELETE')
     </form>
+    <form id="concat-disconnect-form" action="{{ route('settings.concat-disconnect') }}" method="POST" style="display: none;">
+        @csrf
+        @method('DELETE')
+    </form>
 
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8" x-data="settingsForm()">
         <!-- Tabs Navigation -->
@@ -796,7 +800,7 @@
                     <div x-show="activeTab === 'integrations'" x-cloak>
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">External Integrations</h3>
 
-                        <div class="max-w-xl">
+                        <div class="max-w-xl mb-6">
                             <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-1">Telegram Bot</h4>
                             <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
                                 Let volunteers link their Telegram account from their profile page to receive their notifications there.
@@ -853,14 +857,130 @@
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
+                        </div>
 
-                            <div class="pt-6 border-t border-gray-200 dark:border-gray-700 opacity-60">
-                                <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-1">Discord</h4>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    <x-heroicon-o-clock class="w-4 h-4 inline -mt-0.5 mr-1" />
-                                    Coming soon &mdash; Discord notifications aren't available yet.
-                                </p>
+                        <div class="pt-6 border-t border-gray-200 dark:border-gray-700 mb-6 max-w-4xl">
+                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-1">ConCat</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                Automatically grant and revoke ConCat roles for volunteers based on which sectors they staff.
+                                Create an OAuth application on ConCat's side and paste its credentials below.
+                            </p>
+
+                            <div class="{{ $concatInfo ? '' : 'grid grid-cols-1 md:grid-cols-3 gap-8' }}">
+                                <div class="{{ $concatInfo ? 'max-w-xl' : 'md:col-span-2' }}">
+                                @if($concatInfo)
+                                    <div class="mb-4 flex items-center justify-between gap-4 rounded-md border border-gray-200 dark:border-gray-700 px-4 py-3">
+                                        <div class="text-sm">
+                                            @if($concatInfo['reachable'])
+                                                <p class="text-gray-900 dark:text-gray-100">
+                                                    <x-heroicon-s-check-circle class="w-4 h-4 inline text-green-600 dark:text-green-400 -mt-0.5" />
+                                                    Connected to <span class="font-medium">{{ $concatInfo['base_url'] }}</span>
+                                                </p>
+                                            @else
+                                                <p class="text-red-600 dark:text-red-400">
+                                                    <x-heroicon-s-x-circle class="w-4 h-4 inline -mt-0.5" />
+                                                    Stored credentials could not reach ConCat. They may be invalid or revoked.
+                                                </p>
+                                            @endif
+                                        </div>
+                                        <div class="flex items-center gap-3 shrink-0">
+                                            <a href="{{ route('admin.concat.index') }}"
+                                                class="text-sm text-brand-green hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">
+                                                Manage Concat
+                                            </a>
+                                            <button type="button" onclick="if(confirm('Disconnect ConCat? Every role it granted will be revoked.')) document.getElementById('concat-disconnect-form').submit();"
+                                                class="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                                Disconnect
+                                            </button>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="mb-4">
+                                        <label for="concat_api_base_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            API Base URL
+                                        </label>
+                                        <input type="url" name="concat_api_base_url" id="concat_api_base_url"
+                                            value="{{ old('concat_api_base_url') }}"
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white font-mono text-sm"
+                                            placeholder="https://fm-test.concat.app">
+                                        @error('concat_api_base_url')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="concat_client_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Client ID
+                                        </label>
+                                        <input type="text" name="concat_client_id" id="concat_client_id"
+                                            autocomplete="off"
+                                            value="{{ old('concat_client_id') }}"
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white font-mono text-sm">
+                                        @error('concat_client_id')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="concat_client_secret" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Client Secret
+                                        </label>
+                                        <input type="password" name="concat_client_secret" id="concat_client_secret"
+                                            autocomplete="off"
+                                            value="{{ old('concat_client_secret') }}"
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white font-mono text-sm">
+                                        @error('concat_client_secret')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <button type="submit"
+                                        class="rounded-md bg-brand-green px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-green-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green">
+                                        Integrate with Concat
+                                    </button>
+                                @endif
+                                </div>
+
+                                @unless($concatInfo)
+                                    <div class="md:col-span-1 rounded-md bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 p-4 text-sm h-fit">
+                                        <h5 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Setting up the ConCat app</h5>
+                                        <p class="text-gray-600 dark:text-gray-400 mb-3">
+                                            When creating the OAuth application on ConCat's side, use these values:
+                                        </p>
+                                        <dl class="space-y-3">
+                                            <div>
+                                                <dt class="font-medium text-gray-700 dark:text-gray-300">Grant type</dt>
+                                                <dd class="text-gray-600 dark:text-gray-400">Client Credentials (ConCat calls this the "application" flow)</dd>
+                                            </div>
+                                            <div>
+                                                <dt class="font-medium text-gray-700 dark:text-gray-300">Permissions / scopes needed</dt>
+                                                <dd class="text-gray-600 dark:text-gray-400">
+                                                    <code class="text-xs bg-gray-100 dark:bg-gray-800 rounded px-1">user:read</code>,
+                                                    <code class="text-xs bg-gray-100 dark:bg-gray-800 rounded px-1">user:roles:update</code>,
+                                                    and
+                                                    <code class="text-xs bg-gray-100 dark:bg-gray-800 rounded px-1">registration:read</code>
+                                                </dd>
+                                            </div>
+                                            <div>
+                                                <dt class="font-medium text-gray-700 dark:text-gray-300">Callback / redirect URI</dt>
+                                                <dd class="text-gray-600 dark:text-gray-400">
+                                                    Not used &mdash; this integration only makes server-to-server calls, so there's no user login step.
+                                                    If ConCat's form requires a value anyway, enter this app's URL:
+                                                    <code class="block mt-1 text-xs bg-gray-100 dark:bg-gray-800 rounded px-1 py-0.5 break-all">{{ config('app.url') }}</code>
+                                                </dd>
+                                            </div>
+                                        </dl>
+                                    </div>
+                                @endunless
                             </div>
+                        </div>
+
+                        <div class="max-w-xl pt-6 border-t border-gray-200 dark:border-gray-700 opacity-60">
+                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-1">Discord</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                <x-heroicon-o-clock class="w-4 h-4 inline -mt-0.5 mr-1" />
+                                Coming soon &mdash; Discord notifications aren't available yet.
+                            </p>
                         </div>
                     </div>
 

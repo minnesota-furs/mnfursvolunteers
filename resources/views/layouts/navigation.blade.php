@@ -181,6 +181,12 @@
                                             <x-heroicon-o-user-plus class="w-4 h-4 shrink-0 text-gray-400"/>
                                             New Signups Without Shifts
                                         </a>
+                                        @if(concat_configured())
+                                            <a href="{{ route('report.staffConcat') }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                                                <x-heroicon-o-link class="w-4 h-4 shrink-0 text-gray-400"/>
+                                                Staff & Concat
+                                            </a>
+                                        @endif
                                     </div>
                                     {{-- Shifts column --}}
                                     <div class="p-4">
@@ -584,6 +590,11 @@
                     <x-responsive-nav-link :href="route('report.newSignupsWithNoShifts')">
                         {{ __('New Signups Without Shifts') }}
                     </x-responsive-nav-link>
+                    @if(concat_configured())
+                        <x-responsive-nav-link :href="route('report.staffConcat')">
+                            {{ __('Staff & Concat') }}
+                        </x-responsive-nav-link>
+                    @endif
                     <div class="px-4 pt-3 pb-1">
                         <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Shifts</p>
                     </div>

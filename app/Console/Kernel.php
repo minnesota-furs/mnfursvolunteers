@@ -14,12 +14,15 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('volunteer:log-shift-hours')->dailyAt('07:00');
-        
+
         // Send shift reminder emails every morning at 8am
         $schedule->command('shifts:send-reminders')->dailyAt('08:00');
 
         // Send Simple Volunteer Event reminders (morning-of and hour-before, opt-in)
         $schedule->command('simple-events:send-reminders')->everyFifteenMinutes();
+
+        // Reconcile ConCat role grants against current sector/department membership
+        $schedule->command('concat:sync-roles')->everyFifteenMinutes();
     }
 
     /**
