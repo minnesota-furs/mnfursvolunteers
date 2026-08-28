@@ -12,6 +12,7 @@ use App\Models\Tag;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class EventController extends Controller
 {
@@ -64,6 +65,19 @@ class EventController extends Controller
             ->paginate(20);
 
         return view('admin.events.log', compact('event', 'logs'));
+    }
+
+    /**
+     * Show API access details for a single event, including a copyable URL
+     * to the public upcoming-shifts endpoint.
+     */
+    public function api(Event $event): View
+    {
+        $this->authorize('update', $event);
+
+        $apiUrl = url("/api/events/{$event->id}/shifts/upcoming");
+
+        return view('admin.events.api', compact('event', 'apiUrl'));
     }
 
     /**

@@ -452,6 +452,7 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
             Route::get('/events/{event}/manager-dashboard', [EventController::class, 'managerDashboard'])->name('events.manager-dashboard');
             Route::get('/events/{event}/agenda', [EventController::class, 'agenda'])->name('events.agenda');
             Route::get('/events/{event}/log', [EventController::class, 'log'])->name('events.log');
+            Route::get('/events/{event}/api', [EventController::class, 'api'])->name('events.api');
             Route::get('/events/{event}/editors', [EventController::class, 'editors'])->name('events.editors');
             Route::post('/events/{event}/editors', [EventController::class, 'addEditor'])->name('events.editors.add');
             Route::delete('/events/{event}/editors/{user}', [EventController::class, 'removeEditor'])->name('events.editors.remove');

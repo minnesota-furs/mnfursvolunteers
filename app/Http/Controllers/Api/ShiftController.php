@@ -11,7 +11,7 @@ class ShiftController extends Controller
 {
     public function upcoming(Request $request, Event $event)
     {
-        abort_unless($event->isPublic(), 404);
+        abort_unless($event->isPublic() || $event->isUnlisted(), 404);
 
         $limit = max(1, min((int) $request->input('limit', 50), 100));
 

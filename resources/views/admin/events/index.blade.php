@@ -212,6 +212,7 @@
                                                                 <x-tailwind-dropdown-item href="{{route('admin.events.editors', $event->id)}}" title="Manage editors"><x-heroicon-o-user-group class="w-4 inline"/> Manage Editors</x-tailwind-dropdown-item>
                                                             @endif
                                                             <x-tailwind-dropdown-item href="{{route('admin.events.log', $event->id)}}"><x-heroicon-o-list-bullet class="w-4 inline"/> View Logs</x-tailwind-dropdown-item>
+                                                            <x-tailwind-dropdown-item href="{{route('admin.events.api', $event->id)}}" title="View API access details"><x-heroicon-o-code-bracket class="w-4 inline"/> View API</x-tailwind-dropdown-item>
                                                         </div>
                                                         <div class="py-1" role="none">
                                                             <x-tailwind-dropdown-item href="{{ route('admin.events.volunteers', $event) }}">View All Volunteers / Email</x-tailwind-dropdown-item>
@@ -246,6 +247,7 @@
                                                             <x-tailwind-dropdown-item href="{{route('admin.events.editors', $event->id)}}" title="Manage who can edit this event"><x-heroicon-o-user-group class="w-4 inline"/> Manage Editors</x-tailwind-dropdown-item>
                                                         @endif
                                                         <x-tailwind-dropdown-item href="{{route('admin.events.log', $event->id)}}" title="View Event Logs"><x-heroicon-o-list-bullet class="w-4 inline"/> View Logs</x-tailwind-dropdown-item>
+                                                        <x-tailwind-dropdown-item href="{{route('admin.events.api', $event->id)}}" title="View API access details"><x-heroicon-o-code-bracket class="w-4 inline"/> View API</x-tailwind-dropdown-item>
                                                     </div>
                                                     <div class="py-1" role="none">
                                                         <x-tailwind-dropdown-item href="{{ route('admin.events.volunteers', $event) }}" title="View all unquie volunteers signed up and email actions">View All Volunteers / Email</x-tailwind-dropdown-item>
