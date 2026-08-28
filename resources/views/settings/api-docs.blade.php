@@ -15,9 +15,12 @@
         <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Upcoming Shifts</h3>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Returns a JSON list of upcoming shifts for a public event. This endpoint is unauthenticated and
+                Returns a JSON list of upcoming shifts for an event. This endpoint is unauthenticated and
                 read-only, intended for things like signage boards or embedding on an external website. Only events
-                with visibility set to <span class="font-mono">public</span> are exposed; other events return a 404.
+                with visibility set to <span class="font-mono">public</span> or <span class="font-mono">unlisted</span>
+                are exposed; other events return a 404. Each shift includes an
+                <span class="font-mono">accessibility_conflicts</span> array of any accessibility needs it may
+                conflict with; this is always empty when the "Accessibility Disclosures" feature is disabled.
             </p>
 
             <div class="rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-3 mb-6">
@@ -64,7 +67,19 @@
                             <td class="py-2 pr-4 font-mono text-gray-800 dark:text-gray-200">tagId</td>
                             <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">integer</td>
                             <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">&mdash;</td>
-                            <td class="py-2 text-gray-600 dark:text-gray-400">Only include shifts tagged with this tag ID (e.g. a department or category).</td>
+                            <td class="py-2 text-gray-600 dark:text-gray-400">Only include shifts tagged with this tag ID.</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 pr-4 font-mono text-gray-800 dark:text-gray-200">categoryId</td>
+                            <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">integer or comma-separated list</td>
+                            <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">&mdash;</td>
+                            <td class="py-2 text-gray-600 dark:text-gray-400">Only include shifts assigned to this category ID. Pass multiple IDs separated by commas (e.g. <span class="font-mono">3,5</span>) to match any of them.</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 pr-4 font-mono text-gray-800 dark:text-gray-200">categorySearch</td>
+                            <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">string</td>
+                            <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">&mdash;</td>
+                            <td class="py-2 text-gray-600 dark:text-gray-400">Only include shifts assigned to a category whose name contains this text (case-insensitive substring match), e.g. <span class="font-mono">Badge Checker</span>.</td>
                         </tr>
                         <tr>
                             <td class="py-2 pr-4 font-mono text-gray-800 dark:text-gray-200">search</td>
@@ -106,7 +121,11 @@
             "max_volunteers": 4,
             "volunteers_signed_up": 2,
             "open_slots": 2,
-            "tags": ["Front of House"]
+            "tags": ["Front of House"],
+            "categories": [
+                {"name": "Registration", "color": "#ff0000"}
+            ],
+            "accessibility_conflicts": ["Limited standing/walking"]
         }
     ]
 }</pre>
@@ -116,7 +135,7 @@
     <x-slot name="right">
         <p class="py-4">
             This endpoint is public and does not require authentication. It only ever returns data for events whose
-            visibility is set to <span class="font-mono">public</span>.
+            visibility is set to <span class="font-mono">public</span> or <span class="font-mono">unlisted</span>.
         </p>
         <ul class="text-sm space-y-1 list-disc list-inside text-gray-600 dark:text-gray-400">
             <li>Upcoming shifts endpoint: <code>/api/events/{event}/shifts/upcoming</code></li>

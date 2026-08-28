@@ -76,6 +76,22 @@ it('allows an admin to clear accessibility conflicts from a shift', function () 
     expect($this->shift->refresh()->accessibility_conflicts)->toBe([]);
 });
 
+it('shows an accessibility badge on the shifts index for shifts with conflicts defined', function () {
+    $this->shift->update(['accessibility_conflicts' => ['Deaf']]);
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.events.shifts.index', $this->event))
+        ->assertOk()
+        ->assertSee('Accessibility conflicts: Deaf');
+});
+
+it('does not show an accessibility badge on the shifts index for shifts without conflicts', function () {
+    $this->actingAs($this->admin)
+        ->get(route('admin.events.shifts.index', $this->event))
+        ->assertOk()
+        ->assertDontSee('Accessibility conflicts:');
+});
+
 it('rejects unsupported accessibility conflicts', function () {
     $this->actingAs($this->admin)
         ->put(route('admin.events.shifts.update', [$this->event, $this->shift]), [

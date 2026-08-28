@@ -20,7 +20,7 @@ class ShiftController extends Controller
         $query = $event->shifts()
             ->where('start_time', '>=', now())
             ->withCount('users')
-            ->with('tags')
+            ->with(['tags', 'categories'])
             ->orderBy('start_time', $sort);
 
         if ($request->filled('minutesFromNow')) {
@@ -38,8 +38,25 @@ class ShiftController extends Controller
             });
         }
 
+        if ($request->filled('categoryId')) {
+            $categoryIds = collect(explode(',', (string) $request->input('categoryId')))
+                ->map(fn ($id) => (int) trim($id))
+                ->filter()
+                ->values();
+
+            $query->whereHas('categories', function ($q) use ($categoryIds) {
+                $q->whereIn('event_categories.id', $categoryIds);
+            });
+        }
+
+        if ($request->filled('categorySearch')) {
+            $query->whereHas('categories', function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->input('categorySearch').'%');
+            });
+        }
+
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->input('search') . '%');
+            $query->where('name', 'like', '%'.$request->input('search').'%');
         }
 
         $shifts = $query->get();
@@ -69,6 +86,13 @@ class ShiftController extends Controller
                 'volunteers_signed_up' => $shift->users_count,
                 'open_slots' => max(0, $shift->max_volunteers - $shift->users_count),
                 'tags' => $shift->tags->pluck('name'),
+                'categories' => $shift->categories->map(fn ($category) => [
+                    'name' => $category->name,
+                    'color' => $category->color,
+                ])->values(),
+                'accessibility_conflicts' => feature_enabled('accessibility_disclosures')
+                    ? ($shift->accessibility_conflicts ?? [])
+                    : [],
                 'detail_url' => route('vol-listings-public.shift.show', [$event, $shift]),
                 // Requires login; takes the volunteer into the app to sign up for this event's shifts.
                 'signup_url' => route('volunteer.events.show', $event),

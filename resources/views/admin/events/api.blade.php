@@ -12,12 +12,12 @@
     </x-slot>
 
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-        @unless ($event->isPublic())
+        @unless ($event->isPublic() || $event->isUnlisted())
             <div class="rounded-md bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-4">
                 <p class="text-sm text-yellow-800 dark:text-yellow-200">
-                    This event's visibility is <span class="font-mono">{{ $event->visibility }}</span>, not
-                    <span class="font-mono">public</span>. The endpoint below will return a 404 until the event's
-                    visibility is set to public.
+                    This event's visibility is <span class="font-mono">{{ $event->visibility }}</span>. The endpoint
+                    below will return a 404 until the event's visibility is set to
+                    <span class="font-mono">public</span> or <span class="font-mono">unlisted</span>.
                 </p>
             </div>
         @endunless
@@ -26,7 +26,9 @@
             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Upcoming Shifts</h3>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
                 Returns a JSON list of upcoming shifts for this event. This endpoint is unauthenticated and
-                read-only, intended for things like signage boards or embedding on an external website.
+                read-only, intended for things like signage boards or embedding on an external website. Each shift
+                includes an <span class="font-mono">accessibility_conflicts</span> array of any accessibility needs
+                it may conflict with; this is always empty when the "Accessibility Disclosures" feature is disabled.
             </p>
 
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Endpoint URL</label>
@@ -92,7 +94,19 @@
                             <td class="py-2 pr-4 font-mono text-gray-800 dark:text-gray-200">tagId</td>
                             <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">integer</td>
                             <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">&mdash;</td>
-                            <td class="py-2 text-gray-600 dark:text-gray-400">Only include shifts tagged with this tag ID (e.g. a department or category).</td>
+                            <td class="py-2 text-gray-600 dark:text-gray-400">Only include shifts tagged with this tag ID.</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 pr-4 font-mono text-gray-800 dark:text-gray-200">categoryId</td>
+                            <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">integer or comma-separated list</td>
+                            <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">&mdash;</td>
+                            <td class="py-2 text-gray-600 dark:text-gray-400">Only include shifts assigned to this category ID. Pass multiple IDs separated by commas (e.g. <span class="font-mono">3,5</span>) to match any of them.</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 pr-4 font-mono text-gray-800 dark:text-gray-200">categorySearch</td>
+                            <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">string</td>
+                            <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">&mdash;</td>
+                            <td class="py-2 text-gray-600 dark:text-gray-400">Only include shifts assigned to a category whose name contains this text (case-insensitive substring match), e.g. <span class="font-mono">Badge Checker</span>.</td>
                         </tr>
                         <tr>
                             <td class="py-2 pr-4 font-mono text-gray-800 dark:text-gray-200">search</td>
@@ -126,12 +140,12 @@
     <x-slot name="right">
         <p class="py-4">
             This endpoint is public and does not require authentication. It only returns data while this event's
-            visibility is set to <span class="font-mono">public</span>.
+            visibility is set to <span class="font-mono">public</span> or <span class="font-mono">unlisted</span>.
         </p>
         <ul class="text-sm space-y-1 list-disc list-inside text-gray-600 dark:text-gray-400">
             <li>Method: <code>GET</code></li>
             <li>Auth: none</li>
-            <li>Visibility required: <code>public</code></li>
+            <li>Visibility required: <code>public</code> or <code>unlisted</code></li>
         </ul>
     </x-slot>
 </x-app-layout>
