@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ConcatController;
 use App\Http\Controllers\Admin\CustomFieldController;
 use App\Http\Controllers\Admin\EventCategoryController;
 use App\Http\Controllers\Admin\EventController;
@@ -32,6 +33,7 @@ use App\Http\Controllers\SectorController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SetupWizardController;
 use App\Http\Controllers\TelegramWebhookController;
+use App\Http\Controllers\UserConcatController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserImportWizardController;
 use App\Http\Controllers\UserPermissionController;
@@ -159,6 +161,8 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
         Route::post('/link-telegram', [ProfileController::class, 'linkTelegram'])->name('link-telegram');
         Route::delete('/unlink-telegram', [ProfileController::class, 'unlinkTelegram'])->name('unlink-telegram');
         Route::get('/telegram-status', [ProfileController::class, 'telegramStatus'])->name('telegram-status');
+        Route::post('/link-concat', [ProfileController::class, 'linkConcat'])->name('link-concat');
+        Route::delete('/unlink-concat', [ProfileController::class, 'unlinkConcat'])->name('unlink-concat');
     });
 
     // Recognition & Awards
@@ -221,6 +225,13 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
     Route::get('/users/{user}/permissions', [UserPermissionController::class, 'edit'])->middleware('isAdmin')->name('users.permissions.edit');
     Route::post('/users/{user}/permissions', [UserPermissionController::class, 'update'])->middleware('isAdmin')->name('users.permissions.update');
 
+    // Manual ConCat account association
+    Route::middleware(['can:manage-users'])->group(function () {
+        Route::post('/users/{user}/concat/search', [UserConcatController::class, 'search'])->name('users.concat.search');
+        Route::post('/users/{user}/concat/link', [UserConcatController::class, 'link'])->name('users.concat.link');
+        Route::delete('/users/{user}/concat', [UserConcatController::class, 'unlink'])->name('users.concat.unlink');
+    });
+
     // User Notes
     Route::prefix('users/{user}/notes')->name('users.notes.')->group(function () {
         Route::get('/', [NoteController::class, 'index'])->name('index');
@@ -257,6 +268,7 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
         Route::put('/', [SettingsController::class, 'update'])->name('update');
         Route::delete('/reset-logo', [SettingsController::class, 'resetLogo'])->name('reset-logo');
         Route::delete('/telegram-disconnect', [SettingsController::class, 'disconnectTelegram'])->name('telegram-disconnect');
+        Route::delete('/concat-disconnect', [SettingsController::class, 'disconnectConcat'])->name('concat-disconnect');
         Route::delete('/reset-favicon', [SettingsController::class, 'resetFavicon'])->name('reset-favicon');
 
         Route::view('/api-docs', 'settings.api-docs')->name('api-docs');
@@ -287,6 +299,13 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
         Route::get('custom-fields-preview', [CustomFieldController::class, 'previewForceSet'])->name('custom-fields.preview-force-set');
     });
 
+    // ConCat Integration Management (nested under settings)
+    Route::middleware('isAdmin')->prefix('settings')->name('admin.')->group(function () {
+        Route::get('concat', [ConcatController::class, 'index'])->name('concat.index');
+        Route::put('concat', [ConcatController::class, 'update'])->name('concat.update');
+        Route::post('concat/sync', [ConcatController::class, 'sync'])->name('concat.sync');
+    });
+
     // Reports
     Route::prefix('report')->name('report.')->middleware('can:view-reports')->group(function () {
         Route::get('/staff-check-in', [ReportsController::class, 'staffCheckInExperience'])->name('staffCheckIn');
@@ -315,6 +334,13 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
         Route::get('/custom-fields/export', [ReportsController::class, 'customFieldsExportCsv'])->name('customFields.export');
         Route::get('/volunteers-with-multiple-departments', [ReportsController::class, 'volunteersWithMultipleDepartments'])->name('volunteersWithMultipleDepartments');
         Route::get('/department-membership', [ReportsController::class, 'departmentMembership'])->name('departmentMembership');
+        Route::get('/staff-concat', [ReportsController::class, 'staffConcat'])->name('staffConcat');
+        Route::get('/staff-concat/unlinked', [ReportsController::class, 'staffConcatUnlinked'])->name('staffConcat.unlinked');
+        Route::get('/staff-concat/unlinked/export', [ReportsController::class, 'staffConcatUnlinkedExportCsv'])->name('staffConcat.unlinked.export');
+        Route::get('/staff-concat/with-registration', [ReportsController::class, 'staffConcatWithRegistration'])->name('staffConcat.withRegistration');
+        Route::get('/staff-concat/with-registration/export', [ReportsController::class, 'staffConcatWithRegistrationExportCsv'])->name('staffConcat.withRegistration.export');
+        Route::get('/staff-concat/without-registration', [ReportsController::class, 'staffConcatWithoutRegistration'])->name('staffConcat.withoutRegistration');
+        Route::get('/staff-concat/without-registration/export', [ReportsController::class, 'staffConcatWithoutRegistrationExportCsv'])->name('staffConcat.withoutRegistration.export');
     });
 
     // Departments
@@ -376,7 +402,7 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
     });
 
     // Volunteer Perks - Admin CRUD
-    Route::middleware(['can:manage-volunteer-events', 'feature:perk_tracking'])->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['can:manage-volunteer-perks', 'feature:perk_tracking'])->prefix('admin')->name('admin.')->group(function () {
         Route::resource('perk-sets', AdminVolunteerPerkSetController::class);
         Route::get('perk-sets/{perkSet}/awards', [AdminVolunteerPerkSetController::class, 'awards'])->name('perk-sets.awards');
         Route::resource('perks', AdminVolunteerPerkController::class);

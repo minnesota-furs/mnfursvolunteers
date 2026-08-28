@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
 
 class Sector extends Model
 {
@@ -13,18 +12,23 @@ class Sector extends Model
     protected $fillable = [
         'name',
         'url',
-        'description'
+        'description',
     ];
 
     public function users()
     {
         return $this->hasManyThrough(User::class, Department::class, 'sector_id', 'id', 'id', 'id')
-                    ->distinct();
+            ->distinct();
     }
 
     public function departments()
     {
         return $this->hasMany(Department::class);
+    }
+
+    public function concatRoleMapping()
+    {
+        return $this->hasOne(ConcatSectorRoleMapping::class);
     }
 
     /**
@@ -44,12 +48,12 @@ class Sector extends Model
     public function getUniqueStaffCountAttribute()
     {
         return User::whereHas('departments', function ($query) {
-                $query->whereIn('departments.id', $this->departments()->pluck('id'));
-            })->where('active', true) // Only count active users
+            $query->whereIn('departments.id', $this->departments()->pluck('id'));
+        })->where('active', true) // Only count active users
             ->distinct('users.id') // Ensure unique count
             ->count('users.id');
     }
-    
+
     /**
      * Get all job listings under this sector through its departments.
      */

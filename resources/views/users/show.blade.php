@@ -354,6 +354,37 @@
                                             {{ format_hours($user->totalVolunteerHours()) }} hours
                                         </dd>
                                     </div>
+
+                                    <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">ConCat
+                                            Status</dt>
+                                        <dd
+                                            class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
+                                            @if($user->concat_user_id)
+                                                <p class="text-green-700 dark:text-green-400">
+                                                    <x-heroicon-s-check-circle class="w-4 h-4 inline -mt-0.5" />
+                                                    Associated with a ConCat account
+                                                </p>
+                                                @if($user->concatRoleGrants->isNotEmpty())
+                                                    <ul class="mt-2 space-y-1">
+                                                        @foreach($user->concatRoleGrants as $grant)
+                                                            <li class="text-xs text-gray-500 dark:text-gray-400">
+                                                                {{ $grant->sector?->concatRoleMapping?->concat_role_name ?? $grant->concat_role_id }}
+                                                                via {{ $grant->sector->name ?? 'Unknown Sector' }}
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
+                                                @endif
+                                            @elseif($user->concat_checked_at)
+                                                <p class="text-gray-500 dark:text-gray-400">
+                                                    <x-heroicon-s-x-circle class="w-4 h-4 inline -mt-0.5" />
+                                                    Not associated &mdash; no matching ConCat account was found for this email.
+                                                </p>
+                                            @else
+                                                <p class="text-gray-400 dark:text-gray-500 italic">Not checked yet.</p>
+                                            @endif
+                                        </dd>
+                                    </div>
                                     @endif
                                 </dl>
                             </div>

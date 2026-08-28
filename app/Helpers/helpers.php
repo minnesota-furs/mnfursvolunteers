@@ -1,6 +1,12 @@
 <?php
 
-if (!function_exists('format_hours')) {
+use App\Models\ApplicationSetting;
+use App\Models\User;
+use App\Services\FeatureService;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+
+if (! function_exists('format_hours')) {
     /**
      * Format hours, hide decimals if even
      *
@@ -19,21 +25,20 @@ if (!function_exists('format_hours')) {
     }
 }
 
-if (!function_exists('app_setting')) {
+if (! function_exists('app_setting')) {
     /**
      * Get an application setting value.
      *
-     * @param  string  $key
      * @param  mixed  $default
      * @return mixed
      */
     function app_setting(string $key, $default = null)
     {
-        return \App\Models\ApplicationSetting::get($key, $default);
+        return ApplicationSetting::get($key, $default);
     }
 }
 
-if (!function_exists('app_name')) {
+if (! function_exists('app_name')) {
     /**
      * Get the application name.
      *
@@ -45,7 +50,7 @@ if (!function_exists('app_name')) {
     }
 }
 
-if (!function_exists('app_logo')) {
+if (! function_exists('app_logo')) {
     /**
      * Get the application logo URL.
      *
@@ -53,11 +58,11 @@ if (!function_exists('app_logo')) {
      */
     function app_logo()
     {
-        return \App\Models\ApplicationSetting::getLogo();
+        return ApplicationSetting::getLogo();
     }
 }
 
-if (!function_exists('app_favicon')) {
+if (! function_exists('app_favicon')) {
     /**
      * Get the application favicon URL.
      *
@@ -65,31 +70,26 @@ if (!function_exists('app_favicon')) {
      */
     function app_favicon()
     {
-        return \App\Models\ApplicationSetting::getFavicon();
+        return ApplicationSetting::getFavicon();
     }
 }
 
-if (!function_exists('user_display_name')) {
+if (! function_exists('user_display_name')) {
     /**
      * Get the display name for a user based on the application setting.
      *
      * Uses the 'user_display_name' setting: 'alias' returns the name field,
      * 'legal_name' returns first + last name.
-     *
-     * @param  \App\Models\User  $user
-     * @return string
      */
-    function user_display_name(\App\Models\User $user): string
+    function user_display_name(User $user): string
     {
         return $user->displayName();
     }
 }
 
-if (!function_exists('app_timezone')) {
+if (! function_exists('app_timezone')) {
     /**
      * Get the effective application timezone (admin override, falling back to config/app.php).
-     *
-     * @return string
      */
     function app_timezone(): string
     {
@@ -97,16 +97,13 @@ if (!function_exists('app_timezone')) {
     }
 }
 
-if (!function_exists('user_timezone')) {
+if (! function_exists('user_timezone')) {
     /**
      * Get the effective timezone to display dates/times in for a user
      * (defaults to the currently authenticated user). Falls back to the
      * application timezone for guests or users without a saved preference.
-     *
-     * @param  \App\Models\User|null  $user
-     * @return string
      */
-    function user_timezone(?\App\Models\User $user = null): string
+    function user_timezone(?User $user = null): string
     {
         $user ??= auth()->user();
 
@@ -114,21 +111,19 @@ if (!function_exists('user_timezone')) {
     }
 }
 
-if (!function_exists('grouped_timezones')) {
+if (! function_exists('grouped_timezones')) {
     /**
      * All PHP timezone identifiers, grouped by region (e.g. "America"), for
      * populating timezone <select> inputs.
-     *
-     * @return \Illuminate\Support\Collection
      */
-    function grouped_timezones(): \Illuminate\Support\Collection
+    function grouped_timezones(): Collection
     {
-        return collect(\DateTimeZone::listIdentifiers(\DateTimeZone::ALL))
+        return collect(DateTimeZone::listIdentifiers(DateTimeZone::ALL))
             ->groupBy(fn ($tz) => str_contains($tz, '/') ? explode('/', $tz, 2)[0] : 'Other');
     }
 }
 
-if (!function_exists('common_timezones')) {
+if (! function_exists('common_timezones')) {
     /**
      * A short list of commonly-used US timezones, for pinning to the top of
      * timezone <select> inputs above the full alphabetical region list.
@@ -150,11 +145,22 @@ if (!function_exists('common_timezones')) {
     }
 }
 
-if (!function_exists('feature_enabled')) {
+if (! function_exists('concat_configured')) {
+    /**
+     * Check whether the ConCat integration has connected credentials.
+     *
+     * @return bool
+     */
+    function concat_configured()
+    {
+        return (bool) app_setting('concat_client_id');
+    }
+}
+
+if (! function_exists('feature_enabled')) {
     /**
      * Check if a feature is enabled.
      *
-     * @param  string  $feature
      * @return bool
      */
     function feature_enabled(string $feature)
@@ -163,24 +169,23 @@ if (!function_exists('feature_enabled')) {
     }
 }
 
-if (!function_exists('feature_is_beta')) {
+if (! function_exists('feature_is_beta')) {
     /**
      * Check if a feature is in beta.
      *
-     * @param  string  $feature
      * @return bool
      */
     function feature_is_beta(string $feature)
     {
-        return app(\App\Services\FeatureService::class)->isBeta($feature);
+        return app(FeatureService::class)->isBeta($feature);
     }
 }
 
-if (!function_exists('hosting_info')) {
+if (! function_exists('hosting_info')) {
     /**
      * Get managed hosting paid-through information, if configured.
      *
-     * @return array{date: \Illuminate\Support\Carbon, days_remaining: int, status: string}|null
+     * @return array{date: Carbon, days_remaining: int, status: string}|null
      */
     function hosting_info(): ?array
     {
@@ -191,12 +196,12 @@ if (!function_exists('hosting_info')) {
         }
 
         try {
-            $date = \Illuminate\Support\Carbon::parse($paidThrough)->startOfDay();
-        } catch (\Throwable) {
+            $date = Carbon::parse($paidThrough)->startOfDay();
+        } catch (Throwable) {
             return null;
         }
 
-        $today = \Illuminate\Support\Carbon::today();
+        $today = Carbon::today();
         $daysRemaining = $today->diffInDays($date, false);
 
         return [

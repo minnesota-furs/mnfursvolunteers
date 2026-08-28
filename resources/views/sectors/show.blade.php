@@ -41,6 +41,31 @@
                                         class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
                                         {{ $sector->description }}</dd>
                                 </div>
+                                @if(concat_configured())
+                                    <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                        <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">ConCat</dt>
+                                        <dd
+                                            class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300 sm:col-span-2 sm:mt-0">
+                                            @if($sector->concatRoleMapping)
+                                                <p class="text-green-700 dark:text-green-400">
+                                                    <x-heroicon-s-check-circle class="w-4 h-4 inline -mt-0.5" />
+                                                    Grants the <span class="font-medium">{{ $sector->concatRoleMapping->concat_role_name }}</span> role
+                                                    ({{ $sector->concatRoleMapping->concat_scope === 'global' ? 'global' : 'this convention' }})
+                                                </p>
+                                            @else
+                                                <p class="text-gray-500 dark:text-gray-400">
+                                                    <x-heroicon-s-x-circle class="w-4 h-4 inline -mt-0.5" />
+                                                    Does not grant a ConCat role
+                                                </p>
+                                            @endif
+                                            @if(Auth::user()->isAdmin())
+                                                <a href="{{ route('admin.concat.index') }}" class="mt-1 inline-block text-xs text-brand-green hover:underline">
+                                                    Manage Concat
+                                                </a>
+                                            @endif
+                                        </dd>
+                                    </div>
+                                @endif
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                     <dt class="text-sm font-medium leading-6 text-gray-900">Sector Members</dt>
                                     <dd class="mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0">

@@ -7,6 +7,8 @@ use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\CustomField;
 use App\Models\CustomFieldValue;
 use App\Models\User;
+use App\Services\ConcatService;
+use App\Services\ConcatSyncService;
 use Corcel\Model\User as WordPressUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +23,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        $user = $request->user()->load(['customFieldValues', 'departments.sector', 'headDepartments:id']);
+        $user = $request->user()->load(['customFieldValues', 'departments.sector', 'headDepartments:id', 'concatRoleGrants.sector.concatRoleMapping']);
         $timezones = grouped_timezones();
 
         return view('profile.edit', [
@@ -299,6 +301,105 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('success', [
             'message' => 'Telegram account unlinked.',
         ]);
+    }
+
+    /**
+     * Numeric codes shown to the user alongside a deliberately vague error
+     * message, so support staff can look up what actually went wrong without
+     * the message itself revealing the verification logic (e.g. that a
+     * different-email link is rejected specifically for a legal-name
+     * mismatch, which would invite people to fish for valid combinations).
+     *
+     * 1001 - ConCat integration not configured
+     * 1002 - No ConCat account found for the given email
+     * 1003 - Different-email link attempted with no legal name on file
+     * 1004 - Different-email link's legal name didn't match ConCat's
+     */
+    private const CONCAT_ERROR_NOT_CONFIGURED = 1001;
+
+    private const CONCAT_ERROR_NO_MATCH = 1002;
+
+    private const CONCAT_ERROR_NO_LEGAL_NAME = 1003;
+
+    private const CONCAT_ERROR_NAME_MISMATCH = 1004;
+
+    /**
+     * Self-service ConCat link: tries the volunteer's own account email by
+     * default, or a different email they provide (their ConCat registration
+     * may use a personal email that differs from their volunteer account).
+     */
+    public function linkConcat(Request $request): RedirectResponse
+    {
+        $concat = app(ConcatService::class);
+
+        if (! $concat->isConfigured()) {
+            return $this->concatLinkError($request, self::CONCAT_ERROR_NOT_CONFIGURED);
+        }
+
+        $request->validate([
+            'concat_search_email' => ['nullable', 'email'],
+        ]);
+
+        $user = $request->user();
+        $usingDifferentEmail = $request->filled('concat_search_email');
+        $email = $usingDifferentEmail ? $request->input('concat_search_email') : $user->email;
+
+        $match = $concat->findUserByEmail($email);
+
+        if (! $match) {
+            return $this->concatLinkError($request, self::CONCAT_ERROR_NO_MATCH);
+        }
+
+        // A different email means we can't trust it belongs to this volunteer just because
+        // ConCat returned a match — require the legal name on file to agree too, so a
+        // self-service link can't accidentally (or deliberately) grab someone else's account.
+        if ($usingDifferentEmail) {
+            if (empty($user->first_name) || empty($user->last_name)) {
+                return $this->concatLinkError($request, self::CONCAT_ERROR_NO_LEGAL_NAME);
+            }
+
+            $nameMatches = strcasecmp(trim($user->first_name), trim($match['firstName'])) === 0
+                && strcasecmp(trim($user->last_name), trim($match['lastName'])) === 0;
+
+            if (! $nameMatches) {
+                return $this->concatLinkError($request, self::CONCAT_ERROR_NAME_MISMATCH);
+            }
+        }
+
+        app(ConcatSyncService::class)->associateUser($user, $match['id']);
+
+        return $this->toConcatSection()->with('success', [
+            'message' => "Linked to ConCat account: {$match['firstName']} {$match['lastName']} ({$match['email']}).",
+        ]);
+    }
+
+    /**
+     * Redirect back to the Concat section with a deliberately vague error and
+     * a lookup code, preserving whichever form the volunteer used.
+     */
+    private function concatLinkError(Request $request, int $code): RedirectResponse
+    {
+        return $this->toConcatSection()
+            ->withInput($request->only('concat_search_email'))
+            ->with('error', "Problem linking accounts. Error: {$code}");
+    }
+
+    public function unlinkConcat(Request $request): RedirectResponse
+    {
+        app(ConcatSyncService::class)->disassociateUser($request->user());
+
+        return $this->toConcatSection()->with('success', [
+            'message' => 'ConCat account unlinked.',
+        ]);
+    }
+
+    /**
+     * Redirect back to the profile page scrolled to the Concat section,
+     * since these actions all originate from forms inside it.
+     */
+    private function toConcatSection(): RedirectResponse
+    {
+        return Redirect::to(route('profile.edit').'#concat');
     }
 
     /**

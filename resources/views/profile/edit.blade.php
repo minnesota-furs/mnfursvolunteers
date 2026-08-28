@@ -21,6 +21,15 @@
                 ]]);
             }
 
+            if (concat_configured()) {
+                $timezoneIndex = collect($profileSections)->search(fn ($section) => $section['id'] === 'timezone');
+                array_splice($profileSections, $timezoneIndex + 1, 0, [[
+                    'id' => 'concat',
+                    'label' => __('Concat'),
+                    'icon' => 'heroicon-o-link',
+                ]]);
+            }
+
             if (app_setting('telegram_bot_username')) {
                 $profileSections[] = ['id' => 'telegram', 'label' => __('Telegram'), 'icon' => 'heroicon-o-paper-airplane'];
             }
@@ -33,6 +42,8 @@
         @endphp
 
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            @include('layouts.partials.flash-message')
+
             <div class="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start">
                 <aside class="bg-white p-4 shadow dark:bg-gray-800 sm:rounded-lg lg:sticky lg:top-6" aria-label="{{ __('Profile sections') }}">
                     <h2 class="px-3 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -119,6 +130,14 @@
                     <div id="timezone" class="scroll-mt-6 p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                         @include('profile.partials.update-timezone-form')
                     </div>
+
+                    @if(concat_configured())
+                        <div id="concat" class="scroll-mt-6 p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                            <div class="max-w-xl">
+                                @include('profile.partials.concat-link')
+                            </div>
+                        </div>
+                    @endif
 
                     <div id="email-preferences" class="scroll-mt-6 p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                         <div class="max-w-xl">

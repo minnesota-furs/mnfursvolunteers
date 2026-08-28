@@ -14,6 +14,7 @@ use App\Models\Sector;
 use App\Models\Shift;
 use App\Models\User;
 use App\Models\UserRelationship;
+use App\Services\ConcatService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -203,6 +204,165 @@ class ReportsController extends Controller
             'activeVolunteerCount', 'activeMembershipCount', 'monthlyTotals',
             'multipleDepartmentCount'
         ));
+    }
+
+    public function staffConcat(ConcatService $concat): View|RedirectResponse
+    {
+        if (! $concat->isConfigured()) {
+            return redirect()->route('settings.index')
+                ->with('error', 'Connect ConCat under External Integrations before viewing this report.');
+        }
+
+        return view('reports.staff-concat-experience');
+    }
+
+    public function staffConcatUnlinked(Request $request, ConcatService $concat): View|RedirectResponse
+    {
+        if ($redirect = $this->requireConcatConfigured($concat)) {
+            return $redirect;
+        }
+
+        [$sectors, $selectedSectorId] = $this->staffConcatFilters($request);
+
+        $unlinkedUsers = $this->staffConcatBaseQuery($selectedSectorId)
+            ->whereNull('concat_user_id')->orderBy('name')->get();
+
+        return view('reports.staff-concat-unlinked', compact('sectors', 'selectedSectorId', 'unlinkedUsers'));
+    }
+
+    public function staffConcatUnlinkedExportCsv(Request $request, ConcatService $concat): StreamedResponse|RedirectResponse
+    {
+        if ($redirect = $this->requireConcatConfigured($concat)) {
+            return $redirect;
+        }
+
+        $selectedSectorId = $request->filled('sector_id') ? $request->integer('sector_id') : null;
+        $unlinkedUsers = $this->staffConcatBaseQuery($selectedSectorId)
+            ->whereNull('concat_user_id')->orderBy('name')->get();
+
+        return $this->streamStaffConcatCsv($unlinkedUsers, 'unlinked-concat-users');
+    }
+
+    public function staffConcatWithRegistration(Request $request, ConcatService $concat): View|RedirectResponse
+    {
+        if ($redirect = $this->requireConcatConfigured($concat)) {
+            return $redirect;
+        }
+
+        [$sectors, $selectedSectorId] = $this->staffConcatFilters($request);
+        [$staffWithRegistration] = $this->staffConcatLinkedSplit($concat, $selectedSectorId);
+
+        return view('reports.staff-concat-with-registration', compact('sectors', 'selectedSectorId', 'staffWithRegistration'));
+    }
+
+    public function staffConcatWithRegistrationExportCsv(Request $request, ConcatService $concat): StreamedResponse|RedirectResponse
+    {
+        if ($redirect = $this->requireConcatConfigured($concat)) {
+            return $redirect;
+        }
+
+        $selectedSectorId = $request->filled('sector_id') ? $request->integer('sector_id') : null;
+        [$staffWithRegistration] = $this->staffConcatLinkedSplit($concat, $selectedSectorId);
+
+        return $this->streamStaffConcatCsv($staffWithRegistration, 'staff-with-concat-registration');
+    }
+
+    public function staffConcatWithoutRegistration(Request $request, ConcatService $concat): View|RedirectResponse
+    {
+        if ($redirect = $this->requireConcatConfigured($concat)) {
+            return $redirect;
+        }
+
+        [$sectors, $selectedSectorId] = $this->staffConcatFilters($request);
+        [, $staffWithoutRegistration] = $this->staffConcatLinkedSplit($concat, $selectedSectorId);
+
+        return view('reports.staff-concat-without-registration', compact('sectors', 'selectedSectorId', 'staffWithoutRegistration'));
+    }
+
+    public function staffConcatWithoutRegistrationExportCsv(Request $request, ConcatService $concat): StreamedResponse|RedirectResponse
+    {
+        if ($redirect = $this->requireConcatConfigured($concat)) {
+            return $redirect;
+        }
+
+        $selectedSectorId = $request->filled('sector_id') ? $request->integer('sector_id') : null;
+        [, $staffWithoutRegistration] = $this->staffConcatLinkedSplit($concat, $selectedSectorId);
+
+        return $this->streamStaffConcatCsv($staffWithoutRegistration, 'staff-without-concat-registration');
+    }
+
+    private function requireConcatConfigured(ConcatService $concat): ?RedirectResponse
+    {
+        if ($concat->isConfigured()) {
+            return null;
+        }
+
+        return redirect()->route('settings.index')
+            ->with('error', 'Connect ConCat under External Integrations before viewing this report.');
+    }
+
+    /**
+     * @return array{0: Collection, 1: int|null}
+     */
+    private function staffConcatFilters(Request $request): array
+    {
+        $sectors = Sector::query()->orderBy('name')->get();
+        $selectedSectorId = $request->filled('sector_id') ? $request->integer('sector_id') : null;
+
+        return [$sectors, $selectedSectorId];
+    }
+
+    private function staffConcatBaseQuery(?int $selectedSectorId): Builder
+    {
+        return User::query()
+            ->where('active', true)
+            ->whereHas('departments', fn ($query) => $query
+                ->when($selectedSectorId, fn ($query) => $query->where('departments.sector_id', $selectedSectorId)))
+            ->with('departments.sector');
+    }
+
+    /**
+     * Linked staff (in the given sector, or all if null) split into those
+     * with a ConCat registration and those without. Requires one batched
+     * ConCat call per invocation, so callers should only call this once.
+     *
+     * @return array{0: Collection, 1: Collection}
+     */
+    private function staffConcatLinkedSplit(ConcatService $concat, ?int $selectedSectorId): array
+    {
+        $linkedUsers = $this->staffConcatBaseQuery($selectedSectorId)
+            ->whereNotNull('concat_user_id')->orderBy('name')->get();
+
+        $registeredConcatIds = collect();
+        if ($linkedUsers->isNotEmpty()) {
+            $registrations = $concat->searchRegistrationsByUserIds($linkedUsers->pluck('concat_user_id')->all());
+            $registeredConcatIds = collect($registrations)->pluck('user.id')->filter()->unique();
+        }
+
+        [$withRegistration, $withoutRegistration] = $linkedUsers
+            ->partition(fn (User $user) => $registeredConcatIds->contains($user->concat_user_id));
+
+        return [$withRegistration->values(), $withoutRegistration->values()];
+    }
+
+    private function streamStaffConcatCsv(Collection $users, string $filenamePrefix): StreamedResponse
+    {
+        $filename = $filenamePrefix.'-'.now()->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () use ($users): void {
+            $output = fopen('php://output', 'w');
+            fputcsv($output, ['Name', 'Email', 'Departments']);
+
+            foreach ($users as $user) {
+                fputcsv($output, [
+                    $user->name,
+                    $user->email,
+                    $user->departments->pluck('name')->implode(', '),
+                ]);
+            }
+
+            fclose($output);
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 
     public function customFields(CustomFieldReportRequest $request): View

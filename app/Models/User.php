@@ -60,6 +60,8 @@ class User extends Authenticatable
         'timezone',
         'onboarded_at',
         'accessibility_needs',
+        'concat_user_id',
+        'concat_checked_at',
     ];
 
     /**
@@ -102,6 +104,7 @@ class User extends Authenticatable
         'calendar_token' => 'string',
         'telegram_link_token_expires_at' => 'datetime',
         'telegram_linked_at' => 'datetime',
+        'concat_checked_at' => 'datetime',
         'onboarded_at' => 'datetime',
         'accessibility_needs' => 'array',
     ];
@@ -160,6 +163,11 @@ class User extends Authenticatable
     public function headDepartments()
     {
         return $this->belongsToMany(Department::class, 'department_head');
+    }
+
+    public function concatRoleGrants()
+    {
+        return $this->hasMany(ConcatUserRoleGrant::class);
     }
 
     public function sector()

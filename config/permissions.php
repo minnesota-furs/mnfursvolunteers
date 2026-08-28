@@ -45,6 +45,10 @@ return [
         'label' => 'Manage Announcements',
         'description' => 'Create, edit, and delete dashboard announcements and choose their audiences.',
     ],
+    'manage-volunteer-perks' => [
+        'label' => 'Manage Volunteer Perks',
+        'description' => 'Create, edit, and delete volunteer perks and perk sets, and manage redemptions.',
+    ],
 ];
 
 // return [

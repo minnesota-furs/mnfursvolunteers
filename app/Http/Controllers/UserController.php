@@ -2,26 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Sector;
-use App\Models\User;
+use App\Mail\TestEmail;
+use App\Models\CommunicationLog;
+use App\Models\CustomField;
+use App\Models\CustomFieldValue;
 use App\Models\Department;
 use App\Models\FiscalLedger;
+use App\Models\Sector;
+use App\Models\Tag;
+use App\Models\User;
 use App\Rules\NotBlacklisted;
-use Illuminate\Http\RedirectResponse;
+use App\Services\ConcatService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Response as FacadeResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Response as FacadeResponse;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules;
 use Illuminate\View\View;
-use App\Mail\TestEmail;
-use App\Models\CommunicationLog;
 
 class UserController extends Controller
 {
@@ -33,7 +38,7 @@ class UserController extends Controller
         // When enabled, users without a department cannot access this page (admins and manage-users are exempt)
         if (app_setting('require_department_for_user_index', false)) {
             $user = Auth::user();
-            if ($user && !$user->isAdmin() && !$user->hasPermission('manage-users') && $user->departments->isEmpty()) {
+            if ($user && ! $user->isAdmin() && ! $user->hasPermission('manage-users') && $user->departments->isEmpty()) {
                 abort(403, 'You must be assigned to a department to view this page.');
             }
         }
@@ -55,20 +60,20 @@ class UserController extends Controller
             ->first();
 
         // Ensure we have a ledger to work with
-        if (!$currentLedger) {
+        if (! $currentLedger) {
             abort(500, 'Current fiscal ledger not found.');
         }
 
         // Query users
         $users = User::query()
             ->when($search, function (Builder $query) use ($search) {
-                $query->where('name', 'like', '%' . $search . '%') // Search by name
-                    ->orWhere('first_name', 'like', '%' . $search . '%') // Search by first legal name
-                    ->orWhere('last_name', 'like', '%' . $search . '%') // Search by last legal name
-                    ->orWhere('email', 'like', '%' . $search . '%') // Search by email
+                $query->where('name', 'like', '%'.$search.'%') // Search by name
+                    ->orWhere('first_name', 'like', '%'.$search.'%') // Search by first legal name
+                    ->orWhere('last_name', 'like', '%'.$search.'%') // Search by last legal name
+                    ->orWhere('email', 'like', '%'.$search.'%') // Search by email
                     ->orWhere('vol_code', $search); // Search by volunteer code
             })
-            ->when(!empty($departmentFilter), function (Builder $query) use ($departmentFilter) {
+            ->when(! empty($departmentFilter), function (Builder $query) use ($departmentFilter) {
                 $query->whereHas('departments', function ($q) use ($departmentFilter) {
                     $q->whereIn('departments.id', $departmentFilter);
                 });
@@ -79,7 +84,7 @@ class UserController extends Controller
             ->when($departmentStatus === 'has_department', function (Builder $query) {
                 $query->has('departments');
             })
-            ->when(!empty($tagFilter), function (Builder $query) use ($tagFilter) {
+            ->when(! empty($tagFilter), function (Builder $query) use ($tagFilter) {
                 $query->whereHas('tags', function ($q) use ($tagFilter) {
                     $q->whereIn('tags.id', $tagFilter);
                 });
@@ -94,7 +99,7 @@ class UserController extends Controller
                 $query->withSum(['volunteerHours' => function ($q) use ($currentLedger) {
                     $q->where('fiscal_ledger_id', $currentLedger->id);
                 }], 'hours')
-                ->orderBy('volunteer_hours_sum_hours', $direction);
+                    ->orderBy('volunteer_hours_sum_hours', $direction);
             }, function (Builder $query) use ($sort, $direction) {
                 // When sorting by name and legal name is the prominent display, sort by legal name fields instead
                 if ($sort === 'name' && app_setting('user_display_name', 'alias') === 'legal_name') {
@@ -110,10 +115,10 @@ class UserController extends Controller
         $users->appends($request->except('page'));
 
         $trashedUsers = User::onlyTrashed()->get();
-        
+
         // Get departments and tags for filter dropdowns
         $departments = Department::orderBy('name')->get();
-        $tags = \App\Models\Tag::forUsers()->orderBy('name')->get();
+        $tags = Tag::forUsers()->orderBy('name')->get();
 
         return view('users.index', compact('users', 'sort', 'direction', 'trashedUsers', 'departments', 'tags'));
     }
@@ -127,9 +132,10 @@ class UserController extends Controller
         if (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->hasPermission('manage-users'))) {
             $sectors = Sector::all();
             $departments = [];
+
             return view('users.create', [
-                'sectors'   => $sectors,
-                'departments' => $departments
+                'sectors' => $sectors,
+                'departments' => $departments,
             ]);
         } else {
             abort(401);
@@ -154,11 +160,11 @@ class UserController extends Controller
                 'notes' => ['nullable', 'string', 'max:255'], // 'notes' can be a string, maximum 255 characters, or null
                 'primary_sector_id' => ['nullable', 'integer', 'exists:sectors,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
                 'primary_dept_id' => ['nullable', 'integer', 'exists:departments,id'], // Ensure 'sector' is a valid integer and exists in the sectors table
-                'admin' => ['boolean'] // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
+                'admin' => ['boolean'], // Ensures 'admin' is either 0 or 1 (boolean), defaults to 0
             ]);
 
             // Only admins may set the admin flag; non-admins always create regular users
-            if (!Auth::user()->isAdmin()) {
+            if (! Auth::user()->isAdmin()) {
                 $validated['admin'] = 0;
             }
 
@@ -204,15 +210,15 @@ class UserController extends Controller
             'oneOffEventRsvps.event',
             'oneOffEventCheckIns.event',
         ])->findOrFail($id);
-        
+
         // Get filter parameters
         $periodFilter = $request->input('period', 'all');
         $dateFilter = $request->input('date', 'all');
-        
+
         // Build the query
         $query = $user->volunteerHours()
             ->with(['department.sector']);
-        
+
         // Apply fiscal period filter
         if ($periodFilter !== 'all') {
             if ($periodFilter === 'current') {
@@ -228,26 +234,26 @@ class UserController extends Controller
                 $query->where('fiscal_ledger_id', $periodFilter);
             }
         }
-        
+
         // Apply date range filter
         if ($dateFilter === '14days') {
-            $query->where(function($q) {
+            $query->where(function ($q) {
                 $q->where('volunteer_date', '>=', now()->subDays(14))
-                  ->orWhere(function($q2) {
-                      $q2->whereNull('volunteer_date')
-                         ->where('created_at', '>=', now()->subDays(14));
-                  });
+                    ->orWhere(function ($q2) {
+                        $q2->whereNull('volunteer_date')
+                            ->where('created_at', '>=', now()->subDays(14));
+                    });
             });
         } elseif ($dateFilter === '30days') {
-            $query->where(function($q) {
+            $query->where(function ($q) {
                 $q->where('volunteer_date', '>=', now()->subDays(30))
-                  ->orWhere(function($q2) {
-                      $q2->whereNull('volunteer_date')
-                         ->where('created_at', '>=', now()->subDays(30));
-                  });
+                    ->orWhere(function ($q2) {
+                        $q2->whereNull('volunteer_date')
+                            ->where('created_at', '>=', now()->subDays(30));
+                    });
             });
         }
-        
+
         $volunteerHours = $query
             ->orderByRaw('COALESCE(volunteer_date, created_at) DESC')
             ->paginate(15)
@@ -259,10 +265,10 @@ class UserController extends Controller
         // Get note counts for admins
         $totalNotes = $user->userNotes()->count();
         $writeupCount = $user->userNotes()->where('type', 'Writeup')->count();
-        
+
         // Get all fiscal ledgers for filter dropdown
         $fiscalLedgers = FiscalLedger::orderBy('start_date', 'desc')->get();
-        
+
         // Get current fiscal ledger info
         $currentLedger = FiscalLedger::where('start_date', '<=', now())
             ->where('end_date', '>=', now())
@@ -317,7 +323,7 @@ class UserController extends Controller
     public function timeline(Request $request, string $id): View
     {
         // Only users with manage-users permission or admins can view timelines
-        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('manage-users')) {
+        if (! auth()->user()->isAdmin() && ! auth()->user()->hasPermission('manage-users')) {
             abort(403, 'Unauthorized to view user timelines.');
         }
 
@@ -325,16 +331,16 @@ class UserController extends Controller
             'volunteerHours.department.sector',
             'shifts.event',
             'auditLogs.user',
-            'userNotes.creator'
+            'userNotes.creator',
         ])->findOrFail($id);
 
         // Get all timeline events
         $allEvents = $user->getTimelineEvents();
-        
+
         // Manually paginate the collection
         $perPage = 20;
         $currentPage = $request->input('page', 1);
-        $timelineEvents = new \Illuminate\Pagination\LengthAwarePaginator(
+        $timelineEvents = new LengthAwarePaginator(
             $allEvents->forPage($currentPage, $perPage),
             $allEvents->count(),
             $perPage,
@@ -360,29 +366,33 @@ class UserController extends Controller
                 'auditLogs.user',
                 'departments.sector',
                 'sector',
-                'tags'
+                'tags',
+                'concatRoleGrants.sector.concatRoleMapping',
             ])->findOrFail($id);
-            
+
             $departments = [];
 
             // Retrieve sectors with their departments, ordered by name
             $sectors = Sector::with(['departments' => function ($query) {
                 $query->orderBy('name'); // Sort departments alphabetically within each sector
             }])->orderBy('name') // Sort sectors alphabetically
-            ->get();
+                ->get();
 
             // Get all tags
-            $tags = \App\Models\Tag::forUsers()->orderBy('name')->get();
+            $tags = Tag::forUsers()->orderBy('name')->get();
 
             // Get timeline events for the sidebar
             $timelineEvents = $user->getTimelineEvents()->take(20);
 
+            $concatConfigured = app(ConcatService::class)->isConfigured();
+
             return view('users.edit', [
-                'user'      => $user,
-                'sectors'   => $sectors,
+                'user' => $user,
+                'sectors' => $sectors,
                 'departments' => $departments,
-                'tags'      => $tags,
+                'tags' => $tags,
                 'timelineEvents' => $timelineEvents,
+                'concatConfigured' => $concatConfigured,
             ]);
         } else {
             abort(401);
@@ -401,7 +411,7 @@ class UserController extends Controller
                 'first_name' => ['nullable', 'string', 'max:255'],
                 'pronouns' => ['nullable', 'string', 'max:50'],
                 'last_name' => ['nullable', 'string', 'max:255'],
-                'email' => ['required', 'email', 'unique:users,email,' . $id],  // Ensure unique email except for this user
+                'email' => ['required', 'email', 'unique:users,email,'.$id],  // Ensure unique email except for this user
                 'active' => ['required', 'boolean'],                     // Ensures 'active' is either 0 or 1 (boolean)
                 'notes' => ['nullable', 'string'],                       // 'notes' can be a string, maximum 255 characters, or null
                 'primary_sector_id' => ['nullable', 'integer', 'exists:sectors,id'],   // Ensure 'sector' is a valid integer and exists in the sectors table
@@ -417,7 +427,7 @@ class UserController extends Controller
             $user = User::findOrFail($id);
 
             // Only admins may change the admin flag; non-admins cannot escalate privileges
-            if (!Auth::user()->isAdmin()) {
+            if (! Auth::user()->isAdmin()) {
                 unset($validated['admin']);
             }
 
@@ -431,20 +441,20 @@ class UserController extends Controller
             $user->tags()->sync($validated['tags'] ?? []);
 
             // Handle custom fields
-            $customFields = \App\Models\CustomField::active()->get();
+            $customFields = CustomField::active()->get();
             foreach ($customFields as $field) {
-                $fieldKey = 'custom_field_' . $field->id;
-                
+                $fieldKey = 'custom_field_'.$field->id;
+
                 if ($request->has($fieldKey)) {
                     $value = $request->input($fieldKey);
-                    
+
                     // Handle checkbox fields (convert array to comma-separated string)
                     if ($field->field_type === 'checkbox' && is_array($value)) {
                         $value = implode(',', $value);
                     }
-                    
+
                     // Update or create the custom field value
-                    \App\Models\CustomFieldValue::updateOrCreate(
+                    CustomFieldValue::updateOrCreate(
                         [
                             'user_id' => $user->id,
                             'custom_field_id' => $field->id,
@@ -455,7 +465,7 @@ class UserController extends Controller
                     );
                 } else {
                     // If field is not in request (e.g., unchecked checkboxes), delete the value
-                    \App\Models\CustomFieldValue::where('user_id', $user->id)
+                    CustomFieldValue::where('user_id', $user->id)
                         ->where('custom_field_id', $field->id)
                         ->delete();
                 }
@@ -477,8 +487,9 @@ class UserController extends Controller
     {
         if ($request->user()->isAdmin()) {
             $user = User::findOrFail($id);
+
             return view('users.delete_confirm', [
-                'user'   => $user,
+                'user' => $user,
             ]);
         } else {
             abort(401);
@@ -493,6 +504,7 @@ class UserController extends Controller
         if (Auth::check() && Auth::user()->isAdmin()) {
             $user = User::findOrFail($id);
             $user->delete();
+
             return redirect()->route('users.index')
                 ->with('success', [
                     'message' => "Volunteer <span class=\"text-brand-red\">{$user->name}</span> deleted successfully",
@@ -507,7 +519,7 @@ class UserController extends Controller
      */
     public function resetPassword(Request $request, string $id): RedirectResponse
     {
-        if (!Auth::check() || (!Auth::user()->isAdmin() && !Auth::user()->hasPermission('manage-users'))) {
+        if (! Auth::check() || (! Auth::user()->isAdmin() && ! Auth::user()->hasPermission('manage-users'))) {
             abort(403);
         }
 
@@ -520,20 +532,20 @@ class UserController extends Controller
         }
 
         // Generate a secure random password (16 characters)
-        $newPassword = \Illuminate\Support\Str::password(16, letters: true, numbers: true, symbols: false);
+        $newPassword = Str::password(16, letters: true, numbers: true, symbols: false);
 
         $user->password = Hash::make($newPassword);
         $user->save();
 
         Log::info('Admin password reset', [
-            'admin_id'   => Auth::id(),
+            'admin_id' => Auth::id(),
             'target_user_id' => $user->id,
         ]);
 
         return redirect()->route('users.show', $user->id)
             ->with('password_reset', [
                 'user_name' => $user->name,
-                'password'  => $newPassword,
+                'password' => $newPassword,
             ]);
     }
 
@@ -542,7 +554,8 @@ class UserController extends Controller
         return view('users.import', []);
     }
 
-    public function export(Request $request) {
+    public function export(Request $request)
+    {
         $search = $request->input('search');
         $sort = $request->input('sort', 'name');
         $direction = $request->input('direction', 'asc');
@@ -559,20 +572,20 @@ class UserController extends Controller
             ->first();
 
         // Ensure we have a ledger to work with
-        if (!$currentLedger) {
+        if (! $currentLedger) {
             abort(500, 'Current fiscal ledger not found.');
         }
 
         // Apply the same filters as index method
         $users = User::query()
             ->when($search, function (Builder $query) use ($search) {
-                $query->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('first_name', 'like', '%' . $search . '%')
-                    ->orWhere('last_name', 'like', '%' . $search . '%')
-                    ->orWhere('email', 'like', '%' . $search . '%')
+                $query->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('first_name', 'like', '%'.$search.'%')
+                    ->orWhere('last_name', 'like', '%'.$search.'%')
+                    ->orWhere('email', 'like', '%'.$search.'%')
                     ->orWhere('vol_code', $search);
             })
-            ->when(!empty($departmentFilter), function (Builder $query) use ($departmentFilter) {
+            ->when(! empty($departmentFilter), function (Builder $query) use ($departmentFilter) {
                 $query->whereHas('departments', function ($q) use ($departmentFilter) {
                     $q->whereIn('departments.id', $departmentFilter);
                 });
@@ -583,7 +596,7 @@ class UserController extends Controller
             ->when($departmentStatus === 'has_department', function (Builder $query) {
                 $query->has('departments');
             })
-            ->when(!empty($tagFilter), function (Builder $query) use ($tagFilter) {
+            ->when(! empty($tagFilter), function (Builder $query) use ($tagFilter) {
                 $query->whereHas('tags', function ($q) use ($tagFilter) {
                     $q->whereIn('tags.id', $tagFilter);
                 });
@@ -598,7 +611,7 @@ class UserController extends Controller
                 $query->withSum(['volunteerHours' => function ($q) use ($currentLedger) {
                     $q->where('fiscal_ledger_id', $currentLedger->id);
                 }], 'hours')
-                ->orderBy('volunteer_hours_sum_hours', $direction);
+                    ->orderBy('volunteer_hours_sum_hours', $direction);
             }, function (Builder $query) use ($sort, $direction) {
                 $query->orderBy($sort, $direction);
             })
@@ -611,9 +624,9 @@ class UserController extends Controller
         ];
 
         // Create the CSV content
-        $callback = function() use ($users) {
+        $callback = function () use ($users) {
             $file = fopen('php://output', 'w');
-            
+
             // Insert CSV column headers
             fputcsv($file, ['ID', 'Name', 'Active', 'Email', 'Departments', 'Sector', 'HoursThisPeriod', 'Created At', 'Updated At']);
 
@@ -632,7 +645,7 @@ class UserController extends Controller
                     $user->primary_sector_id ?? null,
                     $user->totalHoursForCurrentFiscalLedger(),
                     $user->created_at,
-                    $user->updated_at
+                    $user->updated_at,
                 ]);
             }
 
@@ -661,19 +674,20 @@ class UserController extends Controller
 
             // Loop through each row of the CSV
             while (($col = fgetcsv($handle, 1000, ',')) !== false) {
-                if (!filter_var($col[1], FILTER_VALIDATE_EMAIL) || empty($col[0])) {
+                if (! filter_var($col[1], FILTER_VALIDATE_EMAIL) || empty($col[0])) {
                     \Log::debug('Skipping Invalid Row');
+
                     continue;
                 }
 
                 // Assuming the CSV has the colimns in the correct order
-                $name       = $col[0];
-                $email      = $col[1];
-                $password   = $col[2];
-                $fname      = $col[3];
-                $lname      = $col[4];
-                $sector     = $col[5];
-                $dept       = $col[6];
+                $name = $col[0];
+                $email = $col[1];
+                $password = $col[2];
+                $fname = $col[3];
+                $lname = $col[4];
+                $sector = $col[5];
+                $dept = $col[6];
 
                 if ($sector == '') {
                     $sector = null;
@@ -684,7 +698,7 @@ class UserController extends Controller
                 }
 
                 if ($password == '') {
-                    $password = $fname . $lname . '!';
+                    $password = $fname.$lname.'!';
                     $password = strtolower($password);
                 }
 
@@ -695,14 +709,14 @@ class UserController extends Controller
                     'fname' => $fname,
                     'lname' => $lname,
                     'sector' => $sector,
-                    'dept' => $dept
+                    'dept' => $dept,
                 ]);
 
                 // Check if the user already exists by email
                 $existingUser = User::where('email', $email)->first();
 
                 // Create a new user or update if the user already exists
-                if (!$existingUser) {
+                if (! $existingUser) {
                     // Create new user if the email doesn't exist
                     User::create(
                         [
@@ -712,7 +726,7 @@ class UserController extends Controller
                             'last_name' => $lname,
                             'primary_sector_id' => $sector,
                             'primary_dept_id' => $dept,
-                            'password' => Hash::make($password) // Hash the password
+                            'password' => Hash::make($password), // Hash the password
                         ]
                     );
                     $newUsersCount++; // Increment new users counter
@@ -745,32 +759,32 @@ class UserController extends Controller
 
         try {
             $users = User::where(function ($query) use ($searchTerm) {
-                $query->where('name', 'LIKE', "%" . $searchTerm . "%")
-                      ->orWhere('first_name', 'LIKE', "%" . $searchTerm . "%")
-                      ->orWhere('last_name', 'LIKE', "%" . $searchTerm . "%")
-                      ->orWhere('email', 'LIKE', "%" . $searchTerm . "%")
-                      ->orWhere('vol_code', 'LIKE', "%" . $searchTerm . "%")
-                      ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%" . $searchTerm . "%"]);
+                $query->where('name', 'LIKE', '%'.$searchTerm.'%')
+                    ->orWhere('first_name', 'LIKE', '%'.$searchTerm.'%')
+                    ->orWhere('last_name', 'LIKE', '%'.$searchTerm.'%')
+                    ->orWhere('email', 'LIKE', '%'.$searchTerm.'%')
+                    ->orWhere('vol_code', 'LIKE', '%'.$searchTerm.'%')
+                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%'.$searchTerm.'%']);
             })
-            ->where('active', true) // Only show active users
-            ->select('id', 'first_name', 'last_name', 'name', 'email') // Select desired fields
-            ->orderBy('name') // Order by name for consistent results
-            ->take(10) // Limit results to a reasonable number
-            ->get();
+                ->where('active', true) // Only show active users
+                ->select('id', 'first_name', 'last_name', 'name', 'email') // Select desired fields
+                ->orderBy('name') // Order by name for consistent results
+                ->take(10) // Limit results to a reasonable number
+                ->get();
 
             Log::info('User search', [
                 'term' => $searchTerm,
                 'results_count' => $users->count(),
-                'results' => $users->pluck('name')->toArray()
+                'results' => $users->pluck('name')->toArray(),
             ]);
 
             return response()->json($users);
         } catch (\Exception $e) {
             Log::error('User search error', [
                 'term' => $searchTerm,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            
+
             return response()->json(['error' => 'Search failed'], 500);
         }
     }
@@ -798,16 +812,16 @@ class UserController extends Controller
             'name' => config('app.name', 'Organization'),
             'type' => 'root',
             'children' => $sectors->map(fn ($sector) => [
-                'name'     => $sector->name,
-                'type'     => 'sector',
+                'name' => $sector->name,
+                'type' => 'sector',
                 'children' => $sector->departments->map(fn ($dept) => [
-                    'name'     => $dept->name,
-                    'type'     => 'department',
-                    'head'     => $dept->heads->isEmpty() ? null : $dept->heads->map->name->join(', '),
+                    'name' => $dept->name,
+                    'type' => 'department',
+                    'head' => $dept->heads->isEmpty() ? null : $dept->heads->map->name->join(', '),
                     'children' => $dept->users->map(fn ($user) => [
                         'name' => $user->name,
                         'type' => 'user',
-                        'url'  => route('users.show', $user->id),
+                        'url' => route('users.show', $user->id),
                     ])->values()->toArray(),
                 ])->values()->toArray(),
             ])->values()->toArray(),
@@ -825,7 +839,7 @@ class UserController extends Controller
 
         return redirect()->route('users.index')
             ->with('success', [
-                'message' => "User Restored Successfully"
+                'message' => 'User Restored Successfully',
             ]);
     }
 
@@ -836,7 +850,7 @@ class UserController extends Controller
 
         return redirect()->route('users.index')
             ->with('success', [
-                'message' => "User permanently deleted."
+                'message' => 'User permanently deleted.',
             ]);
     }
 
@@ -846,13 +860,13 @@ class UserController extends Controller
     public function communications(string $id): View
     {
         $user = User::findOrFail($id);
-        
+
         // Get communication logs for this user, ordered by most recent first
         $communications = $user->communicationLogs()
             ->with('sender')
             ->orderBy('created_at', 'desc')
             ->paginate(15);
-        
+
         return view('users.communications', [
             'user' => $user,
             'communications' => $communications,
@@ -865,10 +879,10 @@ class UserController extends Controller
     public function sendTestEmail(string $id): RedirectResponse
     {
         $user = User::findOrFail($id);
-        
+
         try {
             Mail::to($user->email)->send(new TestEmail($user));
-            
+
             // Log the communication
             CommunicationLog::create([
                 'user_id' => $user->id,
@@ -882,10 +896,10 @@ class UserController extends Controller
                     'email_type' => 'test_email',
                 ],
             ]);
-            
+
             return redirect()->route('users.communications', $user->id)
                 ->with('success', [
-                    'message' => "Test email sent successfully to {$user->email}"
+                    'message' => "Test email sent successfully to {$user->email}",
                 ]);
         } catch (\Exception $e) {
             // Log the failed communication
@@ -902,16 +916,15 @@ class UserController extends Controller
                     'error' => $e->getMessage(),
                 ],
             ]);
-            
+
             Log::error('Failed to send test email', [
                 'user_id' => $user->id,
                 'email' => $user->email,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            
+
             return redirect()->route('users.communications', $user->id)
-                ->with('error', 'Failed to send test email: ' . $e->getMessage());
+                ->with('error', 'Failed to send test email: '.$e->getMessage());
         }
     }
-
 }

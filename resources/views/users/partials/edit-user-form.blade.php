@@ -275,6 +275,108 @@
                         </div>
                         <input type="hidden" name="user_id" id="user_id" value="{{$user->id}}">
     </form>
+
+    {{-- ConCat Account Section --}}
+    <div class="py-4">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div class="px-4 sm:px-0">
+                    <h3 class="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">ConCat Account</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        This volunteer is normally matched to ConCat by email ({{ $user->email }}). If their ConCat
+                        account uses a different email, associate it manually below.
+                    </p>
+                </div>
+
+                <div class="mt-6 border-t border-gray-100 dark:border-gray-700 pt-6 px-4 sm:px-0">
+                    @if(! $concatConfigured)
+                        <p class="text-sm text-gray-500 dark:text-gray-400 italic">
+                            ConCat is not connected. Configure it under
+                            <a href="{{ route('settings.index') }}" class="text-brand-green hover:underline">Application Settings</a> first.
+                        </p>
+                    @else
+                        <div class="mb-4 text-sm">
+                            @if($user->concat_user_id)
+                                <p class="text-green-700 dark:text-green-400">
+                                    <x-heroicon-s-check-circle class="w-4 h-4 inline -mt-0.5" />
+                                    Associated (ConCat ID: <span class="font-mono">{{ $user->concat_user_id }}</span>)
+                                </p>
+                                @if($user->concatRoleGrants->isNotEmpty())
+                                    <ul class="mt-2 space-y-1">
+                                        @foreach($user->concatRoleGrants as $grant)
+                                            <li class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ $grant->sector?->concatRoleMapping?->concat_role_name ?? $grant->concat_role_id }}
+                                                via {{ $grant->sector->name ?? 'Unknown Sector' }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            @elseif($user->concat_checked_at)
+                                <p class="text-gray-500 dark:text-gray-400">
+                                    <x-heroicon-s-x-circle class="w-4 h-4 inline -mt-0.5" />
+                                    Not associated &mdash; no ConCat account matched {{ $user->email }}.
+                                </p>
+                            @else
+                                <p class="text-gray-400 dark:text-gray-500 italic">Not checked yet.</p>
+                            @endif
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <form action="{{ route('users.concat.search', $user) }}" method="POST">
+                                @csrf
+                                <label for="concat_search_email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Search ConCat by a different email
+                                </label>
+                                <div class="mt-1 flex gap-2">
+                                    <input type="email" name="concat_search_email" id="concat_search_email"
+                                        placeholder="their-other-email@example.com"
+                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm">
+                                    <button type="submit"
+                                        class="shrink-0 rounded-md bg-white px-3 py-2 text-sm font-semibold text-brand-green shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-green-400 dark:ring-gray-600 dark:hover:bg-gray-600">
+                                        Search &amp; Link
+                                    </button>
+                                </div>
+                                @error('concat_search_email')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </form>
+
+                            <form action="{{ route('users.concat.link', $user) }}" method="POST">
+                                @csrf
+                                <label for="concat_user_id_input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Link by ConCat User ID
+                                </label>
+                                <div class="mt-1 flex gap-2">
+                                    <input type="text" name="concat_user_id" id="concat_user_id_input"
+                                        placeholder="e.g. 4821"
+                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm font-mono">
+                                    <button type="submit"
+                                        class="shrink-0 rounded-md bg-white px-3 py-2 text-sm font-semibold text-brand-green shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-green-400 dark:ring-gray-600 dark:hover:bg-gray-600">
+                                        Link
+                                    </button>
+                                </div>
+                                @error('concat_user_id')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </form>
+                        </div>
+
+                        @if($user->concat_user_id)
+                            <form action="{{ route('users.concat.unlink', $user) }}" method="POST" class="mt-4"
+                                onsubmit="return confirm('Unlink this ConCat account? Any roles it granted will be revoked.');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                    Unlink ConCat Account
+                                </button>
+                            </form>
+                        @endif
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
         <script>
