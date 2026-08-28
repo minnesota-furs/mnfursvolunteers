@@ -20,6 +20,11 @@ class EventController extends Controller
      */
     public function index(Request $request)
     {
+        $user = auth()->user();
+        if (! $user->isAdmin() && ! $user->hasDept()) {
+            abort(403, 'You must be assigned to a department to manage events.');
+        }
+
         $showPast = $request->boolean('show_past');
         $showMine = $request->boolean('show_mine');
 

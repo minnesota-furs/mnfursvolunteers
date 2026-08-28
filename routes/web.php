@@ -402,7 +402,7 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
     });
 
     // Volunteer Perks - Admin CRUD
-    Route::middleware(['can:manage-volunteer-events', 'feature:perk_tracking'])->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['can:manage-volunteer-perks', 'feature:perk_tracking'])->prefix('admin')->name('admin.')->group(function () {
         Route::resource('perk-sets', AdminVolunteerPerkSetController::class);
         Route::get('perk-sets/{perkSet}/awards', [AdminVolunteerPerkSetController::class, 'awards'])->name('perk-sets.awards');
         Route::resource('perks', AdminVolunteerPerkController::class);

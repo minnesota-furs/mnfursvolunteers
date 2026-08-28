@@ -250,16 +250,18 @@
                             
                             @feature('volunteer_events')
                             @can('manage-volunteer-events')
+                            @if(Auth::user()->isAdmin() || Auth::user()->hasDept())
                             {{-- <x-dropdown-link :href="route('admin.manager-dashboard')">
                                 <x-heroicon-s-signal class="w-3.5 h-3.5 inline text-green-500 mr-1"/>{{ __('Manager Dashboard') }}
                             </x-dropdown-link> --}}
                             <x-dropdown-link :href="route('admin.events.index')" data-tour="tour-volunteer-events-link">
                                 {{ __('Volunteer Events') }}
                             </x-dropdown-link>
+                            @endif
                             @endcan
                             @endfeature
                             @feature('perk_tracking')
-                            @can('manage-volunteer-events')
+                            @can('manage-volunteer-perks')
                             <x-dropdown-link :href="route('admin.perks.index')">
                                 {{ __('Volunteer Perks') }}
                             </x-dropdown-link>
@@ -639,9 +641,11 @@
                     @endif
 
                     @can('manage-volunteer-events')
+                    @if(Auth::user()->isAdmin() || Auth::user()->hasDept())
                     <x-responsive-nav-link :href="route('admin.events.index')" data-tour="tour-volunteer-events-link">
                         {{ __('Volunteer Events') }}
                     </x-responsive-nav-link>
+                    @endif
                     @endcan
 
                     @can('manage-elections')
