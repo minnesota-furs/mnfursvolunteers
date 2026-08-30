@@ -13,7 +13,7 @@ class ShiftController extends Controller
     {
         abort_unless($event->isPublic() || $event->isUnlisted(), 404);
 
-        $limit = max(1, min((int) $request->input('limit', 50), 100));
+        $limit = max(1, min((int) $request->input('limit', 50), 500));
 
         $sort = $request->input('sort') === 'desc' ? 'desc' : 'asc';
 

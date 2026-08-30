@@ -194,6 +194,34 @@ it('returns an empty accessibility_conflicts array when a shift has none', funct
     expect($data['accessibility_conflicts'])->toBe([]);
 });
 
+it('allows a limit above the old 100 cap, up to 500', function () {
+    $event = Event::factory()->upcoming()->create(['visibility' => 'public']);
+
+    Shift::factory()->for($event)->count(150)->create([
+        'start_time' => now()->addDay(),
+        'end_time' => now()->addDay()->addHours(2),
+    ]);
+
+    $response = $this->getJson("/api/events/{$event->id}/shifts/upcoming?limit=150");
+
+    $response->assertSuccessful();
+    expect(collect($response->json('data')))->toHaveCount(150);
+});
+
+it('caps the limit at 500 even when a higher limit is requested', function () {
+    $event = Event::factory()->upcoming()->create(['visibility' => 'public']);
+
+    Shift::factory()->for($event)->count(510)->create([
+        'start_time' => now()->addDay(),
+        'end_time' => now()->addDay()->addHours(2),
+    ]);
+
+    $response = $this->getJson("/api/events/{$event->id}/shifts/upcoming?limit=1000");
+
+    $response->assertSuccessful();
+    expect(collect($response->json('data')))->toHaveCount(500);
+});
+
 it('hides accessibility conflicts when disclosures are disabled', function () {
     ApplicationSetting::set('feature_accessibility_disclosures', false, 'boolean', group: 'feature_flags');
 
