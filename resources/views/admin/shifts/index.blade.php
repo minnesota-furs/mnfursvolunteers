@@ -162,6 +162,95 @@
                                 </button>
                             </div>
 
+                            {{-- Filters --}}
+                            <div class="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3">
+                                <form method="GET" action="{{ route('admin.events.shifts.index', $event) }}" class="space-y-3">
+                                    <div class="flex flex-col sm:flex-row gap-3">
+                                        {{-- Search --}}
+                                        <div class="flex-1 relative">
+                                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                    <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                name="search"
+                                                value="{{ request('search') }}"
+                                                placeholder="Search name or description..."
+                                                class="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 dark:bg-gray-700 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-green sm:text-sm"
+                                            >
+                                        </div>
+
+                                        @if($event->isMultiDay() && $availableDays->isNotEmpty())
+                                            <select name="day" onchange="this.form.submit()"
+                                                class="w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:bg-gray-700 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-brand-green sm:w-auto sm:text-sm">
+                                                <option value="">All Days</option>
+                                                @foreach($availableDays as $day)
+                                                    <option value="{{ $day }}" {{ request('day') == $day ? 'selected' : '' }}>
+                                                        {{ \Carbon\Carbon::parse($day)->format('l, M j') }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        @endif
+
+                                        @if($categories->isNotEmpty())
+                                            <select name="category" onchange="this.form.submit()"
+                                                class="w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:bg-gray-700 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-brand-green sm:w-auto sm:text-sm">
+                                                <option value="">All Categories</option>
+                                                @foreach($categories as $category)
+                                                    <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                                                        {{ $category->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        @endif
+
+                                        @if($tags->isNotEmpty())
+                                            <select name="tag" onchange="this.form.submit()"
+                                                class="w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:bg-gray-700 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-brand-green sm:w-auto sm:text-sm">
+                                                <option value="">All Tags</option>
+                                                @foreach($tags as $tag)
+                                                    <option value="{{ $tag->id }}" {{ request('tag') == $tag->id ? 'selected' : '' }}>
+                                                        {{ $tag->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        @endif
+
+                                        <select name="availability" onchange="this.form.submit()"
+                                            class="w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:bg-gray-700 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-brand-green sm:w-auto sm:text-sm">
+                                            <option value="">All Staffing</option>
+                                            <option value="open" {{ request('availability') == 'open' ? 'selected' : '' }}>Has Openings</option>
+                                            <option value="full" {{ request('availability') == 'full' ? 'selected' : '' }}>Fully Staffed</option>
+                                            <option value="none" {{ request('availability') == 'none' ? 'selected' : '' }}>No Sign-ups</option>
+                                        </select>
+
+                                        <label class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border-0 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-200 cursor-pointer">
+                                            <input type="checkbox" name="double_hours" value="1" onchange="this.form.submit()" {{ request('double_hours') ? 'checked' : '' }}
+                                                class="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green">
+                                            <x-heroicon-s-star class="w-3.5 h-3.5 text-yellow-500"/> Double Hours
+                                        </label>
+
+                                        <button type="submit"
+                                            class="w-full rounded-md bg-brand-green px-4 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-green-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green sm:w-auto">
+                                            Filter
+                                        </button>
+                                    </div>
+
+                                    @if(request()->hasAny(['search', 'day', 'category', 'tag', 'availability', 'double_hours']))
+                                        <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                Showing {{ $shifts->count() }} {{ Str::plural('shift', $shifts->count()) }} matching filters
+                                            </span>
+                                            <a href="{{ route('admin.events.shifts.index', $event) }}" class="text-sm font-medium text-brand-green hover:underline">
+                                                Clear all filters
+                                            </a>
+                                        </div>
+                                    @endif
+                                </form>
+                            </div>
+
                             @if($event->requiredTags->isNotEmpty())
                                 <div class="mb-4 text-sm text-gray-500 dark:text-gray-400">
                                     <x-heroicon-s-tag class="w-4 h-4 inline text-gray-400" />
@@ -279,6 +368,9 @@
                                                                 <path d="M192 96a48 48 0 1 0 0-96 48 48 0 1 0 0 96zM120.5 247.2c12.4-4.7 18.7-18.5 14-30.9s-18.5-18.7-30.9-14C43.1 225.1 0 283.5 0 352c0 88.4 71.6 160 160 160c61.2 0 114.3-34.3 141.2-84.7c6.2-11.7 1.8-26.2-9.9-32.5s-26.2-1.8-32.5 9.9C240 440 202.8 464 160 464C98.1 464 48 413.9 48 352c0-47.9 30.1-88.8 72.5-104.8zM259.8 176l-1.9-9.7c-4.5-22.3-24-38.3-46.8-38.3c-30.1 0-52.7 27.5-46.8 57l23.1 115.5c6 29.9 32.2 51.4 62.8 51.4l5.1 0c.4 0 .8 0 1.3 0l94.1 0c6.7 0 12.6 4.1 15 10.4L402 459.2c6 16.1 23.8 24.6 40.1 19.1l48-16c16.8-5.6 25.8-23.7 20.2-40.5s-23.7-25.8-40.5-20.2l-18.7 6.2-25.5-68c-11.7-31.2-41.6-51.9-74.9-51.9l-68.5 0-9.6-48 63.4 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-76.2 0z"/>
                                                             </svg>
                                                         </span>
+                                                    @endif
+                                                    @if(empty($shift->description))
+                                                        <div class="text-xs text-gray-400 dark:text-gray-500">No description set</div>
                                                     @endif
                                                     {{-- Mobile: show time + tags inline under name --}}
                                                     <div class="sm:hidden mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 dark:text-gray-400">

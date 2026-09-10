@@ -27,15 +27,56 @@ class ShiftController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Event $event)
+    public function index(Event $event, Request $request)
     {
-        $shifts = $event->shifts()->with(['users', 'tags', 'categories'])->orderBy('start_time', 'asc')->get();
+        $availableDays = $event->shifts()
+            ->selectRaw('DATE(start_time) as day')
+            ->distinct()
+            ->orderBy('day')
+            ->pluck('day');
+
+        $shifts = $event->shifts()
+            ->with(['users', 'tags', 'categories'])
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->input('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->filled('category'), fn ($query) => $query->whereHas(
+                'categories',
+                fn ($q) => $q->where('event_categories.id', $request->input('category'))
+            ))
+            ->when($request->filled('tag'), fn ($query) => $query->whereHas(
+                'tags',
+                fn ($q) => $q->where('tags.id', $request->input('tag'))
+            ))
+            ->when($request->boolean('double_hours'), fn ($query) => $query->where('double_hours', true))
+            ->when($request->filled('day'), fn ($query) => $query->whereDate('start_time', $request->input('day')))
+            ->orderBy('start_time', 'asc')
+            ->get();
+
+        if ($request->filled('availability')) {
+            $shifts = $shifts->filter(function (Shift $shift) use ($request) {
+                $signupCount = $shift->users->count();
+
+                return match ($request->input('availability')) {
+                    'open' => $signupCount < $shift->max_volunteers,
+                    'full' => $signupCount >= $shift->max_volunteers,
+                    'none' => $signupCount === 0,
+                    default => true,
+                };
+            })->values();
+        }
+
         $accessibilityNeeds = User::ACCESSIBILITY_NEEDS;
         $categories = $event->categories;
+        $tags = Tag::forShifts()->orderBy('name')->get();
         $recentSeries = $this->recentUndoableSeries($event);
         $recentSeriesHistory = $this->recentSeriesHistory($event);
 
-        return view('admin.shifts.index', compact('event', 'shifts', 'accessibilityNeeds', 'categories', 'recentSeries', 'recentSeriesHistory'));
+        return view('admin.shifts.index', compact('event', 'shifts', 'accessibilityNeeds', 'categories', 'tags', 'availableDays', 'recentSeries', 'recentSeriesHistory'));
     }
 
     /**
