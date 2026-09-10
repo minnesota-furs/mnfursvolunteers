@@ -36,9 +36,11 @@
                             class="mt-8 text-pretty text-lg font-medium text-gray-500 sm:max-w-md sm:text-xl/8 lg:max-w-none">
                             Join our community-driven furry family! From organizing events to educating about furry,
                             every paw and hand makes a difference. Let’s build something amazing together!</p>
-                        <div class="mt-10 flex items-center gap-x-6">
+                        <div class="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4">
                             <a href="{{route('job-listings-public.index')}}"
-                                class="rounded-md bg-brand-green px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">View Openings</a>
+                                class="rounded-md bg-brand-green px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Staff Positions</a>
+                            <a href="{{ url('/volunteering') }}"
+                                class="rounded-md bg-brand-green px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Volunteer Assignments</a>
                             @auth
                                 <a href="{{ url('/dashboard') }}" class="text-sm/6 font-semibold text-gray-900">Goto Dashboard <span aria-hidden="true">&rarr;</span></a>
                             @else
