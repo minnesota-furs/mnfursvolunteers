@@ -57,7 +57,7 @@ class VolunteerGuestController extends Controller
                 fn ($q2) => $q2->where('event_categories.id', $request->input('category'))
             ))
             ->orderBy('start_time')
-            ->paginate(10)
+            ->paginate(50)
             ->appends($request->query());
 
         return view('vol-listings-guest.show', compact('event', 'shifts', 'availableDays', 'availableCategories'));

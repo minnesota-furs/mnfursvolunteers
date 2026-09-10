@@ -13,7 +13,7 @@
             style="clip-path: polygon(63.1% 29.5%, 100% 17.1%, 76.6% 3%, 48.4% 0%, 44.6% 4.7%, 54.5% 25.3%, 59.8% 49%, 55.2% 57.8%, 44.4% 57.2%, 27.8% 47.9%, 35.1% 81.5%, 0% 97.7%, 39.2% 100%, 35.2% 81.4%, 97.2% 52.8%, 63.1% 29.5%)">
         </div>
     </div> --}}
-    <div class="overflow-hidden">
+    <div>
         <div class="mx-auto max-w-7xl px-6 pb-32 pt-36 sm:pt-60 lg:px-8 lg:pt-32">
           <a class="text-blue-800" href="{{route('vol-listings-public.index')}}">&larr; Back to events</a>
             <div class="mx-auto max-w-2xl gap-x-14 lg:mx-0 lg:max-w-none lg:items-center">
@@ -211,74 +211,97 @@
 
                   {{ $shifts->links('vendor.pagination.custom') }}
 
-                  <ul role="list" class="divide-y divide-gray-100">
-                    @forelse($shifts as $shift)
-                    @php
-                      $openings = $shift->max_volunteers - $shift->filled_count;
-                      $isFull = $openings <= 0;
-                    @endphp
-                      <li class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-nowrap hover:bg-gray-50 p-2 rounded">
-                        <div class="min-w-0 flex-grow">
-                          <p class="text-sm/6 mt-4 break-words">
-                            @if($isFull)
-                              <x-heroicon-o-check class="w-4 mb-1 inline text-gray-400"/>
-                            @else
-                              <x-heroicon-s-users class="w-4 mb-1 inline"/>
-                            @endif
-                            <a href="{{ route('vol-listings-public.shift.show', [$event, $shift]) }}"
-                               class="font-semibold no-underline hover:underline {{ $isFull ? 'text-gray-400 hover:text-gray-500' : 'text-blue-700 hover:text-blue-800' }}">
-                              {{$shift->name}}
-                            </a>
-                            <span class="font-light {{ $isFull ? 'text-gray-300' : 'text-gray-500' }}"> -
-                              @if($event->isMultiDay())
-                                {{ $shift->start_time->format('l') }}
-                              @endif
-                                {{ $shift->start_time->format('g:i A') }}
-                              </span>
-                            @foreach($shift->categories as $category)
-                              <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ml-1"
-                                style="background-color:{{ $category->color }}22; color:{{ $category->color }}; border-color:{{ $category->color }}44;">
-                                @if($category->color)
-                                  <span class="inline-block w-2 h-2 rounded-full mr-1" style="background-color:{{ $category->color }}"></span>
-                                @endif
-                                {{ $category->name }}
-                              </span>
-                            @endforeach
-                          </p>
-                          <div class="flex flex-col mt-1 gap-x-2 text-xs/5 {{ $isFull ? 'text-gray-400' : 'text-gray-500' }}">
-                            @if($shift->double_hours)
-                            <div>
-                              <x-heroicon-s-star title="Double Hours" class="w-3 mb-1 inline"/> This slot grants Double Hours
-                            </div>
-                            @endif
-                            <p class="break-words">
-                              {{$shift->description ?? 'No description given'}}
+                  @php
+                    $groupedShifts = $event->isMultiDay()
+                      ? $shifts->getCollection()->groupBy(fn ($shift) => $shift->start_time->format('Y-m-d'))
+                      : collect([null => $shifts->getCollection()]);
+                  @endphp
 
-                            </p>
-                          </div>
-                        </div>
-                        <div class="flex-shrink-0">
-                          <span class="sr-only">Openings</span>
-                          <span class="inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium {{ $isFull ? 'bg-gray-100 text-gray-500' : 'bg-green-50 text-green-700' }}">
-                            {{ $openings }} {{ Str::plural('Opening', $openings) }}
-                          </span>
+                  <div class="space-y-8">
+                    @forelse($groupedShifts as $day => $dayShifts)
+                      <div>
+                        @if($day)
+                          <h2 class="sticky top-0 z-10 bg-white/95 backdrop-blur text-lg font-semibold text-gray-900 border-b border-gray-200 py-2 mb-2">
+                            {{ \Carbon\Carbon::parse($day)->format('l, F j') }}
+                          </h2>
+                        @endif
+                        <ul role="list" class="divide-y divide-gray-100">
+                          @foreach($dayShifts as $shift)
+                          @php
+                            $openings = $shift->max_volunteers - $shift->filled_count;
+                            $isFull = $openings <= 0;
+                            $spansMultipleDays = ! $shift->start_time->isSameDay($shift->end_time);
+                          @endphp
+                            <li class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-nowrap hover:bg-gray-50 p-2 rounded">
+                              <div class="min-w-0 flex-grow">
+                                <p class="text-sm/6 mt-4 break-words">
+                                  @if($isFull)
+                                    <x-heroicon-o-check class="w-4 mb-1 inline text-gray-400"/>
+                                  @else
+                                    <x-heroicon-s-users class="w-4 mb-1 inline"/>
+                                  @endif
+                                  <a href="{{ route('vol-listings-public.shift.show', [$event, $shift]) }}"
+                                     class="font-semibold no-underline hover:underline {{ $isFull ? 'text-gray-400 hover:text-gray-500' : 'text-blue-700 hover:text-blue-800' }}">
+                                    {{$shift->name}}
+                                  </a>
+                                  <span class="font-light {{ $isFull ? 'text-gray-300' : 'text-gray-500' }}"> -
+                                    @if(!$event->isMultiDay())
+                                      {{ $shift->start_time->format('l') }}
+                                    @endif
+                                      {{ $shift->start_time->format('g:i A') }}
+                                    @if($spansMultipleDays)
+                                      &rarr; {{ $shift->end_time->format('D, g:i A') }}
+                                    @endif
+                                    </span>
+                                  @foreach($shift->categories as $category)
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ml-1"
+                                      style="background-color:{{ $category->color }}22; color:{{ $category->color }}; border-color:{{ $category->color }}44;">
+                                      @if($category->color)
+                                        <span class="inline-block w-2 h-2 rounded-full mr-1" style="background-color:{{ $category->color }}"></span>
+                                      @endif
+                                      {{ $category->name }}
+                                    </span>
+                                  @endforeach
+                                </p>
+                                <div class="flex flex-col mt-1 gap-x-2 text-xs/5 {{ $isFull ? 'text-gray-400' : 'text-gray-500' }}">
+                                  @if($shift->double_hours)
+                                  <div>
+                                    <x-heroicon-s-star title="Double Hours" class="w-3 mb-1 inline"/> This slot grants Double Hours
+                                  </div>
+                                  @endif
+                                  <p class="break-words">
+                                    {{$shift->description ?? 'No description given'}}
+
+                                  </p>
+                                </div>
+                              </div>
+                              <div class="flex-shrink-0">
+                                <span class="sr-only">Openings</span>
+                                <span class="inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium {{ $isFull ? 'bg-gray-100 text-gray-500' : 'bg-green-50 text-green-700' }}">
+                                  {{ $openings }} {{ Str::plural('Opening', $openings) }}
+                                </span>
+                              </div>
+                            </li>
+                          @endforeach
+                        </ul>
+                      </div>
+                    @empty
+                    <ul role="list" class="divide-y divide-gray-100">
+                      <li class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-nowrap">
+                        <div>
+                          <p class="text-sm/6 mt-4">
+                            @if(request()->hasAny(['search', 'day', 'availability', 'category']))
+                              <span class="text-gray-400">No slots match your search or filters.</span>
+                              <a href="{{ route('vol-listings-public.show', $event) }}" class="text-blue-700 no-underline">Clear all filters</a>
+                            @else
+                              <span class="text-gray-400">No slots are currently available.</span>
+                            @endif
+                          </p>
                         </div>
                       </li>
-                    @empty
-                    <li class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-nowrap">
-                      <div>
-                        <p class="text-sm/6 mt-4">
-                          @if(request()->hasAny(['search', 'day', 'availability', 'category']))
-                            <span class="text-gray-400">No slots match your search or filters.</span>
-                            <a href="{{ route('vol-listings-public.show', $event) }}" class="text-blue-700 no-underline">Clear all filters</a>
-                          @else
-                            <span class="text-gray-400">No slots are currently available.</span>
-                          @endif
-                        </p>
-                      </div>
-                    </li>
+                    </ul>
                     @endforelse
-                  </ul>
+                  </div>
 
                   {{ $shifts->links('vendor.pagination.custom') }}
                 </div>
