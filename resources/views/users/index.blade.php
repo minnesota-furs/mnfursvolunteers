@@ -72,6 +72,28 @@
 
         <div class="">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                @if($noLedger ?? false)
+                    <div class="px-4 sm:px-6 lg:px-8">
+                        <div class="rounded-md bg-yellow-50 dark:bg-yellow-900/30 p-4 border border-yellow-200 dark:border-yellow-800">
+                            <div class="flex">
+                                <x-heroicon-s-exclamation-triangle class="h-5 w-5 text-yellow-400 flex-shrink-0" />
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">No current fiscal ledger found</h3>
+                                    <p class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                                        A fiscal ledger covering today's date needs to be set up before users can be listed.
+                                    </p>
+                                    @if(Auth::user()->isAdmin())
+                                        <div class="mt-4">
+                                            <a href="{{ route('ledger.create') }}" class="text-sm font-medium text-yellow-800 dark:text-yellow-200 underline hover:text-yellow-900 dark:hover:text-yellow-100">
+                                                Set up a fiscal ledger
+                                            </a>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @else
                 <div class="px-4 sm:px-6 lg:px-8">
                     <div class="sm:flex sm:items-center">
                         <div class="sm:flex-auto">
@@ -425,6 +447,7 @@
                     </div>
                     </div>
                 </div>
+                @endif
 
             </div>
         </div>
