@@ -35,6 +35,7 @@
             }
 
             $profileSections[] = ['id' => 'password', 'label' => __('Password'), 'icon' => 'heroicon-o-lock-closed'];
+            $profileSections[] = ['id' => 'security', 'label' => __('Security'), 'icon' => 'heroicon-o-shield-check'];
 
             if (! $user->wordpress_user_id) {
                 $profileSections[] = ['id' => 'delete-account', 'label' => __('Delete Account'), 'icon' => 'heroicon-o-trash'];
@@ -177,6 +178,12 @@
                                 </header>
                             </div>
                         @endif
+                    </div>
+
+                    <div id="security" class="scroll-mt-6 p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                        <div class="max-w-xl">
+                            @include('profile.partials.authorized-applications')
+                        </div>
                     </div>
 
                     {{-- <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">

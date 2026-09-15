@@ -12,9 +12,13 @@ use App\Services\ConcatSyncService;
 use Corcel\Model\User as WordPressUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use Laravel\Passport\Client;
+use Laravel\Passport\Token;
 
 class ProfileController extends Controller
 {
@@ -29,6 +33,43 @@ class ProfileController extends Controller
         return view('profile.edit', [
             'user' => $user,
             'timezones' => $timezones,
+            'authorizedClients' => $this->authorizedOAuthClients($user),
+        ]);
+    }
+
+    /**
+     * Build a list of the OAuth client applications this user has authorized,
+     * one entry per client, with when access was first granted.
+     *
+     * @return Collection<int, object{client: Client, authorized_at: Carbon}>
+     */
+    private function authorizedOAuthClients(User $user): Collection
+    {
+        return Token::where('user_id', $user->id)
+            ->where('revoked', false)
+            ->whereHas('client', fn ($query) => $query->where('personal_access_client', false))
+            ->with('client')
+            ->get()
+            ->groupBy('client_id')
+            ->map(fn ($tokens) => (object) [
+                'client' => $tokens->first()->client,
+                'authorized_at' => $tokens->min('created_at'),
+            ])
+            ->values();
+    }
+
+    /**
+     * Revoke this user's access tokens for a single OAuth client, without
+     * affecting the client app itself or other users' authorizations.
+     */
+    public function revokeOAuthClient(Client $client, Request $request): RedirectResponse
+    {
+        Token::where('user_id', $request->user()->id)
+            ->where('client_id', $client->id)
+            ->update(['revoked' => true]);
+
+        return Redirect::to(route('profile.edit').'#security')->with('success', [
+            'message' => "Access for {$client->name} has been revoked.",
         ]);
     }
 

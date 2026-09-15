@@ -163,6 +163,7 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
         Route::get('/telegram-status', [ProfileController::class, 'telegramStatus'])->name('telegram-status');
         Route::post('/link-concat', [ProfileController::class, 'linkConcat'])->name('link-concat');
         Route::delete('/unlink-concat', [ProfileController::class, 'unlinkConcat'])->name('unlink-concat');
+        Route::delete('/oauth-clients/{client}', [ProfileController::class, 'revokeOAuthClient'])->name('revoke-oauth-client');
     });
 
     // Recognition & Awards

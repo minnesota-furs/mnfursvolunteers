@@ -67,6 +67,10 @@ class AuthServiceProvider extends ServiceProvider
             'volunteer-info' => 'View your volunteer info (department, sector, and admin/staff status)',
         ]);
         Passport::setDefaultScope(['identity']);
+
+        // Replace Passport's default Bootstrap-styled consent screen with one
+        // that matches the application's own Tailwind branding.
+        Passport::authorizationView('auth.oauth-authorize');
     }
 
     /**

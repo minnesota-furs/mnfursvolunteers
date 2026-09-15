@@ -3,9 +3,12 @@
 use App\Models\Department;
 use App\Models\Sector;
 use App\Models\User;
+use Illuminate\Support\Str;
+use Laravel\Passport\ClientRepository;
+use Laravel\Passport\Token;
 
 test('profile page is displayed', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create(['onboarded_at' => now()]);
 
     $response = $this
         ->actingAs($user)
@@ -28,6 +31,7 @@ test('profile page is displayed', function () {
             'href="#email-preferences"',
             'href="#calendar"',
             'href="#password"',
+            'href="#security"',
             'href="#delete-account"',
         ], false)
         ->assertSeeInOrder([
@@ -38,6 +42,7 @@ test('profile page is displayed', function () {
             'id="email-preferences"',
             'id="calendar"',
             'id="password"',
+            'id="security"',
             'id="delete-account"',
         ], false)
         ->assertSee('href="'.route('onboarding.index', ['step' => 1]).'"', false)
@@ -49,7 +54,7 @@ test('profile page lists department assignments with links and sectors', functio
     $secondSector = Sector::factory()->create(['name' => 'Community']);
     $firstDepartment = Department::factory()->for($firstSector)->create(['name' => 'Registration']);
     $secondDepartment = Department::factory()->for($secondSector)->create(['name' => 'Outreach']);
-    $user = User::factory()->create();
+    $user = User::factory()->create(['onboarded_at' => now()]);
     $user->departments()->attach([$firstDepartment->id, $secondDepartment->id]);
     $user->headDepartments()->attach($firstDepartment);
 
@@ -67,7 +72,7 @@ test('profile page lists department assignments with links and sectors', functio
 });
 
 test('profile page shows an empty state when the user has no departments', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create(['onboarded_at' => now()]);
 
     $this->actingAs($user)
         ->get(route('profile.edit'))
@@ -77,7 +82,7 @@ test('profile page shows an empty state when the user has no departments', funct
 });
 
 test('profile information can be updated', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create(['onboarded_at' => now()]);
 
     $response = $this
         ->actingAs($user)
@@ -98,7 +103,7 @@ test('profile information can be updated', function () {
 });
 
 test('email verification status is unchanged when the email address is unchanged', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create(['onboarded_at' => now()]);
 
     $response = $this
         ->actingAs($user)
@@ -115,7 +120,7 @@ test('email verification status is unchanged when the email address is unchanged
 });
 
 test('user can delete their account', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create(['onboarded_at' => now()]);
 
     $response = $this
         ->actingAs($user)
@@ -132,7 +137,7 @@ test('user can delete their account', function () {
 });
 
 test('correct password must be provided to delete account', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create(['onboarded_at' => now()]);
 
     $response = $this
         ->actingAs($user)
@@ -146,4 +151,112 @@ test('correct password must be provided to delete account', function () {
         ->assertRedirect('/profile');
 
     $this->assertNotNull($user->fresh());
+});
+
+test('security section shows an empty state when no oauth apps are authorized', function () {
+    $user = User::factory()->create(['onboarded_at' => now()]);
+
+    $this->actingAs($user)
+        ->get(route('profile.edit'))
+        ->assertOk()
+        ->assertSeeText('Authorized Applications')
+        ->assertSeeText("You haven't authorized any applications.");
+});
+
+test('security section lists authorized oauth applications', function (): void {
+    $user = User::factory()->create(['onboarded_at' => now()]);
+    $client = app(ClientRepository::class)->create(null, 'Test App', 'https://example.com/callback');
+
+    Token::create([
+        'id' => Str::random(80),
+        'user_id' => $user->id,
+        'client_id' => $client->id,
+        'name' => null,
+        'scopes' => ['identity'],
+        'revoked' => false,
+        'expires_at' => now()->addDay(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('profile.edit'))
+        ->assertOk()
+        ->assertSeeText('Test App')
+        ->assertDontSeeText('identity')
+        ->assertSee(route('profile.revoke-oauth-client', $client), false);
+});
+
+test('security section does not list other users authorizations or revoked tokens', function (): void {
+    $user = User::factory()->create(['onboarded_at' => now()]);
+    $otherUser = User::factory()->create(['onboarded_at' => now()]);
+    $client = app(ClientRepository::class)->create(null, 'Test App', 'https://example.com/callback');
+    $revokedClient = app(ClientRepository::class)->create(null, 'Revoked App', 'https://example.com/callback');
+
+    Token::create([
+        'id' => Str::random(80),
+        'user_id' => $otherUser->id,
+        'client_id' => $client->id,
+        'scopes' => ['identity'],
+        'revoked' => false,
+    ]);
+
+    Token::create([
+        'id' => Str::random(80),
+        'user_id' => $user->id,
+        'client_id' => $revokedClient->id,
+        'scopes' => ['identity'],
+        'revoked' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('profile.edit'))
+        ->assertOk()
+        ->assertDontSeeText('Test App')
+        ->assertDontSeeText('Revoked App')
+        ->assertSeeText("You haven't authorized any applications.");
+});
+
+test('user can revoke their own authorization for an oauth application', function (): void {
+    $user = User::factory()->create(['onboarded_at' => now()]);
+    $client = app(ClientRepository::class)->create(null, 'Test App', 'https://example.com/callback');
+
+    Token::create([
+        'id' => Str::random(80),
+        'user_id' => $user->id,
+        'client_id' => $client->id,
+        'scopes' => ['identity'],
+        'revoked' => false,
+    ]);
+
+    $response = $this->actingAs($user)
+        ->delete(route('profile.revoke-oauth-client', $client));
+
+    $response->assertRedirect(route('profile.edit').'#security');
+
+    $this->assertDatabaseHas('oauth_access_tokens', [
+        'user_id' => $user->id,
+        'client_id' => $client->id,
+        'revoked' => true,
+    ]);
+});
+
+test('revoking an oauth application only affects the current user', function (): void {
+    $user = User::factory()->create(['onboarded_at' => now()]);
+    $otherUser = User::factory()->create(['onboarded_at' => now()]);
+    $client = app(ClientRepository::class)->create(null, 'Test App', 'https://example.com/callback');
+
+    Token::create([
+        'id' => Str::random(80),
+        'user_id' => $otherUser->id,
+        'client_id' => $client->id,
+        'scopes' => ['identity'],
+        'revoked' => false,
+    ]);
+
+    $this->actingAs($user)->delete(route('profile.revoke-oauth-client', $client));
+
+    $this->assertDatabaseHas('oauth_access_tokens', [
+        'user_id' => $otherUser->id,
+        'client_id' => $client->id,
+        'revoked' => false,
+    ]);
 });
