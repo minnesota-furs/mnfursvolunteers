@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VolunteerHours extends Model
 {
@@ -16,16 +17,24 @@ class VolunteerHours extends Model
         'hours',
         'description',
         'notes',
-        'fiscal_ledger_id'
+        'counts_toward_perks',
+        'perk_set_id',
+        'fiscal_ledger_id',
     ];
 
     protected $casts = [
         'volunteer_date' => 'date',
+        'counts_toward_perks' => 'boolean',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function perkSet(): BelongsTo
+    {
+        return $this->belongsTo(VolunteerPerkSet::class, 'perk_set_id');
     }
 
     public function department()
@@ -40,17 +49,14 @@ class VolunteerHours extends Model
 
     /**
      * Check if the volunteer hour entry has notes set.
-     *
-     * @return bool
      */
     public function hasNotes(): bool
     {
-        return !empty($this->notes);
+        return ! empty($this->notes);
     }
 
     public function hasDepartment()
     {
-        return !is_null($this->primary_dept_id);
+        return ! is_null($this->primary_dept_id);
     }
-
 }

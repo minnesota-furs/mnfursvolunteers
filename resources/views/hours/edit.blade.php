@@ -127,6 +127,38 @@
                                     <x-form-validation for="notes" />
                                 </dd>
                             </div>
+                            @if($hasActivePerks)
+                            <div x-data="{ countsTowardPerks: {{ old('counts_toward_perks', $hour->counts_toward_perks) ? 1 : 0 }} }"
+                                class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                <dt class="text-sm font-medium leading-6 text-gray-900">Counts Toward Perks</dt>
+                                <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 space-y-3">
+                                    <div class="flex items-center gap-2">
+                                        <x-checkbox-input name="counts_toward_perks" id="counts_toward_perks"
+                                            :checked="old('counts_toward_perks', $hour->counts_toward_perks)"
+                                            x-model="countsTowardPerks" />
+                                        <label for="counts_toward_perks" class="text-sm text-gray-700">
+                                            These hours count toward the volunteer's perk progress
+                                        </label>
+                                    </div>
+                                    <p class="text-xs text-gray-400">Uncheck this if these hours shouldn't earn credit toward volunteer perks.</p>
+                                    <x-form-validation for="counts_toward_perks" />
+
+                                    <div x-show="countsTowardPerks" x-cloak class="mt-2">
+                                        <label for="perk_set_id" class="block text-xs font-medium text-gray-600 mb-1">Perk Set <span class="text-gray-400">(optional)</span></label>
+                                        <x-select-input name="perk_set_id" id="perk_set_id" class="block w-64 text-sm">
+                                            <option value="">All active perks (not tied to a specific event)</option>
+                                            @foreach($perkSets as $set)
+                                                <option value="{{ $set->id }}" {{ old('perk_set_id', $hour->perk_set_id) == $set->id ? 'selected' : '' }}>
+                                                    {{ $set->name }}
+                                                </option>
+                                            @endforeach
+                                        </x-select-input>
+                                        <p class="text-xs text-gray-400 mt-1">Select a set to also credit these hours toward any perks in that set that are tied to specific events.</p>
+                                        <x-form-validation for="perk_set_id" />
+                                    </div>
+                                </dd>
+                            </div>
+                            @endif
                         </dl>
                     </div>
                     <div class="py-6 flex justify-end space-x-2">

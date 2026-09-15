@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Department;
+use App\Models\FiscalLedger;
+use App\Models\Sector;
+use App\Models\User;
+use App\Models\VolunteerHours;
+use App\Models\VolunteerPerkSet;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
-use App\Models\User;
-use App\Models\Department;
-use App\Models\VolunteerHours;
-use App\Models\FiscalLedger;
-Use App\Models\Sector;
 
 class VolunteerHoursController extends Controller
 {
@@ -22,11 +24,37 @@ class VolunteerHoursController extends Controller
     }
 
     /**
+     * Determine whether any volunteer perks are currently configured, so the
+     * "counts toward perks" toggle is only shown when it would have an effect.
+     */
+    protected function hasActivePerksConfigured(): bool
+    {
+        if (! feature_enabled('perk_tracking')) {
+            return false;
+        }
+
+        return VolunteerPerkSet::current()
+            ->whereHas('perks', fn ($q) => $q->active())
+            ->exists();
+    }
+
+    /**
+     * Perk sets a staff member can attribute manually-logged hours toward.
+     */
+    protected function selectablePerkSets(): Collection
+    {
+        return VolunteerPerkSet::current()
+            ->whereHas('perks', fn ($q) => $q->active())
+            ->orderBy('sort_order')
+            ->get();
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create($user = null)
     {
-        if (!Auth::user()->isAdmin()) {
+        if (! Auth::user()->isAdmin()) {
             if ($user == null || $user != Auth::id()) {
                 abort(401);
             }
@@ -38,15 +66,15 @@ class VolunteerHoursController extends Controller
         $sectors = Sector::with('departments')->get();
         $recentDepartments = [];
 
-        if ($selectedUser){
+        if ($selectedUser) {
             // Fetch the last 5 departments the user has used, based on volunteer hours
             $recentDepartments = Department::whereIn('id',
-            $selectedUser->volunteerHours()
-                ->select('primary_dept_id', 'created_at')
-                ->distinct()
-                ->latest('created_at')
-                ->limit(5)
-                ->pluck('primary_dept_id')
+                $selectedUser->volunteerHours()
+                    ->select('primary_dept_id', 'created_at')
+                    ->distinct()
+                    ->latest('created_at')
+                    ->limit(5)
+                    ->pluck('primary_dept_id')
             )->get();
             $users = null;
 
@@ -54,8 +82,11 @@ class VolunteerHoursController extends Controller
             $users = User::all();
         }
 
+        $hasActivePerks = $this->hasActivePerksConfigured();
+        $perkSets = $hasActivePerks ? $this->selectablePerkSets() : collect();
+
         // Pass the user (if any) to the view
-        return view('hours.create', compact('selectedUser', 'users', 'sectors', 'recentDepartments'));
+        return view('hours.create', compact('selectedUser', 'users', 'sectors', 'recentDepartments', 'hasActivePerks', 'perkSets'));
     }
 
     /**
@@ -65,12 +96,13 @@ class VolunteerHoursController extends Controller
     {
         // Validate the incoming request
         $validated = $request->validate([
-            'user_id'       => 'required|exists:users,id',
-            'hours'         => 'required|numeric|min:0',
-            'description'   => 'nullable|string',
-            'notes'         => 'nullable|string',
+            'user_id' => 'required|exists:users,id',
+            'hours' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'notes' => 'nullable|string',
             'volunteer_date' => 'nullable|date',
             'primary_dept_id' => 'integer|exists:departments,id',
+            'perk_set_id' => 'nullable|exists:volunteer_perk_sets,id',
         ]);
 
         // Get the current date
@@ -80,25 +112,29 @@ class VolunteerHoursController extends Controller
 
         // Find the fiscal ledger that covers the volunteer date
         $fiscalLedger = FiscalLedger::where('start_date', '<=', $currentDate)
-                                    ->where('end_date', '>=', $currentDate)
-                                    ->first();
+            ->where('end_date', '>=', $currentDate)
+            ->first();
 
-        if (!$fiscalLedger) {
+        if (! $fiscalLedger) {
             // If no fiscal ledger is found, return with an error
             return back()->withErrors([
-                'volunteer_date' => 'No fiscal ledger is active for the given date.'
+                'volunteer_date' => 'No fiscal ledger is active for the given date.',
             ])->withInput();
         }
+
+        $countsTowardPerks = $this->hasActivePerksConfigured() ? $request->has('counts_toward_perks') : true;
 
         // Create the hour log entry
         // Create the volunteer hour and assign the fiscal ledger ID
         VolunteerHours::create([
-            'user_id'   => $validated['user_id'],
-            'hours'     => $validated['hours'],
-            'notes'     => $validated['notes'],
+            'user_id' => $validated['user_id'],
+            'hours' => $validated['hours'],
+            'notes' => $validated['notes'],
             'volunteer_date' => $validated['volunteer_date'],
             'description' => $validated['description'] ?? null,
             'primary_dept_id' => $validated['primary_dept_id'] ?? null,
+            'counts_toward_perks' => $countsTowardPerks,
+            'perk_set_id' => $countsTowardPerks ? ($validated['perk_set_id'] ?? null) : null,
             'fiscal_ledger_id' => $fiscalLedger->id,  // Assign the fiscal ledger
         ]);
 
@@ -107,7 +143,7 @@ class VolunteerHoursController extends Controller
         // Redirect back with a success message
         return redirect()->route('users.show', $validated['user_id'])
             ->with('success', [
-                'message' => "<span class=\"text-brand-green\">{$validated['hours']}</span> volunteer " . ($validated['hours'] == 1 ? 'hour' : 'hours') . " logged successfully for <span class=\"text-brand-green\">{$username}</span>.",
+                'message' => "<span class=\"text-brand-green\">{$validated['hours']}</span> volunteer ".($validated['hours'] == 1 ? 'hour' : 'hours')." logged successfully for <span class=\"text-brand-green\">{$username}</span>.",
                 'action_text' => 'View User',
                 'action_url' => route('users.show', $validated['user_id']),
             ]);
@@ -128,10 +164,10 @@ class VolunteerHoursController extends Controller
      */
     public function edit(string $id)
     {
-        if (!Auth::user()->isAdmin() && Auth::id() != VolunteerHours::find($id)->user_id) {
+        if (! Auth::user()->isAdmin() && Auth::id() != VolunteerHours::find($id)->user_id) {
             abort(401);
         }
-        
+
         $hour = VolunteerHours::find($id);
         $ledgers = FiscalLedger::all();
 
@@ -148,11 +184,14 @@ class VolunteerHoursController extends Controller
                 ->latest('created_at')
                 ->limit(5)
                 ->pluck('primary_dept_id')
-            )->get();
+        )->get();
         $users = null;
 
+        $hasActivePerks = $this->hasActivePerksConfigured();
+        $perkSets = $hasActivePerks ? $this->selectablePerkSets() : collect();
+
         // Pass the user (if any) to the view
-        return view('hours.edit', compact('hour', 'selectedUser', 'users', 'sectors', 'recentDepartments', 'ledgers'));
+        return view('hours.edit', compact('hour', 'selectedUser', 'users', 'sectors', 'recentDepartments', 'ledgers', 'hasActivePerks', 'perkSets'));
     }
 
     /**
@@ -160,23 +199,34 @@ class VolunteerHoursController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        if (!Auth::user()->isAdmin() && Auth::id() != VolunteerHours::find($id)->user_id) {
+        if (! Auth::user()->isAdmin() && Auth::id() != VolunteerHours::find($id)->user_id) {
             abort(401);
         }
-        
+
         // Validate the incoming request data
         $validated = $request->validate([
-            'user_id'       => 'required|exists:users,id',
-            'hours'         => 'required|numeric|min:0',
-            'description'   => 'nullable|string',
-            'notes'         => 'nullable|string',
+            'user_id' => 'required|exists:users,id',
+            'hours' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'notes' => 'nullable|string',
             'volunteer_date' => 'nullable|date',
             'primary_dept_id' => 'integer|exists:departments,id',
-            'fiscal_ledger_id' => 'integer'
+            'fiscal_ledger_id' => 'integer',
+            'perk_set_id' => 'nullable|exists:volunteer_perk_sets,id',
         ]);
 
         // Find the user by ID
         $hour = VolunteerHours::findOrFail($id);
+
+        // Only touch the perk-eligibility fields when the toggle was actually shown
+        // on the form; otherwise leave the record's existing values untouched.
+        if ($this->hasActivePerksConfigured()) {
+            $countsTowardPerks = $request->has('counts_toward_perks');
+            $validated['counts_toward_perks'] = $countsTowardPerks;
+            $validated['perk_set_id'] = $countsTowardPerks ? ($validated['perk_set_id'] ?? null) : null;
+        } else {
+            unset($validated['perk_set_id']);
+        }
 
         // Update the user profile with the validated data
         $hour->update($validated);
@@ -206,7 +256,7 @@ class VolunteerHoursController extends Controller
         $user = User::findOrFail($userId);
 
         // Only admins or the user themselves can generate tokens
-        if (!Auth::user()->isAdmin() && Auth::id() != $user->id) {
+        if (! Auth::user()->isAdmin() && Auth::id() != $user->id) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -229,12 +279,12 @@ class VolunteerHoursController extends Controller
     {
         $user = User::where('hour_submission_token', $token)->firstOrFail();
 
-        if (!$user->hasValidHourSubmissionToken()) {
+        if (! $user->hasValidHourSubmissionToken()) {
             abort(403, 'This hour submission link has expired or is invalid.');
         }
 
         $sectors = Sector::with('departments')->get();
-        
+
         // Fetch the last 5 departments the user has used
         $recentDepartments = Department::whereIn('id',
             $user->volunteerHours()
@@ -247,12 +297,12 @@ class VolunteerHoursController extends Controller
 
         // Get current fiscal year hours
         $currentFiscalYearHours = $user->totalHoursForCurrentFiscalLedger();
-        
+
         // Get current fiscal ledger
         $currentDate = now();
         $currentFiscalLedger = FiscalLedger::where('start_date', '<=', $currentDate)
-                                            ->where('end_date', '>=', $currentDate)
-                                            ->first();
+            ->where('end_date', '>=', $currentDate)
+            ->first();
 
         // Get recent hour submissions for current fiscal year
         $recentHours = collect();
@@ -276,38 +326,38 @@ class VolunteerHoursController extends Controller
     {
         $user = User::where('hour_submission_token', $token)->firstOrFail();
 
-        if (!$user->hasValidHourSubmissionToken()) {
+        if (! $user->hasValidHourSubmissionToken()) {
             abort(403, 'This hour submission link has expired or is invalid.');
         }
 
         // Validate the incoming request
         $validated = $request->validate([
-            'hours'         => 'required|numeric|min:0',
-            'description'   => 'nullable|string',
-            'notes'         => 'nullable|string',
+            'hours' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'notes' => 'nullable|string',
             'volunteer_date' => 'required|date',
             'primary_dept_id' => 'required|integer|exists:departments,id',
         ]);
 
         // Get the volunteer date
-        $volunteerDate = \Carbon\Carbon::parse($validated['volunteer_date']);
+        $volunteerDate = Carbon::parse($validated['volunteer_date']);
 
         // Find the fiscal ledger that covers the volunteer date
         $fiscalLedger = FiscalLedger::where('start_date', '<=', $volunteerDate)
-                                    ->where('end_date', '>=', $volunteerDate)
-                                    ->first();
+            ->where('end_date', '>=', $volunteerDate)
+            ->first();
 
-        if (!$fiscalLedger) {
+        if (! $fiscalLedger) {
             return back()->withErrors([
-                'volunteer_date' => 'No fiscal ledger is active for the given date.'
+                'volunteer_date' => 'No fiscal ledger is active for the given date.',
             ])->withInput();
         }
 
         // Create the volunteer hour entry
         VolunteerHours::create([
-            'user_id'   => $user->id,
-            'hours'     => $validated['hours'],
-            'notes'     => $validated['notes'],
+            'user_id' => $user->id,
+            'hours' => $validated['hours'],
+            'notes' => $validated['notes'],
             'volunteer_date' => $validated['volunteer_date'],
             'description' => $validated['description'] ?? null,
             'primary_dept_id' => $validated['primary_dept_id'],
@@ -316,7 +366,7 @@ class VolunteerHoursController extends Controller
 
         return redirect()->route('hours.public.show', ['token' => $token])
             ->with('success', [
-                'message' => "<span class=\"text-brand-green\">{$validated['hours']}</span> volunteer " . ($validated['hours'] == 1 ? 'hour' : 'hours') . " logged successfully!",
+                'message' => "<span class=\"text-brand-green\">{$validated['hours']}</span> volunteer ".($validated['hours'] == 1 ? 'hour' : 'hours').' logged successfully!',
             ]);
     }
 }

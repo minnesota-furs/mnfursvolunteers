@@ -59,9 +59,24 @@ class UserController extends Controller
             ->where('end_date', '>=', now())
             ->first();
 
-        // Ensure we have a ledger to work with
+        // Get departments and tags for filter dropdowns
+        $departments = Department::orderBy('name')->get();
+        $tags = Tag::forUsers()->orderBy('name')->get();
+
+        $trashedUsers = User::onlyTrashed()->get();
+
+        // Without a current fiscal ledger, hours-based data can't be calculated,
+        // so prompt the user to set one up instead of querying for users.
         if (! $currentLedger) {
-            abort(500, 'Current fiscal ledger not found.');
+            return view('users.index', [
+                'noLedger' => true,
+                'users' => null,
+                'sort' => $sort,
+                'direction' => $direction,
+                'trashedUsers' => $trashedUsers,
+                'departments' => $departments,
+                'tags' => $tags,
+            ]);
         }
 
         // Query users
@@ -113,12 +128,6 @@ class UserController extends Controller
 
         // Append the search term and filters to pagination links
         $users->appends($request->except('page'));
-
-        $trashedUsers = User::onlyTrashed()->get();
-
-        // Get departments and tags for filter dropdowns
-        $departments = Department::orderBy('name')->get();
-        $tags = Tag::forUsers()->orderBy('name')->get();
 
         return view('users.index', compact('users', 'sort', 'direction', 'trashedUsers', 'departments', 'tags'));
     }
