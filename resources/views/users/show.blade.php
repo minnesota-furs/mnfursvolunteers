@@ -549,7 +549,7 @@
                                                 class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">
                                                 Amount</th>
                                             <th scope="col"
-                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32 hidden sm:table-cell">
+                                                class="whitespace-nowrap px-2 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-gray-200 w-32 hidden sm:table-cell">
                                                 Task Date</th>
                                             <th scope="col"
                                                 class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-16 hidden sm:table-cell">
@@ -587,9 +587,11 @@
                                                     {{ format_hours($volunteerHour->hours) }} hrs
                                                 </td>
                                                 <td
-                                                    class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">
+                                                    class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell text-center">
                                                     @if (isset($volunteerHour->volunteer_date))
                                                         {{ $volunteerHour->volunteer_date->diffForHumans() ?? '-' }}
+                                                        <div class="text-xs text-gray-400 dark:text-gray-500">
+                                                            {{ $volunteerHour->volunteer_date->format('M j, Y') }}</div>
                                                     @else
                                                         <span class="text-xs text-gray-300">Date not logged</span>
                                                     @endif
