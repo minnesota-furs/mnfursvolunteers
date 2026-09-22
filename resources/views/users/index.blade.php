@@ -37,6 +37,12 @@
                                 class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                 <x-heroicon-o-building-office class="w-4 inline"/> Assign Department
                             </button>
+                            <button @click="if ($store.bulkUsers.count >= 2) { open = false; $dispatch('open-modal', 'merge-users') }"
+                                :disabled="$store.bulkUsers.count < 2"
+                                :class="$store.bulkUsers.count < 2 ? 'opacity-50 cursor-not-allowed' : ''"
+                                class="block w-full text-left px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <x-heroicon-o-arrows-pointing-in class="w-4 inline"/> Merge Users
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -291,8 +297,12 @@
                                                 if (!$store.bulkUsers.selectedIds.includes(userId)) {
                                                     $store.bulkUsers.selectedIds.push(userId);
                                                 }
+                                                $store.bulkUsers.names[userId] = cb.dataset.name;
+                                                $store.bulkUsers.emails[userId] = cb.dataset.email;
                                             } else {
                                                 $store.bulkUsers.selectedIds = $store.bulkUsers.selectedIds.filter(id => id !== userId);
+                                                delete $store.bulkUsers.names[userId];
+                                                delete $store.bulkUsers.emails[userId];
                                             }
                                         });
                                     }
@@ -334,10 +344,12 @@
                                 <tr>
                                     @can('manage-users')
                                     <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm w-12">
-                                        <input type="checkbox" 
+                                        <input type="checkbox"
                                             :checked="$store.bulkUsers.selectedIds.includes({{ $user->id }})"
-                                            @change="$store.bulkUsers.toggle({{ $user->id }})"
+                                            @change="$store.bulkUsers.toggle({{ $user->id }}, @js($user->name), @js(Auth::user()->isAdmin() ? $user->email : null))"
                                             value="{{ $user->id }}"
+                                            data-name="{{ $user->name }}"
+                                            data-email="{{ Auth::user()->isAdmin() ? $user->email : '' }}"
                                             class="rounded border-gray-300 text-brand-green focus:ring-brand-green dark:border-gray-600 dark:bg-gray-700"
                                             title="Select {{ $user->name }}">
                                     </td>
@@ -761,6 +773,63 @@
         </div>
     </form>
 </x-modal>
+
+<!-- Merge Users Modal -->
+<x-modal name="merge-users" :show="false" focusable>
+    <form method="POST" action="{{ route('admin.users.merge') }}" class="p-6"
+        x-data="{ primaryId: null, confirmText: '' }">
+        @csrf
+        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+            Merge Selected Users
+        </h2>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            Pick which account to keep. Every other selected account's hours, shifts, notes, tags, and other
+            records will be moved onto it, and the rest will be sent to the trash.
+        </p>
+
+        <input type="hidden" name="user_ids" x-bind:value="$store.bulkUsers.idsString">
+
+        <div class="mt-4 space-y-2 max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-md p-3">
+            <template x-for="user in $store.bulkUsers.selectedUsers" :key="user.id">
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="primary_user_id" :value="user.id" x-model.number="primaryId"
+                        class="border-gray-300 text-brand-green focus:ring-brand-green dark:border-gray-600 dark:bg-gray-700">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">
+                        Keep <span class="font-medium" x-text="user.name"></span>
+                        <span class="text-gray-500 dark:text-gray-400" x-show="user.email" x-text="user.email ? '(' + user.email + ')' : ''"></span>
+                    </span>
+                </label>
+            </template>
+        </div>
+
+        <div class="mt-4 bg-red-50 dark:bg-red-950/30 rounded-md p-3">
+            <p class="text-sm font-semibold text-red-700 dark:text-red-400">
+                <x-heroicon-s-exclamation-triangle class="w-4 inline mb-0.5"/> This cannot be undone. The accounts
+                you don't keep will be moved to the trash after their records are merged in.
+            </p>
+            <div class="mt-2 flex items-center gap-2">
+                <label class="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">Type <span class="font-mono font-bold">merge</span> to confirm:</label>
+                <input type="text" x-model="confirmText"
+                    class="border border-red-400 rounded px-2 py-1 text-sm w-28 dark:bg-gray-900 dark:text-gray-100"
+                    placeholder="merge">
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end gap-3">
+            <x-secondary-button type="button" x-on:click="$dispatch('close'); primaryId = null; confirmText = ''">
+                Cancel
+            </x-secondary-button>
+            <button type="submit"
+                :disabled="primaryId === null || confirmText !== 'merge'"
+                :class="(primaryId === null || confirmText !== 'merge')
+                    ? 'bg-gray-300 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+                    : 'bg-red-600 hover:bg-red-700 text-white cursor-pointer'"
+                class="inline-flex items-center px-4 py-2 rounded-md text-sm font-semibold transition-colors">
+                Merge Users
+            </button>
+        </div>
+    </form>
+</x-modal>
 @endcan
 
 
@@ -768,26 +837,38 @@
 document.addEventListener('alpine:init', () => {
     Alpine.store('bulkUsers', {
         selectedIds: [],
-        
+        names: {},
+        emails: {},
+
         get count() {
             return this.selectedIds.length;
         },
-        
+
         get idsString() {
             return this.selectedIds.join(',');
         },
-        
-        toggle(userId) {
+
+        get selectedUsers() {
+            return this.selectedIds.map(id => ({ id, name: this.names[id] || `#${id}`, email: this.emails[id] || null }));
+        },
+
+        toggle(userId, name, email) {
             const index = this.selectedIds.indexOf(userId);
             if (index > -1) {
                 this.selectedIds.splice(index, 1);
+                delete this.names[userId];
+                delete this.emails[userId];
             } else {
                 this.selectedIds.push(userId);
+                this.names[userId] = name;
+                this.emails[userId] = email;
             }
         },
-        
+
         clear() {
             this.selectedIds = [];
+            this.names = {};
+            this.emails = {};
         }
     });
 });

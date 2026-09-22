@@ -155,6 +155,14 @@ class User extends Authenticatable
         return $this->belongsTo(Department::class, 'primary_dept_id');
     }
 
+    /**
+     * The user this account was merged into, if it was retired as a duplicate.
+     */
+    public function mergedInto()
+    {
+        return $this->belongsTo(User::class, 'merged_into_id');
+    }
+
     public function departments()
     {
         return $this->belongsToMany(Department::class, 'department_user')->withTimestamps();

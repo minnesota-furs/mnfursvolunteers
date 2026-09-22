@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Department;
 use App\Models\FiscalLedger;
+use App\Models\User;
 use App\Models\VolunteerHours;
+use App\Services\UserMergeService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -27,7 +29,7 @@ class UserController extends Controller
         ]);
 
         $userIds = array_filter(explode(',', $validated['user_ids']));
-        
+
         if (empty($userIds)) {
             return back()->with('error', 'No users selected.');
         }
@@ -37,7 +39,7 @@ class UserController extends Controller
             ->where('end_date', '>=', $validated['date'])
             ->first();
 
-        if (!$fiscalLedger) {
+        if (! $fiscalLedger) {
             return back()->with('error', 'No fiscal ledger found for the selected date.');
         }
 
@@ -49,8 +51,9 @@ class UserController extends Controller
         try {
             foreach ($userIds as $userId) {
                 $user = User::find($userId);
-                if (!$user) {
+                if (! $user) {
                     $errors[] = "User ID {$userId} not found";
+
                     continue;
                 }
 
@@ -70,15 +73,16 @@ class UserController extends Controller
             DB::commit();
 
             $message = "Successfully logged {$validated['hours']} hours for {$successCount} user(s).";
-            if (!empty($errors)) {
-                $message .= " Errors: " . implode(', ', $errors);
+            if (! empty($errors)) {
+                $message .= ' Errors: '.implode(', ', $errors);
             }
 
             return redirect()->route('users.index')->with('success', $message);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Bulk log hours failed: ' . $e->getMessage());
-            return back()->with('error', 'Failed to log hours: ' . $e->getMessage());
+            Log::error('Bulk log hours failed: '.$e->getMessage());
+
+            return back()->with('error', 'Failed to log hours: '.$e->getMessage());
         }
     }
 
@@ -94,7 +98,7 @@ class UserController extends Controller
         ]);
 
         $userIds = array_filter(explode(',', $validated['user_ids']));
-        
+
         if (empty($userIds)) {
             return back()->with('error', 'No users selected.');
         }
@@ -104,7 +108,7 @@ class UserController extends Controller
         }
 
         $successCount = 0;
-        
+
         DB::beginTransaction();
         try {
             foreach ($userIds as $userId) {
@@ -118,13 +122,14 @@ class UserController extends Controller
 
             DB::commit();
 
-            return redirect()->route('users.index')->with('success', 
-                "Successfully added " . count($validated['tag_ids']) . " tag(s) to {$successCount} user(s)."
+            return redirect()->route('users.index')->with('success',
+                'Successfully added '.count($validated['tag_ids'])." tag(s) to {$successCount} user(s)."
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Bulk add tags failed: ' . $e->getMessage());
-            return back()->with('error', 'Failed to add tags: ' . $e->getMessage());
+            Log::error('Bulk add tags failed: '.$e->getMessage());
+
+            return back()->with('error', 'Failed to add tags: '.$e->getMessage());
         }
     }
 
@@ -140,7 +145,7 @@ class UserController extends Controller
         ]);
 
         $userIds = array_filter(explode(',', $validated['user_ids']));
-        
+
         if (empty($userIds)) {
             return back()->with('error', 'No users selected.');
         }
@@ -150,7 +155,7 @@ class UserController extends Controller
         }
 
         $successCount = 0;
-        
+
         DB::beginTransaction();
         try {
             foreach ($userIds as $userId) {
@@ -163,13 +168,14 @@ class UserController extends Controller
 
             DB::commit();
 
-            return redirect()->route('users.index')->with('success', 
-                "Successfully removed " . count($validated['tag_ids']) . " tag(s) from {$successCount} user(s)."
+            return redirect()->route('users.index')->with('success',
+                'Successfully removed '.count($validated['tag_ids'])." tag(s) from {$successCount} user(s)."
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Bulk remove tags failed: ' . $e->getMessage());
-            return back()->with('error', 'Failed to remove tags: ' . $e->getMessage());
+            Log::error('Bulk remove tags failed: '.$e->getMessage());
+
+            return back()->with('error', 'Failed to remove tags: '.$e->getMessage());
         }
     }
 
@@ -184,13 +190,13 @@ class UserController extends Controller
         ]);
 
         $userIds = array_filter(explode(',', $validated['user_ids']));
-        
+
         if (empty($userIds)) {
             return back()->with('error', 'No users selected.');
         }
 
         $successCount = 0;
-        
+
         DB::beginTransaction();
         try {
             foreach ($userIds as $userId) {
@@ -205,13 +211,57 @@ class UserController extends Controller
             DB::commit();
 
             $department = Department::find($validated['department_id']);
-            return redirect()->route('users.index')->with('success', 
+
+            return redirect()->route('users.index')->with('success',
                 "Successfully assigned {$department->name} department to {$successCount} user(s)."
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Bulk assign department failed: ' . $e->getMessage());
-            return back()->with('error', 'Failed to assign department: ' . $e->getMessage());
+            Log::error('Bulk assign department failed: '.$e->getMessage());
+
+            return back()->with('error', 'Failed to assign department: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Merge two or more users into one "main" account, moving all related
+     * records (hours, shifts, notes, tags, etc.) onto it and retiring the rest.
+     */
+    public function merge(Request $request, UserMergeService $mergeService): RedirectResponse
+    {
+        $validated = $request->validate([
+            'user_ids' => 'required|string',
+            'primary_user_id' => 'required|integer',
+        ]);
+
+        $userIds = array_filter(explode(',', $validated['user_ids']));
+
+        if (count($userIds) < 2) {
+            return back()->with('error', 'Select at least two users to merge.');
+        }
+
+        if (! in_array((string) $validated['primary_user_id'], $userIds, true)) {
+            return back()->with('error', 'The account you keep must be one of the selected users.');
+        }
+
+        $survivor = User::findOrFail($validated['primary_user_id']);
+        $duplicates = User::whereIn('id', $userIds)
+            ->where('id', '!=', $survivor->id)
+            ->get();
+
+        try {
+            $mergeService->merge($survivor, $duplicates, $request->user());
+
+            return redirect()->route('users.index')->with('success',
+                "Merged {$duplicates->count()} user(s) into {$survivor->name}. {$duplicates->pluck('name')->join(', ')} ".
+                ($duplicates->count() === 1 ? 'has' : 'have').' been moved to the trash.'
+            );
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            Log::error('User merge failed: '.$e->getMessage());
+
+            return back()->with('error', 'Failed to merge users: '.$e->getMessage());
         }
     }
 }

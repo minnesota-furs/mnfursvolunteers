@@ -257,6 +257,7 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
         Route::post('/users/bulk-add-tags', [App\Http\Controllers\Admin\UserController::class, 'bulkAddTags'])->name('users.bulk-add-tags');
         Route::post('/users/bulk-remove-tags', [App\Http\Controllers\Admin\UserController::class, 'bulkRemoveTags'])->name('users.bulk-remove-tags');
         Route::post('/users/bulk-assign-department', [App\Http\Controllers\Admin\UserController::class, 'bulkAssignDepartment'])->name('users.bulk-assign-department');
+        Route::post('/users/merge', [App\Http\Controllers\Admin\UserController::class, 'merge'])->name('users.merge');
     });
 
     // Org chart views
