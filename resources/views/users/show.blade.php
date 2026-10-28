@@ -447,7 +447,7 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Recent volunteer hours logged for this user</p>
                                 </div>
                                 <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-2">
-                            @if (Auth::user()->isAdmin() || (Auth::user()->id == $user->id && (!app_setting('require_department_for_self_report', false) || Auth::user()->hasDept())))
+                            @if (Auth::user()->isAdmin() || Auth::user()->id == $user->id)
                                 <a href="{{ route('hours.create', ['user' => $user->id]) }}"
                                     class="block rounded-md bg-brand-green px-2 py-1 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                                     <x-heroicon-m-clock class="w-4 inline" /> New Hour Log

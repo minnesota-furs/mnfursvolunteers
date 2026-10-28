@@ -9,7 +9,7 @@
             class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-o-user class="w-4 inline" /> View Your Profile
         </a>
-        @if (Auth::user()->isStaff)
+        @if (Auth::user()->isStaff || app_setting('require_department_for_self_report', false))
         <a href="{{ route('hours.create', Auth::user()->id) }}"
             class="block rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-center text-sm font-semibold text-brand-green dark:text-gray-200 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             <x-heroicon-o-clock class="w-4 inline" /> Log New Hours

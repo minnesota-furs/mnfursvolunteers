@@ -58,6 +58,10 @@ class VolunteerHoursController extends Controller
             if ($user == null || $user != Auth::id()) {
                 abort(401);
             }
+
+            if ($this->selfReportBlockedByMissingDepartment()) {
+                return view('hours.department-required');
+            }
         }
 
         // If a user is passed, retrieve the user from the database
@@ -90,10 +94,23 @@ class VolunteerHoursController extends Controller
     }
 
     /**
+     * Whether the current user is barred from self-reporting hours because the
+     * org requires a department and they have none.
+     */
+    protected function selfReportBlockedByMissingDepartment(): bool
+    {
+        return app_setting('require_department_for_self_report', false) && ! Auth::user()->hasDept();
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
+        if (! Auth::user()->isAdmin() && $this->selfReportBlockedByMissingDepartment()) {
+            return redirect()->route('hours.create', Auth::id());
+        }
+
         // Validate the incoming request
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',

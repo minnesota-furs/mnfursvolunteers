@@ -27,104 +27,15 @@
             <!-- Election Information -->
             <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg mb-6">
                 <div class="px-4 py-5 sm:p-6">
-                    <div class="flex items-start justify-between">
-                        <div class="flex-1">
-                            @if($election->description)
-                                <div class="text-sm text-gray-600 dark:text-gray-400 mb-4 prose prose-sm max-w-none">
-                                    {!! $election->parsedDescription !!}
-                                </div>
-                            @endif
-
-                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                                @if($election->hasNominationPeriod())
-                                <div>
-                                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Nomination Period</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                        {{ $election->nomination_start_date->format('M j, Y g:i A') }}<br>
-                                        to {{ $election->nomination_end_date->format('M j, Y g:i A') }}
-                                    </dd>
-                                </div>
-                                @endif
-                                <div>
-                                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Voting Period</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                        {{ $election->start_date->format('M j, Y g:i A') }}<br>
-                                        to {{ $election->end_date->format('M j, Y g:i A') }}
-                                    </dd>
-                                </div>
-                                <div>
-                                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Positions Available</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                        {{ $election->max_positions }} {{ Str::plural('position', $election->max_positions) }}
-                                    </dd>
-                                </div>
-                                <div>
-                                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                        @php
-                                            $nominationStatus = $election->getNominationStatus();
-                                        @endphp
-                                        @if($election->isVotingPeriod())
-                                            <span class="text-blue-600 font-medium">Voting Open</span><br>
-                                            {{ $election->end_date->diffForHumans() }}
-                                        @elseif($nominationStatus === 'open')
-                                            <span class="text-green-600 font-medium">Nominations Open</span><br>
-                                            Ends {{ $election->nomination_end_date->diffForHumans() }}
-                                        @elseif($nominationStatus === 'upcoming')
-                                            <span class="text-yellow-600 font-medium">Nominations Soon</span><br>
-                                            {{ $election->nomination_start_date->diffForHumans() }}
-                                        @elseif($nominationStatus === 'closed' && now() < $election->start_date)
-                                            <span class="text-orange-600 font-medium">Nominations Closed</span><br>
-                                            Voting {{ $election->start_date->diffForHumans() }}
-                                        @elseif(now() < $election->start_date)
-                                            <span class="text-yellow-600 font-medium">Upcoming</span><br>
-                                            Starts {{ $election->start_date->diffForHumans() }}
-                                        @else
-                                            <span class="text-gray-600 font-medium">Ended</span>
-                                        @endif
-                                    </dd>
-                                </div>
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        @if($election->description)
+                            <div class="flex-1 min-w-0 text-sm text-gray-600 dark:text-gray-400 prose prose-sm max-w-none break-words">
+                                {!! $election->parsedDescription !!}
                             </div>
-
-                            <!-- Hours Requirements Info -->
-                            @if($election->hasHoursRequirements())
-                                <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
-                                    <div class="flex">
-                                        <div class="flex-shrink-0">
-                                            <x-heroicon-s-information-circle class="h-5 w-5 text-blue-400"/>
-                                        </div>
-                                        <div class="ml-3">
-                                            <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200">
-                                                Volunteer Hours Requirements
-                                            </h4>
-                                            <div class="mt-1 text-sm text-blue-700 dark:text-blue-300">
-                                                @if($election->min_candidate_hours > 0)
-                                                    <div>• {{ $election->min_candidate_hours }} hours required to be a candidate</div>
-                                                @endif
-                                                @if($election->min_voter_hours > 0)
-                                                    <div>• {{ $election->min_voter_hours }} hours required to vote</div>
-                                                @endif
-                                                @php
-                                                    $userHours = $election->fiscal_ledger_id 
-                                                        ? Auth::user()->getHoursForFiscalLedger($election->fiscal_ledger_id)
-                                                        : Auth::user()->getCurrentFiscalYearHours();
-                                                    $fiscalPeriodName = $election->fiscal_ledger_id 
-                                                        ? $election->fiscalLedger->name 
-                                                        : 'current fiscal year';
-                                                @endphp
-                                                <div class="mt-1 text-xs">
-                                                    Hours must be completed in the {{ $fiscalPeriodName }}. 
-                                                    You currently have {{ number_format($userHours, 1) }} hours.
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
+                        @endif
 
                         <!-- Voting Status -->
-                        <div class="ml-6 flex-shrink-0">
+                        <div class="sm:ml-auto sm:pl-6 sm:flex-shrink-0">
                             @if($userHasVoted)
                                 <span class="inline-flex items-center rounded-md bg-green-50 px-3 py-2 text-sm font-medium text-green-700 ring-1 ring-inset ring-green-700/10">
                                     <x-heroicon-s-check-circle class="w-5 h-5 mr-2"/> 
@@ -159,8 +70,83 @@
                             @endif
                         </div>
                     </div>
+
+                    <x-election-timeline :election="$election" class="mb-6" />
+
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        @if($election->hasNominationPeriod())
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Nomination Period</dt>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                {{ $election->nomination_start_date->format('M j, Y g:i A') }}<br>
+                                to {{ $election->nomination_end_date->format('M j, Y g:i A') }}
+                            </dd>
+                        </div>
+                        @endif
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Voting Period</dt>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                {{ $election->start_date->format('M j, Y g:i A') }}<br>
+                                to {{ $election->end_date->format('M j, Y g:i A') }}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Positions Available</dt>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                {{ $election->max_positions }} {{ Str::plural('position', $election->max_positions) }}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</dt>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                @php
+                                    $stage = $election->currentStage();
+                                @endphp
+                                <span class="{{ $stage['color'] }} font-medium">{{ $stage['label'] }}</span>
+                                @if($stage['detail'])
+                                    <br>{{ $stage['detail'] }}
+                                @endif
+                            </dd>
+                        </div>
+                    </div>
+
+                    <!-- Hours Requirements Info -->
+                    @if($election->hasHoursRequirements())
+                        <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <x-heroicon-s-information-circle class="h-5 w-5 text-blue-400"/>
+                                </div>
+                                <div class="ml-3">
+                                    <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                                        Volunteer Hours Requirements
+                                    </h4>
+                                    <div class="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                                        @if($election->min_candidate_hours > 0)
+                                            <div>• {{ format_hours($election->min_candidate_hours) }} hours required to be a candidate</div>
+                                        @endif
+                                        @if($election->min_voter_hours > 0)
+                                            <div>• {{ format_hours($election->min_voter_hours) }} hours required to vote</div>
+                                        @endif
+                                        @php
+                                            $userHours = $election->hoursForUser(Auth::user());
+                                            $fiscalPeriodName = $election->fiscal_ledger_id 
+                                                ? $election->fiscalLedger->name 
+                                                : 'current fiscal year';
+                                        @endphp
+                                        <div class="mt-1 text-xs">
+                                            Hours must be completed in the {{ $fiscalPeriodName }}. 
+                                            You currently have {{ format_hours($userHours) }} hours.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
+
+            <x-election-hours-notice :election="$election" :user="Auth::user()" class="mb-6" />
 
             <!-- Candidates -->
             @if($candidates->count() > 0)
@@ -335,16 +321,14 @@
                                     <x-heroicon-s-exclamation-triangle class="w-5 h-5 mr-2"/> Insufficient Volunteer Hours
                                 </div>
                                 @php
-                                    $userHours = $election->fiscal_ledger_id 
-                                        ? Auth::user()->getHoursForFiscalLedger($election->fiscal_ledger_id)
-                                        : Auth::user()->getCurrentFiscalYearHours();
+                                    $userHours = $election->hoursForUser(Auth::user());
                                     $fiscalPeriodName = $election->fiscal_ledger_id 
                                         ? $election->fiscalLedger->name 
                                         : 'current fiscal year';
                                 @endphp
                                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    You need at least {{ $election->min_voter_hours }} volunteer hours in the {{ $fiscalPeriodName }} to vote in this election.<br>
-                                    You currently have {{ number_format($userHours, 1) }} hours.
+                                    You need at least {{ format_hours($election->min_voter_hours) }} volunteer hours in the {{ $fiscalPeriodName }} to vote in this election.<br>
+                                    You currently have {{ format_hours($userHours) }} hours.
                                 </p>
                             </div>
                             
@@ -390,9 +374,13 @@
                                 @foreach($candidates as $candidate)
                                     @php
                                         $alreadyVoted = in_array($candidate->id, $userVotedCandidates);
+                                        $isOwnNomination = $candidate->user_id === Auth::id()
+                                            && $election->getNominationStatus() === 'open'
+                                            && ! $election->isVotingPeriod();
                                     @endphp
                                     <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-6
-                                        @if($alreadyVoted && $election->isVotingPeriod()) bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 @endif">
+                                        @if($alreadyVoted && $election->isVotingPeriod()) bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 @endif
+                                        @if($isOwnNomination) bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-600 ring-1 ring-blue-200 dark:ring-blue-700 @endif">
                                         <div class="flex items-start space-x-4">
                                             @if($alreadyVoted && $election->isVotingPeriod())
                                                 <div class="mt-1">
@@ -430,6 +418,12 @@
                                                             {!! \Parsedown::instance()->text($candidate->statement) !!}
                                                         </div>
                                                     </div>
+                                                @endif
+
+                                                @if($isOwnNomination)
+                                                    <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                                        Want to remove yourself as a candidate? Please reach out to the elections team within the org.
+                                                    </p>
                                                 @endif
                                             </div>
                                         </div>
