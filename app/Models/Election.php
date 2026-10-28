@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Election extends Model
 {
@@ -41,6 +43,11 @@ class Election extends Model
         'requires_approval' => 'boolean',
     ];
 
+    public function milestones(): HasMany
+    {
+        return $this->hasMany(ElectionMilestone::class)->orderBy('starts_at');
+    }
+
     public function candidates()
     {
         return $this->hasMany(Candidate::class);
@@ -75,6 +82,29 @@ class Election extends Model
         }
 
         return $this->active && now()->between($this->nomination_start_date, $this->nomination_end_date);
+    }
+
+    /**
+     * Between the close of nominations and the start of voting.
+     */
+    public function isReviewPeriod(): bool
+    {
+        return $this->hasNominationPeriod()
+            && now() > $this->nomination_end_date
+            && now() < $this->start_date;
+    }
+
+    /**
+     * Elections that have started and not yet ended: nominations, the review
+     * gap between nominations and voting, or voting.
+     */
+    public function scopeCurrentlyRunning(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->where(fn (Builder $voting) => $voting->where('start_date', '<=', now())->where('end_date', '>=', now()))
+                ->orWhere(fn (Builder $nominations) => $nominations->where('nomination_start_date', '<=', now())->where('nomination_end_date', '>=', now()))
+                ->orWhere(fn (Builder $review) => $review->where('nomination_end_date', '<', now())->where('start_date', '>', now()));
+        });
     }
 
     public function hasNominationPeriod()

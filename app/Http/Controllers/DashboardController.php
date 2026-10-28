@@ -77,18 +77,8 @@ class DashboardController extends Controller
             ->get()
             ->groupBy('event.name');
 
-        // Get active elections (nomination or voting period)
-        $activeElections = Election::where(function ($query) use ($now) {
-            $query->where(function ($q) use ($now) {
-                // Elections in nomination period
-                $q->where('nomination_start_date', '<=', $now)
-                    ->where('nomination_end_date', '>=', $now);
-            })->orWhere(function ($q) use ($now) {
-                // Elections in voting period
-                $q->where('start_date', '<=', $now)
-                    ->where('end_date', '>=', $now);
-            });
-        })->get();
+        // Get active elections (nomination, review, or voting period)
+        $activeElections = Election::currentlyRunning()->get();
 
         // Convert markdown to HTML using Parsedown for dashboard elections
         // For dashboard, only show content until first line break

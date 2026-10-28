@@ -73,6 +73,39 @@
 
                     <x-election-timeline :election="$election" class="mb-6" />
 
+                    @if($election->milestones->isNotEmpty())
+                        <details class="group mb-6">
+                            <summary class="flex cursor-pointer list-none items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 [&::-webkit-details-marker]:hidden">
+                                <x-heroicon-s-chevron-right class="h-4 w-4 transition-transform group-open:rotate-90" />
+                                Key Dates ({{ $election->milestones->count() }})
+                            </summary>
+                            <ul class="mt-3 flex flex-col gap-3">
+                                @foreach($election->milestones as $milestone)
+                                    <li class="flex gap-3 {{ $milestone->starts_at->isPast() ? 'opacity-60' : '' }}">
+                                        <x-heroicon-o-flag class="mt-0.5 h-5 w-5 shrink-0 text-gray-400" />
+                                        <div class="min-w-0 text-sm">
+                                            <p class="font-medium text-gray-900 dark:text-gray-100 break-words">
+                                                {{ $milestone->title }}
+                                                <span class="font-normal text-gray-500 dark:text-gray-400">· {{ $milestone->starts_at->format('M j, Y g:i A') }}</span>
+                                                @if($milestone->starts_at->isPast())
+                                                    <span class="ml-1 inline-flex items-center rounded bg-gray-100 px-1.5 text-[11px] font-medium leading-4 text-gray-600 ring-1 ring-inset ring-gray-500/10 dark:bg-gray-700 dark:text-gray-300">Past</span>
+                                                @endif
+                                            </p>
+                                            @if($milestone->location)
+                                                <p class="text-gray-600 dark:text-gray-400 break-words">
+                                                    <x-heroicon-o-map-pin class="w-4 inline" /> {{ $milestone->location }}
+                                                </p>
+                                            @endif
+                                            @if($milestone->description)
+                                                <div class="mt-1 prose prose-sm max-w-none text-gray-600 dark:prose-invert dark:text-gray-400 break-words">{!! $milestone->descriptionHtml() !!}</div>
+                                            @endif
+                                        </div>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </details>
+                    @endif
+
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         @if($election->hasNominationPeriod())
                         <div>

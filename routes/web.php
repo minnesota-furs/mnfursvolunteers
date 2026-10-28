@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ConcatController;
 use App\Http\Controllers\Admin\CustomFieldController;
+use App\Http\Controllers\Admin\ElectionMilestoneController;
 use App\Http\Controllers\Admin\EventCategoryController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\InviteCodeController;
@@ -489,6 +490,9 @@ Route::middleware(['auth', 'onboarding.complete', 'enforce.custom-fields'])->gro
     // Board Elections - Admin Management
     Route::middleware('can:manage-elections')->prefix('admin')->name('admin.')->group(function () {
         Route::resource('elections', App\Http\Controllers\Admin\ElectionController::class);
+        Route::resource('elections.milestones', ElectionMilestoneController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->scoped();
         Route::get('elections/{election}/candidates', [App\Http\Controllers\Admin\ElectionController::class, 'candidates'])->name('elections.candidates');
         Route::get('elections/{election}/candidates/create', [App\Http\Controllers\Admin\ElectionController::class, 'createCandidate'])->name('elections.candidates.create');
         Route::post('elections/{election}/candidates', [App\Http\Controllers\Admin\ElectionController::class, 'storeCandidate'])->name('elections.candidates.store');

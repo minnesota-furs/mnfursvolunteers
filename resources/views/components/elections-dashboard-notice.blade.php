@@ -40,6 +40,14 @@
                                             <span class="text-gray-500 dark:text-gray-400">
                                                 Ends {{ $election->nomination_end_date->format('M j, Y g:i A') }}
                                             </span>
+                                        @elseif($election->isReviewPeriod())
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                                                Nominations Closed
+                                            </span>
+                                            <span class="text-gray-500 dark:text-gray-400">
+                                                Voting opens {{ $election->start_date->format('M j, Y g:i A') }}
+                                            </span>
                                         @elseif($isVotingPeriod)
                                             <span
                                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">

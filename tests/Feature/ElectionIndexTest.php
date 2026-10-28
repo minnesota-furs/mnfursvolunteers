@@ -78,3 +78,79 @@ it('reports the current stage of an election', function (array $attributes, stri
     'upcoming' => [[], 'Upcoming'],
     'ended' => [['start_date' => now()->subDays(10), 'end_date' => now()->subDay()], 'Ended'],
 ]);
+
+function electionInReviewPeriod(): Election
+{
+    return Election::create([
+        'title' => 'Review Election',
+        'description' => 'Between nominations and voting.',
+        'nomination_start_date' => now()->subWeeks(2),
+        'nomination_end_date' => now()->subDay(),
+        'start_date' => now()->addDays(3)->addHour(),
+        'end_date' => now()->addWeeks(2),
+        'active' => true,
+        'max_positions' => 1,
+        'min_voter_hours' => 0,
+        'min_candidate_hours' => 0,
+    ]);
+}
+
+it('lists elections that are in the review period between nominations and voting', function () {
+    $user = User::factory()->create(['onboarded_at' => now()]);
+    $election = electionInReviewPeriod();
+
+    expect($election->isReviewPeriod())->toBeTrue();
+
+    $this->actingAs($user)
+        ->get(route('elections.index'))
+        ->assertOk()
+        ->assertSee('Review Election')
+        ->assertSee('Nominations Closed')
+        ->assertSee('Voting opens in 3 days')
+        ->assertDontSee('No active elections');
+});
+
+it('lets users view an election during its review period', function () {
+    $user = User::factory()->create(['onboarded_at' => now()]);
+    $election = electionInReviewPeriod();
+
+    $this->actingAs($user)
+        ->get(route('elections.show', $election))
+        ->assertOk()
+        ->assertSee('Review Election');
+});
+
+it('does not treat elections before nominations or after voting as running', function () {
+    $beforeNominations = Election::create([
+        'title' => 'Future', 'description' => 'x', 'active' => true, 'max_positions' => 1,
+        'nomination_start_date' => now()->addDay(), 'nomination_end_date' => now()->addDays(2),
+        'start_date' => now()->addDays(5), 'end_date' => now()->addDays(9),
+    ]);
+    $finished = Election::create([
+        'title' => 'Done', 'description' => 'x', 'active' => true, 'max_positions' => 1,
+        'start_date' => now()->subWeeks(2), 'end_date' => now()->subWeek(),
+    ]);
+
+    expect(Election::currentlyRunning()->pluck('id')->all())->not->toContain($beforeNominations->id, $finished->id)
+        ->and($beforeNominations->isReviewPeriod())->toBeFalse()
+        ->and($finished->isReviewPeriod())->toBeFalse();
+});
+
+it('shows the Elections navigation link during the review period', function () {
+    $user = User::factory()->create(['onboarded_at' => now()]);
+    electionInReviewPeriod();
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('<p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Elections</p>', false);
+});
+
+it('hides the Elections navigation link when no election is running', function () {
+    $user = User::factory()->create(['onboarded_at' => now()]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertDontSee('<p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Elections</p>', false);
+});

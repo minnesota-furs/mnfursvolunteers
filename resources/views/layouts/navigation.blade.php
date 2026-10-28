@@ -27,20 +27,7 @@
                     @endfeature
 
                     @php
-                        $activeElections = \App\Models\Election::where('active', true)
-                            ->where(function($query) {
-                                // Show if voting is active
-                                $query->where(function($q) {
-                                    $q->where('start_date', '<=', now())
-                                      ->where('end_date', '>=', now());
-                                })
-                                // OR if nominations are active
-                                ->orWhere(function($q) {
-                                    $q->where('nomination_start_date', '<=', now())
-                                      ->where('nomination_end_date', '>=', now());
-                                });
-                            })
-                            ->exists();
+                        $activeElections = \App\Models\Election::where('active', true)->currentlyRunning()->exists();
                         $volunteerActive = request()->routeIs('volunteer.events.*')
                             || request()->routeIs('simple-volunteer-events.*')
                             || request()->routeIs('volunteer.perks.*')

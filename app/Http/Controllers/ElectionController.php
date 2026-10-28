@@ -15,18 +15,7 @@ class ElectionController extends Controller
     public function index()
     {
         $elections = Election::where('active', true)
-            ->where(function ($query) {
-                // Show if voting is active
-                $query->where(function ($q) {
-                    $q->where('start_date', '<=', now())
-                        ->where('end_date', '>=', now());
-                })
-                // OR if nominations are active
-                    ->orWhere(function ($q) {
-                        $q->where('nomination_start_date', '<=', now())
-                            ->where('nomination_end_date', '>=', now());
-                    });
-            })
+            ->currentlyRunning()
             ->orderBy('start_date', 'asc')
             ->get();
 
@@ -44,14 +33,14 @@ class ElectionController extends Controller
 
     public function show(Election $election)
     {
-        // Allow viewing during nomination period OR voting period
-        if (! $election->isVotingPeriod() && ! $election->isNominationPeriod()) {
+        // Allow viewing during nominations, the review period after them, or voting
+        if (! $election->isVotingPeriod() && ! $election->isNominationPeriod() && ! $election->isReviewPeriod()) {
             return redirect()->route('elections.index')
                 ->with('error', 'This election is not currently active.');
         }
 
         // Load fiscal ledger relationship if not already loaded
-        $election->load('fiscalLedger');
+        $election->load('fiscalLedger', 'milestones');
 
         $candidates = $election->candidates()
             ->where('approved', true)
@@ -278,22 +267,9 @@ class ElectionController extends Controller
     public function guestIndex()
     {
         $elections = Election::where('active', true)
-            ->where(function ($query) {
-                // Show if voting is active
-                $query->where(function ($q) {
-                    $q->where('start_date', '<=', now())
-                        ->where('end_date', '>=', now());
-                })
-                // OR if nominations are active
-                    ->orWhere(function ($q) {
-                        $q->where('nomination_start_date', '<=', now())
-                            ->where('nomination_end_date', '>=', now());
-                    })
+            ->where(fn ($query) => $query->currentlyRunning()
                 // OR if results are visible (completed elections)
-                    ->orWhere(function ($q) {
-                        $q->where('end_date', '<', now());
-                    });
-            })
+                ->orWhere('end_date', '<', now()))
             ->with(['candidates' => function ($query) {
                 $query->where('approved', true)->where('withdrawn', false);
             }, 'fiscalLedger'])
@@ -328,8 +304,8 @@ class ElectionController extends Controller
             abort(404);
         }
 
-        // Only show if there's something to see (voting period, nomination period, or completed)
-        if (! $election->isVotingPeriod() && ! $election->isNominationPeriod() && ! $election->isCompleted()) {
+        // Only show if there's something to see (voting period, nomination period, review period, or completed)
+        if (! $election->isVotingPeriod() && ! $election->isNominationPeriod() && ! $election->isReviewPeriod() && ! $election->isCompleted()) {
             abort(404);
         }
 
