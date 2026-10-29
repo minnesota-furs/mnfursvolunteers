@@ -116,15 +116,15 @@
                         </div>
 
                         <!-- Submit Button -->
-                        <div class="mt-6 flex justify-end gap-3">
+                        <div class="mt-6 flex items-center justify-end gap-3">
                             <a href="{{ route('elections.show', $election) }}" 
                                 class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
                                 Cancel
                             </a>
                             <button type="submit" 
-                                class="inline-flex items-center rounded-md bg-brand-green px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+                                class="inline-flex items-center rounded-md bg-brand-green px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
                                 onclick="return confirm('Are you sure you want to nominate yourself for this election?');">
-                                <x-heroicon-s-user-plus class="w-5 h-5 mr-2"/> Submit Nomination
+                                <x-heroicon-s-user-plus class="w-4 h-4 mr-1.5"/> Submit Nomination
                             </button>
                         </div>
                     </form>

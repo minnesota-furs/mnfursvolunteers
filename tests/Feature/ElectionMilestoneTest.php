@@ -190,3 +190,17 @@ it('badges only past key dates as past', function () {
 
     expect(substr_count($html, '>Past</span>'))->toBe(1);
 });
+
+it('shows an edit button on the election page only to users who can manage elections', function () {
+    $editUrl = route('admin.elections.edit', $this->election);
+
+    $this->actingAs($this->admin)
+        ->get(route('elections.show', $this->election))
+        ->assertOk()
+        ->assertSee('href="'.$editUrl.'"', false);
+
+    $this->actingAs(User::factory()->create(['onboarded_at' => now()]))
+        ->get(route('elections.show', $this->election))
+        ->assertOk()
+        ->assertDontSee($editUrl);
+});

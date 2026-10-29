@@ -15,38 +15,38 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="px-4 sm:px-6 lg:px-8">
                 <div class="flow-root">
-                    <div class="-mx-4 -my-2 sm:-mx-6 lg:-mx-8">
+                    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                            <table class="min-w-full divide-y divide-gray-300">
+                            <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
                                 <thead>
                                     <tr>
                                         <th scope="col"
-                                            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-0">
+                                            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-3">
                                             Title</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
+                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">
                                             Start Date</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-gray-100 w-32">
+                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">
                                             End Date</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-gray-100 w-16">
+                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">
                                             Candidates</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-gray-100 w-16">
+                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">
                                             Votes</th>
                                         <th scope="col"
-                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-gray-100 w-16">
+                                            class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">
                                             Status</th>
-                                        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0 w-32">
+                                        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-3">
                                             <span class="sr-only">Actions</span>
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-200">
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                     @forelse ($elections as $election)
                                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
-                                            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-0">
+                                            <td class="min-w-[12rem] py-4 pl-4 pr-3 text-sm sm:pl-3">
                                                 <div class="flex items-center">
                                                     <div>
                                                         <div class="font-medium text-gray-900 dark:text-gray-100">
@@ -70,13 +70,13 @@
                                             </td>
                                             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-center">
                                                 <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                                                    {{ $election->candidates->count() }}
+                                                    {{ $election->candidates_count }}
                                                 </span>
                                             </td>
                                             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-center">
                                                 @if($election->resultsAreVisible())
                                                     <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700/10">
-                                                        {{ $election->votes->count() }}
+                                                        {{ $election->votes_count }}
                                                     </span>
                                                 @elseif($election->isVotingPeriod())
                                                     <span class="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-700/10">
@@ -89,21 +89,20 @@
                                                 @endif
                                             </td>
                                             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-center">
-                                                @if($election->isActive())
-                                                    <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700/10">
-                                                        Active
-                                                    </span>
-                                                @elseif(now() < $election->start_date)
-                                                    <span class="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">
-                                                        Upcoming
+                                                @php
+                                                    $stage = $election->currentStage();
+                                                @endphp
+                                                @if(! $election->active)
+                                                    <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                                        Inactive
                                                     </span>
                                                 @else
-                                                    <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
-                                                        Ended
+                                                    <span class="inline-flex items-center whitespace-nowrap rounded-md bg-gray-50 px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-500/10 {{ $stage['color'] }}">
+                                                        {{ $stage['label'] }}
                                                     </span>
                                                 @endif
                                             </td>
-                                            <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                                            <td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-3">
                                                 <div class="flex justify-end gap-2">
                                                     <a href="{{ route('admin.elections.show', $election) }}"
                                                         class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">

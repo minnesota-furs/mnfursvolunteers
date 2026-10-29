@@ -4,6 +4,15 @@
         {{ __('Board Elections') }}
     </x-slot>
 
+    @can('manage-elections')
+        <x-slot name="actions">
+            <a href="{{ route('admin.elections.index') }}"
+                class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                <x-heroicon-s-cog-6-tooth class="w-4 inline"/> Manage Elections
+            </a>
+        </x-slot>
+    @endcan
+
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @if($elections->count() > 0)

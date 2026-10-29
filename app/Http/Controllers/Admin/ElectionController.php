@@ -3,33 +3,33 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Election;
+use App\Mail\CandidateNomination;
+use App\Mail\VotingReminder;
 use App\Models\Candidate;
-use App\Models\Vote;
-use App\Models\User;
+use App\Models\CommunicationLog;
+use App\Models\Election;
 use App\Models\FiscalLedger;
+use App\Models\User;
+use App\Models\Vote;
+use App\Notifications\AppNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Parsedown;
-use App\Mail\VotingReminder;
-use App\Mail\CandidateNomination;
-use App\Models\CommunicationLog;
-use App\Notifications\AppNotification;
 
 class ElectionController extends Controller
 {
     public function index()
     {
-        $elections = Election::with(['candidates', 'votes'])
+        $elections = Election::withCount(['candidates', 'votes'])
             ->orderBy('start_date', 'desc')
             ->get();
 
         // Convert markdown to HTML using Parsedown for all elections
         // For index, only show content until first line break
-        $parsedown = new Parsedown();
+        $parsedown = new Parsedown;
         foreach ($elections as $election) {
             $firstParagraph = explode("\n\n", $election->description)[0];
             $firstLine = explode("\n", $firstParagraph)[0];
@@ -42,6 +42,7 @@ class ElectionController extends Controller
     public function create()
     {
         $fiscalLedgers = FiscalLedger::orderBy('start_date', 'desc')->get();
+
         return view('admin.elections.create', compact('fiscalLedgers'));
     }
 
@@ -73,7 +74,7 @@ class ElectionController extends Controller
     public function show(Election $election)
     {
         $election->load(['candidates.user', 'votes']);
-        
+
         // Get vote counts for each candidate
         $candidates = $election->candidates()
             ->with('user')
@@ -83,7 +84,7 @@ class ElectionController extends Controller
 
         // Count unique voters instead of total votes for turnout
         $uniqueVoters = $election->votes()->distinct('user_id')->count('user_id');
-        
+
         // Also get total votes for display
         $totalVotes = $election->votes()->count();
 
@@ -102,7 +103,7 @@ class ElectionController extends Controller
         }
 
         // Convert markdown to HTML using Parsedown
-        $parsedown = new Parsedown();
+        $parsedown = new Parsedown;
         $election->parsedDescription = $parsedown->text($election->description);
 
         return view('admin.elections.show', compact('election', 'candidates', 'uniqueVoters', 'totalVotes', 'eligibleVoters'));
@@ -111,6 +112,7 @@ class ElectionController extends Controller
     public function edit(Election $election)
     {
         $fiscalLedgers = FiscalLedger::orderBy('start_date', 'desc')->get();
+
         return view('admin.elections.edit', compact('election', 'fiscalLedgers'));
     }
 
@@ -136,7 +138,7 @@ class ElectionController extends Controller
 
         return redirect()->route('admin.elections.show', $election)
             ->with('success', [
-                'message' => "Election updated successfully",
+                'message' => 'Election updated successfully',
             ]);
     }
 
@@ -146,13 +148,13 @@ class ElectionController extends Controller
 
         return redirect()->route('admin.elections.index')
             ->with('success', [
-                'message' => "Election deleted successfully",
+                'message' => 'Election deleted successfully',
             ]);
     }
 
     public function candidates(Election $election)
     {
-                $candidates = $election->candidates()
+        $candidates = $election->candidates()
             ->with('user')
             ->when($election->resultsAreVisible(), function ($query) {
                 return $query->withCount('votes');
@@ -168,8 +170,8 @@ class ElectionController extends Controller
         $candidate->update(['approved' => true]);
 
         return back()->with('success', [
-                'message' => "Candidate approved successfully",
-            ]);
+            'message' => 'Candidate approved successfully',
+        ]);
     }
 
     public function rejectCandidate(Election $election, Candidate $candidate)
@@ -177,15 +179,15 @@ class ElectionController extends Controller
         $candidate->update(['approved' => false]);
 
         return back()->with('success', [
-                'message' => "Candidate rejected successfully",
-            ]);
+            'message' => 'Candidate rejected successfully',
+        ]);
     }
 
     public function results(Election $election)
     {
-        if (!$election->resultsAreVisible()) {
+        if (! $election->resultsAreVisible()) {
             return redirect()->route('admin.elections.show', $election)
-                ->with('error', 'Results will be available after the voting period ends on ' . $election->end_date->format('M j, Y g:i A'));
+                ->with('error', 'Results will be available after the voting period ends on '.$election->end_date->format('M j, Y g:i A'));
         }
 
         $candidates = $election->candidates()
@@ -196,10 +198,10 @@ class ElectionController extends Controller
 
         // Count unique voters
         $uniqueVoters = $election->votes()->distinct('user_id')->count('user_id');
-        
+
         // Count total votes for percentage calculations
         $totalVotes = $election->votes()->count();
-        
+
         $eligibleVoters = User::where('active', true)->count();
 
         return view('admin.elections.results', compact('election', 'candidates', 'uniqueVoters', 'totalVotes', 'eligibleVoters'));
@@ -235,19 +237,19 @@ class ElectionController extends Controller
 
         // Get the user to check hours requirements
         $user = User::findOrFail($request->user_id);
-        
+
         // Check hours requirement (admin can override with a warning)
-        if ($election->min_candidate_hours > 0 && !$election->userCanBeCandidate($user)) {
-            if (!$request->has('force_create')) {
+        if ($election->min_candidate_hours > 0 && ! $election->userCanBeCandidate($user)) {
+            if (! $request->has('force_create')) {
                 // Get user's hours for the relevant fiscal period
-                $userHours = $election->fiscal_ledger_id 
+                $userHours = $election->fiscal_ledger_id
                     ? $user->getHoursForFiscalLedger($election->fiscal_ledger_id)
                     : $user->getCurrentFiscalYearHours();
-                
-                $fiscalPeriodName = $election->fiscal_ledger_id 
-                    ? $election->fiscalLedger->name 
+
+                $fiscalPeriodName = $election->fiscal_ledger_id
+                    ? $election->fiscalLedger->name
                     : 'current fiscal year';
-                
+
                 return back()
                     ->withInput()
                     ->with('warning', "This user only has {$userHours} volunteer hours in {$fiscalPeriodName} but {$election->min_candidate_hours} hours are required. Check 'Force Create' to add them anyway.");
@@ -258,7 +260,7 @@ class ElectionController extends Controller
             'election_id' => $election->id,
             'user_id' => $request->user_id,
             'statement' => $request->statement,
-            'approved' => $request->has('approved') ? true : !$election->requires_approval,
+            'approved' => $request->has('approved') ? true : ! $election->requires_approval,
         ]);
 
         if ($request->has('notify_candidate')) {
@@ -313,7 +315,7 @@ class ElectionController extends Controller
 
         return redirect()->route('admin.elections.candidates', $election)
             ->with('success', [
-                'message' => "Candidate added successfully",
+                'message' => 'Candidate added successfully',
             ]);
     }
 
@@ -328,8 +330,8 @@ class ElectionController extends Controller
         $candidate->delete();
 
         return back()->with('success', [
-                'message' => "Removed {$candidateName} successfully",
-            ]);
+            'message' => "Removed {$candidateName} successfully",
+        ]);
     }
 
     public function voters(Election $election)
@@ -341,11 +343,11 @@ class ElectionController extends Controller
             ->groupBy('user_id', 'election_id')
             ->with('user:id,name,email,vol_code')
             ->get()
-            ->map(function($vote) {
+            ->map(function ($vote) {
                 return [
                     'user' => $vote->user,
                     'voted_at' => $vote->voted_at,
-                    'vote_count' => $vote->vote_count
+                    'vote_count' => $vote->vote_count,
                 ];
             })
             ->sortBy('voted_at');
@@ -382,7 +384,7 @@ class ElectionController extends Controller
 
         return redirect()->route('admin.elections.candidates', $election)
             ->with('success', [
-                'message' => "Candidate updated successfully",
+                'message' => 'Candidate updated successfully',
             ]);
     }
 
@@ -390,7 +392,7 @@ class ElectionController extends Controller
     {
         // Load fiscal ledger if configured
         $election->load('fiscalLedger');
-        
+
         // Get unique voter IDs from votes
         $voterIds = Vote::where('election_id', $election->id)
             ->distinct('user_id')
@@ -409,19 +411,19 @@ class ElectionController extends Controller
 
         // Create CSV content with volunteer hours column
         $csv = "Name,Department,Sector,Volunteer Code,Volunteer Hours ($fiscalPeriodName),Vote Count\n";
-        
+
         foreach ($voters as $voter) {
             $voteCount = Vote::where('election_id', $election->id)
                 ->where('user_id', $voter->id)
                 ->count();
-            
+
             // Get volunteer hours for the relevant fiscal period
             $volunteerHours = $election->fiscal_ledger_id
                 ? $voter->totalVolunteerHoursForFiscalPeriod($election->fiscal_ledger_id)
                 : $voter->totalHoursForCurrentFiscalLedger();
-            
+
             $csv .= sprintf(
-                '"%s","%s","%s","%s",%.2f,%d' . "\n",
+                '"%s","%s","%s","%s",%.2f,%d'."\n",
                 $voter->name,
                 $voter->department ? $voter->department->name : 'N/A',
                 $voter->department && $voter->department->sector ? $voter->department->sector->name : 'N/A',
@@ -431,17 +433,17 @@ class ElectionController extends Controller
             );
         }
 
-        $filename = 'voter-turnout-' . Str::slug($election->title) . '-' . now()->format('Y-m-d') . '.csv';
+        $filename = 'voter-turnout-'.Str::slug($election->title).'-'.now()->format('Y-m-d').'.csv';
 
         return response($csv, 200, [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
 
     public function exportResultsImage(Election $election)
     {
-        if (!$election->resultsAreVisible()) {
+        if (! $election->resultsAreVisible()) {
             return redirect()->route('admin.elections.show', $election)
                 ->with('error', 'Results will be available after the voting period ends.');
         }
@@ -469,7 +471,7 @@ class ElectionController extends Controller
         imagefilledrectangle($image, 0, 0, $width, $height, $white);
 
         // Add title using GD built-in fonts (more reliable in Docker)
-        $title = $election->title . ' - Results';
+        $title = $election->title.' - Results';
         imagestring($image, 5, 40, 30, $title, $darkText);
 
         // Draw separator line
@@ -478,39 +480,39 @@ class ElectionController extends Controller
         // Display results
         $y = 110;
         $maxDisplay = min(5, $candidates->count()); // Show top 5 candidates
-        
+
         foreach ($candidates->take($maxDisplay) as $index => $candidate) {
             $isElected = $index < $election->max_positions;
             $barColor = $isElected ? $green : $gray;
-            
+
             // Calculate bar width based on votes
             $totalVotes = $election->votes()->count();
             $percentage = $totalVotes > 0 ? ($candidate->votes_count / $totalVotes) * 100 : 0;
-            $barWidth = (int)(($width - 160) * ($percentage / 100));
-            
+            $barWidth = (int) (($width - 160) * ($percentage / 100));
+
             // Draw position number
-            $positionText = '#' . ($index + 1);
+            $positionText = '#'.($index + 1);
             imagestring($image, 5, 40, $y - 10, $positionText, $darkText);
-            
+
             // Draw candidate name
             $nameText = $candidate->user->name;
             if (strlen($nameText) > 30) {
-                $nameText = substr($nameText, 0, 27) . '...';
+                $nameText = substr($nameText, 0, 27).'...';
             }
             imagestring($image, 4, 80, $y - 8, $nameText, $darkText);
-            
+
             // Draw vote bar
             imagefilledrectangle($image, 280, $y - 15, 280 + $barWidth, $y + 10, $barColor);
-            
+
             // Draw vote count
-            $voteText = $candidate->votes_count . ' votes (' . number_format($percentage, 1) . '%)';
+            $voteText = $candidate->votes_count.' votes ('.number_format($percentage, 1).'%)';
             imagestring($image, 3, 290 + $barWidth, $y - 8, $voteText, $darkText);
-            
+
             $y += 70;
         }
 
         // Add footer with date
-        $footerText = 'Results as of ' . now()->format('M j, Y g:i A');
+        $footerText = 'Results as of '.now()->format('M j, Y g:i A');
         imagestring($image, 3, 40, $height - 30, $footerText, $gray);
 
         // Output image
@@ -519,11 +521,11 @@ class ElectionController extends Controller
         $imageData = ob_get_clean();
         imagedestroy($image);
 
-        $filename = 'election-results-' . Str::slug($election->title) . '-' . now()->format('Y-m-d') . '.png';
+        $filename = 'election-results-'.Str::slug($election->title).'-'.now()->format('Y-m-d').'.png';
 
         return response($imageData, 200, [
             'Content-Type' => 'image/png',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
 
@@ -536,10 +538,10 @@ class ElectionController extends Controller
         $voterData = $election->getEligibleNonVoters();
         $eligibleNonVoters = $voterData['eligible'];
         $optedOutUsers = $voterData['opted_out'];
-        
+
         // Get fiscal ledger info for context
         $fiscalLedger = $election->fiscalLedger;
-        
+
         // Add hours info to each user
         foreach ($eligibleNonVoters as $user) {
             if ($election->fiscal_ledger_id) {
@@ -548,7 +550,7 @@ class ElectionController extends Controller
                 $user->hours_for_period = $user->getCurrentFiscalYearHours();
             }
         }
-        
+
         // Add hours info to opted-out users too
         foreach ($optedOutUsers as $user) {
             if ($election->fiscal_ledger_id) {
@@ -557,7 +559,7 @@ class ElectionController extends Controller
                 $user->hours_for_period = $user->getCurrentFiscalYearHours();
             }
         }
-        
+
         return view('admin.elections.eligible-voters', compact('election', 'eligibleNonVoters', 'optedOutUsers', 'fiscalLedger'));
     }
 
@@ -567,32 +569,33 @@ class ElectionController extends Controller
     public function sendVotingReminders(Request $request, Election $election)
     {
         $userIds = $request->input('user_ids', []);
-        
+
         if (empty($userIds)) {
             return redirect()->route('admin.elections.eligible-voters', $election)
                 ->with('error', 'Please select at least one user to send reminders to.');
         }
-        
+
         // Get eligible non-voters (returns array with 'eligible' and 'opted_out' keys)
         $voterData = $election->getEligibleNonVoters();
         $eligibleNonVoters = $voterData['eligible'];
-        
+
         $sentCount = 0;
         $failedCount = 0;
         $errors = [];
-        
+
         foreach ($userIds as $userId) {
             $user = $eligibleNonVoters->firstWhere('id', $userId);
-            
-            if (!$user) {
+
+            if (! $user) {
                 $failedCount++;
+
                 continue;
             }
-            
+
             try {
                 Mail::to($user->email)->send(new VotingReminder($user, $election));
                 $sentCount++;
-                
+
                 // Log successful communication
                 CommunicationLog::create([
                     'user_id' => $user->id,
@@ -608,7 +611,7 @@ class ElectionController extends Controller
                         'election_title' => $election->title,
                     ],
                 ]);
-                
+
                 Log::info('Voting reminder sent', [
                     'election_id' => $election->id,
                     'election_title' => $election->title,
@@ -618,7 +621,7 @@ class ElectionController extends Controller
             } catch (\Exception $e) {
                 $failedCount++;
                 $errors[] = "Failed to send to {$user->name} ({$user->email})";
-                
+
                 // Log failed communication
                 CommunicationLog::create([
                     'user_id' => $user->id,
@@ -635,28 +638,28 @@ class ElectionController extends Controller
                         'error' => $e->getMessage(),
                     ],
                 ]);
-                
+
                 Log::error('Failed to send voting reminder', [
                     'election_id' => $election->id,
                     'user_id' => $user->id,
                     'email' => $user->email,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
-        
-        $message = "Successfully sent {$sentCount} voting reminder" . ($sentCount !== 1 ? 's' : '');
-        
+
+        $message = "Successfully sent {$sentCount} voting reminder".($sentCount !== 1 ? 's' : '');
+
         if ($failedCount > 0) {
-            $message .= ". Failed to send {$failedCount} email" . ($failedCount !== 1 ? 's' : '');
-            if (!empty($errors)) {
-                $message .= ': ' . implode(', ', array_slice($errors, 0, 3));
+            $message .= ". Failed to send {$failedCount} email".($failedCount !== 1 ? 's' : '');
+            if (! empty($errors)) {
+                $message .= ': '.implode(', ', array_slice($errors, 0, 3));
                 if (count($errors) > 3) {
-                    $message .= ' and ' . (count($errors) - 3) . ' more';
+                    $message .= ' and '.(count($errors) - 3).' more';
                 }
             }
         }
-        
+
         return redirect()->route('admin.elections.eligible-voters', $election)
             ->with($failedCount > 0 ? 'warning' : 'success', ['message' => $message]);
     }

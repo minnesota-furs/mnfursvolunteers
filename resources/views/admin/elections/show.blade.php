@@ -54,6 +54,8 @@
                         </div>
                     </div>
 
+                    <x-election-timeline :election="$election" class="mt-6" />
+
                     <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-4">
                         <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:p-6 rounded-lg">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Candidates</dt>

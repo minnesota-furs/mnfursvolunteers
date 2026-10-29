@@ -49,6 +49,8 @@
           <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg border border-gray-200 dark:border-gray-700 mb-8">
             <div class="px-6 py-6">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Election Information</h2>
+
+                <x-election-timeline :election="$election" class="mb-6" />
                 
                 <dl class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     @if($election->hasNominationPeriod())

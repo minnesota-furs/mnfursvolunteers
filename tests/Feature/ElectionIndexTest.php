@@ -154,3 +154,54 @@ it('hides the Elections navigation link when no election is running', function (
         ->assertOk()
         ->assertDontSee('<p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Elections</p>', false);
 });
+
+it('renders the nomination form with a compact submit button', function () {
+    $user = User::factory()->create(['onboarded_at' => now()]);
+    $election = Election::create([
+        'title' => 'Board Election',
+        'description' => 'Vote!',
+        'nomination_start_date' => now()->subDay(),
+        'nomination_end_date' => now()->addDay(),
+        'start_date' => now()->addDays(3),
+        'end_date' => now()->addWeeks(2),
+        'active' => true,
+        'max_positions' => 1,
+        'allow_self_nomination' => true,
+        'min_voter_hours' => 0,
+        'min_candidate_hours' => 0,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('elections.nominate', $election))
+        ->assertOk()
+        ->assertSee('Submit Nomination')
+        ->assertSee('px-3 py-2 text-sm font-semibold text-white', false)
+        ->assertDontSee('px-6 py-3 text-base', false);
+});
+
+it('shows a manage elections button only to users who can manage elections', function () {
+    $manager = User::factory()->create(['onboarded_at' => now()]);
+    $manager->givePermission('Manage Elections');
+    $manageUrl = route('admin.elections.index');
+
+    $this->actingAs($manager)
+        ->get(route('elections.index'))
+        ->assertOk()
+        ->assertSee('Manage Elections')
+        ->assertSee('href="'.$manageUrl.'"', false);
+
+    $this->actingAs(User::factory()->create(['onboarded_at' => now()]))
+        ->get(route('elections.index'))
+        ->assertOk()
+        ->assertDontSee('href="'.$manageUrl.'"', false);
+});
+
+it('shows the timeline on the public election page', function () {
+    User::factory()->create();
+    $election = electionInReviewPeriod();
+
+    $this->get(route('elections-public.show', $election))
+        ->assertOk()
+        ->assertSee('Election progress: currently in Review.')
+        ->assertSeeInOrder(['Nominations', 'Review', 'Voting', 'Election Results']);
+});

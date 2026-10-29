@@ -9,6 +9,12 @@
             class="block rounded-md px-3 py-2 text-center text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             Back to Elections
         </a>
+        @can('manage-elections')
+            <a href="{{ route('admin.elections.edit', $election) }}"
+                class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                <x-heroicon-s-pencil class="w-4 inline"/> Edit
+            </a>
+        @endcan
         @if($election->resultsAreVisible())
             <a href="{{ route('elections.results', $election) }}"
                 class="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-brand-green shadow-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
@@ -71,7 +77,7 @@
                         </div>
                     </div>
 
-                    <x-election-timeline :election="$election" class="mb-6" />
+                    <x-election-timeline :election="$election" class="mt-6 mb-6" />
 
                     @if($election->milestones->isNotEmpty())
                         <details class="group mb-6">
