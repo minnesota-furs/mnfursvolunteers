@@ -92,7 +92,7 @@
                                         <div class="min-w-0 text-sm">
                                             <p class="font-medium text-gray-900 dark:text-gray-100 break-words">
                                                 {{ $milestone->title }}
-                                                <span class="font-normal text-gray-500 dark:text-gray-400">· {{ $milestone->starts_at->format('M j, Y g:i A') }}</span>
+                                                <span class="font-normal text-gray-500 dark:text-gray-400">· <x-user-time :time="$milestone->starts_at" /></span>
                                                 @if($milestone->starts_at->isPast())
                                                     <span class="ml-1 inline-flex items-center rounded bg-gray-100 px-1.5 text-[11px] font-medium leading-4 text-gray-600 ring-1 ring-inset ring-gray-500/10 dark:bg-gray-700 dark:text-gray-300">Past</span>
                                                 @endif
@@ -117,16 +117,16 @@
                         <div>
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Nomination Period</dt>
                             <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                {{ $election->nomination_start_date->format('M j, Y g:i A') }}<br>
-                                to {{ $election->nomination_end_date->format('M j, Y g:i A') }}
+                                <x-user-time :time="$election->nomination_start_date" /><br>
+                                to <x-user-time :time="$election->nomination_end_date" />
                             </dd>
                         </div>
                         @endif
                         <div>
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Voting Period</dt>
                             <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                {{ $election->start_date->format('M j, Y g:i A') }}<br>
-                                to {{ $election->end_date->format('M j, Y g:i A') }}
+                                <x-user-time :time="$election->start_date" /><br>
+                                to <x-user-time :time="$election->end_date" />
                             </dd>
                         </div>
                         <div>
@@ -478,6 +478,8 @@
                                 </div>
                             @endif
                         @endif
+
+                        <x-election-voter-confidence :election="$election" class="mt-6 flex justify-end" />
                     </div>
                 </div>
             @else

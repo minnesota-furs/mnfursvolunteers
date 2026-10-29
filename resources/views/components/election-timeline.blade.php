@@ -1,6 +1,7 @@
 @props(['election'])
 
 @php
+    $userTimezone = user_timezone();
     $timeline = $election->timeline();
     $segments = $timeline['segments'];
     $gap = 0.25;
@@ -15,7 +16,7 @@
         @foreach($segments as $segment)
             <div class="relative h-3 overflow-hidden {{ $loop->first ? 'rounded-l-full' : '' }} {{ $loop->last ? 'rounded-r-full' : '' }}"
                 style="flex: {{ $segment['weight'] }} 1 0%"
-                title="{{ $segment['label'] }} ({{ $segment['start']->format('M j, Y g:i A') }} to {{ $segment['end']->format('M j, Y g:i A') }})">
+                title="{{ $segment['label'] }} ({{ $segment['start']->copy()->setTimezone($userTimezone)->format('M j, Y g:i A') }} to {{ $segment['end']->copy()->setTimezone($userTimezone)->format('M j, Y g:i A') }})">
                 <div class="absolute inset-0 opacity-25 {{ $segment['color'] }}"></div>
                 <div class="relative h-full {{ $segment['color'] }}" style="width: {{ $segment['fill'] }}%"></div>
             </div>
@@ -35,9 +36,9 @@
                 <span class="font-medium text-gray-900 dark:text-gray-100">{{ $segment['label'] }}</span>
                 <span>
                     @if($segment['isMilestone'])
-                        {{ $segment['start']->format('M j') }}
+                        <x-user-time :time="$segment['start']" format="M j" />
                     @else
-                        {{ $segment['start']->format('M j') }} – {{ $segment['end']->format('M j') }}
+                        <x-user-time :time="$segment['start']" format="M j" /> – <x-user-time :time="$segment['end']" format="M j" />
                     @endif
                 </span>
             </li>
@@ -49,9 +50,9 @@
                 <div class="font-medium text-gray-900 dark:text-gray-100">{{ $segment['label'] }}</div>
                 <div>
                     @if($segment['isMilestone'])
-                        {{ $segment['start']->format('M j') }}
+                        <x-user-time :time="$segment['start']" format="M j" />
                     @else
-                        {{ $segment['start']->format('M j') }} – {{ $segment['end']->format('M j') }}
+                        <x-user-time :time="$segment['start']" format="M j" /> – <x-user-time :time="$segment['end']" format="M j" />
                     @endif
                 </div>
             </div>

@@ -332,3 +332,74 @@ it('does not warn nominated users once the nomination period has closed', functi
         ->assertOk()
         ->assertDontSee('removed from the ballot');
 });
+
+it('explains how voting is kept fair and secure in a modal on the election page', function () {
+    $election = makeElection(['min_voter_hours' => 5, 'max_positions' => 2]);
+
+    $this->actingAs($this->user)
+        ->get(route('elections.show', $election))
+        ->assertOk()
+        ->assertSee('How is voting kept fair and secure?')
+        ->assertSee('Voter confidence')
+        ->assertSee('at least 5 volunteer hours')
+        ->assertSee('up to 2 candidates')
+        ->assertSee('Nobody, including election administrators')
+        ->assertSee('What isn\'t anonymous', false)
+        ->assertSee('Administrators with election management permission can see who voted and when, only for auditing')
+        ->assertSee('election support queries')
+        ->assertSee('no feature for anyone, administrators included, to change who a ballot is for')
+        ->assertSee("open-modal', 'voter-confidence-{$election->id}'", false)
+        ->assertSee('x-teleport="body"', false)
+        ->assertSee('can be validated against the open source codebase')
+        ->assertSee('href="https://github.com/minnesota-furs/mnfursvolunteers"', false)
+        ->assertSee('sm:max-w-2xl', false);
+});
+
+it('omits the hours sentence from the voter confidence modal when there is no requirement', function () {
+    $election = makeElection(['min_voter_hours' => 0]);
+
+    $this->actingAs($this->user)
+        ->get(route('elections.show', $election))
+        ->assertOk()
+        ->assertSee('Voter confidence')
+        ->assertDontSee('volunteer hours in');
+});
+
+it('shows election times in the viewer\'s timezone with the native time on hover', function () {
+    $election = makeElection(['start_date' => now()->subDay(), 'end_date' => now()->addWeek()]);
+    $this->user->forceFill(['timezone' => 'Asia/Tokyo'])->save();
+
+    $localStart = $election->start_date->copy()->setTimezone('Asia/Tokyo')->format('M j, Y g:i A');
+    $nativeStart = $election->start_date->copy()->setTimezone(app_timezone())->format('M j, Y g:i A T');
+
+    $this->actingAs($this->user)
+        ->get(route('elections.show', $election))
+        ->assertOk()
+        ->assertSee($localStart)
+        ->assertSee("App's Native Time", false)
+        ->assertSee($nativeStart);
+});
+
+it('shows election times in the app timezone to users without a timezone preference', function () {
+    $election = makeElection(['start_date' => now()->subDay(), 'end_date' => now()->addWeek()]);
+
+    $this->actingAs($this->user)
+        ->get(route('elections.show', $election))
+        ->assertOk()
+        ->assertSee($election->start_date->copy()->setTimezone(app_timezone())->format('M j, Y g:i A'))
+        ->assertDontSee("App's Native Time", false);
+});
+
+it('places the voter confidence link at the bottom of the candidates container', function () {
+    $election = makeElection();
+
+    $html = $this->actingAs($this->user)
+        ->get(route('elections.show', $election))
+        ->assertOk()
+        ->getContent();
+
+    expect(substr_count($html, 'How is voting kept fair and secure?'))->toBe(1)
+        ->and(strpos($html, 'How is voting kept fair and secure?'))->toBeGreaterThan(strpos($html, 'Choose Your Candidate'))
+        ->and($html)->toContain('mt-6 flex justify-end')
+        ->and($html)->toContain('text-xs text-gray-500');
+});
