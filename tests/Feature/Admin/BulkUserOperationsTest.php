@@ -4,7 +4,6 @@ namespace Tests\Feature\Admin;
 
 use App\Models\Department;
 use App\Models\FiscalLedger;
-use App\Models\Permission;
 use App\Models\Sector;
 use App\Models\Tag;
 use App\Models\User;
@@ -16,21 +15,23 @@ class BulkUserOperationsTest extends TestCase
     use RefreshDatabase;
 
     protected User $adminUser;
+
     protected User $user1;
+
     protected User $user2;
+
     protected Department $department;
+
     protected FiscalLedger $fiscalLedger;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        // Create permissions
-        $manageUsersPermission = Permission::firstOrCreate(['name' => 'manage-users']);
-
-        // Create admin user
-        $this->adminUser = User::factory()->create(['email' => 'admin@test.com']);
-        $this->adminUser->permissions()->attach($manageUsersPermission);
+        $this->adminUser = User::factory()->create([
+            'email' => 'admin@test.com',
+            'permissions' => ['Manage Users'],
+        ]);
 
         // Create test users
         $this->user1 = User::factory()->create(['name' => 'Test User 1']);
@@ -71,13 +72,15 @@ class BulkUserOperationsTest extends TestCase
         $this->assertDatabaseHas('volunteer_hours', [
             'user_id' => $this->user1->id,
             'hours' => 5.0,
-            'department_id' => $this->department->id,
+            'primary_dept_id' => $this->department->id,
+            'fiscal_ledger_id' => $this->fiscalLedger->id,
         ]);
 
         $this->assertDatabaseHas('volunteer_hours', [
             'user_id' => $this->user2->id,
             'hours' => 5.0,
-            'department_id' => $this->department->id,
+            'primary_dept_id' => $this->department->id,
+            'fiscal_ledger_id' => $this->fiscalLedger->id,
         ]);
     }
 
@@ -178,7 +181,7 @@ class BulkUserOperationsTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        $response->assertSessionHas('error');
+        $response->assertSessionHasErrors('user_ids');
     }
 
     /** @test */

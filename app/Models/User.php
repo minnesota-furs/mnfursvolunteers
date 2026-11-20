@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\GeneratesVolCode;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -290,13 +291,13 @@ class User extends Authenticatable
         return $customFieldValue ? $customFieldValue->value : null;
     }
 
-    public function totalVolunteerHours()
+    public function totalVolunteerHours(): float
     {
         if (! $this->relationLoaded('volunteerHours')) {
             $this->load('volunteerHours');
         }
 
-        return $this->volunteerHours->sum('hours');
+        return (float) $this->volunteerHours->sum('hours');
     }
 
     public function totalVolunteerHoursForFiscalPeriod($fiscalLedgerId)
@@ -380,6 +381,19 @@ class User extends Authenticatable
     public function token()
     {
         return $this->accessToken;
+    }
+
+    /**
+     * Add an "or" condition matching the user's "First Last" name against a LIKE
+     * pattern, using the concatenation syntax of the active database driver.
+     */
+    public function scopeOrWhereFullNameLike(Builder $query, string $pattern): Builder
+    {
+        $fullName = $query->getConnection()->getDriverName() === 'sqlite'
+            ? "first_name || ' ' || last_name"
+            : "CONCAT(first_name, ' ', last_name)";
+
+        return $query->orWhereRaw("{$fullName} LIKE ?", [$pattern]);
     }
 
     public function hasPermission(string $permission): bool

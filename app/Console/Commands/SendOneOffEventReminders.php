@@ -27,16 +27,20 @@ class SendOneOffEventReminders extends Command
      */
     protected $description = 'Send opt-in email/Telegram reminders to volunteers RSVP\'d for Simple Volunteer Events';
 
-    public function __construct(private TelegramService $telegram)
-    {
-        parent::__construct();
-    }
+    /**
+     * Resolved in handle() rather than the constructor: Artisan instantiates every
+     * command on boot, and TelegramService reads settings from the database, which
+     * would break `artisan migrate` on a fresh database.
+     */
+    protected TelegramService $telegram;
 
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(TelegramService $telegram): int
     {
+        $this->telegram = $telegram;
+
         $this->sendMorningReminders();
         $this->sendHourBeforeReminders();
 
@@ -114,7 +118,7 @@ class SendOneOffEventReminders extends Command
             $user = $rsvp->user;
             $event = $rsvp->event;
 
-            if (!$user || !$event) {
+            if (! $user || ! $event) {
                 continue;
             }
 
@@ -151,7 +155,7 @@ class SendOneOffEventReminders extends Command
             }
         }
 
-        $this->info("Sent {$sent} '{$timing}' reminder(s)" . ($failed ? ", {$failed} failed." : '.'));
+        $this->info("Sent {$sent} '{$timing}' reminder(s)".($failed ? ", {$failed} failed." : '.'));
     }
 
     protected function telegramReminderText(User $user, OneOffEvent $event, string $timing): string
@@ -166,11 +170,11 @@ class SendOneOffEventReminders extends Command
                 : "Don't forget to check in for today's event!";
         }
 
-        $text = "<b>Event Reminder</b>\n{$intro}\n\n<b>" . e($event->name) . '</b>';
-        $text .= "\n" . $event->start_time->format('g:i A') . ($event->end_time ? ' - ' . $event->end_time->format('g:i A') : '');
+        $text = "<b>Event Reminder</b>\n{$intro}\n\n<b>".e($event->name).'</b>';
+        $text .= "\n".$event->start_time->format('g:i A').($event->end_time ? ' - '.$event->end_time->format('g:i A') : '');
 
         if ($event->location) {
-            $text .= "\n" . e($event->location);
+            $text .= "\n".e($event->location);
         }
 
         return $text;

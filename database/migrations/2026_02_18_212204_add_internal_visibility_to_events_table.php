@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
@@ -12,10 +10,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('events', function (Blueprint $table) {
-            // Drop the old enum column and recreate with new values
-            DB::statement("ALTER TABLE events MODIFY COLUMN visibility ENUM('public', 'unlisted', 'internal', 'draft') DEFAULT 'draft'");
-        });
+        $this->setVisibilityOptions(['public', 'unlisted', 'internal', 'draft']);
     }
 
     /**
@@ -23,9 +18,26 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('events', function (Blueprint $table) {
-            // Revert back to original enum values
-            DB::statement("ALTER TABLE events MODIFY COLUMN visibility ENUM('public', 'unlisted', 'draft') DEFAULT 'draft'");
-        });
+        $this->setVisibilityOptions(['public', 'unlisted', 'draft']);
+    }
+
+    /**
+     * SQLite cannot modify a column in place, so the column is rebuilt there.
+     * SQLite is only used for the test database, so existing values are not preserved.
+     *
+     * @param  list<string>  $options
+     */
+    private function setVisibilityOptions(array $options): void
+    {
+        $quotedOptions = implode(', ', array_map(fn (string $option): string => "'{$option}'", $options));
+
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('ALTER TABLE events DROP COLUMN visibility');
+            DB::statement("ALTER TABLE events ADD COLUMN visibility VARCHAR NOT NULL DEFAULT 'draft' CHECK (visibility IN ({$quotedOptions}))");
+
+            return;
+        }
+
+        DB::statement("ALTER TABLE events MODIFY COLUMN visibility ENUM({$quotedOptions}) DEFAULT 'draft'");
     }
 };

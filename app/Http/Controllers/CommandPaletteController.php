@@ -22,7 +22,7 @@ class CommandPaletteController extends Controller
                     ->orWhere('name', 'like', $likeSearchQuery)
                     ->orWhere('first_name', 'like', $likeSearchQuery)
                     ->orWhere('last_name', 'like', $likeSearchQuery)
-                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", [$likeSearchQuery]);
+                    ->orWhereFullNameLike($likeSearchQuery);
             })
             ->orderBy('name')
             ->limit(8)
