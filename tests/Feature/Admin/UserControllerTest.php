@@ -3,9 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\User;
-use App\Models\Permission; // Assuming a Permission model
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class UserControllerTest extends TestCase
@@ -13,54 +11,51 @@ class UserControllerTest extends TestCase
     use RefreshDatabase;
 
     protected User $adminUser;
+
     protected User $userAlice;
+
     protected User $userBob;
+
     protected User $userCharlie;
+
     protected User $userAlex;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        // Create permissions
-        $manageUsersPermission = Permission::firstOrCreate(['name' => 'manage-users']);
-        // Assuming other permissions might be needed by default or for other tests
-        Permission::firstOrCreate(['name' => 'view-dashboard']);
-
-
-        // Create admin user and assign permission
         $this->adminUser = User::factory()->create([
             'email' => 'admin@example.com',
-            'username' => 'adminuser',
+            'name' => 'adminuser',
+            'permissions' => ['Manage Users'],
         ]);
-        $this->adminUser->permissions()->attach($manageUsersPermission);
 
         // Create other users for searching
         $this->userAlice = User::factory()->create([
             'first_name' => 'Alice',
             'last_name' => 'Wonderland',
-            'username' => 'alicew',
+            'name' => 'alicew',
             'email' => 'alice@example.com',
         ]);
 
         $this->userBob = User::factory()->create([
             'first_name' => 'Bob',
             'last_name' => 'The Builder',
-            'username' => 'bobthebuilder',
+            'name' => 'bobthebuilder',
             'email' => 'bob@example.com',
         ]);
 
         $this->userCharlie = User::factory()->create([
             'first_name' => 'Charlie',
             'last_name' => 'Brown',
-            'username' => 'charlieb',
+            'name' => 'charlieb',
             'email' => 'charlie@example.com',
         ]);
 
         $this->userAlex = User::factory()->create([
             'first_name' => 'Alex',
             'last_name' => 'P. Keaton',
-            'username' => 'alexpk',
+            'name' => 'alexpk',
             'email' => 'alex@example.com',
         ]);
 
@@ -68,7 +63,7 @@ class UserControllerTest extends TestCase
         User::factory()->create([
             'first_name' => 'Alex',
             'last_name' => 'Smith',
-            'username' => 'alexs',
+            'name' => 'alexs',
             'email' => 'alex.smith@example.com',
         ]);
     }
@@ -85,7 +80,7 @@ class UserControllerTest extends TestCase
         $response->assertJsonFragment([
             'id' => $this->userAlice->id,
             'first_name' => 'Alice',
-            'username' => 'alicew',
+            'name' => 'alicew',
             'email' => 'alice@example.com',
         ]);
         $response->assertJsonMissing([
@@ -107,7 +102,7 @@ class UserControllerTest extends TestCase
             'id' => $this->userBob->id,
             'first_name' => 'Bob',
             'last_name' => 'The Builder',
-            'username' => 'bobthebuilder',
+            'name' => 'bobthebuilder',
             'email' => 'bob@example.com',
         ]);
         // Ensure it's not accidentally matching first_name or email of another user
@@ -187,4 +182,3 @@ class UserControllerTest extends TestCase
         $response->assertUnauthorized(); // Expect redirect to login or 401 if API
     }
 }
-?>

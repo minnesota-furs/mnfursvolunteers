@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,6 +12,15 @@ return new class extends Migration
         Schema::table('volunteer_perks', function (Blueprint $table) {
             $table->foreignId('perk_set_id')->nullable()->after('id')
                 ->constrained('volunteer_perk_sets')->nullOnDelete();
+        });
+
+        // SQLite (test database only) cannot drop a foreign-keyed column; the
+        // leftover column is nullable and unused, so it is left in place there.
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
+        Schema::table('volunteer_perks', function (Blueprint $table) {
             $table->dropForeign(['fiscal_ledger_id']);
             $table->dropColumn('fiscal_ledger_id');
         });
