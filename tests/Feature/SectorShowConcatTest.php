@@ -7,7 +7,7 @@ use App\Models\User;
 
 it('hides the ConCat row when ConCat is not connected', function () {
     $sector = Sector::factory()->create();
-    $user = User::factory()->create(['onboarded_at' => now()]);
+    $user = User::factory()->admin()->create();
 
     $this->actingAs($user)
         ->get(route('sectors.show', $sector))
@@ -28,7 +28,7 @@ describe('when ConCat is connected', function () {
             'concat_role_name' => 'Staff',
             'concat_scope' => 'convention',
         ]);
-        $user = User::factory()->create(['onboarded_at' => now()]);
+        $user = User::factory()->admin()->create();
 
         $this->actingAs($user)
             ->get(route('sectors.show', $sector))
@@ -47,7 +47,7 @@ describe('when ConCat is connected', function () {
             'concat_role_name' => 'Staff',
             'concat_scope' => 'global',
         ]);
-        $user = User::factory()->create(['onboarded_at' => now()]);
+        $user = User::factory()->admin()->create();
 
         $this->actingAs($user)
             ->get(route('sectors.show', $sector))
@@ -57,7 +57,7 @@ describe('when ConCat is connected', function () {
 
     it('shows that the sector does not grant a role when it is unwatched', function () {
         $sector = Sector::factory()->create();
-        $user = User::factory()->create(['onboarded_at' => now()]);
+        $user = User::factory()->admin()->create();
 
         $this->actingAs($user)
             ->get(route('sectors.show', $sector))
@@ -65,10 +65,10 @@ describe('when ConCat is connected', function () {
             ->assertSee('Does not grant a ConCat role');
     });
 
-    it('shows a Manage Concat link to admins but not to regular users', function () {
+    it('shows a Manage Concat link to admins and keeps regular users off the page', function () {
         $sector = Sector::factory()->create();
-        $admin = User::factory()->admin()->create(['onboarded_at' => now()]);
-        $volunteer = User::factory()->create(['onboarded_at' => now()]);
+        $admin = User::factory()->admin()->create();
+        $volunteer = User::factory()->create();
 
         $this->actingAs($admin)
             ->get(route('sectors.show', $sector))
@@ -77,7 +77,6 @@ describe('when ConCat is connected', function () {
 
         $this->actingAs($volunteer)
             ->get(route('sectors.show', $sector))
-            ->assertOk()
-            ->assertDontSee(route('admin.concat.index'), false);
+            ->assertForbidden();
     });
 });

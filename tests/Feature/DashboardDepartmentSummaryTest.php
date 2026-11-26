@@ -9,7 +9,7 @@ it('collapses department assignments beyond the first two on the dashboard', fun
     $departments = collect(['Registration', 'Security', 'Logistics', 'Hospitality'])
         ->map(fn (string $name) => Department::factory()->for($sector)->create(['name' => $name]));
     $user = User::factory()->create(['onboarded_at' => now()]);
-    $user->departments()->attach($departments);
+    $user->departments()->attach($departments->pluck('id'));
 
     $this->actingAs($user)
         ->get(route('dashboard'))

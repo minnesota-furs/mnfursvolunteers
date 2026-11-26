@@ -1,17 +1,11 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Support\Collection;
 
 it('explains relationship markers and their privacy protections', function () {
-    $this->actingAs(User::factory()->create());
-
-    $view = $this->view('relationships.index', [
-        'favorites' => new Collection,
-        'avoided' => new Collection,
-    ]);
-
-    $view
+    $this->actingAs(User::factory()->create())
+        ->get(route('relationships.index'))
+        ->assertOk()
         ->assertSee('What is this?')
         ->assertSee('How Favorite & Avoid works', false)
         ->assertSee('relationship-help')

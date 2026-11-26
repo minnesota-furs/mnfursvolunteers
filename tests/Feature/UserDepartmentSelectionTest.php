@@ -5,7 +5,7 @@ use App\Models\Sector;
 use App\Models\User;
 
 it('shows an accessible sector-grouped department picker when editing a user', function () {
-    $administrator = User::factory()->admin()->create();
+    $administrator = User::factory()->admin()->create(['permissions' => ['Manage Users']]);
     $user = User::factory()->create();
     $operations = Sector::factory()->create(['name' => 'Operations']);
     $community = Sector::factory()->create(['name' => 'Community']);

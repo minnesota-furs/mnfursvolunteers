@@ -166,7 +166,8 @@ it('renders announcement markdown safely on the reading page', function () {
         ->get(route('announcements.show', $announcement))
         ->assertSuccessful()
         ->assertSee('<strong>important</strong>', false)
-        ->assertDontSee('<script>', false);
+        ->assertSee('&lt;script&gt;alert(', false)
+        ->assertDontSee('<script>alert(', false);
 });
 
 it('does not allow direct access to expired or restricted announcements', function () {

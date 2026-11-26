@@ -20,6 +20,13 @@ it('shows a warning instead of creating an account after a valid new WordPress l
         $table->string('user_pass');
     });
 
+    Schema::connection('wordpress')->create('usermeta', function (Blueprint $table) {
+        $table->unsignedBigInteger('umeta_id')->primary();
+        $table->unsignedBigInteger('user_id');
+        $table->string('meta_key')->nullable();
+        $table->text('meta_value')->nullable();
+    });
+
     $password = 'valid-password';
     $passwordToHash = base64_encode(hash_hmac('sha384', $password, 'wp-sha384', true));
 
